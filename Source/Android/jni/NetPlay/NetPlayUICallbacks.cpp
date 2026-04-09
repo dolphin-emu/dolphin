@@ -56,7 +56,14 @@ void NetPlayUICallbacks::OnPadBufferChanged(u32) {}
 void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool) {}
 void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
 void NetPlayUICallbacks::OnConnectionLost() {}
-void NetPlayUICallbacks::OnConnectionError(const std::string&) {}
+
+void NetPlayUICallbacks::OnConnectionError(const std::string& message)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnConnectionError(),
+                            ToJString(env, message));
+}
+
 void NetPlayUICallbacks::OnTraversalError(Common::TraversalClient::FailureReason) {}
 void NetPlayUICallbacks::OnTraversalStateChanged(Common::TraversalClient::State) {}
 void NetPlayUICallbacks::OnGameStartAborted() {}

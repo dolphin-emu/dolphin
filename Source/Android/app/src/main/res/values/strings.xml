@@ -984,12 +984,14 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <!-- Netplay -->
     <string name="netplay_setup_title">Netplay Setup</string>
-    <string name="netplay_nickname_label">Nickname</string>
     <string name="netplay_connection_type">Connection type</string>
     <string name="netplay_connection_type_direct_connection">Direct connection</string>
     <string name="netplay_connection_type_traversal_server">Traversal server</string>
     <string name="netplay_connection_role_connect">Connect</string>
+    <string name="netplay_connection_role_connect_loading">Connecting…</string>
     <string name="netplay_connection_role_host">Host</string>
+    <string name="netplay_connection_role_host_loading">Starting…</string>
+    <string name="netplay_nickname_label">Nickname</string>
     <string name="netplay_ip_address_label">IP address</string>
     <string name="netplay_host_code_label">Host code</string>
     <string name="netplay_port_label">Port</string>

@@ -11,19 +11,24 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,7 +40,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,8 +52,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dolphinemu.dolphinemu.R
@@ -59,6 +70,10 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
+
+private data class ErrorDialogState(val message: String) {
+    val onDismissed = CompletableDeferred<Unit>()
+}
 
 class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
     override var themeId: Int = 0
@@ -75,10 +90,16 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
 
         viewModel = ViewModelProvider(this)[NetplaySetupViewModel::class.java]
 
+        viewModel.showNetplayScreen
+            .onEach { /* launch NetplayActivity */ }
+            .launchIn(lifecycleScope)
+
         setContent {
             DolphinTheme {
                 NetplaySetupScreen(
                     onBackClicked = { finish() },
+                    connecting = viewModel.connecting.collectAsState().value,
+                    errors = viewModel.errors,
                     nickname = viewModel.nickname.collectAsState().value,
                     onNicknameChanged = viewModel::setNickname,
                     connectionType = viewModel.connectionType.collectAsState().value,
@@ -118,6 +139,8 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
 @Composable
 private fun NetplaySetupScreen(
     onBackClicked: () -> Unit,
+    connecting: Boolean,
+    errors: Flow<String>,
     connectionRole: ConnectionRole,
     onConnectionRoleChanged: (ConnectionRole) -> Unit,
     nickname: String,
@@ -150,10 +173,40 @@ private fun NetplaySetupScreen(
             ExtendedFloatingActionButton(
                 onClick = onConnectClicked,
             ) {
-                Text(stringResource(connectionRole.labelId))
+                if (connecting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(stringResource(connectionRole.loadingLabelId))
+                } else {
+                    Text(stringResource(connectionRole.labelId))
+                }
             }
         }
     ) { innerPadding ->
+        var activeErrorDialog by remember { mutableStateOf<ErrorDialogState?>(null) }
+        LaunchedEffect(Unit) {
+            errors.collect { message ->
+                activeErrorDialog = ErrorDialogState(message)
+                activeErrorDialog?.onDismissed?.await()
+                activeErrorDialog = null
+            }
+        }
+        activeErrorDialog?.let { activeErrorDialog ->
+            AlertDialog(
+                text = { Text(activeErrorDialog.message) },
+                confirmButton = {
+                    TextButton(onClick = { activeErrorDialog.onDismissed.complete(Unit) }) {
+                        Text("Dismiss")
+                    }
+                },
+                onDismissRequest = { activeErrorDialog.onDismissed.complete(Unit) },
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -332,12 +385,14 @@ private fun NetplaySetupScreenPreview() {
     MaterialTheme {
         NetplaySetupScreen(
             onBackClicked = {},
+            connecting = false,
+            errors = emptyFlow(),
+            connectionRole = ConnectionRole.Connect,
+            onConnectionRoleChanged = {},
             nickname = "Preview nickname",
             onNicknameChanged = {},
             connectionType = ConnectionType.DirectConnection,
             onConnectionTypeChanged = {},
-            connectionRole = ConnectionRole.Connect,
-            onConnectionRoleChanged = {},
             ipAddress = "127.0.0.1",
             onIpAddressChanged = {},
             connectPort = "2626",

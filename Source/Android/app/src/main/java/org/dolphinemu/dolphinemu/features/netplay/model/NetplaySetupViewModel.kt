@@ -3,8 +3,15 @@
 package org.dolphinemu.dolphinemu.features.netplay.model
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.Netplay
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 
@@ -26,6 +33,14 @@ class NetplaySetupViewModel : ViewModel() {
 
     private val _connectPort = MutableStateFlow(Netplay.getConnectPort().toString())
     val connectPort = _connectPort.asStateFlow()
+
+    private val _showNetplayScreen = Channel<Unit>(CONFLATED)
+    val showNetplayScreen = _showNetplayScreen.receiveAsFlow()
+
+    private val _connecting = MutableStateFlow(false)
+    val connecting = _connecting.asStateFlow()
+
+    val errors = Netplay.connectionErrors
 
     init {
         GameFileCacheManager.startLoad()
@@ -60,17 +75,24 @@ class NetplaySetupViewModel : ViewModel() {
     }
 
     fun connect() {
-        if (GameFileCacheManager.isLoading().value == true) {
-            return
-        }
+        _connecting.value = true
 
-        Netplay.saveSetup(
-            nickname = nickname.value,
-            connectionType = connectionType.value,
-            address = ipAddress.value,
-            hostCode = hostCode.value,
-            connectPort = connectPort.value.toInt(),
-        )
-        Netplay.join()
+        viewModelScope.launch {
+            GameFileCacheManager.isLoading().asFlow().first { it == false }
+
+            Netplay.saveSetup(
+                nickname = nickname.value,
+                connectionType = connectionType.value,
+                address = ipAddress.value,
+                hostCode = hostCode.value,
+                connectPort = connectPort.value.toInt(),
+            )
+
+            if (Netplay.join()) {
+                _showNetplayScreen.trySend(Unit)
+            }
+
+            _connecting.value = false
+        }
     }
 }

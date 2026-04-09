@@ -4,8 +4,11 @@
 package org.dolphinemu.dolphinemu.features.netplay
 
 import androidx.annotation.Keep
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 
 object Netplay {
@@ -20,6 +23,12 @@ object Netplay {
 
     private val _launchGame = Channel<String>(Channel.CONFLATED)
     val launchGame = _launchGame.receiveAsFlow()
+
+    private val _connectionErrors = Channel<String>(Channel.BUFFERED)
+    val connectionErrors = _connectionErrors.receiveAsFlow()
+
+    @JvmStatic
+    external fun isClientConnected(): Boolean
 
     @JvmStatic
     external fun getNickname(): String
@@ -63,13 +72,13 @@ object Netplay {
     @JvmStatic
     external fun getIndexPassword(): String
 
-    fun saveSetup(
+    suspend fun saveSetup(
         nickname: String,
         connectionType: ConnectionType,
         address: String,
         hostCode: String,
         connectPort: Int,
-    ) {
+    ) = withContext(Dispatchers.IO) {
         SaveSetup(
             nickname = nickname,
             traversalChoice = connectionType.configValue,
@@ -108,16 +117,50 @@ object Netplay {
         indexPassword: String,
     )
 
-    fun join() {
+    suspend fun join(): Boolean = withContext(Dispatchers.IO) {
         netPlayClientPointer = Join()
+        val isConnected = netPlayClientPointer != 0L && isClientConnected()
+
+        if (!isActive) {
+            releaseNetplayClient()
+            return@withContext false
+        }
+
+        if (isConnected) {
+            return@withContext true
+        }
+
+        releaseNetplayClient()
+        false
+    }
+
+    private fun releaseNetplayClient() {
+        if (netPlayClientPointer != 0L) {
+            ReleaseNetplayClient()
+            netPlayClientPointer = 0
+        }
+        _launchGame.flush()
+        _connectionErrors.flush()
     }
 
     @JvmStatic
     private external fun Join(): Long
 
     @JvmStatic
+    private external fun ReleaseNetplayClient()
+
+    @JvmStatic
     fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
         this.bootSessionDataPointer = bootSessionDataPointer
         _launchGame.trySend(gameFilePath)
     }
+
+    @JvmStatic
+    fun onConnectionError(message: String) {
+        _connectionErrors.trySend(message)
+    }
+}
+
+private fun Channel<String>.flush() {
+    while (this.tryReceive().isSuccess) Unit
 }

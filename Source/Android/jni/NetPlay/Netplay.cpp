@@ -17,6 +17,12 @@
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/NetPlay/NetPlayUICallbacks.h"
 
+static NetPlay::NetPlayClient* GetPointer(JNIEnv* env)
+{
+  return reinterpret_cast<NetPlay::NetPlayClient*>(
+      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+}
+
 extern "C" {
 
 JNIEXPORT jstring JNICALL
@@ -124,6 +130,12 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_SaveSetup(
   Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT, static_cast<u16>(listenPort));
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_isClientConnected(JNIEnv* env, jclass)
+{
+  return static_cast<jboolean>(GetPointer(env)->IsConnected());
+}
+
 JNIEXPORT jlong JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv* env, jclass)
 {
@@ -153,6 +165,12 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv* env, jclass
       NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port});
 
   return reinterpret_cast<jlong>(client);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_ReleaseNetplayClient(JNIEnv* env, jclass)
+{
+  delete GetPointer(env);
 }
 
 }  // extern "C"
