@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.sin
 
 /**
@@ -52,11 +53,9 @@ class InputOverlayDrawableJoystick(
         private set
     var trackId = -1
         private set
-    private var angle = 0.0
-    private var radius = 0.0
-    private var gateRadius = 0.0
-    private var previousRadius = 0.0
-    private var previousAngle = 0.0
+    private var maxRadius = 0.0
+    private var hapticsPreviousX = 0.0f
+    private var hapticsPreviousY = 0.0f
     private var controlPositionX = 0
     private var controlPositionY = 0
     private var previousTouchX = 0
@@ -149,6 +148,8 @@ class InputOverlayDrawableJoystick(
                     }
                     y = 0f
                     x = y
+                    hapticsPreviousX = x
+                    hapticsPreviousY = y
                     outerBitmap.alpha = opacity
                     boundsBoxBitmap.alpha = 0
                     virtBounds =
@@ -156,8 +157,6 @@ class InputOverlayDrawableJoystick(
                     bounds =
                         Rect(origBounds.left, origBounds.top, origBounds.right, origBounds.bottom)
                     setInnerBounds()
-                    previousRadius = 0.0
-                    previousAngle = 0.0
                     trackId = -1
                 }
             }
@@ -181,17 +180,13 @@ class InputOverlayDrawableJoystick(
 
                 setInnerBounds()
                 if (BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean) {
-                    val radiusThreshold = gateRadius * 0.33
-                    val angularDistance = kotlin.math.abs(previousAngle - angle)
-                        .let { kotlin.math.min(it, Math.PI + Math.PI - it) }
-                    if (kotlin.math.abs(previousRadius - radius) > radiusThreshold
-                        || (radius > radiusThreshold &&
-                                (angularDistance >= HAPTICS_MAX_ANGLE || (radius == gateRadius &&
-                                        angularDistance * hapticsScale >= HAPTICS_MIN_ANGLE)))
-                    ) {
+                    val radiusThreshold = maxRadius * 0.1
+                    val deltaX = x - hapticsPreviousX
+                    val deltaY = y - hapticsPreviousY
+                    if (deltaX.pow(2) + deltaY.pow(2) > radiusThreshold.pow(2)) {
                         hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, hapticsScale)
-                        previousRadius = radius
-                        previousAngle = angle
+                        hapticsPreviousX = x
+                        hapticsPreviousY = y
                     }
                 }
             }
@@ -242,13 +237,12 @@ class InputOverlayDrawableJoystick(
         var x = x.toDouble()
         var y = y.toDouble()
 
-        angle = atan2(y, x) + Math.PI + Math.PI
-        radius = hypot(y, x)
-        gateRadius = InputOverrider.getGateRadiusAtAngle(controllerIndex, xControl, angle)
-        if (radius > gateRadius) {
-            radius = gateRadius
-            x = gateRadius * cos(angle)
-            y = gateRadius * sin(angle)
+        val angle = atan2(y, x) + Math.PI + Math.PI
+        val radius = hypot(y, x)
+        maxRadius = InputOverrider.getGateRadiusAtAngle(controllerIndex, xControl, angle)
+        if (radius > maxRadius) {
+            x = maxRadius * cos(angle)
+            y = maxRadius * sin(angle)
             this.x = x.toFloat()
             this.y = y.toFloat()
         }
@@ -288,10 +282,5 @@ class InputOverlayDrawableJoystick(
             outerBitmap.alpha = 0
             boundsBoxBitmap.alpha = value
         }
-    }
-
-    companion object {
-        private const val HAPTICS_MIN_ANGLE = Math.PI / 20.0
-        private const val HAPTICS_MAX_ANGLE = Math.PI / 4.0
     }
 }
