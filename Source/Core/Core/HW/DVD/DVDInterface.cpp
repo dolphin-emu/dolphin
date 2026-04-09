@@ -442,7 +442,6 @@ void DVDInterface::AutoChangeDiscCallback(Core::System& system, u64 userdata, s6
 
 void DVDInterface::EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  AchievementManager::GetInstance().ChangeDisc(nullptr);
   system.GetDVDInterface().SetDisc(nullptr, {});
 }
 

@@ -170,6 +170,8 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
     if (rc_client_get_game_info(m_client))
     {
+      OSD::AddMessage("Unsupported media change; disabling achievements.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
       CloseGame();
     }
     else
