@@ -87,10 +87,11 @@ class HapticsProvider(
     ): IntArray {
         // Note: It is recommended that these values differ by a ratio of 1.4 or more,
         // so the difference in the amplitude of the vibration can be easily perceived.
+        // Value range is between 0 and 255 (VibrationEffect.MAX_AMPLITUDE).
         return when (effect) {
-            HapticEffect.QUICK_FALL -> intArrayOf(0, (180 * scale).toInt())
-            HapticEffect.QUICK_RISE -> intArrayOf(0, (128 * scale).toInt())
-            HapticEffect.LOW_TICK -> intArrayOf(0, (90 * scale).toInt())
+            HapticEffect.QUICK_FALL -> intArrayOf(0, (255f * scale).toInt())
+            HapticEffect.QUICK_RISE -> intArrayOf(0, (180f * scale).toInt())
+            HapticEffect.LOW_TICK -> intArrayOf(0, (128f * scale).toInt())
         }
     }
 
