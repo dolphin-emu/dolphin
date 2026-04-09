@@ -134,6 +134,10 @@ object Netplay {
         false
     }
 
+    suspend fun quit() = withContext(Dispatchers.IO) {
+        releaseNetplayClient()
+    }
+
     private fun releaseNetplayClient() {
         if (netPlayClientPointer != 0L) {
             ReleaseNetplayClient()

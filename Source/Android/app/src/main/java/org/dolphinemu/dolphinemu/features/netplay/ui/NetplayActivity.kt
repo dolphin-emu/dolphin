@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+package org.dolphinemu.dolphinemu.features.netplay.ui
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.dolphinemu.dolphinemu.activities.EmulationActivity
+import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.features.netplay.model.NetplayViewModel
+import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
+import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
+import org.dolphinemu.dolphinemu.utils.ThemeHelper
+
+class NetplayActivity : AppCompatActivity(), ThemeProvider {
+    override var themeId: Int = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.setTheme(this)
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
+        val viewModel = ViewModelProvider(this)[NetplayViewModel::class.java]
+
+        viewModel.goBack
+            .onEach { finish() }
+            .launchIn(lifecycleScope)
+
+        viewModel.launchGame
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { EmulationActivity.launch(this, it, false) }
+            .launchIn(lifecycleScope)
+
+        setContent {
+            DolphinTheme {
+                NetplayScreen(
+                    onBackClicked = { finish() },
+                )
+            }
+        }
+    }
+
+    override fun setTheme(themeId: Int) {
+        super.setTheme(themeId)
+        this.themeId = themeId
+    }
+
+    override fun onResume() {
+        ThemeHelper.setCorrectTheme(this)
+        super.onResume()
+    }
+
+    companion object {
+        @JvmStatic
+        fun launch(context: Context) {
+            context.startActivity(Intent(context, NetplayActivity::class.java))
+        }
+    }
+}

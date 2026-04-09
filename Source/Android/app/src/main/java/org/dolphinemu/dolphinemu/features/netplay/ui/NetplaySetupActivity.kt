@@ -9,12 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.dolphinemu.dolphinemu.activities.EmulationActivity
-import org.dolphinemu.dolphinemu.features.netplay.Netplay
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupViewModel
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
@@ -28,14 +28,11 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        Netplay.launchGame
-            .onEach { EmulationActivity.launch(this, it, false) }
-            .launchIn(lifecycleScope)
-
         val viewModel = ViewModelProvider(this)[NetplaySetupViewModel::class.java]
 
         viewModel.showNetplayScreen
-            .onEach { /* launch NetplayActivity */ }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { NetplayActivity.launch(this) }
             .launchIn(lifecycleScope)
 
         setContent {

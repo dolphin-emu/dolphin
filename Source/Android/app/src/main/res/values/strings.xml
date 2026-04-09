@@ -995,4 +995,5 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_ip_address_label">IP address</string>
     <string name="netplay_host_code_label">Host code</string>
     <string name="netplay_port_label">Port</string>
+    <string name="netplay_title">Netplay</string>
 </resources>
