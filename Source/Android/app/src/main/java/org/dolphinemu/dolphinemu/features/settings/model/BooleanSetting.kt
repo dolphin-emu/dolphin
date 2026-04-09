@@ -671,16 +671,16 @@ enum class BooleanSetting(
         "ButtonLatchingNunchukZ",
         false
     ),
-    MAIN_OVERLAY_HAPTICS_PRESS(
+    MAIN_OVERLAY_HAPTICS_ON_PRESS(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "OverlayHapticsPress",
+        "OverlayHapticsOnPress",
         false
     ),
-    MAIN_OVERLAY_HAPTICS_RELEASE(
+    MAIN_OVERLAY_HAPTICS_ON_RELEASE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "OverlayHapticsRelease",
+        "OverlayHapticsOnRelease",
         false
     ),
     MAIN_OVERLAY_HAPTICS_JOYSTICK(

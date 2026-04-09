@@ -145,8 +145,8 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 action != MotionEvent.ACTION_POINTER_UP
         val pointerIndex = if (firstPointer) 0 else event.actionIndex
         val hapticsScale = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float
-        val pressFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
-        val releaseFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
+        val hapticsOnPress = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean
+        val hapticsOnRelease = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean
         // Tracks if any button/joystick is pressed down
         var pressed = false
 
@@ -163,7 +163,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ) {
                         if (button.latching && button.getPressedState()) {
                             button.setPressedState(false)
-                            if (releaseFeedback) {
+                            if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.QUICK_RISE,
                                     hapticsScale
@@ -171,7 +171,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             }
                         } else {
                             button.setPressedState(true)
-                            if (pressFeedback) {
+                            if (hapticsOnPress) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.QUICK_FALL,
                                     hapticsScale
@@ -198,7 +198,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     if (button.trackId == event.getPointerId(pointerIndex)) {
                         if (!button.latching) {
                             button.setPressedState(false)
-                            if (releaseFeedback) {
+                            if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.QUICK_RISE,
                                     hapticsScale
@@ -257,7 +257,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         // Release the buttons first, then press
                         for (i in dpadPressed.indices) {
                             if (!dpadPressed[i]) {
-                                if (releaseFeedback && dpad.isPressed(i)) {
+                                if (hapticsOnRelease && dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
                                         HapticEffect.QUICK_RISE,
                                         hapticsScale
@@ -269,7 +269,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                                     0.0
                                 )
                             } else {
-                                if (pressFeedback && !dpad.isPressed(i)) {
+                                if (hapticsOnPress && !dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
                                         HapticEffect.QUICK_FALL,
                                         hapticsScale
@@ -296,7 +296,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     // If a pointer ends, release the buttons.
                     if (dpad.trackId == event.getPointerId(pointerIndex)) {
                         for (i in 0 until 4) {
-                            if (releaseFeedback && dpad.isPressed(i)) {
+                            if (hapticsOnRelease && dpad.isPressed(i)) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.QUICK_RISE,
                                     hapticsScale

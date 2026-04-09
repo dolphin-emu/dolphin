@@ -7,49 +7,49 @@
     android:orientation="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/haptics_triggers"
+        android:id="@+id/emulation_haptics"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/spacing_large">
 
         <TextView
-            android:id="@+id/haptics_triggers_text"
+            android:id="@+id/emulation_haptics_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_medlarge"
-            android:text="@string/haptics_triggers"
+            android:text="@string/emulation_haptics"
             android:textAlignment="viewStart"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
-            app:layout_constraintBottom_toTopOf="@id/haptics_release_checkbox"
+            app:layout_constraintBottom_toTopOf="@id/haptics_on_release_checkbox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/haptics_press_checkbox"
+            android:id="@+id/haptics_on_press_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="48dp"
             android:minHeight="48dp"
-            android:text="@string/haptics_press"
+            android:text="@string/haptics_on_press"
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/haptics_release_checkbox"
+            app:layout_constraintEnd_toStartOf="@+id/haptics_on_release_checkbox"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/haptics_release_checkbox" />
+            app:layout_constraintTop_toTopOf="@id/haptics_on_release_checkbox" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/haptics_release_checkbox"
+            android:id="@+id/haptics_on_release_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="48dp"
             android:minHeight="48dp"
-            android:text="@string/haptics_release"
+            android:text="@string/haptics_on_release"
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/haptics_joystick_checkbox"
-            app:layout_constraintStart_toEndOf="@+id/haptics_press_checkbox"
-            app:layout_constraintTop_toBottomOf="@+id/haptics_triggers_text" />
+            app:layout_constraintStart_toEndOf="@+id/haptics_on_press_checkbox"
+            app:layout_constraintTop_toBottomOf="@+id/emulation_haptics_text" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/haptics_joystick_checkbox"
@@ -61,8 +61,8 @@
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/haptics_release_checkbox"
-            app:layout_constraintTop_toTopOf="@id/haptics_release_checkbox" />
+            app:layout_constraintStart_toEndOf="@+id/haptics_on_release_checkbox"
+            app:layout_constraintTop_toTopOf="@id/haptics_on_release_checkbox" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

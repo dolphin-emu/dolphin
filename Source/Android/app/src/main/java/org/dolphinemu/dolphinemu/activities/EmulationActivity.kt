@@ -721,9 +721,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 hapticsIntensityValue.isEnabled = isChecked
             }
             val checkboxes =
-                listOf(hapticsPressCheckbox, hapticsReleaseCheckbox, hapticsJoystickCheckbox)
-            hapticsPressCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
-            hapticsReleaseCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
+                listOf(hapticsOnPressCheckbox, hapticsOnReleaseCheckbox, hapticsJoystickCheckbox)
+            hapticsOnPressCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean
+            hapticsOnReleaseCheckbox.isChecked =
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean
             hapticsJoystickCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean
             if (checkboxes.none { it.isChecked }) {
                 toggleIntensity(false)
@@ -751,11 +752,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         MaterialAlertDialogBuilder(this)
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.setBoolean(
-                    settings, dialogBinding.hapticsPressCheckbox.isChecked
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.setBoolean(
+                    settings, dialogBinding.hapticsOnPressCheckbox.isChecked
                 )
-                BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.setBoolean(
-                    settings, dialogBinding.hapticsReleaseCheckbox.isChecked
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.setBoolean(
+                    settings, dialogBinding.hapticsOnReleaseCheckbox.isChecked
                 )
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
                     settings, dialogBinding.hapticsJoystickCheckbox.isChecked

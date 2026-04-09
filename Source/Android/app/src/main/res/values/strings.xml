@@ -842,9 +842,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="ir_drag">Drag</string>
 
     <!-- Haptics -->
-    <string name="haptics_triggers">Feedback Triggers</string>
-    <string name="haptics_press">Press</string>
-    <string name="haptics_release">Release</string>
+    <string name="haptics_on_press">On Press</string>
+    <string name="haptics_on_release">On Release</string>
     <string name="haptics_joystick">Joystick</string>
     <string name="haptics_intensity">Intensity</string>
 
