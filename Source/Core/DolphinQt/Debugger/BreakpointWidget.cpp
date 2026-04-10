@@ -310,9 +310,14 @@ void BreakpointWidget::Update()
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::transparent);
-    // Center and radius
-    painter.drawEllipse(QPoint(downscale / 2, downscale / 2), downscale / 4, downscale / 4);
+
+    const float icon_radius = static_cast<float>(image.height()) / 2.0f;
+    const float gap_radius = icon_radius / 2.0f;
+    const QPointF center(icon_radius, icon_radius);
+
+    painter.drawEllipse(center, gap_radius, gap_radius);
     painter.end();
+
     enabled_icon = QPixmap::fromImage(image);
   }
 
