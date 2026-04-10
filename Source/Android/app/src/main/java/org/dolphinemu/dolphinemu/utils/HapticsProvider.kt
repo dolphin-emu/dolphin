@@ -106,7 +106,7 @@ class HapticsProvider(
 
     private fun areAllPrimitivesSupported(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && vibrator.areAllPrimitivesSupported(
-            *HapticEffect.values().map { getPrimitive(it) }.toIntArray()
+            *HapticEffect.entries.map { getPrimitive(it) }.toIntArray()
         )
     }
 
