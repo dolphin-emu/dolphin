@@ -316,7 +316,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                                 0.0
                             )
                         }
-                        dpad.setPressed(false, false, false, false)
+                        dpad.setPressed(up = false, down = false, left = false, right = false)
                         dpad.trackId = -1
                     }
                 }
