@@ -147,6 +147,8 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         val hapticsScale = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float
         val hapticsOnPress = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean
         val hapticsOnRelease = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean
+        val hapticsView =
+            if (BooleanSetting.MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY.boolean) null else v
         // Tracks if any button/joystick is pressed down
         var pressed = false
 
@@ -166,6 +168,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.RELEASE,
+                                    hapticsView,
                                     hapticsScale
                                 )
                             }
@@ -174,6 +177,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (hapticsOnPress) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.PRESS,
+                                    hapticsView,
                                     hapticsScale
                                 )
                             }
@@ -201,6 +205,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.RELEASE,
+                                    hapticsView,
                                     hapticsScale
                                 )
                             }
@@ -260,6 +265,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                                 if (hapticsOnRelease && dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
                                         HapticEffect.RELEASE,
+                                        hapticsView,
                                         hapticsScale
                                     )
                                 }
@@ -272,6 +278,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                                 if (hapticsOnPress && !dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
                                         HapticEffect.PRESS,
+                                        hapticsView,
                                         hapticsScale
                                     )
                                 }
@@ -299,6 +306,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (hapticsOnRelease && dpad.isPressed(i)) {
                                 hapticsProvider.provideFeedback(
                                     HapticEffect.RELEASE,
+                                    hapticsView,
                                     hapticsScale
                                 )
                             }
@@ -316,7 +324,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         }
 
         for (joystick in overlayJoysticks) {
-            if (joystick.trackEvent(event)) {
+            if (joystick.trackEvent(v, event)) {
                 if (joystick.trackId != -1)
                     pressed = true
             }

@@ -715,24 +715,33 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val dialogBinding = DialogHapticsAdjustBinding.inflate(layoutInflater)
         val hapticsProvider = HapticsProvider()
         dialogBinding.apply {
-            val toggleIntensity = { isChecked: Boolean ->
-                hapticsIntensityName.isEnabled = isChecked
-                hapticsIntensitySlider.isEnabled = isChecked
-                hapticsIntensityValue.isEnabled = isChecked
-            }
             val checkboxes =
                 listOf(hapticsOnPressCheckbox, hapticsOnReleaseCheckbox, hapticsJoystickCheckbox)
+            val toggleVibrationSettings = {
+                checkboxes.any { it.isChecked }.let { enabled ->
+                    hapticsUseVibratorDirectlyName.isEnabled = enabled
+                    hapticsUseVibratorDirectlySwitch.isEnabled = enabled
+                    (hapticsUseVibratorDirectlySwitch.isChecked && enabled).let { enabled ->
+                        hapticsIntensityName.isEnabled = enabled
+                        hapticsIntensitySlider.isEnabled = enabled
+                        hapticsIntensityValue.isEnabled = enabled
+                    }
+                }
+            }
             hapticsOnPressCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean
             hapticsOnReleaseCheckbox.isChecked =
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean
             hapticsJoystickCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean
-            if (checkboxes.none { it.isChecked }) {
-                toggleIntensity(false)
-            }
+            hapticsUseVibratorDirectlySwitch.isChecked =
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY.boolean
+            toggleVibrationSettings()
             checkboxes.forEach { checkbox ->
                 checkbox.setOnCheckedChangeListener { _, _ ->
-                    toggleIntensity(checkboxes.any { it.isChecked })
+                    toggleVibrationSettings()
                 }
+            }
+            hapticsUseVibratorDirectlySwitch.setOnCheckedChangeListener { _, _ ->
+                toggleVibrationSettings()
             }
             hapticsIntensitySlider.apply {
                 val setValueText = { value: Float ->
@@ -745,7 +754,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 value = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float.also { setValueText(it) }
                 addOnChangeListener { _: Slider, value: Float, _: Boolean ->
                     setValueText(value)
-                    hapticsProvider.provideFeedback(HapticEffect.JOYSTICK, value)
+                    hapticsProvider.provideFeedback(HapticEffect.JOYSTICK, null, value)
                 }
             }
         }
@@ -760,6 +769,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 )
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
                     settings, dialogBinding.hapticsJoystickCheckbox.isChecked
+                )
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY.setBoolean(
+                    settings, dialogBinding.hapticsUseVibratorDirectlySwitch.isChecked
                 )
                 FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.setFloat(
                     settings, dialogBinding.hapticsIntensitySlider.value

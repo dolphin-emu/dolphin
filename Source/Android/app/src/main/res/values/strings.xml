@@ -845,6 +845,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="haptics_on_press">On Press</string>
     <string name="haptics_on_release">On Release</string>
     <string name="haptics_joystick">Joystick</string>
+    <string name="haptics_use_vibrator_directly">Use vibrator directly</string>
     <string name="haptics_intensity">Intensity</string>
 
     <!-- Double Tap Buttons -->

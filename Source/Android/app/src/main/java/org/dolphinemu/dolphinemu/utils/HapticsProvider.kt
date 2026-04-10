@@ -5,6 +5,8 @@ package org.dolphinemu.dolphinemu.utils
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.HapticFeedbackConstants
+import android.view.View
 import androidx.annotation.FloatRange
 import androidx.annotation.RequiresApi
 import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
@@ -20,16 +22,29 @@ class HapticsProvider(
         DolphinVibratorManagerFactory.getSystemVibratorManager().getDefaultVibrator()
 ) {
     private val primitiveSupport: Boolean = areAllPrimitivesSupported()
+    private val releaseHapticFeedbackConstant =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            HapticFeedbackConstants.VIRTUAL_KEY_RELEASE
+        } else {
+            HapticFeedbackConstants.VIRTUAL_KEY // Same as press feedback is better than no feedback
+        }
 
     /**
-     * Perform haptic feedback by composing primitives (if supported),
-     * with a fallback to a waveform or a legacy vibration.
+     * Perform haptic feedback natively (if a [View] is provided),
+     * or by composing primitives (if supported), falling back to a waveform or a legacy vibration.
      *
      * @param effect The [HapticEffect] of the feedback.
-     * @param scale The intensity scale of the feedback.
+     * @param view The [View] to perform the feedback on, can be null to vibrate using the [vibrator].
+     * @param scale The intensity scale of the feedback, will only be used if [view] is not set.
      */
-    fun provideFeedback(effect: HapticEffect, @FloatRange(from = 0.0, to = 1.0) scale: Float) {
-        if (primitiveSupport) {
+    fun provideFeedback(
+        effect: HapticEffect,
+        view: View? = null,
+        @FloatRange(from = 0.0, to = 1.0) scale: Float = 0.5f
+    ) {
+        if (view != null) {
+            view.performHapticFeedback(getHapticFeedbackConstant(effect))
+        } else if (primitiveSupport) {
             vibrator.vibrate(
                 VibrationEffect
                     .startComposition()
@@ -95,6 +110,20 @@ class HapticsProvider(
         }
     }
 
+    /**
+     * Get the haptic feedback constant that matches the [effect].
+     *
+     * @param effect The [HapticEffect] of the feedback.
+     * @return The matching [HapticFeedbackConstants] constant.
+     */
+    private fun getHapticFeedbackConstant(effect: HapticEffect): Int {
+        return when (effect) {
+            HapticEffect.PRESS -> HapticFeedbackConstants.VIRTUAL_KEY
+            HapticEffect.RELEASE -> releaseHapticFeedbackConstant
+            HapticEffect.JOYSTICK -> HapticFeedbackConstants.CLOCK_TICK
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.S)
     private fun getPrimitive(effect: HapticEffect): Int {
         return when (effect) {
@@ -109,7 +138,6 @@ class HapticsProvider(
             *HapticEffect.entries.map { getPrimitive(it) }.toIntArray()
         )
     }
-
 }
 
 enum class HapticEffect {

@@ -689,6 +689,12 @@ enum class BooleanSetting(
         "OverlayHapticsJoystick",
         false
     ),
+    MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "OverlayHapticsUseVibratorDirectly",
+        false
+    ),
     SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
     SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),
     SYSCONF_PROGRESSIVE_SCAN(Settings.FILE_SYSCONF, "IPL", "PGS", true),

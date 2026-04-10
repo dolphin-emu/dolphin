@@ -29,8 +29,8 @@
             android:id="@+id/haptics_on_press_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="48dp"
             android:minHeight="48dp"
+            android:minWidth="48dp"
             android:text="@string/haptics_on_press"
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -42,8 +42,8 @@
             android:id="@+id/haptics_on_release_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="48dp"
             android:minHeight="48dp"
+            android:minWidth="48dp"
             android:text="@string/haptics_on_release"
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -55,14 +55,44 @@
             android:id="@+id/haptics_joystick_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="48dp"
             android:minHeight="48dp"
+            android:minWidth="48dp"
             android:text="@string/haptics_joystick"
             android:textAppearance="?android:textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/haptics_on_release_checkbox"
             app:layout_constraintTop_toTopOf="@id/haptics_on_release_checkbox" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/haptics_use_vibrator_directly"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:paddingHorizontal="24dp">
+
+        <TextView
+            android:id="@+id/haptics_use_vibrator_directly_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:text="@string/haptics_use_vibrator_directly"
+            android:textAlignment="viewStart"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintBottom_toBottomOf="@+id/haptics_use_vibrator_directly_switch"
+            app:layout_constraintEnd_toStartOf="@+id/haptics_use_vibrator_directly_switch"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/haptics_use_vibrator_directly_switch" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/haptics_use_vibrator_directly_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/haptics_use_vibrator_directly_name"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
