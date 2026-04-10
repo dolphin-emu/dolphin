@@ -24,7 +24,41 @@ void NetPlayUICallbacks::BootGame(const std::string& filename, std::unique_ptr<B
 
 void NetPlayUICallbacks::StopGame() {}
 bool NetPlayUICallbacks::IsHosting() const { return false; }
-void NetPlayUICallbacks::Update() {}
+
+void NetPlayUICallbacks::Update()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
+      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+  if (!client)
+    return;
+
+  const std::vector<const NetPlay::Player*> players = client->GetPlayers();
+
+  jobjectArray player_array =
+      env->NewObjectArray(static_cast<jsize>(players.size()), IDCache::GetNetplayPlayerClass(), nullptr);
+
+  for (jsize i = 0; i < static_cast<jsize>(players.size()); i++)
+  {
+    const NetPlay::Player* player = players[i];
+    const std::string mapping = NetPlay::GetPlayerMappingString(
+        player->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping());
+    jobject player_obj = env->NewObject(
+        IDCache::GetNetplayPlayerClass(), IDCache::GetNetplayPlayerConstructor(),
+        static_cast<jint>(player->pid),
+        ToJString(env, player->name),
+        ToJString(env, player->revision),
+        static_cast<jint>(player->ping),
+        static_cast<jboolean>(player->IsHost()),
+        ToJString(env, mapping));
+    env->SetObjectArrayElement(player_array, i, player_obj);
+    env->DeleteLocalRef(player_obj);
+  }
+
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayUpdate(), player_array);
+  env->DeleteLocalRef(player_array);
+}
+
 void NetPlayUICallbacks::AppendChat(const std::string&) {}
 
 void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,

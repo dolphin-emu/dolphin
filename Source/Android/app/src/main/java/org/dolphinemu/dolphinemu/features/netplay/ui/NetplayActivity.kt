@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
@@ -15,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
-import org.dolphinemu.dolphinemu.features.netplay.Netplay
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayViewModel
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
@@ -44,6 +44,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
             DolphinTheme {
                 NetplayScreen(
                     onBackClicked = { finish() },
+                    players = viewModel.players.collectAsState().value,
                 )
             }
         }

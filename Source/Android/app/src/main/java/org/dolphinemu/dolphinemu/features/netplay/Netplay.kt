@@ -5,11 +5,17 @@ package org.dolphinemu.dolphinemu.features.netplay
 
 import androidx.annotation.Keep
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
+import org.dolphinemu.dolphinemu.features.netplay.model.Player
 
 object Netplay {
     @Keep
@@ -26,6 +32,12 @@ object Netplay {
 
     private val _connectionErrors = Channel<String>(Channel.BUFFERED)
     val connectionErrors = _connectionErrors.receiveAsFlow()
+
+    private val _players = MutableSharedFlow<List<Player>>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val players = _players.asSharedFlow().distinctUntilChanged()
 
     suspend fun join(): Boolean = withContext(Dispatchers.IO) {
         netPlayClientPointer = Join()
@@ -48,6 +60,7 @@ object Netplay {
         releaseNetplayClient()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun releaseNetplayClient() {
         if (netPlayClientPointer != 0L) {
             ReleaseNetplayClient()
@@ -55,6 +68,7 @@ object Netplay {
         }
         _launchGame.flush()
         _connectionErrors.flush()
+        _players.resetReplayCache()
     }
 
     @JvmStatic
@@ -77,6 +91,11 @@ object Netplay {
     @JvmStatic
     fun onConnectionError(message: String) {
         _connectionErrors.trySend(message)
+    }
+
+    @JvmStatic
+    fun onUpdate(players: Array<Player>) {
+        _players.tryEmit(players.toList())
     }
 
     // Settings

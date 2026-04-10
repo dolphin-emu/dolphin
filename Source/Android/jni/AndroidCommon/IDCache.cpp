@@ -33,6 +33,10 @@ static jfieldID s_net_play_client_pointer;
 static jfieldID s_netplay_boot_session_data_pointer;
 static jmethodID s_netplay_on_boot_game;
 static jmethodID s_netplay_on_connection_error;
+static jmethodID s_netplay_update;
+
+static jclass s_netplay_player_class;
+static jmethodID s_netplay_player_constructor;
 
 static jclass s_analytics_class;
 static jmethodID s_get_analytics_value;
@@ -262,6 +266,21 @@ jmethodID GetNetplayOnBootGame()
 jmethodID GetNetplayOnConnectionError()
 {
   return s_netplay_on_connection_error;
+}
+
+jmethodID GetNetplayUpdate()
+{
+  return s_netplay_update;
+}
+
+jclass GetNetplayPlayerClass()
+{
+  return s_netplay_player_class;
+}
+
+jmethodID GetNetplayPlayerConstructor()
+{
+  return s_netplay_player_constructor;
 }
 
 jclass GetPairClass()
@@ -675,7 +694,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_netplay_boot_session_data_pointer = env->GetStaticFieldID(netplay_class, "bootSessionDataPointer", "J");
   s_netplay_on_boot_game = env->GetStaticMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
   s_netplay_on_connection_error = env->GetStaticMethodID(netplay_class, "onConnectionError", "(Ljava/lang/String;)V");
+  s_netplay_update = env->GetStaticMethodID(netplay_class, "onUpdate", "([Lorg/dolphinemu/dolphinemu/features/netplay/model/Player;)V");
   env->DeleteLocalRef(netplay_class);
+
+  const jclass netplay_player_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/netplay/model/Player");
+  s_netplay_player_class = reinterpret_cast<jclass>(env->NewGlobalRef(netplay_player_class));
+  s_netplay_player_constructor = env->GetMethodID(netplay_player_class, "<init>", "(ILjava/lang/String;Ljava/lang/String;IZLjava/lang/String;)V");
+  env->DeleteLocalRef(netplay_player_class);
 
   const jclass analytics_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Analytics");
   s_analytics_class = reinterpret_cast<jclass>(env->NewGlobalRef(analytics_class));
@@ -892,6 +918,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_game_file_cache_class);
   env->DeleteGlobalRef(s_game_file_cache_manager_class);
   env->DeleteGlobalRef(s_netplay_class);
+  env->DeleteGlobalRef(s_netplay_player_class);
   env->DeleteGlobalRef(s_analytics_class);
   env->DeleteGlobalRef(s_pair_class);
   env->DeleteGlobalRef(s_hash_map_class);

@@ -36,6 +36,10 @@ jfieldID GetNetPlayClientPointer();
 jfieldID GetNetplayBootSessionDataPointer();
 jmethodID GetNetplayOnBootGame();
 jmethodID GetNetplayOnConnectionError();
+jmethodID GetNetplayUpdate();
+
+jclass GetNetplayPlayerClass();
+jmethodID GetNetplayPlayerConstructor();
 
 jclass GetPairClass();
 jmethodID GetPairConstructor();
