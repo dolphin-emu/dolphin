@@ -715,20 +715,19 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val dialogBinding = DialogOverlayHapticsBinding.inflate(layoutInflater)
         val hapticsProvider = HapticsProvider()
         dialogBinding.apply {
-            val checkboxes =
-                listOf(
-                    overlayHapticsOnPressCheckbox,
-                    overlayHapticsOnReleaseCheckbox,
-                    overlayHapticsJoystickCheckbox
-                )
+            val checkboxes = listOf(
+                overlayHapticsOnPressCheckbox,
+                overlayHapticsOnReleaseCheckbox,
+                overlayHapticsJoystickCheckbox
+            )
             val toggleVibrationSettings = {
                 checkboxes.any { it.isChecked }.let { enabled ->
                     overlayHapticsUseVibratorDirectlyName.isEnabled = enabled
                     overlayHapticsUseVibratorDirectlySwitch.isEnabled = enabled
-                    (overlayHapticsUseVibratorDirectlySwitch.isChecked && enabled).let { enabled ->
-                        overlayHapticsIntensityName.isEnabled = enabled
-                        overlayHapticsIntensitySlider.isEnabled = enabled
-                        overlayHapticsIntensityValue.isEnabled = enabled
+                    (overlayHapticsUseVibratorDirectlySwitch.isChecked && enabled).let {
+                        overlayHapticsIntensityName.isEnabled = it
+                        overlayHapticsIntensitySlider.isEnabled = it
+                        overlayHapticsIntensityValue.isEnabled = it
                     }
                 }
             }
@@ -741,10 +740,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             overlayHapticsUseVibratorDirectlySwitch.isChecked =
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY.boolean
             toggleVibrationSettings()
-            checkboxes.forEach { checkbox ->
-                checkbox.setOnCheckedChangeListener { _, _ ->
-                    toggleVibrationSettings()
-                }
+            checkboxes.forEach {
+                it.setOnCheckedChangeListener { _, _ -> toggleVibrationSettings() }
             }
             overlayHapticsUseVibratorDirectlySwitch.setOnCheckedChangeListener { _, _ ->
                 toggleVibrationSettings()
