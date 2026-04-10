@@ -28,8 +28,8 @@
         android:title="@string/emulation_choose_controller"/>
 
     <item
-        android:id="@+id/menu_emulation_haptics"
-        android:title="@string/emulation_haptics"/>
+        android:id="@+id/menu_emulation_touch_haptics"
+        android:title="@string/emulation_touch_haptics"/>
 
     <item
         android:id="@+id/menu_emulation_reset_overlay"
