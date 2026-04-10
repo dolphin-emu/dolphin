@@ -59,6 +59,7 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment
 import org.dolphinemu.dolphinemu.fragments.MenuFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment.SaveOrLoad
+import org.dolphinemu.dolphinemu.model.HapticEffect
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
@@ -66,7 +67,6 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
-import org.dolphinemu.dolphinemu.utils.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import org.dolphinemu.dolphinemu.utils.RateLimiter
 import org.dolphinemu.dolphinemu.utils.ThemeHelper

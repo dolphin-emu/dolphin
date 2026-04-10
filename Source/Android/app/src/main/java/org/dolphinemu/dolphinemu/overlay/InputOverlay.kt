@@ -31,7 +31,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForSIDevice
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForWiimoteSource
-import org.dolphinemu.dolphinemu.utils.HapticEffect
+import org.dolphinemu.dolphinemu.model.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import java.util.Arrays
 

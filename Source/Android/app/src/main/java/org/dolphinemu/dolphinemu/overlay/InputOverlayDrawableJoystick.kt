@@ -12,7 +12,7 @@ import android.view.View
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
-import org.dolphinemu.dolphinemu.utils.HapticEffect
+import org.dolphinemu.dolphinemu.model.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import kotlin.math.atan2
 import kotlin.math.cos
