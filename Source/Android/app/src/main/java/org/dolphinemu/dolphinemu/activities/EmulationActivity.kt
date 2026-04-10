@@ -745,7 +745,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 value = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float.also { setValueText(it) }
                 addOnChangeListener { _: Slider, value: Float, _: Boolean ->
                     setValueText(value)
-                    hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, value)
+                    hapticsProvider.provideFeedback(HapticEffect.JOYSTICK, value)
                 }
             }
         }

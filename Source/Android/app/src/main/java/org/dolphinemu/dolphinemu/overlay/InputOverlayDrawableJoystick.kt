@@ -123,7 +123,7 @@ class InputOverlayDrawableJoystick(
                     pressed = true
                     pressedState = true
                     if (BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean) {
-                        hapticsProvider.provideFeedback(HapticEffect.QUICK_FALL, hapticsScale)
+                        hapticsProvider.provideFeedback(HapticEffect.PRESS, hapticsScale)
                     }
                     outerBitmap.alpha = 0
                     boundsBoxBitmap.alpha = opacity
@@ -144,7 +144,7 @@ class InputOverlayDrawableJoystick(
                     pressed = true
                     pressedState = false
                     if (BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean) {
-                        hapticsProvider.provideFeedback(HapticEffect.QUICK_RISE, hapticsScale)
+                        hapticsProvider.provideFeedback(HapticEffect.RELEASE, hapticsScale)
                     }
                     y = 0f
                     x = y
@@ -184,7 +184,7 @@ class InputOverlayDrawableJoystick(
                     val deltaX = x - hapticsPreviousX
                     val deltaY = y - hapticsPreviousY
                     if (deltaX.pow(2) + deltaY.pow(2) > radiusThreshold.pow(2)) {
-                        hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, hapticsScale)
+                        hapticsProvider.provideFeedback(HapticEffect.JOYSTICK, hapticsScale)
                         hapticsPreviousX = x
                         hapticsPreviousY = y
                     }

@@ -68,9 +68,9 @@ class HapticsProvider(
         // so the difference in the duration of the vibration can be easily perceived.
         // Lower-end vibrators can't vibrate at all if the duration is too short.
         return when (effect) {
-            HapticEffect.QUICK_FALL -> longArrayOf(0L, (100f * scale).toLong())
-            HapticEffect.QUICK_RISE -> longArrayOf(0L, (70f * scale).toLong())
-            HapticEffect.LOW_TICK -> longArrayOf(0L, (50f * scale).toLong())
+            HapticEffect.PRESS -> longArrayOf(0L, (100f * scale).toLong())
+            HapticEffect.RELEASE -> longArrayOf(0L, (70f * scale).toLong())
+            HapticEffect.JOYSTICK -> longArrayOf(0L, (50f * scale).toLong())
         }
     }
 
@@ -89,18 +89,18 @@ class HapticsProvider(
         // so the difference in the amplitude of the vibration can be easily perceived.
         // Value range is between 0 and 255 (VibrationEffect.MAX_AMPLITUDE).
         return when (effect) {
-            HapticEffect.QUICK_FALL -> intArrayOf(0, (255f * scale).toInt())
-            HapticEffect.QUICK_RISE -> intArrayOf(0, (180f * scale).toInt())
-            HapticEffect.LOW_TICK -> intArrayOf(0, (128f * scale).toInt())
+            HapticEffect.PRESS -> intArrayOf(0, (255f * scale).toInt())
+            HapticEffect.RELEASE -> intArrayOf(0, (180f * scale).toInt())
+            HapticEffect.JOYSTICK -> intArrayOf(0, (128f * scale).toInt())
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun getPrimitive(effect: HapticEffect): Int {
         return when (effect) {
-            HapticEffect.QUICK_FALL -> VibrationEffect.Composition.PRIMITIVE_QUICK_FALL
-            HapticEffect.QUICK_RISE -> VibrationEffect.Composition.PRIMITIVE_QUICK_RISE
-            HapticEffect.LOW_TICK -> VibrationEffect.Composition.PRIMITIVE_LOW_TICK
+            HapticEffect.PRESS -> VibrationEffect.Composition.PRIMITIVE_QUICK_FALL
+            HapticEffect.RELEASE -> VibrationEffect.Composition.PRIMITIVE_QUICK_RISE
+            HapticEffect.JOYSTICK -> VibrationEffect.Composition.PRIMITIVE_LOW_TICK
         }
     }
 
@@ -113,7 +113,7 @@ class HapticsProvider(
 }
 
 enum class HapticEffect {
-    QUICK_FALL,
-    QUICK_RISE,
-    LOW_TICK
+    PRESS,
+    RELEASE,
+    JOYSTICK
 }

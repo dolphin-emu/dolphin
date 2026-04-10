@@ -165,7 +165,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             button.setPressedState(false)
                             if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
-                                    HapticEffect.QUICK_RISE,
+                                    HapticEffect.RELEASE,
                                     hapticsScale
                                 )
                             }
@@ -173,7 +173,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             button.setPressedState(true)
                             if (hapticsOnPress) {
                                 hapticsProvider.provideFeedback(
-                                    HapticEffect.QUICK_FALL,
+                                    HapticEffect.PRESS,
                                     hapticsScale
                                 )
                             }
@@ -200,7 +200,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             button.setPressedState(false)
                             if (hapticsOnRelease) {
                                 hapticsProvider.provideFeedback(
-                                    HapticEffect.QUICK_RISE,
+                                    HapticEffect.RELEASE,
                                     hapticsScale
                                 )
                             }
@@ -259,7 +259,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (!dpadPressed[i]) {
                                 if (hapticsOnRelease && dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
-                                        HapticEffect.QUICK_RISE,
+                                        HapticEffect.RELEASE,
                                         hapticsScale
                                     )
                                 }
@@ -271,7 +271,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             } else {
                                 if (hapticsOnPress && !dpad.isPressed(i)) {
                                     hapticsProvider.provideFeedback(
-                                        HapticEffect.QUICK_FALL,
+                                        HapticEffect.PRESS,
                                         hapticsScale
                                     )
                                 }
@@ -298,7 +298,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         for (i in 0 until 4) {
                             if (hapticsOnRelease && dpad.isPressed(i)) {
                                 hapticsProvider.provideFeedback(
-                                    HapticEffect.QUICK_RISE,
+                                    HapticEffect.RELEASE,
                                     hapticsScale
                                 )
                             }
