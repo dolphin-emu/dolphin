@@ -452,7 +452,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         if (!DolphinVibratorManagerFactory.getSystemVibratorManager().getDefaultVibrator()
                 .hasVibrator()
         ) {
-            menu.findItem(R.id.menu_emulation_haptics).setVisible(false)
+            menu.findItem(R.id.menu_emulation_haptics).isVisible = false
         }
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
         popup.show()
