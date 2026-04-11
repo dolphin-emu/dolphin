@@ -583,56 +583,54 @@ void PowerPCManager::CheckExceptions()
 
 void PowerPCManager::CheckExternalExceptions()
 {
-  u32 exceptions = m_ppc_state.Exceptions;
+  const u32 exceptions = m_ppc_state.Exceptions;
 
   // EXTERNAL INTERRUPT
   // Handling is delayed until MSR.EE=1.
-  if (exceptions && m_ppc_state.msr.EE)
+  if (exceptions == 0 || !m_ppc_state.msr.EE)
+    return;
+
+  u32 exception_vector = 0;
+
+  if (exceptions & EXCEPTION_EXTERNAL_INT)
   {
-    if (exceptions & EXCEPTION_EXTERNAL_INT)
-    {
-      // Pokemon gets this "too early", it hasn't a handler yet
-      SRR0(m_ppc_state) = m_ppc_state.npc;
-      SRR1(m_ppc_state) = m_ppc_state.msr.Hex & 0x87C0FFFF;
-      m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
-      m_ppc_state.msr.Hex &= ~0x04EF36;
-      m_ppc_state.pc = m_ppc_state.npc = 0x00000500;
+    // Pokemon gets this "too early", it hasn't a handler yet
 
-      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
-      m_ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
+    DEBUG_ASSERT_MSG(POWERPC, m_ppc_state.msr.RI, "EXTERNAL_INT unrecoverable???");
 
-      DEBUG_ASSERT_MSG(POWERPC, (SRR1(m_ppc_state) & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
-    }
-    else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
-    {
-      SRR0(m_ppc_state) = m_ppc_state.npc;
-      SRR1(m_ppc_state) = m_ppc_state.msr.Hex & 0x87C0FFFF;
-      m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
-      m_ppc_state.msr.Hex &= ~0x04EF36;
-      m_ppc_state.pc = m_ppc_state.npc = 0x00000F00;
-
-      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
-      m_ppc_state.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
-    }
-    else if (exceptions & EXCEPTION_DECREMENTER)
-    {
-      SRR0(m_ppc_state) = m_ppc_state.npc;
-      SRR1(m_ppc_state) = m_ppc_state.msr.Hex & 0x87C0FFFF;
-      m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
-      m_ppc_state.msr.Hex &= ~0x04EF36;
-      m_ppc_state.pc = m_ppc_state.npc = 0x00000900;
-
-      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
-      m_ppc_state.Exceptions &= ~EXCEPTION_DECREMENTER;
-    }
-    else
-    {
-      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == {:08x}", exceptions);
-      ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
-                    exceptions);
-    }
-    MSRUpdated();
+    exception_vector = 0x00000500;
+    m_ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
   }
+  else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
+  {
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+
+    exception_vector = 0x00000F00;
+    m_ppc_state.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
+  }
+  else if (exceptions & EXCEPTION_DECREMENTER)
+  {
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
+
+    exception_vector = 0x00000900;
+    m_ppc_state.Exceptions &= ~EXCEPTION_DECREMENTER;
+  }
+  else
+  {
+    DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == {:08x}", exceptions);
+    ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
+                  exceptions);
+    return;
+  }
+
+  SRR0(m_ppc_state) = m_ppc_state.npc;
+  SRR1(m_ppc_state) = m_ppc_state.msr.Hex & 0x87C0FFFF;
+  m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
+  m_ppc_state.msr.Hex &= ~0x04EF36;
+  m_ppc_state.pc = m_ppc_state.npc = exception_vector;
+
+  MSRUpdated();
 }
 
 bool PowerPCManager::CheckBreakPoints()
