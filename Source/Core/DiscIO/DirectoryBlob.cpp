@@ -575,7 +575,7 @@ u64 DirectoryBlobReader::GetDataSize() const
   return m_data_size;
 }
 
-void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(const std::vector<u8>& partition_header,
+void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(std::span<const u8> partition_header,
                                                             const std::string& game_partition_root)
 {
   std::vector<u8> header_bin(WII_NONPARTITION_DISCHEADER_SIZE);
@@ -585,7 +585,7 @@ void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(const std::vector<u8
   SetNonpartitionDiscHeader(partition_header, std::move(header_bin));
 }
 
-void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
+void DirectoryBlobReader::SetNonpartitionDiscHeader(std::span<const u8> partition_header,
                                                     std::vector<u8> header_bin)
 {
   const size_t header_bin_size = header_bin.size();
@@ -619,7 +619,7 @@ void DirectoryBlobReader::SetWiiRegionDataFromFile(const std::string& game_parti
   SetWiiRegionData(wii_region_data, region_bin_path);
 }
 
-void DirectoryBlobReader::SetWiiRegionData(const std::vector<u8>& wii_region_data,
+void DirectoryBlobReader::SetWiiRegionData(std::span<const u8> wii_region_data,
                                            const std::string& log_path)
 {
   std::vector<u8> region_data(0x10, 0x00);
@@ -961,7 +961,7 @@ DirectoryBlobPartition::DirectoryBlobPartition(
 }
 
 void DirectoryBlobPartition::SetDiscType(std::optional<bool> is_wii,
-                                         const std::vector<u8>& disc_header)
+                                         std::span<const u8> disc_header)
 {
   if (is_wii.has_value())
   {
@@ -1108,7 +1108,7 @@ static void ConvertUTF8NamesToSHIFTJIS(std::vector<FSTBuilderNode>* fst)
   }
 }
 
-static u32 ComputeNameSize(const std::vector<FSTBuilderNode>& files)
+static u32 ComputeNameSize(std::span<const FSTBuilderNode> files)
 {
   u32 name_size = 0;
   for (const FSTBuilderNode& entry : files)

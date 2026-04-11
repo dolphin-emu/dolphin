@@ -31,7 +31,7 @@ DolReader::DolReader(const std::string& filename) : BootExecutableReader(filenam
 
 DolReader::~DolReader() = default;
 
-bool DolReader::Initialize(const std::vector<u8>& buffer)
+bool DolReader::Initialize(std::span<const u8> buffer)
 {
   if (buffer.size() < sizeof(SDolHeader) || buffer.size() > UINT32_MAX)
     return false;

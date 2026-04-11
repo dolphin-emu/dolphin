@@ -267,7 +267,7 @@ struct SlotWithTimestamp
 }  // namespace
 
 // Returns first slot number (1-based indexing) not in the vector.
-static std::optional<int> GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
+static std::optional<int> GetEmptySlot(std::span<const SlotWithTimestamp> used_slots)
 {
   for (int i = 1; i <= int(NUM_STATES); ++i)
   {

@@ -45,7 +45,7 @@ void ConfigChoiceU32::OnConfigChanged()
   setCurrentIndex(ReadValue(m_setting));
 }
 
-ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
+ConfigStringChoice::ConfigStringChoice(std::span<const std::string> options,
                                        const Config::Info<std::string>& setting,
                                        Config::Layer* layer)
     : ConfigControl(setting.GetLocation(), layer), m_setting(setting), m_text_is_data(true)
@@ -57,7 +57,7 @@ ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
-ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QString>>& options,
+ConfigStringChoice::ConfigStringChoice(std::span<const std::pair<QString, QString>> options,
                                        const Config::Info<std::string>& setting,
                                        Config::Layer* layer)
     : ConfigControl(setting.GetLocation(), layer), m_setting(setting), m_text_is_data(false)

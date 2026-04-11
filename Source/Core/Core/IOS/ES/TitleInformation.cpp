@@ -120,7 +120,7 @@ IPCReply ESDevice::GetTMDStoredContents(const IOCtlVRequest& request)
   return GetStoredContents(tmd, request);
 }
 
-IPCReply ESDevice::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitleCount(std::span<const u64> titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return IPCReply(ES_EINVAL);
@@ -132,7 +132,7 @@ IPCReply ESDevice::GetTitleCount(const std::vector<u64>& titles, const IOCtlVReq
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitles(std::span<const u64> titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);

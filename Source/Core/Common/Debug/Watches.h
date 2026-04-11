@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -42,7 +43,7 @@ public:
   void DisableWatch(std::size_t index);
   bool HasEnabledWatch(u32 address) const;
   void RemoveWatch(std::size_t index);
-  void LoadFromStrings(const std::vector<std::string>& watches);
+  void LoadFromStrings(std::span<const std::string> watches);
   std::vector<std::string> SaveToStrings() const;
   void Clear();
 

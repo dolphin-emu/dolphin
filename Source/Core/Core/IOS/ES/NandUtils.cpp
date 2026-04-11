@@ -399,7 +399,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
 }
 
-s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
+s32 ESDevice::WriteSystemFile(const std::string& path, std::span<const u8> data, Ticks ticks)
 {
   auto& fs = GetEmulationKernel().GetFSCore();
   const std::string tmp_path = "/tmp/" + PathToFileName(path);

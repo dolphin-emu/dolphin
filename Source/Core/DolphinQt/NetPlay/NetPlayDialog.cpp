@@ -1248,7 +1248,7 @@ void NetPlayDialog::AbortGameDigest()
 }
 
 void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u64 data_size,
-                                              const std::vector<int>& players)
+                                              std::span<const int> players)
 {
   QueueOnObject(this, [this, title, data_size, players] {
     if (m_chunked_progress_dialog->isVisible())

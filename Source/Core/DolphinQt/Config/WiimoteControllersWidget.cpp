@@ -98,7 +98,7 @@ void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 }
 
 void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
-    const std::vector<USBUtils::DeviceInfo>& devices)
+    std::span<const USBUtils::DeviceInfo> devices)
 {
   const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
   const int configured_pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);

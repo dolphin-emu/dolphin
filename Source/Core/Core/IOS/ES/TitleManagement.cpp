@@ -372,7 +372,7 @@ IPCReply ESDevice::ImportContentData(Context& context, const IOCtlVRequest& requ
   return IPCReply(m_core.ImportContentData(context, content_fd, data_start, data_size));
 }
 
-static bool CheckIfContentHashMatches(const std::vector<u8>& content, const ES::Content& info)
+static bool CheckIfContentHashMatches(std::span<const u8> content, const ES::Content& info)
 {
   return Common::SHA1::CalculateDigest(content.data(), info.size) == info.sha1;
 }

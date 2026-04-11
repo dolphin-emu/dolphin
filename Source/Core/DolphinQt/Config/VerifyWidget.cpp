@@ -6,8 +6,8 @@
 #include <future>
 #include <memory>
 #include <optional>
+#include <span>
 #include <tuple>
-#include <vector>
 
 #include <QByteArray>
 #include <QHBoxLayout>
@@ -129,7 +129,7 @@ void VerifyWidget::ConnectWidgets()
 #endif
 }
 
-static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
+static void SetHash(QLineEdit* line_edit, std::span<const u8> hash)
 {
   const QByteArray byte_array = QByteArray::fromRawData(reinterpret_cast<const char*>(hash.data()),
                                                         static_cast<int>(hash.size()));

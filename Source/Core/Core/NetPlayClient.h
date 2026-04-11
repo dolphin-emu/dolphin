@@ -13,7 +13,6 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -89,7 +88,7 @@ public:
   virtual void OnIndexRefreshFailed(std::string error) = 0;
 
   virtual void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
-                                         const std::vector<int>& players) = 0;
+                                         std::span<const int> players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 

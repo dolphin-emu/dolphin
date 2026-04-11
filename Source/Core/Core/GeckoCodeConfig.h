@@ -5,6 +5,7 @@
 
 #include <expected>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace Gecko
 {
 std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni);
 std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string gametdb_id);
-void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes);
+void SaveCodes(Common::IniFile& inifile, std::span<const GeckoCode> gcodes);
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line);
 }  // namespace Gecko

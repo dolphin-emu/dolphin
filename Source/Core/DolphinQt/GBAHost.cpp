@@ -38,7 +38,7 @@ void GBAHost::GameChanged()
   });
 }
 
-void GBAHost::FrameEnded(const std::vector<u32>& video_buffer)
+void GBAHost::FrameEnded(std::span<const u32> video_buffer)
 {
   QueueOnObject(m_widget_controller, [widget_controller = m_widget_controller, video_buffer] {
     widget_controller->FrameEnded(video_buffer);

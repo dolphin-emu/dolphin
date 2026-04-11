@@ -4,7 +4,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -376,8 +376,8 @@ private:
   IPCReply SeekContent(u32 uid, const IOCtlVRequest& request);
 
   // Title information
-  IPCReply GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
-  IPCReply GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
+  IPCReply GetTitleCount(std::span<const u64> titles, const IOCtlVRequest& request);
+  IPCReply GetTitles(std::span<const u64> titles, const IOCtlVRequest& request);
   IPCReply GetOwnedTitleCount(const IOCtlVRequest& request);
   IPCReply GetOwnedTitles(const IOCtlVRequest& request);
   IPCReply GetTitleCount(const IOCtlVRequest& request);
@@ -416,7 +416,7 @@ private:
 
   void FinishInit();
 
-  s32 WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks = {});
+  s32 WriteSystemFile(const std::string& path, std::span<const u8> data, Ticks ticks = {});
   s32 WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks = {});
   bool BootstrapPPC();
 

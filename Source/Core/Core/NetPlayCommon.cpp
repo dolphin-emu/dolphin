@@ -116,7 +116,7 @@ bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet
   return CompressFolderIntoPacketInternal(File::ScanDirectoryTree(folder_path, true), packet);
 }
 
-bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
+bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet)
 {
   const u64 size = in_buffer.size();
   packet << size;

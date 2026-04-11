@@ -486,7 +486,7 @@ void Lexer::EatAndReset()
   SetIdentifierMatchRule(IdentifierMatchRule::Typical);
 }
 
-std::optional<std::string_view> Lexer::RunDfa(const std::vector<DfaNode>& dfa) const
+std::optional<std::string_view> Lexer::RunDfa(std::span<const DfaNode> dfa) const
 {
   size_t dfa_index = 0;
   bool transition_found;

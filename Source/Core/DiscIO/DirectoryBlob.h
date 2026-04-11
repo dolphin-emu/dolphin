@@ -200,7 +200,7 @@ public:
   void SetKey(std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
 
 private:
-  void SetDiscType(std::optional<bool> is_wii, const std::vector<u8>& disc_header);
+  void SetDiscType(std::optional<bool> is_wii, std::span<const u8> disc_header);
   void SetBI2FromFile(const std::string& bi2_path);
   void SetBI2(std::vector<u8> bi2);
 
@@ -296,12 +296,11 @@ private:
   bool EncryptPartitionData(u64 offset, u64 size, u8* buffer, u64 partition_data_offset,
                             u64 partition_data_decrypted_size);
 
-  void SetNonpartitionDiscHeaderFromFile(const std::vector<u8>& partition_header,
+  void SetNonpartitionDiscHeaderFromFile(std::span<const u8> partition_header,
                                          const std::string& game_partition_root);
-  void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
-                                 std::vector<u8> header_bin);
+  void SetNonpartitionDiscHeader(std::span<const u8> partition_header, std::vector<u8> header_bin);
   void SetWiiRegionDataFromFile(const std::string& game_partition_root);
-  void SetWiiRegionData(const std::vector<u8>& wii_region_data, const std::string& log_path);
+  void SetWiiRegionData(std::span<const u8> wii_region_data, const std::string& log_path);
   void SetPartitions(std::vector<PartitionWithType>&& partitions);
   void SetPartitionHeader(DirectoryBlobPartition* partition, u64 partition_address);
 

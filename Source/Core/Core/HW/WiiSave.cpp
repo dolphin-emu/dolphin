@@ -158,7 +158,7 @@ public:
 
   bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
 
-  bool WriteFiles(const std::vector<SaveFile>& files) override
+  bool WriteFiles(std::span<const SaveFile> files) override
   {
     if (!m_uid || !m_gid)
       return false;
@@ -390,7 +390,7 @@ public:
     return m_file.Seek(sizeof(Header), File::SeekOrigin::Begin) && m_file.WriteArray(&bk_header, 1);
   }
 
-  bool WriteFiles(const std::vector<SaveFile>& files) override
+  bool WriteFiles(std::span<const SaveFile> files) override
   {
     if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;

@@ -14,7 +14,9 @@
 #include <mbedtls/sha256.h>
 #include <zlib.h>
 
+#ifdef _WIN32
 #include "Common/CommonFuncs.h"
+#endif
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
@@ -204,7 +206,7 @@ void TodoList::Log() const
   }
 }
 
-static bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
+static bool DownloadContent(std::span<const TodoList::DownloadOp> to_download,
                             const std::string& content_base_url, const std::string& temp_path)
 {
   Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
@@ -337,7 +339,7 @@ static bool BackupFile(const std::string& path)
   return true;
 }
 
-static bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
+static bool DeleteObsoleteFiles(std::span<const TodoList::DeleteOp> to_delete,
                                 const std::string& install_base_path)
 {
   for (const auto& op : to_delete)
@@ -370,7 +372,7 @@ static bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete
   return true;
 }
 
-static bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
+static bool UpdateFiles(std::span<const TodoList::UpdateOp> to_update,
                         const std::string& install_base_path, const std::string& temp_path)
 {
 #ifdef _WIN32

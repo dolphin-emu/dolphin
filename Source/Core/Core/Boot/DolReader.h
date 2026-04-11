@@ -65,7 +65,7 @@ private:
   bool m_is_ancast;
 
   // Copy sections to internal buffers
-  bool Initialize(const std::vector<u8>& buffer);
+  bool Initialize(std::span<const u8> buffer);
 
   bool LoadAncastIntoMemory(Core::System& system) const;
 };

@@ -367,7 +367,7 @@ std::vector<std::string> GetIsoPaths()
   return paths;
 }
 
-void SetIsoPaths(const std::vector<std::string>& paths)
+void SetIsoPaths(std::span<const std::string> paths)
 {
   size_t old_size = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
   size_t new_size = paths.size();

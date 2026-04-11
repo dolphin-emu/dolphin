@@ -346,7 +346,7 @@ private:
   };
 
   Response GetSystemTitles();
-  Response ParseTitlesResponse(const std::vector<u8>& response) const;
+  Response ParseTitlesResponse(std::span<const u8> response) const;
   bool ShouldInstallTitle(const TitleInfo& title);
 
   UpdateResult InstallTitleFromNUS(const std::string& prefix_url, const TitleInfo& title,
@@ -371,7 +371,7 @@ OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, const s
 }
 
 OnlineSystemUpdater::Response
-OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
+OnlineSystemUpdater::ParseTitlesResponse(std::span<const u8> response) const
 {
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());
