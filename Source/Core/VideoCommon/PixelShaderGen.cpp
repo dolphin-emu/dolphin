@@ -996,6 +996,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // out.Write("\tivec4 prev = frag_output.main & 255;\n");
   out.Write("\tivec4 prev = frag_output.main;\n");
 
+  // alpha bitmask
+  out.Write("\tprev.a = prev.a & 255;\n");
+
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
@@ -1446,23 +1449,23 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   }
   else
   {
-    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
+    out.Write("\ttevin_a = int4({}, {});\n", tev_c_input_table[cc.a],
               tev_a_input_table[ac.a]);
-    if (cc.b == TevColorArg::PrevColor)
-      out.Write(
-          "\ttevin_b = int4(min(prev.rgb, int3(255,255,255)), {})&int4(255, 255, 255, 255);\n",
-          tev_a_input_table[ac.b]);
-    else
-      out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+    //if (cc.b == TevColorArg::PrevColor)
+    //  out.Write(
+    //      "\ttevin_b = int4(min(prev.rgb, int3(255,255,255)), {});\n",
+    //      tev_a_input_table[ac.b]);
+    //else
+      out.Write("\ttevin_b = int4({}, {});\n", tev_c_input_table[cc.b],
                 tev_a_input_table[ac.b]);
 
-    if (cc.c == TevColorArg::PrevColor)
-      out.Write(
-          "\ttevin_c = int4(min(prev.rgb, int3(255,255,255)), {})&int4(255, 255, 255, 255);\n",
-          tev_a_input_table[ac.c]);
+    //if (cc.c == TevColorArg::PrevColor)
+    //  out.Write(
+    //      "\ttevin_c = int4(min(prev.rgb, int3(255,255,255)), {});\n",
+    //      tev_a_input_table[ac.c]);
 
-    else
-      out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
+    //else
+      out.Write("\ttevin_c = int4({}, {});\n", tev_c_input_table[cc.c],
                 tev_a_input_table[ac.c]);
   }
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[cc.d], tev_a_input_table[ac.d]);
