@@ -163,7 +163,8 @@ void EnhancementsWidget::CreateWidgets()
       new ConfigBool(tr("Arbitrary Mipmap Detection"),
                      Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
   m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
-  m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
+  m_hdr_render = new ConfigBool(tr("HDR Rendering"), Config::GFX_ENHANCE_HDR_RENDER, m_game_layer);
+  m_hdr_output = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -182,6 +183,11 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_output_resampling_combo, row, 1, 1, -1);
   ++row;
 
+  enhancements_layout->addWidget(new QLabel(tr("Rendering Quality:")), row, 0);
+  enhancements_layout->addWidget(m_force_24bit_color, row, 1);
+  enhancements_layout->addWidget(m_hdr_render, row, 2);
+  ++row;
+
   enhancements_layout->addWidget(new QLabel(tr("Color Correction:")), row, 0);
   enhancements_layout->addWidget(m_configure_color_correction, row, 1, 1, -1);
   ++row;
@@ -196,7 +202,6 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(m_widescreen_hack, row, 0);
-  enhancements_layout->addWidget(m_force_24bit_color, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(m_disable_fog, row, 0);
@@ -204,7 +209,7 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
-  enhancements_layout->addWidget(m_hdr, row, 1, 1, -1);
+  enhancements_layout->addWidget(m_hdr_output, row, 1, 1, -1);
   ++row;
 
   // Stereoscopy
@@ -349,7 +354,7 @@ void EnhancementsWidget::OnBackendChanged()
 {
   m_output_resampling_combo->setEnabled(g_backend_info.bSupportsPostProcessing);
   m_configure_color_correction->setEnabled(g_backend_info.bSupportsPostProcessing);
-  m_hdr->setEnabled(g_backend_info.bSupportsHDROutput);
+  m_hdr_output->setEnabled(g_backend_info.bSupportsHDROutput);
 
   // Stereoscopy
   const bool supports_stereoscopy = g_backend_info.bSupportsGeometryShaders;
@@ -573,7 +578,11 @@ void EnhancementsWidget::AddDescriptions()
       "reduce stutter in games that frequently load new textures.<br><br>This setting is disabled "
       "when GPU Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
+  static const char TR_HDR_RENDER_DESCRIPTION[] = QT_TR_NOOP(
+      "Forces rendering to run with higher bit depth float (HDR) textures, floating point math,\n"
+      "and a wider range.<br><br><dolphin_emphasis>If unsure, leave "
+      "this unchecked.</dolphin_emphasis>");
+  static const char TR_HDR_OUTPUT_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."
       "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
@@ -613,7 +622,9 @@ void EnhancementsWidget::AddDescriptions()
 
   m_arbitrary_mipmap_detection->SetDescription(tr(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
 
-  m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
+  m_hdr_render->SetDescription(tr(TR_HDR_RENDER_DESCRIPTION));
+
+  m_hdr_output->SetDescription(tr(TR_HDR_OUTPUT_DESCRIPTION));
 
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
   m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));

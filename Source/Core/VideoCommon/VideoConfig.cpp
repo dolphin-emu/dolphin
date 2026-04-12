@@ -150,7 +150,8 @@ void VideoConfig::Refresh()
   bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   fArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
-  bHDR = Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT);
+  bHDRRender = Config::Get(Config::GFX_ENHANCE_HDR_RENDER);
+  bHDROutput = Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT);
 
   color_correction.bCorrectColorSpace = Config::Get(Config::GFX_CC_CORRECT_COLOR_SPACE);
   color_correction.game_color_space = Config::Get(Config::GFX_CC_GAME_COLOR_SPACE);
@@ -302,7 +303,8 @@ void CheckForConfigChanges()
   const AspectMode old_suggested_aspect_mode = g_ActiveConfig.suggested_aspect_mode;
   const bool old_widescreen_hack = g_ActiveConfig.bWidescreenHack;
   const auto old_post_processing_shader = g_ActiveConfig.sPostProcessingShader;
-  const auto old_hdr = g_ActiveConfig.bHDR;
+  const auto old_hdr_render = g_ActiveConfig.bHDRRender;
+  const auto old_hdr_output = g_ActiveConfig.bHDROutput;
 
   UpdateActiveConfig();
   g_vertex_manager->OnConfigChange();
@@ -355,8 +357,10 @@ void CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
   if (old_post_processing_shader != g_ActiveConfig.sPostProcessingShader)
     changed_bits |= CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER;
-  if (old_hdr != g_ActiveConfig.bHDR)
-    changed_bits |= CONFIG_CHANGE_BIT_HDR;
+  if (old_hdr_render != g_ActiveConfig.bHDRRender)
+    changed_bits |= CONFIG_CHANGE_BIT_HDR_RENDER;
+  if (old_hdr_output != g_ActiveConfig.bHDROutput)
+    changed_bits |= CONFIG_CHANGE_BIT_HDR_OUTPUT;
 
   // No changes?
   if (changed_bits == 0)
@@ -366,7 +370,7 @@ void CheckForConfigChanges()
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
-                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR))
+                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR_RENDER))
   {
     g_framebuffer_manager->RecreateEFBFramebuffer(g_ActiveConfig.iEFBScale);
   }
@@ -379,13 +383,14 @@ void CheckForConfigChanges()
   }
 
   // Reload shaders if host config has changed.
-  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
+  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES |
+                      CONFIG_CHANGE_BIT_HDR_OUTPUT))
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_gfx->WaitForGPUIdle();
     g_vertex_manager->InvalidatePipelineObject();
     g_vertex_manager->NotifyCustomShaderCacheOfHostChange(new_host_config);
-    g_shader_cache->SetHostConfig(new_host_config);
+    g_shader_cache->SetHostConfig(new_host_config); // TODO: is this actually necessary when we toggle HDR render in the menu? Other changes the influence shaders aren't immediately applied it seems
     g_shader_cache->Reload();
     g_framebuffer_manager->RecompileShaders();
   }

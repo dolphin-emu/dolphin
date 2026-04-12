@@ -53,7 +53,7 @@ bool SwapChain::WantsStereo()
 
 bool SwapChain::WantsHDR()
 {
-  return g_ActiveConfig.bHDR;
+  return g_ActiveConfig.bHDROutput;
 }
 
 u32 SwapChain::GetSwapChainFlags() const

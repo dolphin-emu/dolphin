@@ -349,7 +349,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 {
   ShaderCode out;
 
-  const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool vertex_rounding = host_config.vertex_rounding;

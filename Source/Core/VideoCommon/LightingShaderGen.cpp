@@ -146,8 +146,8 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
           GenerateLightShader(object, uid_data, i, j + 2, true);
       }
     }
-    object.Write("\tlacc = clamp(lacc, 0, 255);\n");
-    object.Write("\treturn vec4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n");
+    object.Write("\tlacc = clamp(lacc, 0, 2550);\n"); // TODO: HDR branches
+    object.Write("\treturn vec4((mat * ((lacc * 256 + 127) / 255)) >> 8) / 255.0;\n");
     object.Write("}}\n\n");
   }
 }

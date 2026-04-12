@@ -727,8 +727,8 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo);
+static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data, int n, APIType api_type, bool stereo);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
                             bool clamp, TevScale scale);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
@@ -751,7 +751,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 {
   ShaderCode out;
 
-  const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
@@ -993,11 +993,18 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("\tDolphinFragmentOutput frag_output;\n");
   out.Write("\tprocess_fragment(frag_input, frag_output);\n");
-  // out.Write("\tivec4 prev = frag_output.main & 255;\n");
-  out.Write("\tivec4 prev = frag_output.main;\n");
-
-  // alpha bitmask
-  out.Write("\tprev.a = prev.a & 255;\n");
+  if (host_config.hdr)
+  {
+    out.Write("\tivec4 prev = frag_output.main;\n");
+    // apply bitmask on alpha only
+    //out.Write("\tprev.a = prev.a & 255;\n");
+    // Clamp alpha for extra safety given it could have gone beyond 255
+    out.Write("\tprev.a = clamp(prev.a, 0, 255);\n");
+  }
+  else
+  {
+    out.Write("\tivec4 prev = frag_output.main & 255;\n");
+  }
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
@@ -1128,7 +1135,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   return out;
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
+static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data, int n,
                        APIType api_type, bool stereo)
 {
   using Common::EnumMap;
@@ -1371,6 +1379,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   cc.hex = stage.cc;
   ac.hex = stage.ac;
 
+  // TODO: clamp alpha output if it compres from a color input in a swizzle?
   if (cc.a == TevColorArg::RasAlpha || cc.a == TevColorArg::RasColor ||
       cc.b == TevColorArg::RasAlpha || cc.b == TevColorArg::RasColor ||
       cc.c == TevColorArg::RasAlpha || cc.c == TevColorArg::RasColor ||
@@ -1438,7 +1447,57 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
+  // TODO: naming and placement
+  // Let HDR colors go up to "infinite", as opposed to a limiter greater range (10x in gamma space, which is huge)
+  constexpr bool hdr_no_color_clamp = false;
+  constexpr bool hdr_no_color_alpha_clamp = false;
+  // Let HDR alpha go beyond 255, which is generally not a good idea given that it can mess up
+  // blends etc
+  constexpr bool hdr_no_alpha_clamp = false;
+
+  if (host_config.hdr)
+  {
+    // TODO: force tighter clamping if cc.op is set to subtraction? Otherwise we could end up with 255-2550 (e.g.)
+    // Always clamp if the source is an alpha. Constants are already 8 bit so need no clamping.
+    // Always clamp the alpha channel.
+    if (cc.a == TevColorArg::PrevAlpha || cc.a == TevColorArg::Alpha0 ||
+        cc.a == TevColorArg::Alpha1 || cc.a == TevColorArg::Alpha2)
+    {
+      out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
+                tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+    }
+    // TODO: test/polish these cases, it's a bit random, especially on alpha, which isn't related to "cc.a"
+    else if (cc.a == TevColorArg::TexAlpha || cc.a == TevColorArg::RasAlpha)
+    {
+      out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
+                tev_a_input_table[ac.a]);
+    }
+    else
+    {
+      out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+    }
+    if (cc.b == TevColorArg::PrevAlpha || cc.b == TevColorArg::Alpha0 ||
+        cc.b == TevColorArg::Alpha1 || cc.b == TevColorArg::Alpha2)
+    {
+      out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+    }
+    else if (cc.b == TevColorArg::TexAlpha || cc.b == TevColorArg::RasAlpha)
+    {
+      out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+                tev_a_input_table[ac.b]);
+    }
+    else
+    {
+      out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+    }
+    // Always force clamp the lerp blend factor
+    out.Write("\ttevin_c = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
+              tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
+  }
+  else if(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
     out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.a],
               tev_a_input_table[ac.a]);
@@ -1449,29 +1508,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   }
   else
   {
-    out.Write("\ttevin_a = int4({}, {});\n", tev_c_input_table[cc.a],
+    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
               tev_a_input_table[ac.a]);
-    //if (cc.b == TevColorArg::PrevColor)
-    //  out.Write(
-    //      "\ttevin_b = int4(min(prev.rgb, int3(255,255,255)), {});\n",
-    //      tev_a_input_table[ac.b]);
-    //else
-      out.Write("\ttevin_b = int4({}, {});\n", tev_c_input_table[cc.b],
-                tev_a_input_table[ac.b]);
-
-    //if (cc.c == TevColorArg::PrevColor)
-    //  out.Write(
-    //      "\ttevin_c = int4(min(prev.rgb, int3(255,255,255)), {});\n",
-    //      tev_a_input_table[ac.c]);
-
-    //else
-      out.Write("\ttevin_c = int4({}, {});\n", tev_c_input_table[cc.c],
-                tev_a_input_table[ac.c]);
+    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+              tev_a_input_table[ac.b]);
+    out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
+              tev_a_input_table[ac.c]);
   }
+  // TODO: clamp to 10x in HDR either way?
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[cc.d], tev_a_input_table[ac.d]);
 
-  out.Write("\t// color combine (unclamp)?\n");
-  if (cc.clamp)
+  out.Write("\t// color combine\n");
+  if (cc.clamp && host_config.hdr && hdr_no_color_clamp)
     out.Write("\t{} = max(", tev_c_output_table[cc.dest]);
   else
     out.Write("\t{} = clamp(", tev_c_output_table[cc.dest]);
@@ -1481,6 +1529,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   }
   else
   {
+    // TODO: sohould we ever just force clamping/marking for comparisons?
     static constexpr EnumMap<const char*, TevCompareMode::RGB8> tev_rgb_comparison_gt{
         "((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",  // TevCompareMode::R8
         "((idot(tevin_a.rgb, comp16) > idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))",  // GR16
@@ -1500,11 +1549,22 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
       out.Write("   tevin_d.rgb + {}", tev_rgb_comparison_gt[cc.compare_mode]);
   }
-  if (cc.clamp)
-    // out.Write(", int3(0,0,0), int3(255,255,255))");
-    out.Write(", int3(0,0,0))");
+  if (host_config.hdr)
+  {
+    if (cc.clamp && hdr_no_color_clamp)
+      out.Write(", int3(0,0,0))");
+    else if (cc.clamp)
+      out.Write(", int3(0,0,0), int3(2550,2550,2550))");
+    else
+      out.Write(", int3(-10240,-10240,-10240), int3(10230,10230,10230))"); // TODO: is it ever good to unclamp this? Probably?
+  }
   else
-    out.Write(", int3(-2550,-2550,-2550), int3(2550,2550,2550))");
+  {
+    if (cc.clamp)
+      out.Write(", int3(0,0,0), int3(255,255,255))");
+    else
+      out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
+  }
   out.Write(";\n");
 
   out.Write("\t// alpha combine\n");
@@ -1534,7 +1594,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
       out.Write("   tevin_d.a + {}", tev_a_comparison_gt[ac.compare_mode]);
   }
-  if (ac.clamp)
+  if (ac.clamp && hdr_no_alpha_clamp)
+    out.Write(", 0, 2550)");
+  else if (ac.clamp)
     out.Write(", 0, 255)");
   else
     out.Write(", -1024, 1023)");
@@ -1586,7 +1648,7 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
   out.Write("(((tevin_d.{}{}){})", components, tev_bias_table[bias], tev_scale_table_left[scale]);
   out.Write(" {} ", tev_op_table[op]);
   out.Write("(((((tevin_a.{0}<<8) + "
-            "(tevin_b.{0}-tevin_a.{0})*(tevin_c.{0}+(tevin_c.{0}>>7))){1}){2})>>8)",
+            "(tevin_b.{0}-tevin_a.{0})*((tevin_c.{0} * 256 + 127) / 255)){1}){2})>>8)",
             components, tev_scale_table_left[scale],
             (scale != TevScale::Divide2) ? tev_lerp_bias[op] : "");
   out.Write("){}", tev_scale_table_right[scale]);
@@ -2018,7 +2080,7 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
   for (u32 i = 0; i < numStages; i++)
   {
     // Build the equation for this stage
-    WriteStage(out, uid_data, i, api_type, stereo);
+    WriteStage(out, host_config, uid_data, i, api_type, stereo);
   }
 
   {

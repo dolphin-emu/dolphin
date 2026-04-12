@@ -811,15 +811,16 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write("      uint color_dest = {};\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::dest>("ss.cc"));
 
+  // TODO: either implement HDR here too or let it not work
   out.Write(
       "      uint color_compare_op = color_scale << 1 | uint(color_op);\n"
       "\n"
       "      int3 color_A = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_a) & "
-      "int3(255, 255, 255);\n"
+      "int3(2550, 2550, 2550);\n"
       "      int3 color_B = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_b) & "
-      "int3(255, 255, 255);\n"
+      "int3(2550, 2550, 2550);\n"
       "      int3 color_C = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_c) & "
-      "int3(255, 255, 255);\n"
+      "int3(2550, 2550, 2550);\n"
       "      int3 color_D = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_d);  // 10 "
       "bits + sign\n"
       "\n",  // TODO: do we need to sign extend?
@@ -851,7 +852,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "\n"
       "      // Clamp result\n"
       "      if (color_clamp)\n"
-      "        color = clamp(color, 0, 255);\n"
+      "        color = clamp(color, 0, 2550);\n"
       "      else\n"
       "        color = clamp(color, -1024, 1023);\n"
       "\n"
@@ -937,7 +938,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "  TevResult.w = getTevReg(s, {}).w;\n",
       BitfieldExtract<&TevStageCombiner::AlphaCombiner::dest>("bpmem_combiners(num_stages).y"));
 
-  out.Write("  TevResult &= 255;\n\n");
+  out.Write("  TevResult &= 2550;\n\n");
 
   if (host_config.fast_depth_calc)
   {

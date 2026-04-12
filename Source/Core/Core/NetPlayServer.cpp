@@ -1442,6 +1442,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.force_texture_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
   settings.max_anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   settings.force_true_color = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  settings.hdr_render = Config::Get(Config::GFX_ENHANCE_HDR_RENDER);
   settings.disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
   settings.disable_fog = Config::Get(Config::GFX_DISABLE_FOG);
   settings.arbitrary_mipmap_detection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
@@ -1651,6 +1652,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.force_texture_filtering;
   spac << m_settings.max_anisotropy;
   spac << m_settings.force_true_color;
+  spac << m_settings.hdr_render;
   spac << m_settings.disable_copy_filter;
   spac << m_settings.disable_fog;
   spac << m_settings.arbitrary_mipmap_detection;

@@ -196,7 +196,7 @@ bool SwapChain::SelectSurfaceFormat()
 
   // Pick the best format.
   // "g_ActiveConfig" might not have been been updated yet.
-  if (g_Config.bHDR && surface_format_RGBA16F_scRGB)
+  if (g_Config.bHDROutput && surface_format_RGBA16F_scRGB)
     surface_format = surface_format_RGBA16F_scRGB;
   else if (surface_format_RGB10_A2)
     surface_format = surface_format_RGB10_A2;

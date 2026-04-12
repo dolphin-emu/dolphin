@@ -113,6 +113,7 @@ public:
       layer->Set(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, m_settings.force_texture_filtering);
       layer->Set(Config::GFX_ENHANCE_MAX_ANISOTROPY, m_settings.max_anisotropy);
       layer->Set(Config::GFX_ENHANCE_FORCE_TRUE_COLOR, m_settings.force_true_color);
+      layer->Set(Config::GFX_ENHANCE_HDR_RENDER, m_settings.hdr_render);
       layer->Set(Config::GFX_ENHANCE_DISABLE_COPY_FILTER, m_settings.disable_copy_filter);
       layer->Set(Config::GFX_DISABLE_FOG, m_settings.disable_fog);
       layer->Set(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION,
