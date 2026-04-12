@@ -495,8 +495,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   // (it might not be gamma corrected).
   const bool needs_resampling =
       g_ActiveConfig.output_resampling_mode > OutputResamplingMode::Default;
+  const bool needs_tonemap = g_ActiveConfig.bHDRRender;
   const bool needs_intermediary_buffer = NeedsIntermediaryBuffer();
-  const bool needs_default_pipeline = needs_color_correction || needs_resampling;
+  const bool needs_default_pipeline = needs_color_correction || needs_resampling || needs_tonemap;
   const AbstractPipeline* final_pipeline = m_pipeline.get();
   std::vector<u8>* uniform_staging_buffer = &m_default_uniform_staging_buffer;
   bool default_uniform_staging_buffer = true;
