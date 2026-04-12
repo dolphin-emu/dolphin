@@ -1676,11 +1676,11 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
     else
       out.Write("   tevin_d.a + {}", tev_a_comparison_gt[ac.compare_mode]);
   }
-  if (ac.clamp && hdr_no_alpha_clamp)
+  if (ac.clamp && host_config.hdr && hdr_no_alpha_clamp)
     out.Write(", 0, 2550)");
   else if (ac.clamp)
     out.Write(", 0, 255)");
-  else if (hdr_no_alpha_clamp)
+  else if (host_config.hdr && hdr_no_alpha_clamp)
     out.Write(", -10240, 10230)");
   else
     out.Write(", -1024, 1023)");
