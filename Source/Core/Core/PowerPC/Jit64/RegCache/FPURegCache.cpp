@@ -38,8 +38,8 @@ OpArg FPURegCache::R(preg_t preg) const
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "FPR {} missing!", preg);
-    return GetDefaultLocation(preg);
+    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInPPCState(), "FPR {} missing!", preg);
+    return GetPPCStateLocation(preg);
   }
 }
 
@@ -59,8 +59,8 @@ void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc,
 
 void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
-  ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "FPR {} not in default location", preg);
-  m_emitter->MOVAPD(new_loc, GetDefaultLocation(preg));
+  ASSERT_MSG(DYNA_REC, m_regs[preg].IsInPPCState(), "FPR {} not in PPCState", preg);
+  m_emitter->MOVAPD(new_loc, GetPPCStateLocation(preg));
 }
 
 void FPURegCache::DiscardImm(preg_t preg)
@@ -75,7 +75,7 @@ std::span<const X64Reg> FPURegCache::GetAllocationOrder() const
   return allocation_order;
 }
 
-OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
+OpArg FPURegCache::GetPPCStateLocation(preg_t preg) const
 {
   return PPCSTATE_PS0(preg);
 }
