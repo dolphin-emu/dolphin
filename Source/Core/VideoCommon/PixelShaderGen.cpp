@@ -1450,7 +1450,7 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
   // TODO: naming and placement
   // Let HDR colors go up to "infinite", as opposed to a limiter greater range (10x in gamma space, which is huge)
   constexpr bool hdr_no_color_clamp = false;
-  constexpr bool hdr_no_color_alpha_clamp = false;
+  constexpr bool hdr_no_color_alpha_clamp = false; // TODO: implement
   // Let HDR alpha go beyond 255, which is generally not a good idea given that it can mess up
   // blends etc
   constexpr bool hdr_no_alpha_clamp = false;
@@ -1460,42 +1460,54 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
     // TODO: force tighter clamping if cc.op is set to subtraction? Otherwise we could end up with 255-2550 (e.g.)
     // Always clamp if the source is an alpha. Constants are already 8 bit so need no clamping.
     // Always clamp the alpha channel.
-    if (cc.a == TevColorArg::PrevAlpha || cc.a == TevColorArg::Alpha0 ||
-        cc.a == TevColorArg::Alpha1 || cc.a == TevColorArg::Alpha2)
+    if (!hdr_no_color_alpha_clamp)
     {
-      out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
-                tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
-    }
-    // TODO: test/polish these cases, it's a bit random, especially on alpha, which isn't related to "cc.a"
-    else if (cc.a == TevColorArg::TexAlpha || cc.a == TevColorArg::RasAlpha)
-    {
-      out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
-                tev_a_input_table[ac.a]);
+        out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 2550));\n",
+                  tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+        out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 2550));\n",
+                  tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+        out.Write("\ttevin_c = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 2550));\n",
+                  tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
     }
     else
     {
-      out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
-                tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+      if (cc.a == TevColorArg::PrevAlpha || cc.a == TevColorArg::Alpha0 ||
+          cc.a == TevColorArg::Alpha1 || cc.a == TevColorArg::Alpha2)
+      {
+        out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
+                  tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+      }
+      // TODO: test/polish these cases, it's a bit random, especially on alpha, which isn't related to "cc.a"
+      else if (cc.a == TevColorArg::TexAlpha || cc.a == TevColorArg::RasAlpha)
+      {
+        out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
+                  tev_a_input_table[ac.a]);
+      }
+      else
+      {
+        out.Write("\ttevin_a = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                  tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+      }
+      if (cc.b == TevColorArg::PrevAlpha || cc.b == TevColorArg::Alpha0 ||
+          cc.b == TevColorArg::Alpha1 || cc.b == TevColorArg::Alpha2)
+      {
+        out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                  tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+      }
+      else if (cc.b == TevColorArg::TexAlpha || cc.b == TevColorArg::RasAlpha)
+      {
+        out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+                  tev_a_input_table[ac.b]);
+      }
+      else
+      {
+        out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
+                  tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+      }
+      // Always force clamp the lerp blend factor
+      out.Write("\ttevin_c = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
+                tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
     }
-    if (cc.b == TevColorArg::PrevAlpha || cc.b == TevColorArg::Alpha0 ||
-        cc.b == TevColorArg::Alpha1 || cc.b == TevColorArg::Alpha2)
-    {
-      out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
-                tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
-    }
-    else if (cc.b == TevColorArg::TexAlpha || cc.b == TevColorArg::RasAlpha)
-    {
-      out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
-                tev_a_input_table[ac.b]);
-    }
-    else
-    {
-      out.Write("\ttevin_b = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n",
-                tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
-    }
-    // Always force clamp the lerp blend factor
-    out.Write("\ttevin_c = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
-              tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
   }
   else if(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
