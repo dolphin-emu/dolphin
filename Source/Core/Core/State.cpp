@@ -79,7 +79,7 @@ static u32 s_last_state_size = 0;
 // Shared locks are acquired for each state save task.
 // Tasks generally transition from: Calling thread -> CPU thread -> Compress/Write thread.
 // Holding an "exclusive" lock will:
-// 1. Ensure all previous save tasks have been completely written to the file systen.
+// 1. Ensure all previous save tasks have been completely written to the file system.
 // 2. Prevent new tasks from starting.
 static Common::TransferableSharedMutex s_state_saves_in_progress;
 
@@ -95,7 +95,7 @@ struct CompressAndDumpStateArgs
 static Common::WorkQueueThreadSP<CompressAndDumpStateArgs> s_compress_and_dump_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 187;  // Last changed in PR 14552
+constexpr u32 STATE_VERSION = 188;  // Last changed in PR 14579
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
