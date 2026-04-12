@@ -422,7 +422,7 @@ void Gfx::OnConfigChanged(u32 bits)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
   }
 
-  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_HDR)
+  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_HDR_OUTPUT)
   {
     ExecuteCommandList(true);
     m_swap_chain->SetHDR(SwapChain::WantsHDR());
