@@ -22,7 +22,7 @@ public:
     return m_host_register;
   }
 
-  bool IsInDefaultLocation() const { return m_in_default_location; }
+  bool IsInPPCState() const { return m_in_ppc_state; }
   bool IsInHostRegister() const { return m_in_host_register; }
 
   void SetFlushed(bool maintain_host_register)
@@ -30,23 +30,23 @@ public:
     ASSERT(!m_revertable);
     if (!maintain_host_register)
       m_in_host_register = false;
-    m_in_default_location = true;
+    m_in_ppc_state = true;
   }
 
   void SetInHostRegister(Gen::X64Reg xreg, bool dirty)
   {
     if (dirty)
-      m_in_default_location = false;
+      m_in_ppc_state = false;
     m_in_host_register = true;
     m_host_register = xreg;
   }
 
-  void SetDirty() { m_in_default_location = false; }
+  void SetDirty() { m_in_ppc_state = false; }
 
   void SetDiscarded()
   {
     ASSERT(!m_revertable);
-    m_in_default_location = false;
+    m_in_ppc_state = false;
     m_in_host_register = false;
   }
 
@@ -72,7 +72,7 @@ public:
 
 private:
   Gen::X64Reg m_host_register{};
-  bool m_in_default_location = true;
+  bool m_in_ppc_state = true;
   bool m_in_host_register = false;
   bool m_revertable = false;
   size_t m_locked = 0;
