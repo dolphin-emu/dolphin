@@ -221,9 +221,6 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
       }
-
-      // TODO: Remove test hacks
-      // SetCenteringForce(0.8, 0.7);
     }
   }
 
@@ -276,15 +273,27 @@ SDL_JoystickID Gamepad::GetSDLInstanceID() const
   return SDL_GetJoystickID(m_joystick);
 }
 
-void Gamepad::SetCenteringForce(double gain, double center_position)
+class SpringEffect final : public Core::SpringEffect
 {
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "SetCenteringForce: {:.2} {:.2}", gain, center_position);
+public:
+  explicit SpringEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
 
-  if (m_haptic == nullptr)
-    return;
+  ~SpringEffect() override { SetForce(0.0, 0.0); }
 
-  if (gain != 0.0)
+  void SetForce(double gain, double center_position) override
   {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "SpringEffect: {:.2} {:.2}", gain, center_position);
+
+    if (gain == 0.0)
+    {
+      if (m_effect_id != -1)
+      {
+        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
+      }
+
+      return;
+    }
+
     SDL_HapticEffect effect{
         .type = SDL_HAPTIC_SPRING,
     };
@@ -293,9 +302,8 @@ void Gamepad::SetCenteringForce(double gain, double center_position)
 
     // TODO: Why does only SDL_HAPTIC_POLAR do the correct thing for my Sidewinder joystick?
     // I would expect SDL_HAPTIC_STEERING_AXIS to be more reliable..
-    condition.direction.type = SDL_HAPTIC_POLAR;
-    // condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
-    // condition.direction.dir[0] = 1;
+    // condition.direction.type = SDL_HAPTIC_POLAR;
+    condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
 
     // Is "infinity" always supported ?
     condition.length = SDL_HAPTIC_INFINITY;
@@ -311,30 +319,116 @@ void Gamepad::SetCenteringForce(double gain, double center_position)
 
     condition.center[0] = ControllerEmu::MapFloat<s16>(center_position, 0);
 
-    if (m_centering_haptic_effect == -1)
+    if (m_effect_id == -1)
     {
       // Create and start a new effect.
-      m_centering_haptic_effect = SDL_CreateHapticEffect(m_haptic, &effect);
-      if (m_centering_haptic_effect == -1)
+      m_effect_id = SDL_CreateHapticEffect(m_haptic, &effect);
+      if (m_effect_id == -1)
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
         return;
       }
 
-      if (!SDL_RunHapticEffect(m_haptic, m_centering_haptic_effect, 1))
+      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
     }
     else
     {
       // Update an already running effect.
-      if (!SDL_UpdateHapticEffect(m_haptic, m_centering_haptic_effect, &effect))
+      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, &effect))
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
     }
   }
-  else if (m_centering_haptic_effect != -1)
+
+private:
+  SDL_Haptic* const m_haptic;
+  int m_effect_id = -1;
+};
+
+class FrictionEffect final : public Core::FrictionEffect
+{
+public:
+  explicit FrictionEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
+
+  ~FrictionEffect() override { SetForce(0.0); }
+
+  void SetForce(double gain) override
   {
-    SDL_DestroyHapticEffect(m_haptic, std::exchange(m_centering_haptic_effect, -1));
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "FrictionEffect: {:.2}", gain);
+
+    if (gain == 0.0)
+    {
+      if (m_effect_id != -1)
+      {
+        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
+      }
+
+      return;
+    }
+
+    SDL_HapticEffect effect{
+        .type = SDL_HAPTIC_FRICTION,
+    };
+
+    auto& condition = effect.condition;
+
+    // TODO: Why does only SDL_HAPTIC_POLAR do the correct thing for my Sidewinder joystick?
+    // I would expect SDL_HAPTIC_STEERING_AXIS to be more reliable..
+    // condition.direction.type = SDL_HAPTIC_POLAR;
+    condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
+
+    // Is "infinity" always supported ?
+    condition.length = SDL_HAPTIC_INFINITY;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition.right_sat[0] = unsigned_gain;
+    condition.left_sat[0] = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition.right_coeff[0] = coeff;
+    condition.left_coeff[0] = coeff;
+
+    if (m_effect_id == -1)
+    {
+      // Create and start a new effect.
+      m_effect_id = SDL_CreateHapticEffect(m_haptic, &effect);
+      if (m_effect_id == -1)
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
+        return;
+      }
+
+      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
+    }
+    else
+    {
+      // Update an already running effect.
+      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, &effect))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
+    }
   }
+
+private:
+  SDL_Haptic* const m_haptic;
+  int m_effect_id = -1;
+};
+
+std::unique_ptr<Core::SpringEffect> Gamepad::CreateSpringEffect()
+{
+  if (m_haptic == nullptr)
+    return nullptr;
+
+  return std::make_unique<SpringEffect>(m_haptic);
+}
+
+std::unique_ptr<Core::FrictionEffect> Gamepad::CreateFrictionEffect()
+{
+  if (m_haptic == nullptr)
+    return nullptr;
+
+  return std::make_unique<FrictionEffect>(m_haptic);
 }
 
 std::string Gamepad::Button::GetName() const

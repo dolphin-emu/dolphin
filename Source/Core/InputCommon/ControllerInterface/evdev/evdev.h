@@ -88,7 +88,8 @@ public:
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
 
-  void SetCenteringForce(double gain, double center_position) override;
+  std::unique_ptr<Core::SpringEffect> CreateSpringEffect() override;
+  std::unique_ptr<Core::FrictionEffect> CreateFrictionEffect() override;
 
 private:
   std::string m_name;
@@ -104,7 +105,6 @@ private:
 
   InputBackend& m_input_backend;
 
-  int m_ffb_wheel_fd = -1;
-  s16 m_centering_effect_id = -1;
+  int m_ffb_fd = -1;
 };
 }  // namespace ciface::evdev
