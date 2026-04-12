@@ -471,8 +471,8 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode,
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction on {} is in progress!", i);
 
-  if (!m_regs[i].IsInDefaultLocation())
-    StoreRegister(i, GetDefaultLocation(i), ignore_discarded_registers);
+  if (!m_regs[i].IsInPPCState())
+    StoreRegister(i, GetPPCStateLocation(i), ignore_discarded_registers);
 
   if (mode == FlushMode::Full && m_regs[i].IsInHostRegister())
     m_xregs[m_regs[i].GetHostRegister()].Unbind();
@@ -542,7 +542,7 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   // bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
   // right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
   // to the number of extra stores it causes.
-  if (!m_regs[preg].IsInDefaultLocation())
+  if (!m_regs[preg].IsInPPCState())
     score += 2;
 
   // If the register isn't actually needed in a physical register for a later instruction,
