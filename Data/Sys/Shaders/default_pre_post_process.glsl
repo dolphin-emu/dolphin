@@ -4,22 +4,22 @@
 // https://www.unravel.com.au/understanding-color-spaces
 
 // SMPTE 170M - BT.601 (NTSC-M) -> BT.709
-mat3 from_NTSCM = transpose(mat3(
+mat3 from_NTSCM = mat3(
 	0.939497225737661,		0.0502268452914346,		0.0102759289709032,
 	0.0177558637510127,		0.965824605885027,		0.0164195303639603,
-	-0.00162163209967010,	-0.00437400622653655,	1.00599563832621));
+	-0.00162163209967010,	-0.00437400622653655,	1.00599563832621);
 
 // ARIB TR-B9 (9300K+27MPCD with chromatic adaptation) (NTSC-J) -> BT.709
-mat3 from_NTSCJ = transpose(mat3(
+mat3 from_NTSCJ = mat3(
 	0.768497526,		-0.210804164,	  0.000297427177,
 	0.0397904068,		1.04825413,			0.00555809540,
-	0.00147510506,	0.0328789241,		1.36515128));
+	0.00147510506,	0.0328789241,		1.36515128);
 
 // EBU - BT.470BG/BT.601 (PAL) -> BT.709
-mat3 from_PAL = transpose(mat3(
+mat3 from_PAL = mat3(
 	1.04408168421813,		-0.0440816842181253,	0.000000000000000,
 	0.000000000000000,	1.00000000000000,			0.000000000000000,
-	0.000000000000000,	0.0118044782106489,		0.988195521789351));
+	0.000000000000000,	0.0118044782106489,		0.988195521789351);
 
 float3 LinearTosRGBGamma(float3 color)
 {
@@ -500,7 +500,7 @@ void main()
 		color.rgb *= hdr_paper_white;
 	}
 	
-	// Do gamut mapping to make sure all colors are within the BT.709 gamut.
+	// Do simple gamut mapping to make sure all colors are within the BT.709 gamut.
 	// HDR doesn't need it as all the color spaces above are within BT.2020.
 	if (OptionEnabled(correct_color_space) && !OptionEnabled(hdr_output))
 	{
