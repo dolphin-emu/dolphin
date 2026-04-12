@@ -1450,9 +1450,8 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
   // TODO: naming and placement
   // Let HDR colors go up to "infinite", as opposed to a limiter greater range (10x in gamma space, which is huge)
   constexpr bool hdr_no_color_clamp = false;
-  constexpr bool hdr_no_color_alpha_clamp = false; // TODO: implement
-  // Let HDR alpha go beyond 255, which is generally not a good idea given that it can mess up
-  // blends etc
+  constexpr bool hdr_no_color_alpha_clamp = false;
+  // Let HDR alpha go beyond 255, which is generally not a good idea given that it can mess up blends etc
   constexpr bool hdr_no_alpha_clamp = false;
 
   if (host_config.hdr)

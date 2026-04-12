@@ -370,7 +370,7 @@ void CheckForConfigChanges()
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
-                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR_RENDER))
+                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR_OUTPUT))
   {
     g_framebuffer_manager->RecreateEFBFramebuffer(g_ActiveConfig.iEFBScale);
   }
@@ -384,7 +384,7 @@ void CheckForConfigChanges()
 
   // Reload shaders if host config has changed.
   if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES |
-                      CONFIG_CHANGE_BIT_HDR_OUTPUT))
+                      CONFIG_CHANGE_BIT_HDR_RENDER))
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_gfx->WaitForGPUIdle();
