@@ -3,13 +3,16 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/HW/Triforce/IOPorts.h"
 #include "Core/HW/Triforce/SerialDevice.h"
 
 namespace ciface::Core
 {
-class Device;
-}
+class SpringEffect;
+class FrictionEffect;
+}  // namespace ciface::Core
 
 namespace Triforce
 {
@@ -18,6 +21,9 @@ namespace Triforce
 class MarioKartGPSteeringWheel final : public SerialDevice
 {
 public:
+  MarioKartGPSteeringWheel();
+  ~MarioKartGPSteeringWheel() override;
+
   void Update() override;
 
   void Reset();
@@ -25,9 +31,17 @@ public:
   void DoState(PointerWrap&) override;
 
 private:
+  void HandleConfigChange();
+
   void ProcessRequest(std::span<const u8>);
 
   u8 m_init_state = 0;
+
+  std::unique_ptr<ciface::Core::SpringEffect> m_spring_effect;
+  std::unique_ptr<ciface::Core::FrictionEffect> m_friction_effect;
+
+  const CPUThreadConfigCallback::ConfigChangedCallbackID m_config_changed_callback_id;
+  const Common::EventHook m_devices_changed_hook;
 };
 
 // Used for both MarioKartGP and MarioKartGP2.

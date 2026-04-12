@@ -187,6 +187,28 @@ void FZeroAXDeluxe_IOAdapter::DoState(PointerWrap& p)
   p.Do(m_rx_reply);
 }
 
+FZeroAXSteeringWheel::FZeroAXSteeringWheel()
+    : m_config_changed_callback_id{CPUThreadConfigCallback::AddConfigChangedCallback(
+          [this] { HandleConfigChange(); })},
+      // TODO: Is this safe ?
+      m_devices_changed_hook{
+          g_controller_interface.RegisterDevicesChangedCallback([this] { HandleConfigChange(); })}
+{
+}
+
+FZeroAXSteeringWheel::~FZeroAXSteeringWheel()
+{
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
+
+void FZeroAXSteeringWheel::HandleConfigChange()
+{
+  auto* const controller = Pad::GetConfig()->GetController(0);
+  const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+
+  m_spring_effect = wheel_device->CreateSpringEffect();
+}
+
 void FZeroAXSteeringWheel::Update()
 {
   constexpr std::size_t REQUEST_SIZE = 4;
@@ -242,19 +264,17 @@ void FZeroAXSteeringWheel::ProcessRequest(std::span<const u8> request)
 
     INFO_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: servo_position: {}", m_servo_position);
 
-    constexpr auto force_strength = 1.0;
+    if (m_spring_effect != nullptr)
+    {
+      constexpr auto force_strength = 1.0;
 
-    // TODO: Is this a sensible calculation ?
-    const auto center_position = ControllerEmu::MapToFloat<double>(s8(m_servo_position * 2), {});
+      // TODO: Is this a sensible calculation ?
+      const auto center_position = ControllerEmu::MapToFloat<double>(s8(m_servo_position * 2), {});
 
-    // TODO: Acquire this object in the constructor and update it on config change !
-    // TODO: Also turn off the force appropriately on shutdown  !
-    auto* const controller = Pad::GetConfig()->GetController(0);
-    const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+      // TODO: Should we also set a friction force ?
 
-    // TODO: Should we also set a friction force ?
-
-    wheel_device->SetCenteringForce(force_strength, center_position);
+      m_spring_effect->SetForce(force_strength, center_position);
+    }
 
     break;
   }

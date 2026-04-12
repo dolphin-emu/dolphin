@@ -73,6 +73,28 @@ void MarioKartGPCommon_IOAdapter::HandleGenericOutputsChanged(std::span<const u8
   }
 }
 
+MarioKartGPSteeringWheel::MarioKartGPSteeringWheel()
+    : m_config_changed_callback_id{CPUThreadConfigCallback::AddConfigChangedCallback(
+          [this] { HandleConfigChange(); })},
+      // TODO: Is this safe ?
+      m_devices_changed_hook{
+          g_controller_interface.RegisterDevicesChangedCallback([this] { HandleConfigChange(); })}
+{
+}
+MarioKartGPSteeringWheel::~MarioKartGPSteeringWheel()
+{
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
+
+void MarioKartGPSteeringWheel::HandleConfigChange()
+{
+  auto* const controller = Pad::GetConfig()->GetController(0);
+  const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+
+  m_spring_effect = wheel_device->CreateSpringEffect();
+  m_friction_effect = wheel_device->CreateFrictionEffect();
+}
+
 void MarioKartGPSteeringWheel::Update()
 {
   constexpr std::size_t REQUEST_SIZE = 10;
@@ -116,18 +138,23 @@ void MarioKartGPSteeringWheel::ProcessRequest(std::span<const u8> request)
   const bool should_set_force = centering_force != 0;
   if (should_set_force)
   {
-    // TODO: Are these sensible calculations ?
-    const auto force_strength = ControllerEmu::MapToFloat<double>(s16(centering_force), {});
-    const auto center_position = ControllerEmu::MapToFloat<double>(s16(roll), {});
+    if (m_spring_effect != nullptr)
+    {
+      // TODO: Are these sensible calculations ?
+      const auto force_strength = ControllerEmu::MapToFloat<double>(s16(centering_force), {});
+      const auto center_position = 0.0 - ControllerEmu::MapToFloat<double>(s16(roll), {});
 
-    // TODO: Acquire this object in the constructor and update it on config change !
-    // TODO: Also turn off the force appropriately on shutdown  !
-    auto* const controller = Pad::GetConfig()->GetController(0);
-    const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+      m_spring_effect->SetForce(force_strength, center_position);
+    }
 
-    wheel_device->SetCenteringForce(force_strength, center_position);
+    if (m_friction_effect != nullptr)
+    {
+      // TODO: sensible calculation ?
+      const auto force_strength = ControllerEmu::MapToFloat<double>(s16(friction_force), {});
+
+      m_friction_effect->SetForce(force_strength);
+    }
   }
-
   switch (m_init_state)
   {
   case 0:

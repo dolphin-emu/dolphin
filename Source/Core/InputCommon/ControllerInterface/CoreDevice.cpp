@@ -119,8 +119,14 @@ Device::Output* Device::FindOutput(std::string_view name) const
   return nullptr;
 }
 
-void Device::SetCenteringForce(double gain, double center_position)
+std::unique_ptr<SpringEffect> Device::CreateSpringEffect()
 {
+  return nullptr;
+}
+
+std::unique_ptr<FrictionEffect> Device::CreateFrictionEffect()
+{
+  return nullptr;
 }
 
 bool Device::Control::IsMatchingName(std::string_view name) const
@@ -505,5 +511,11 @@ auto InputDetector::TakeResults() -> Results
 {
   return std::move(m_detections);
 }
+
+SpringEffect::SpringEffect() = default;
+SpringEffect::~SpringEffect() = default;
+
+FrictionEffect::FrictionEffect() = default;
+FrictionEffect::~FrictionEffect() = default;
 
 }  // namespace ciface::Core
