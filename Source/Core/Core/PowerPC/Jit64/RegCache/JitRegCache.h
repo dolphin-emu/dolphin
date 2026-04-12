@@ -194,7 +194,7 @@ protected:
   friend class RCX64Reg;
   friend class RCForkGuard;
 
-  virtual Gen::OpArg GetDefaultLocation(preg_t preg) const = 0;
+  virtual Gen::OpArg GetPPCStateLocation(preg_t preg) const = 0;
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc,
                              IgnoreDiscardedRegisters ignore_discarded_registers) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;

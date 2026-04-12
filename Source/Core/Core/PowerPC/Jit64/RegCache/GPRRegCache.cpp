@@ -42,8 +42,8 @@ OpArg GPRRegCache::R(preg_t preg) const
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} missing!", preg);
-    return GetDefaultLocation(preg);
+    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInPPCState(), "GPR {} missing!", preg);
+    return GetPPCStateLocation(preg);
   }
 }
 
@@ -74,9 +74,8 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} not in default location",
-               preg);
-    m_emitter->MOV(32, ::Gen::R(new_loc), GetDefaultLocation(preg));
+    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInPPCState(), "GPR {} not in PPCState", preg);
+    m_emitter->MOV(32, ::Gen::R(new_loc), GetPPCStateLocation(preg));
   }
 }
 
@@ -85,7 +84,7 @@ void GPRRegCache::DiscardImm(preg_t preg)
   m_jit.GetConstantPropagation().ClearGPR(preg);
 }
 
-OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
+OpArg GPRRegCache::GetPPCStateLocation(preg_t preg) const
 {
   return PPCSTATE_GPR(preg);
 }
