@@ -1312,7 +1312,7 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();
   config.blending_state = RenderState::GetNoBlendingBlendState();
-  config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::BGRA8);
+  config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::BGRA8); // TODO: HDR?
   config.usage = AbstractPipelineUsage::Utility;
   auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();

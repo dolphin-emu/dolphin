@@ -462,7 +462,7 @@ void main()
 		float color_luminance = Luminance(color.rgb, true);
 		float sdr_color_luminance = Luminance(sdr_color.rgb, true);
 
-		const float sdr_hue_restoration = 0.5; // TODO: use Oklab, and maybe expose as part of the HDR/color correction settings
+		const float sdr_hue_restoration = 0.5;  // TODO: use Oklab, and maybe expose as part of the HDR/color correction settings
 		if (sdr_color_luminance > 0.0)
 			color.rgb = lerp(color.rgb, (sdr_color.rgb / sdr_color_luminance) * color_luminance, sdr_hue_restoration);
 	}
@@ -490,7 +490,7 @@ void main()
 
 		// Start compressing highlights from a high value in linear, to avoid too much of the SDR range from dimming down.
 		// We do it by channel, which should retain a look similar to the original clipped rendering.
-		const float shoulder_start = 0.75; // TODO: maybe expose as part of the HDR/color correction settings
+		const float shoulder_start = 0.75;  // TODO: maybe expose as part of the HDR/color correction settings
 		color.rgb = ReinhardRanged(color.rgb, shoulder_start, peak_white);
 	}
 

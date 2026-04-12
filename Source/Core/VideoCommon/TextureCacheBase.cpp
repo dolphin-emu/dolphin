@@ -2814,7 +2814,7 @@ void TextureCacheBase::ReleaseToPool(TCacheEntry* entry)
 bool TextureCacheBase::CreateUtilityTextures()
 {
   constexpr TextureConfig encoding_texture_config(
-      EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, AbstractTextureFlag_RenderTarget,
+      EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, AbstractTextureFlag_RenderTarget, // TODO: HDR? And below too?
       AbstractTextureType::Texture_2DArray);
   m_efb_encoding_texture = g_gfx->CreateTexture(encoding_texture_config, "EFB encoding texture");
   if (!m_efb_encoding_texture)

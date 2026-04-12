@@ -807,6 +807,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
+    // TODO: HDR?
     {TextureFormat::RGBA8,
      {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
       R"(

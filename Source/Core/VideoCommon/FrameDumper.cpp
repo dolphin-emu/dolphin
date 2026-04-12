@@ -83,6 +83,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   // Recreate texture, but release before creating so we don't temporarily use twice the RAM.
   m_frame_dump_render_framebuffer.reset();
   m_frame_dump_render_texture.reset();
+  // TODO: HDR?
   m_frame_dump_render_texture = g_gfx->CreateTexture(
       TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
                     AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
@@ -105,6 +106,7 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
     return true;
 
   rbtex.reset();
+  // TODO: HDR?
   rbtex = g_gfx->CreateStagingTexture(StagingTextureType::Readback,
                                       TextureConfig(target_width, target_height, 1, 1, 1,
                                                     AbstractTextureFormat::RGBA8, 0,
