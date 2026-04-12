@@ -60,9 +60,12 @@ void main()
 
 	// Then calculate it again but with "per channel", which would expand gamut (not hue conservative)
 	float3 sdr_ratio_3 = color.rgb;
-	float3 auto_hdr_extra_ratio_3 = pow(clamp(sdr_ratio_3, 0.0, 1.0), AUTO_HDR_SHOULDER_POW) * (auto_hdr_max_white - 1.f);
-	float3 auto_hdr_total_ratio_3 = sdr_ratio_3 + auto_hdr_extra_ratio_3;
-	float3 per_channel_color_scale = (sdr_ratio_3 > 0.0) ? (auto_hdr_total_ratio_3 / sdr_ratio_3) : 1.0;
+	const float3 auto_hdr_extra_ratio_3 = pow(clamp(sdr_ratio_3, float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0)),
+																						float3(AUTO_HDR_SHOULDER_POW, AUTO_HDR_SHOULDER_POW, AUTO_HDR_SHOULDER_POW)) * (auto_hdr_max_white - 1.0);
+	const float3 auto_hdr_total_ratio_3 = sdr_ratio_3 + auto_hdr_extra_ratio_3;
+	float3 per_channel_color_scale = float3((sdr_ratio_3.r > 0.0) ? (auto_hdr_total_ratio_3.r / sdr_ratio_3.r) : 1.0,
+																					(sdr_ratio_3.g > 0.0) ? (auto_hdr_total_ratio_3.g / sdr_ratio_3.g) : 1.0,
+																					(sdr_ratio_3.b > 0.0) ? (auto_hdr_total_ratio_3.b / sdr_ratio_3.b) : 1.0);
 
 	color.rgb *= lerp(single_color_scale.xxx, per_channel_color_scale, AUTO_HDR_SATURATION_EXPANSION.xxx);
 
