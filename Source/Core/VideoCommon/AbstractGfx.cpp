@@ -110,7 +110,7 @@ void AbstractGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
                                const AbstractTexture* src_texture,
                                const MathUtil::Rectangle<int>& src_rect)
 {
-  ASSERT(dst_framebuffer->GetColorFormat() == AbstractTextureFormat::RGBA8);
+  ASSERT(dst_framebuffer->GetColorFormat() == AbstractTextureFormat::RGBA8); // TODO: add FP16 support (duplicate g_shader_cache->GetRGBA8CopyPipeline() with FP format)
 
   BeginUtilityDrawing();
 

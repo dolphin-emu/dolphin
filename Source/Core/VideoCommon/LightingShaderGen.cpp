@@ -78,7 +78,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // vertex shader
 // lights/colors
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
-void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid_data)
+void GenerateLightingShaderHeader(ShaderCode& object, const ShaderHostConfig& host_config, const LightingUidData& uid_data)
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
@@ -146,8 +146,11 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
           GenerateLightShader(object, uid_data, i, j + 2, true);
       }
     }
-    object.Write("\tlacc = clamp(lacc, 0, 255);\n");
-    object.Write("\treturn vec4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n");
+    if (host_config.hdr)
+      object.Write("\tlacc = clamp(lacc, int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n");
+    else
+      object.Write("\tlacc = clamp(lacc, 0, 255);\n");
+    object.Write("\treturn vec4((mat * ((lacc * 256 + 127) / 255)) >> 8) / 255.0;\n");
     object.Write("}}\n\n");
   }
 }

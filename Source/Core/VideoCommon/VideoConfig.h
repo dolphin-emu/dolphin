@@ -120,7 +120,8 @@ enum ConfigChangeBits : u32
   CONFIG_CHANGE_BIT_BBOX = (1 << 7),
   CONFIG_CHANGE_BIT_ASPECT_RATIO = (1 << 8),
   CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER = (1 << 9),
-  CONFIG_CHANGE_BIT_HDR = (1 << 10),
+  CONFIG_CHANGE_BIT_HDR_RENDER = (1 << 10),
+  CONFIG_CHANGE_BIT_HDR_OUTPUT = (1 << 11),
 };
 
 // Static config per API
@@ -180,6 +181,7 @@ struct BackendInfo
   bool bSupportsVSLinePointExpand = false;
   bool bSupportsGLLayerInFS = true;
   bool bSupportsHDROutput = false;
+  float hdr_peak_white_nits = 1000.f;  // Default to a sensible value
   bool bSupportsUnrestrictedDepthRange = false;
 };
 
@@ -221,7 +223,8 @@ struct VideoConfig final
   bool bDisableCopyFilter = false;
   bool bArbitraryMipmapDetection = false;
   float fArbitraryMipmapDetectionThreshold = 0;
-  bool bHDR = false;
+  bool bHDRRender = false;
+  bool bHDROutput = false;  // Just a request flag, only engaged if supported
 
   // Color Correction
   struct

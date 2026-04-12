@@ -38,7 +38,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   ASSERT(level < m_config.levels);
   // We can't copy from float (HDR) textures to RGBA8
   // (most other formats would probably fail as well)
-  ASSERT(m_config.format != AbstractTextureFormat::RGBA16F);
+  ASSERT(m_config.format != AbstractTextureFormat::RGBA16F); // TODO?
 
   // Determine dimensions of image we want to save.
   u32 level_width = std::max(1u, m_config.width >> level);

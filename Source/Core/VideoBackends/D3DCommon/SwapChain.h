@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <dxgi1_5.h>
+#include <dxgi1_6.h>
 #include <wrl/client.h>
 
 #include "Common/CommonTypes.h"
@@ -57,6 +57,8 @@ protected:
 
   virtual bool CreateSwapChainBuffers() = 0;
   virtual void DestroySwapChainBuffers() = 0;
+
+  void QueryDisplayHDRCapabilities();
 
   WindowSystemInfo m_wsi;
   Microsoft::WRL::ComPtr<IDXGIFactory> m_dxgi_factory;

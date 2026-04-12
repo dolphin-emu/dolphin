@@ -155,6 +155,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(AbstractTexture::GetTexelSizeForFormat(src->GetFormat()) == AbstractTexture::GetTexelSizeForFormat(GetFormat()));
 
   D3D11_BOX src_box;
   src_box.left = src_rect.left;
@@ -252,6 +253,8 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+  // Formats are generally not compatible with each other
+  ASSERT(AbstractTexture::GetTexelSizeForFormat(src->GetFormat()) == AbstractTexture::GetTexelSizeForFormat(GetFormat()));
 
   if (IsMapped())
     DXStagingTexture::Unmap();
@@ -287,6 +290,7 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetWidth() &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetHeight());
+  //ASSERT(dst->GetFormat() == m_tex.Get()->GetFormat());
 
   if (IsMapped())
     DXStagingTexture::Unmap();

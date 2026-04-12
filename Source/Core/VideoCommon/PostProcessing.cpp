@@ -495,8 +495,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   // (it might not be gamma corrected).
   const bool needs_resampling =
       g_ActiveConfig.output_resampling_mode > OutputResamplingMode::Default;
+  const bool needs_tonemap = g_ActiveConfig.bHDRRender;
   const bool needs_intermediary_buffer = NeedsIntermediaryBuffer();
-  const bool needs_default_pipeline = needs_color_correction || needs_resampling;
+  const bool needs_default_pipeline = needs_color_correction || needs_resampling || needs_tonemap;
   const AbstractPipeline* final_pipeline = m_pipeline.get();
   std::vector<u8>* uniform_staging_buffer = &m_default_uniform_staging_buffer;
   bool default_uniform_staging_buffer = true;
@@ -635,8 +636,10 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   ss << "  float sdr_display_custom_gamma;\n";
   ss << "  int linear_space_output;\n";
   ss << "  int hdr_output;\n";
+  ss << "  int hdr_render;\n";
   ss << "  float hdr_paper_white_nits;\n";
   ss << "  float hdr_sdr_white_nits;\n";
+  ss << "  float peak_white_nits;\n";
 
   if (user_post_process)
   {
@@ -854,8 +857,10 @@ struct BuiltinUniforms
   float sdr_display_custom_gamma;
   s32 linear_space_output;
   s32 hdr_output;
+  s32 hdr_render;
   float hdr_paper_white_nits;
   float hdr_sdr_white_nits;
+  float peak_white_nits;
 };
 
 size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
@@ -909,9 +914,12 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   builtin_uniforms.linear_space_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
   // Implies output values can be beyond the 0-1 range
   builtin_uniforms.hdr_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
+  builtin_uniforms.hdr_render = g_ActiveConfig.bHDRRender;
   builtin_uniforms.hdr_paper_white_nits = g_ActiveConfig.color_correction.fHDRPaperWhiteNits;
-  // A value of 1 1 1 usually matches 80 nits in HDR
+  // A value of 1 1 1 usually matches 80 nits (sRGB standard) in HDR
   builtin_uniforms.hdr_sdr_white_nits = 80.f;
+  builtin_uniforms.peak_white_nits = builtin_uniforms.hdr_output
+    ? g_backend_info.hdr_peak_white_nits : builtin_uniforms.hdr_sdr_white_nits;
 
   std::memcpy(buffer, &builtin_uniforms, sizeof(builtin_uniforms));
   buffer += sizeof(builtin_uniforms);

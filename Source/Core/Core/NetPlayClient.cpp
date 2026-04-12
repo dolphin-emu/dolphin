@@ -901,6 +901,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.force_texture_filtering;
     packet >> m_net_settings.max_anisotropy;
     packet >> m_net_settings.force_true_color;
+    packet >> m_net_settings.hdr_render;
     packet >> m_net_settings.disable_copy_filter;
     packet >> m_net_settings.disable_fog;
     packet >> m_net_settings.arbitrary_mipmap_detection;

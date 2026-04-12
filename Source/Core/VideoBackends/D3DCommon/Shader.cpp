@@ -257,6 +257,35 @@ Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, ShaderStage stage, std::s
   Microsoft::WRL::ComPtr<ID3DBlob> errors;
   HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
                            flags, 0, &code, &errors);
+
+  if (SUCCEEDED(hr) && code)
+  {
+    Microsoft::WRL::ComPtr<ID3DBlob> code_with_hlsl;
+
+    // Include a tiny header so you can recognize it later.
+    struct DebugHeader
+    {
+      uint32_t magic = 0x4C534C48;  // 'HLSL'
+      uint32_t version = 1;
+      uint32_t source_size = 0;
+    };
+
+    DebugHeader header;
+    header.source_size = static_cast<uint32_t>(hlsl->size());
+
+    std::vector<uint8_t> payload(sizeof(DebugHeader) + hlsl->size() + 1);
+    std::memcpy(payload.data(), &header, sizeof(header));
+    std::memcpy(payload.data() + sizeof(DebugHeader), hlsl->data(), hlsl->size());
+    payload[sizeof(DebugHeader) + hlsl->size()] = 0;  // null terminator for convenience
+
+    HRESULT set_hr =
+        D3DSetBlobPart(code->GetBufferPointer(), code->GetBufferSize(), D3D_BLOB_PRIVATE_DATA, 0,
+                       payload.data(), payload.size(), &code_with_hlsl);
+
+    if (SUCCEEDED(set_hr))
+      code = code_with_hlsl;
+  }
+
   if (FAILED(hr))
   {
     static int num_failures = 0;

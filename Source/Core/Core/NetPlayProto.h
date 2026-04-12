@@ -89,6 +89,7 @@ struct NetSettings
   TextureFilteringMode force_texture_filtering = TextureFilteringMode::Default;
   AnisotropicFilteringMode max_anisotropy = AnisotropicFilteringMode::Default;
   bool force_true_color = false;
+  bool hdr_render = false;
   bool disable_copy_filter = false;
   bool disable_fog = false;
   bool arbitrary_mipmap_detection = false;

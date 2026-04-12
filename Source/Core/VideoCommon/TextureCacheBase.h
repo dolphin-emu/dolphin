@@ -73,10 +73,11 @@ struct EFBCopyParams
 {
   EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
                 bool all_copy_filter_coefs_needed_, bool copy_filter_can_overflow_,
-                bool apply_gamma_)
+                bool apply_gamma_, bool hdr_)
       : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
         all_copy_filter_coefs_needed(all_copy_filter_coefs_needed_),
-        copy_filter_can_overflow(copy_filter_can_overflow_), apply_gamma(apply_gamma_)
+        copy_filter_can_overflow(copy_filter_can_overflow_), apply_gamma(apply_gamma_),
+        hdr(hdr_)
   {
   }
 
@@ -84,9 +85,9 @@ struct EFBCopyParams
   {
     return std::tie(efb_format, copy_format, depth, yuv, all_copy_filter_coefs_needed,
                     copy_filter_can_overflow,
-                    apply_gamma) < std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv,
-                                            rhs.all_copy_filter_coefs_needed,
-                                            rhs.copy_filter_can_overflow, rhs.apply_gamma);
+                    apply_gamma, hdr) < std::tie(rhs.efb_format, rhs.copy_format, rhs.depth,
+                                            rhs.yuv, rhs.all_copy_filter_coefs_needed,
+                                            rhs.copy_filter_can_overflow, rhs.apply_gamma, rhs.hdr);
   }
 
   PixelFormat efb_format;
@@ -96,6 +97,7 @@ struct EFBCopyParams
   bool all_copy_filter_coefs_needed;
   bool copy_filter_can_overflow;
   bool apply_gamma;
+  bool hdr;
 };
 
 template <>
@@ -112,9 +114,9 @@ struct fmt::formatter<EFBCopyParams>
       copy_format = fmt::to_string(uid.copy_format);
     return fmt::format_to(ctx.out(),
                           "format: {}, copy format: {}, depth: {}, yuv: {}, apply_gamma: {}, "
-                          "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}",
+                          "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}, hdr: {}",
                           uid.efb_format, copy_format, uid.depth, uid.yuv, uid.apply_gamma,
-                          uid.all_copy_filter_coefs_needed, uid.copy_filter_can_overflow);
+                          uid.all_copy_filter_coefs_needed, uid.copy_filter_can_overflow, uid.hdr);
   }
 };
 

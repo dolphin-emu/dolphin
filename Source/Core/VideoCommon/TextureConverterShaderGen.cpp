@@ -48,6 +48,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->copy_filter_can_overflow = TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
   // If the gamma is needed, then include that too.
   uid_data->apply_gamma = gamma_rcp != 1.0f;
+  uid_data->hdr = g_ActiveConfig.bHDRRender; // TODO: do we need to force a shader refresh if this changes?
 
   return out;
 }
@@ -157,11 +158,16 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
             "  uint4 texcol_raw = uint4(combined_rows.rgb >> 6, {});\n",
             uid_data->efb_has_alpha ? "current_row.a" : "255");
 
-  if (uid_data->copy_filter_can_overflow)
+  bool skip_clamp = !uid_data->is_depth_copy && uid_data->hdr;
+
+  if (uid_data->copy_filter_can_overflow && !skip_clamp)
     out.Write("  texcol_raw &= 0x1ffu;\n");
   // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
   // on >= 64, so we always include it.
-  out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
+  if (skip_clamp)
+    out.Write("  texcol_raw = min(texcol_raw, uint4(2550, 2550, 2550, 255));\n");
+  else
+    out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
   if (uid_data->apply_gamma)
   {

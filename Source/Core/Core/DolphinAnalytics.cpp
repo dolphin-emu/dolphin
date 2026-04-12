@@ -393,6 +393,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(Config::Get(Config::GFX_STEREO_MODE)));
   builder.AddData("cfg-gfx-stereo-per-eye-resolution-full",
                   Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL));
+  builder.AddData("cfg-gfx-hdr-render", Config::Get(Config::GFX_ENHANCE_HDR_RENDER));
   // Note: An int for some reason. Keeping as-is to not break analytics history.
   builder.AddData("cfg-gfx-hdr", static_cast<int>(Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT)));
   builder.AddData("cfg-gfx-per-pixel-lighting", Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING));

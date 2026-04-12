@@ -60,7 +60,8 @@ private:
   ConfigBool* m_force_24bit_color;
   ConfigBool* m_disable_copy_filter;
   ConfigBool* m_arbitrary_mipmap_detection;
-  ConfigBool* m_hdr;
+  ConfigBool* m_hdr_render;
+  ConfigBool* m_hdr_output;
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;

@@ -53,7 +53,7 @@ bool SwapChain::WantsStereo()
 
 bool SwapChain::WantsHDR()
 {
-  return g_ActiveConfig.bHDR;
+  return g_ActiveConfig.bHDROutput;
 }
 
 u32 SwapChain::GetSwapChainFlags() const
@@ -74,7 +74,7 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
   m_stereo = false;
   m_hdr = false;
 
-  // Try using the Win8 version if available.
+  // Try using the Win8+ version if available.
   Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
   HRESULT hr = m_dxgi_factory.As(&dxgi_factory2);
   if (SUCCEEDED(hr))
@@ -165,6 +165,21 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
       // scRGB always returns false (DX bug).
       hr = swap_chain4->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020,
                                                &color_space_support);
+
+      // IDXGISwapChain3::CheckColorSpaceSupport often returns false negatives,
+      // so add a secondary check based on whether the display is currently in HDR mode,
+      // which implies HDR is supported.
+      Microsoft::WRL::ComPtr<IDXGIOutput> output;
+      Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
+      DXGI_OUTPUT_DESC1 desc{};
+      if (SUCCEEDED(swap_chain4->GetContainingOutput(&output)) && SUCCEEDED(output.As(&output6)) &&
+          SUCCEEDED(output6->GetDesc1(&desc)) &&
+          desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
+      {
+        color_space_support |= DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT;
+        hr = S_OK;
+      }
+
       if (SUCCEEDED(hr) && (color_space_support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
       {
         hr = swap_chain4->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, 0, 0,
@@ -188,6 +203,8 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
     return false;
   }
 
+  QueryDisplayHDRCapabilities();
+
   return true;
 }
 
@@ -200,6 +217,21 @@ void SwapChain::DestroySwapChain()
     m_swap_chain->SetFullscreenState(FALSE, nullptr);
 
   m_swap_chain.Reset();
+}
+
+void SwapChain::QueryDisplayHDRCapabilities()
+{
+  Microsoft::WRL::ComPtr<IDXGIOutput> output;
+  Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
+  DXGI_OUTPUT_DESC1 desc{};
+
+  if (FAILED(m_swap_chain->GetContainingOutput(&output)) || FAILED(output.As(&output6)) ||
+      FAILED(output6->GetDesc1(&desc)))
+  {
+    return;
+  }
+
+  g_backend_info.hdr_peak_white_nits = desc.MaxLuminance;
 }
 
 bool SwapChain::ResizeSwapChain()
@@ -225,6 +257,8 @@ bool SwapChain::ResizeSwapChain()
     m_width = desc.BufferDesc.Width;
     m_height = desc.BufferDesc.Height;
   }
+
+  QueryDisplayHDRCapabilities();
 
   return CreateSwapChainBuffers();
 }

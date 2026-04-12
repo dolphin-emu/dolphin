@@ -120,6 +120,7 @@ extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
 extern const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
 extern const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION;
 extern const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
+extern const Info<bool> GFX_ENHANCE_HDR_RENDER;
 extern const Info<bool> GFX_ENHANCE_HDR_OUTPUT;
 
 // Color.Correction

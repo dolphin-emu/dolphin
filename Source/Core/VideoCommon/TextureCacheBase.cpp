@@ -401,7 +401,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
   }
 
   const TextureConfig newconfig(new_width, new_height, 1, entry->GetNumLayers(), 1,
-                                AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                                FramebufferManager::GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
                                 AbstractTextureType::Texture_2DArray);
   std::optional<TexPoolEntry> new_texture = AllocateTexture(newconfig);
   if (!new_texture)
@@ -1846,7 +1846,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
   }
 
   // Create a new VRAM texture, and fill it with the data from guest RAM.
-  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8,
+  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, FramebufferManager::GetEFBColorFormat(),
                                            AbstractTextureFlag_RenderTarget,
                                            AbstractTextureType::Texture_2DArray));
 
@@ -2305,7 +2305,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     // create the texture
     const TextureConfig config(scaled_tex_w, scaled_tex_h, 1, g_framebuffer_manager->GetEFBLayers(),
-                               1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                               1, FramebufferManager::GetEFBColorFormat(),
+                               AbstractTextureFlag_RenderTarget,
                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
     if (entry)
@@ -2391,7 +2392,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
     EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
                          AllCopyFilterCoefsNeeded(coefficients),
-                         CopyFilterCanOverflow(coefficients), gamma != 1.0);
+                         CopyFilterCanOverflow(coefficients), gamma != 1.0,
+                         g_ActiveConfig.bHDRRender);
 
     std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
     if (staging_texture)
@@ -2812,7 +2814,7 @@ void TextureCacheBase::ReleaseToPool(TCacheEntry* entry)
 bool TextureCacheBase::CreateUtilityTextures()
 {
   constexpr TextureConfig encoding_texture_config(
-      EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, AbstractTextureFlag_RenderTarget,
+      EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, AbstractTextureFlag_RenderTarget, // TODO: HDR? And below too?
       AbstractTextureType::Texture_2DArray);
   m_efb_encoding_texture = g_gfx->CreateTexture(encoding_texture_config, "EFB encoding texture");
   if (!m_efb_encoding_texture)

@@ -95,6 +95,11 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
       }
     }
   }
+  if (g_ActiveConfig.bHDRRender)
+  {
+    // TODO: make a copy of the RTV and force SW blends if there's subtractive color blends or any logical blend,
+    // the same code could also be used to force original HW accurate blends.
+  }
 
   // force dual src off if we can't support it
   if (!g_backend_info.bSupportsDualSourceBlend)
