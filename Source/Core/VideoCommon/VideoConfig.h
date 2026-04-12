@@ -224,7 +224,7 @@ struct VideoConfig final
   bool bArbitraryMipmapDetection = false;
   float fArbitraryMipmapDetectionThreshold = 0;
   bool bHDRRender = false;
-  bool bHDROutput = false;
+  bool bHDROutput = false;  // Just a request flag, only engaged if supported
 
   // Color Correction
   struct

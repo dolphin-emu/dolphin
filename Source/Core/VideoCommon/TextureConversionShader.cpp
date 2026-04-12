@@ -159,12 +159,18 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
              "  // that sum to 64 result in no change in brightness\n"
              "  uint4 texcol_raw = uint4(combined_rows.rgb >> 6, current_row.a);\n");
 
-  if (params.copy_filter_can_overflow)
+  // TODO: HDR needed for XFB? Maybe not
+  bool skip_clamp = !params.depth && params.hdr && params.efb_format == PixelFormat::RGB8_Z24 &&
+      (params.copy_format == EFBCopyFormat::RGBA8 || params.copy_format == EFBCopyFormat::XFB);
+
+  if (params.copy_filter_can_overflow && !skip_clamp)
     code.Write("  texcol_raw &= 0x1ffu;\n");
   // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
   // on >= 64, so we always include it.
-  code.Write("  texcol_raw = min(texcol_raw, uint4(2550, 2550, 2550, 255));\n"); // TODO: HDR branch (which also implies re-triggering shaders compilation)!
-  //code.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
+  if (skip_clamp)
+    code.Write("  texcol_raw = min(texcol_raw, uint4(2550, 2550, 2550, 255));\n");
+  else
+    code.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
   if (params.apply_gamma)
   {
@@ -172,6 +178,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
                "                     float4(gamma_rcp, gamma_rcp, gamma_rcp, 1.0)) * 255.0));\n");
   }
 
+  // TODO: add support for HDR? Does it work already? There's other similar places too
   if (params.yuv)
   {
     code.Write("  // Intensity/YUV format conversion constants determined by hardware testing\n"

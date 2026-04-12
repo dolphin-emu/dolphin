@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 
 class ShaderCode;
+union ShaderHostConfig;
 
 #define LIGHT_COL "{}[{}].color.{}"
 #define LIGHT_COL_PARAMS(index, swizzle) (I_LIGHTS), (index), (swizzle)
@@ -44,6 +45,6 @@ constexpr char s_lighting_struct[] = "struct Light {\n"
                                      "\tfloat4 dir;\n"
                                      "};\n";
 
-void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid_data);
+void GenerateLightingShaderHeader(ShaderCode& object, const ShaderHostConfig& host_config, const LightingUidData& uid_data);
 void GetLightingShaderUid(LightingUidData& uid_data);
 void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data);

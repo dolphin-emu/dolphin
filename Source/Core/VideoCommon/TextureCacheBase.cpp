@@ -2392,7 +2392,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
     EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
                          AllCopyFilterCoefsNeeded(coefficients),
-                         CopyFilterCanOverflow(coefficients), gamma != 1.0);
+                         CopyFilterCanOverflow(coefficients), gamma != 1.0,
+                         g_ActiveConfig.bHDRRender);
 
     std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
     if (staging_texture)

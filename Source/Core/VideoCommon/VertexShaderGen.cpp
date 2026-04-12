@@ -392,7 +392,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
-  GenerateLightingShaderHeader(out, uid_data->lighting);
+  GenerateLightingShaderHeader(out, host_config, uid_data->lighting);
 
   if (uid_data->vs_expand == VSExpand::None)
   {

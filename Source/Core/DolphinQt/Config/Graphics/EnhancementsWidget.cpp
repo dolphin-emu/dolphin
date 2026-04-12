@@ -585,9 +585,9 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_HDR_OUTPUT_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."
-      "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
+      "<br><br>This gives post process shaders more room for accuracy, allows \"HDR\" "
       "post-process shaders to work, and allows to fully display the PAL and NTSC-J color spaces."
-      "<br><br>Note that games still render in SDR internally."
+      "<br><br>Note that games might still render in SDR internally."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_ir_combo->SetTitle(tr("Internal Resolution"));

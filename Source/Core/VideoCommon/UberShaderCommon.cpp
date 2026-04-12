@@ -146,7 +146,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  }}\n"
             "\n");
 
-  out.Write("  lacc = clamp(lacc, 0, 2550);\n"
+  out.Write("  lacc = clamp(lacc, int4(0, 0, 0, 0), int4(2550, 2550, 2550, 255));\n"
             "\n"
             "  // Hopefully GPUs that can support dynamic indexing will optimize this.\n"
             "  float4 lit_color = float4((mat * ((lacc * 256 + 127) / 255)) >> 8) / 255.0;\n"
