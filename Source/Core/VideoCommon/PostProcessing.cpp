@@ -916,9 +916,10 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   builtin_uniforms.hdr_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
   builtin_uniforms.hdr_render = g_ActiveConfig.bHDRRender;
   builtin_uniforms.hdr_paper_white_nits = g_ActiveConfig.color_correction.fHDRPaperWhiteNits;
-  // A value of 1 1 1 usually matches 80 nits in HDR
+  // A value of 1 1 1 usually matches 80 nits (sRGB standard) in HDR
   builtin_uniforms.hdr_sdr_white_nits = 80.f;
-  builtin_uniforms.peak_white_nits = builtin_uniforms.hdr_output ? 1000.f : builtin_uniforms.hdr_sdr_white_nits; // TODO: merge PR to detect peak brightness
+  builtin_uniforms.peak_white_nits = builtin_uniforms.hdr_output
+    ? g_backend_info.hdr_peak_white_nits : builtin_uniforms.hdr_sdr_white_nits;
 
   std::memcpy(buffer, &builtin_uniforms, sizeof(builtin_uniforms));
   buffer += sizeof(builtin_uniforms);
