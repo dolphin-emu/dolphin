@@ -54,6 +54,21 @@ float Luminance(float3 color, bool native_color_space)
 	return dot(color, Rec709_Luminance);
 }
 
+/***** TONEMAPPING *****/
+
+// Reinhard highlight compression that is identity up to shoulder_start, then smoothly compresses toward out_peak (never exceeding it).
+// Continuous at shoulder_start.
+// 
+// Assumes inputs are in [0..+INF) (negative values pass through unchanged below).
+// Assumes out_peak > shoulder_start.
+float3 ReinhardRanged(float3 color, float shoulder_start, float out_peak)
+{
+  const float out_range = out_peak - shoulder_start;
+  const float3 color_below_shoulder_start = min(color, shoulder_start);
+  const float3 color_beyond_shoulder_start = color - color_below_shoulder_start;
+  return color_below_shoulder_start + ((color_beyond_shoulder_start / (color_beyond_shoulder_start + out_range)) * out_range);
+}
+
 /***** COLOR SAMPLING *****/
 
 // Non filtered gamma corrected sample (nearest neighbor)
@@ -438,6 +453,20 @@ void main()
 		color.rgb = pow(color.rgb, float3(game_gamma));
 	}
 
+	// Given that colors were never meant to be HDR (go beyond 1 in float) on the original hardware,
+	// restore part of the clipped hue, otherwise some highlights can end up having a different "color".
+	// This needs to be done before color correction, in the original color space.
+	if (OptionEnabled(hdr_render))
+	{
+		float3 sdr_color = clamp(color.rgb, 0.0, 1.0);
+		float color_luminance = Luminance(color.rgb, true);
+		float sdr_color_luminance = Luminance(sdr_color.rgb, true);
+
+		const float sdr_hue_restoration = 0.5; // TODO: use Oklab
+		if (sdr_color_luminance > 0.0)
+			color.rgb = lerp(color.rgb, (sdr_color.rgb / sdr_color_luminance) * color_luminance, sdr_hue_restoration);
+	}
+
 	if (OptionEnabled(correct_color_space))
 	{
 		if (game_color_space == 0)
@@ -448,10 +477,48 @@ void main()
 			color.rgb = color.rgb * from_PAL;
 	}
 
+	// Do tonemapping if we rendered in HDR. The peak brightness is adjusted for SDR (1) and HDR (display dependent)
+	if (OptionEnabled(hdr_render))
+	{
+		float paper_white_nits = hdr_sdr_white_nits;
+		if (OptionEnabled(hdr_output))
+		{
+			paper_white_nits = hdr_paper_white_nits;
+		}
+		// This will be 1 in SDR
+		float peak_white = peak_white_nits / paper_white_nits;
+
+		// Start compressing highlights from a high value in linear, to avoid too much of the SDR range from dimming down
+		const float shoulder_start = 0.75;
+		color.rgb = ReinhardRanged(color.rgb, shoulder_start, peak_white);
+	}
+
 	if (OptionEnabled(hdr_output))
 	{
 		float hdr_paper_white = hdr_paper_white_nits / hdr_sdr_white_nits;
 		color.rgb *= hdr_paper_white;
+	}
+	
+	// Do gamut mapping to make sure all colors are within the BT.709 gamut.
+	// HDR doesn't need it as all the color spaces above are within BT.2020.
+	if (OptionEnabled(correct_color_space) && !OptionEnabled(hdr_output))
+	{
+		float color_luminance = Luminance(color.rgb, false);
+
+		float min_channel = min(color.r, min(color.g, color.b));
+		// Desaturate (move towards luminance/grayscale) until we are not out of gamut anymore (until no channel is below 0)
+		if (min_channel < 0.0 && color_luminance >= 0.0)
+		{
+			// Both division elements are meant to be negative so the ratio resolves to a positive value
+			float desaturate_alpha = (min_channel - color_luminance) != 0.0 ? (min_channel / (min_channel - color_luminance)) : 0.0;
+			color.rgb = lerp(color.rgb, color_luminance.xxx, desaturate_alpha.xxx);
+		}
+		float max_channel = max(color.r, max(color.g, color.b));
+		// Divide by the max channel if it's out of range, so nothing clips
+		if (max_channel > 1.0)
+		{
+			color.rgb /= max_channel;
+		}
 	}
 
 	if (OptionEnabled(linear_space_output))
