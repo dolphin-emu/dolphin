@@ -27,10 +27,8 @@ HacksWidget::HacksWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetCon
 
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
-  connect(gfx_pane, &GraphicsPane::UpdateGPUTextureDecoding, this, [this] {
-    m_gpu_texture_decoding->setEnabled(
-        !Get(m_game_layer, Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION));
-  });
+  connect(gfx_pane, &GraphicsPane::UpdateGPUTextureDecoding, this,
+          &HacksWidget::UpdateGPUTextureDecodingEnabled);
 }
 
 void HacksWidget::CreateWidgets()
@@ -130,7 +128,7 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   const bool bbox = g_backend_info.bSupportsBBox;
   const bool gpu_texture_decoding = g_backend_info.bSupportsGPUTextureDecoding;
 
-  m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
+  UpdateGPUTextureDecodingEnabled();
   m_disable_bounding_box->setEnabled(bbox);
 
   const QString tooltip = tr("%1 doesn't support this feature on your system.")
@@ -261,6 +259,13 @@ void HacksWidget::AddDescriptions()
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
   m_vi_skip->SetDescription(tr(TR_VI_SKIP_DESCRIPTION));
+}
+
+void HacksWidget::UpdateGPUTextureDecodingEnabled()
+{
+  const bool gpu_texture_decoding = g_backend_info.bSupportsGPUTextureDecoding;
+  m_gpu_texture_decoding->setEnabled(
+      gpu_texture_decoding && !Get(m_game_layer, Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()

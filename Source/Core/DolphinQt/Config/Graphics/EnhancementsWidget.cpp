@@ -162,8 +162,6 @@ void EnhancementsWidget::CreateWidgets()
   m_arbitrary_mipmap_detection =
       new ConfigBool(tr("Arbitrary Mipmap Detection"),
                      Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
-  m_arbitrary_mipmap_detection->setEnabled(
-      !Get(m_game_layer, Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
 
   int row = 0;

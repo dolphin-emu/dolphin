@@ -53,6 +53,7 @@ private:
   void ConnectWidgets();
   void AddDescriptions();
 
+  void UpdateGPUTextureDecodingEnabled();
   void UpdateDeferEFBCopiesEnabled();
   void UpdateSkipPresentingDuplicateFramesEnabled();
 };
