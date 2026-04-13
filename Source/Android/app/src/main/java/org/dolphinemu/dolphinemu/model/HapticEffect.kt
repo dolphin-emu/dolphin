@@ -56,8 +56,8 @@ enum class HapticEffect(
     ),
     JOYSTICK(
         feedbackConstant = HapticFeedbackConstantsCompat.SEGMENT_FREQUENT_TICK,
-        maxTimings = longArrayOf(0L, 50L),
-        maxAmplitudes = intArrayOf(0, 90),
+        maxTimings = longArrayOf(50L),
+        maxAmplitudes = intArrayOf(90),
         primaryPrimitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             VibrationEffect.Composition.PRIMITIVE_LOW_TICK
         } else {
