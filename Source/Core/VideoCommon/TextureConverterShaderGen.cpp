@@ -119,7 +119,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   }
   else
   {
-    out.Write("  return uint4(tex_sample * 255.0);\n"
+    out.Write("  return uint4(tex_sample * 255.0 + 0.5);\n"
               "}}\n");
   }
 

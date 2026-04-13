@@ -162,6 +162,12 @@ constexpr Common::EnumMap<const char*, TevOutput::Color2> tev_a_output_table{
 
 constexpr Common::EnumMap<char, ColorChannel::Alpha> rgba_swizzle{'r', 'g', 'b', 'a'};
 
+struct OverwrittenTevColorSources
+{
+  std::array<bool, 4> color{};
+  std::array<bool, 4> alpha{};
+};
+
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
@@ -346,6 +352,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
   out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
 
+  // See "PixelShaderConstants"
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
@@ -472,7 +479,10 @@ void UpdateBoundingBox(float2 rawpos) {{
   {
     out.Write(R"(
 int4 readTexture(in sampler2DArray tex, uint u, uint v, int layer, int lod) {{
-  return iround(texelFetch(tex, int3(u, v, layer), lod) * 255.0);
+  int4 result iround(texelFetch(tex, int3(u, v, layer), lod) * 255.0);
+  result.rgb = max(result.rgb, 0);  // Float textures overfloat protection
+  result.a = clamp(result.a, 0, 255);  // Float textures overfloat protection
+  return result;
 }}
 
 int4 readTextureLinear(in sampler2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
@@ -555,13 +565,16 @@ uint WrapCoord(int coord, uint wrap, int size) {{
     {
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
-                "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
+                "  int4 result = iround(255.0 * texture(tex, coords, lod_bias));\n",
                 BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
     }
     else
     {
-      out.Write("  return iround(255.0 * texture(tex, coords));\n");
+      out.Write("  int4 result = iround(255.0 * texture(tex, coords));\n");
     }
+    out.Write("  result.rgb = max(result.rgb, 0);  // Float textures overfloat protection\n");
+    out.Write("  result.a = clamp(result.a, 0, 255);  // Float textures overfloat protection\n");
+    out.Write("  return result;\n");
 
     out.Write("}}\n");
   }
@@ -734,11 +747,13 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteLogicOp(ShaderCode& out,  const ShaderHostConfig& host_config,
+                         const pixel_shader_uid_data* uid_data);
 static void WriteLogicOpBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
-static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteBlend(ShaderCode& out, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data);
 
 static void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
                                             const pixel_shader_uid_data* uid_data, ShaderCode& out);
@@ -999,17 +1014,41 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("\tDolphinFragmentOutput frag_output;\n");
   out.Write("\tprocess_fragment(frag_input, frag_output);\n");
+
+  out.Write("\tivec4 prev = frag_output.main;\n");
   if (host_config.hdr)
   {
-    out.Write("\tivec4 prev = frag_output.main;\n");
-    // Apply bitmask on alpha only
-    out.Write("\tprev.a = prev.a & 255;\n");
-    // Clamp alpha for extra safety given it could have gone beyond 255
-    //out.Write("\tprev.a = clamp(prev.a, 0, 255);\n"); // TODO
+    TevStageCombiner::ColorCombiner last_cc;
+    TevStageCombiner::AlphaCombiner last_ac;
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
+
+    // If the last stage clamp was true, we'd already be clamped here
+    // (possibly with an extended range in HDR),
+    // otherwise, the original HW would truncate from 11bit to 8bit,
+    // so we need to replicate that in HDR.
+    if (!last_cc.clamp)
+    {
+      out.Write("\tprev.rgb = prev.rgb & 255;\n");
+    }
+    // Force clamp to the original range if we allowed more range in HDR
+    else if (uid_data->force_clamp_color)
+    {
+      out.Write("\tprev.rgb = min(prev.rgb, 255);\n");
+    }
+    if (!last_ac.clamp)
+    {
+      out.Write("\tprev.a = prev.a & 255;\n");
+    }
+    // Force clamp alpha as it wouldn't have been
+    else
+    {
+      out.Write("\tprev.a = min(prev.a, 255);\n");
+    }
   }
-  else
+  else // TODO: delete, merge with branch above, this can be optimized away
   {
-    out.Write("\tivec4 prev = frag_output.main & 255;\n");
+    out.Write("\tprev = prev & 255;\n");
   }
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
@@ -1120,7 +1159,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   // TODO: force clamp to 255 in HDR after certain logic operations?
   if (uid_data->logic_op_enable)  // Implies "use_framebuffer_fetch"
-    WriteLogicOp(out, uid_data);
+    WriteLogicOp(out, host_config, uid_data);
   else if (uid_data->emulate_logic_op_with_blend)
     WriteLogicOpBlend(out, uid_data);
 
@@ -1130,7 +1169,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   WriteColor(out, api_type, uid_data, use_dual_source);
 
   if (uid_data->blend_enable)  // Implies "use_framebuffer_fetch"
-    WriteBlend(out, uid_data);
+    WriteBlend(out, host_config, uid_data);
   else if (use_framebuffer_fetch)
     out.Write("\treal_ocol0 = ocol0;\n");
 
@@ -1144,7 +1183,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
 static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
                        const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo)
+                       APIType api_type, bool stereo,
+                       OverwrittenTevColorSources& overwritten_sources)
 {
   using Common::EnumMap;
 
@@ -1454,7 +1494,7 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
-  // TODO: naming and placement
+  // TODO: naming and placement and values
   // Let HDR colors go up to "infinite", as opposed to a limiter greater range (10x in gamma space, which is huge)
   constexpr bool hdr_no_color_clamp = false;
   // Tev result (d) was already in 10 bit, so widening it might not be necessary, but it should help preserve more range
@@ -1490,8 +1530,77 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
       // than they were, or go below 0.
       // Always clamp the alpha channel.
 
+      out.Write("\ttevin_a = int4({}, {});\n", tev_c_input_table[cc.a], tev_a_input_table[ac.a]);
+      out.Write("\ttevin_b = int4({}, {});\n", tev_c_input_table[cc.b], tev_a_input_table[ac.b]);
+      out.Write("\ttevin_c = int4({}, {});\n", tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
+
+      // Super Mario Galaxy passes color larger than 255 from the CPU,
+      // and relies on masking for them to wrap to different values.
+      // We want to force the masking, but only up until a color has been
+      // overwritten by another tev output, otherwise we keep the wider range.
+      if (((cc.a == TevColorArg::PrevColor || cc.a == TevColorArg::PrevAlpha)
+            && !overwritten_sources.color[(int)TevOutput::Prev]) ||
+          ((cc.a == TevColorArg::Color0 || cc.a == TevColorArg::Alpha0)
+            && !overwritten_sources.color[(int)TevOutput::Color0]) ||
+          ((cc.a == TevColorArg::Color1 || cc.a == TevColorArg::Alpha1)
+            && !overwritten_sources.color[(int)TevOutput::Color1]) ||
+          ((cc.a == TevColorArg::Color2 || cc.a == TevColorArg::Alpha2)
+            && !overwritten_sources.color[(int)TevOutput::Color2]) ||
+          cc.a == TevColorArg::Konst)
+      {
+        out.Write("\ttevin_a.rgb = tevin_a.rgb & 255;\n");
+      }
+      if ((ac.a == TevAlphaArg::PrevAlpha && !overwritten_sources.alpha[(int)TevOutput::Prev]) ||
+          (ac.a == TevAlphaArg::Alpha0 && !overwritten_sources.alpha[(int)TevOutput::Color0]) ||
+          (ac.a == TevAlphaArg::Alpha1 && !overwritten_sources.alpha[(int)TevOutput::Color1]) ||
+          (ac.a == TevAlphaArg::Alpha2 && !overwritten_sources.alpha[(int)TevOutput::Color2]) ||
+          ac.a == TevAlphaArg::Konst)
+      {
+        out.Write("\ttevin_a.a = tevin_a.a & 255;\n");
+      }
+      if (((cc.b == TevColorArg::PrevColor || cc.b == TevColorArg::PrevAlpha)
+            && !overwritten_sources.color[(int)TevOutput::Prev]) ||
+          ((cc.b == TevColorArg::Color0 || cc.b == TevColorArg::Alpha0)
+            && !overwritten_sources.color[(int)TevOutput::Color0]) ||
+          ((cc.b == TevColorArg::Color1 || cc.b == TevColorArg::Alpha1)
+            && !overwritten_sources.color[(int)TevOutput::Color1]) ||
+          ((cc.b == TevColorArg::Color2 || cc.b == TevColorArg::Alpha2)
+            && !overwritten_sources.color[(int)TevOutput::Color2]) ||
+          cc.b == TevColorArg::Konst)
+      {
+        out.Write("\ttevin_b.rgb = tevin_b.rgb & 255;\n");
+      }
+      if ((ac.b == TevAlphaArg::PrevAlpha && !overwritten_sources.alpha[(int)TevOutput::Prev]) ||
+          (ac.b == TevAlphaArg::Alpha0 && !overwritten_sources.alpha[(int)TevOutput::Color0]) ||
+          (ac.b == TevAlphaArg::Alpha1 && !overwritten_sources.alpha[(int)TevOutput::Color1]) ||
+          (ac.b == TevAlphaArg::Alpha2 && !overwritten_sources.alpha[(int)TevOutput::Color2]) ||
+          ac.b == TevAlphaArg::Konst)
+      {
+        out.Write("\ttevin_b.a = tevin_b.a & 255;\n");
+      }
+      if (((cc.c == TevColorArg::PrevColor || cc.c == TevColorArg::PrevAlpha)
+            && !overwritten_sources.color[(int)TevOutput::Prev]) ||
+          ((cc.c == TevColorArg::Color0 || cc.c == TevColorArg::Alpha0)
+            && !overwritten_sources.color[(int)TevOutput::Color0]) ||
+          ((cc.c == TevColorArg::Color1 || cc.c == TevColorArg::Alpha1)
+            && !overwritten_sources.color[(int)TevOutput::Color1]) ||
+          ((cc.c == TevColorArg::Color2 || cc.c == TevColorArg::Alpha2)
+            && !overwritten_sources.color[(int)TevOutput::Color2]) ||
+          cc.c == TevColorArg::Konst)
+      {
+        out.Write("\ttevin_c.rgb = tevin_c.rgb & 255;\n");
+      }
+      if ((ac.c == TevAlphaArg::PrevAlpha && !overwritten_sources.alpha[(int)TevOutput::Prev]) ||
+          (ac.c == TevAlphaArg::Alpha0 && !overwritten_sources.alpha[(int)TevOutput::Color0]) ||
+          (ac.c == TevAlphaArg::Alpha1 && !overwritten_sources.alpha[(int)TevOutput::Color1]) ||
+          (ac.c == TevAlphaArg::Alpha2 && !overwritten_sources.alpha[(int)TevOutput::Color2]) ||
+          ac.c == TevAlphaArg::Konst)
+      {
+        out.Write("\ttevin_c.a = tevin_c.a & 255;\n");
+      }
+
       // A
-      if (false) // TODO: setting this to "cc.a == TevColorArg::Color1 || cc.a == TevColorArg::Color2" fixes some marios galaxy broken stars
+      if (false) // TODO: clean
       {
         out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
                   tev_a_input_table[ac.a]);
@@ -1501,9 +1610,8 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
           cc.a == TevColorArg::TexAlpha || cc.a == TevColorArg::RasAlpha ||
           cc.op == TevOp::Sub)
       {
-        out.Write("\ttevin_a.rgb = clamp({}, int3(0, 0, 0), int3(255, 255, 255));\n",
-                  tev_c_input_table[cc.a]);
-        out.Write("\ttevin_a.a = {} & 255;\n", tev_a_input_table[ac.a]);
+        out.Write("\ttevin_a.rgb = clamp(tevin_a.rgb, int3(0, 0, 0), int3(255, 255, 255));\n");
+        out.Write("\ttevin_a.a = tevin_a.a & 255;\n");
       }
       // TODO: test/polish these cases, it's a bit random, especially on alpha, which isn't related to "cc.a"
       else if (false)
@@ -1513,9 +1621,8 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
       }
       else
       {
-        out.Write("\ttevin_a.rgb = clamp({}, int3(0, 0, 0), int3(2550, 2550, 2550));\n",
-                  tev_c_input_table[cc.a]);
-        out.Write("\ttevin_a.a = {} & 255;\n", tev_a_input_table[ac.a]);
+        out.Write("\ttevin_a.rgb = clamp(tevin_a.rgb, int3(0, 0, 0), int3(2550, 2550, 2550));\n");
+        out.Write("\ttevin_a.a = tevin_a.a & 255;\n");
         //out.Write("\ttevin_a.a = clamp({}, 0, 255);\n", tev_a_input_table[ac.a]); // TODO: try hdr_no_color_alpha_clamp
       }
 
@@ -1530,9 +1637,8 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
           cc.b == TevColorArg::TexAlpha || cc.b == TevColorArg::RasAlpha ||
           cc.op == TevOp::Sub)
       {
-        out.Write("\ttevin_b.rgb = clamp({}, int3(0, 0, 0), int3(255, 255, 255));\n",
-                  tev_c_input_table[cc.b]);
-        out.Write("\ttevin_b.a = {} & 255;\n", tev_a_input_table[ac.b]);
+        out.Write("\ttevin_b.rgb = clamp(tevin_b.rgb, int3(0, 0, 0), int3(255, 255, 255));\n");
+        out.Write("\ttevin_b.a = tevin_b.a & 255;\n");
       }
       else if (false)
       {
@@ -1541,9 +1647,8 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
       }
       else
       {
-        out.Write("\ttevin_b.rgb = clamp({}, int3(0, 0, 0), int3(2550, 2550, 2550));\n",
-                  tev_c_input_table[cc.b]);
-        out.Write("\ttevin_b.a = {} & 255;\n", tev_a_input_table[ac.b]);
+        out.Write("\ttevin_b.rgb = clamp(tevin_b.rgb, int3(0, 0, 0), int3(2550, 2550, 2550));\n");
+        out.Write("\ttevin_b.a = tevin_b.a & 255;\n");
       }
 
       // C
@@ -1554,8 +1659,7 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
       }
       else if (hdr_no_color_c_clamp)
       {
-        out.Write("\ttevin_c = clamp(int4({}, {}), int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n",
-                  tev_c_input_table[cc.c], tev_a_input_table[ac.c]);
+        out.Write("\ttevin_c = clamp(tevin_c, int4(0, 0, 0, 0), int4(255, 255, 255, 255));\n");
       }
       // If the alpha source is from a texture or vertex color, don't clamp it, let it be HDR
       else if (cc.c == TevColorArg::TexColor || cc.c == TevColorArg::RasColor)
@@ -1567,13 +1671,11 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
       // Otherwise force clamp the lerp blend factor
       else
       {
-        out.Write("\ttevin_c.rgb = clamp({}, int3(0, 0, 0), int3(255, 255, 255));\n",
-                  tev_c_input_table[cc.c]);
-        out.Write("\ttevin_c.a = {} & 255;\n", tev_a_input_table[ac.c]);
+        out.Write("\ttevin_c.rgb = clamp(tevin_c.rgb, int3(0, 0, 0), int3(255, 255, 255));\n");
+        out.Write("\ttevin_c.a = tevin_c.a & 255;\n");
 
         // TODO: when to ever force the original case for safety?
-        //out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
-        //          tev_a_input_table[ac.c]);
+        //out.Write("\ttevin_c = tevin_c&int4(255, 255, 255, 255);\n");
       }
     }
   }
@@ -1603,6 +1705,7 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
     out.Write("\t{} = max(", tev_c_output_table[cc.dest]);
   else
     out.Write("\t{} = clamp(", tev_c_output_table[cc.dest]);
+  overwritten_sources.color[(int)cc.dest.Value()] = true;
   if (cc.bias != TevBias::Compare)
   {
     WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.scale);
@@ -1651,6 +1754,7 @@ static void WriteStage(ShaderCode& out, const ShaderHostConfig& host_config,
 
   out.Write("\t// alpha combine\n");
   out.Write("\t{} = clamp(", tev_a_output_table[ac.dest]);
+  overwritten_sources.alpha[(int)ac.dest.Value()] = true;
   if (ac.bias != TevBias::Compare)
   {
     WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.scale);
@@ -1902,7 +2006,8 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
 }
 
-static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+static void WriteLogicOp(ShaderCode& out, const ShaderHostConfig& host_config,
+                         const pixel_shader_uid_data* uid_data)
 {
   static constexpr std::array<const char*, 16> logic_op_mode{
       "int4(0, 0, 0, 0)",          // CLEAR
@@ -1924,6 +2029,11 @@ static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   };
 
   out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
+  // Prevent overflow with logic ops
+  if (host_config.hdr)
+  {
+    out.Write("\tfb_value = clamp(fb_value, 0, 255);\n");
+  }
   out.Write("\tprev = ({}) & 0xff;\n", logic_op_mode[uid_data->logic_op_mode]);
 }
 
@@ -1939,8 +2049,10 @@ static void WriteLogicOpBlend(ShaderCode& out, const pixel_shader_uid_data* uid_
     // Do nothing!
     break;
   case LogicOp::CopyInverted:
+  {
     out.Write("\tprev ^= 255;\n"); // TODO: HDR support?
     break;
+  }
   case LogicOp::Set:
   case LogicOp::Invert:  // In cooperation with blend
     out.Write("\tprev = int4(255, 255, 255, 255);\n");
@@ -1975,21 +2087,24 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
-
-    // Use dual-source color blending to perform dst alpha in a single pass
-    if (use_dual_source)
-      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
   }
   else
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    if (use_dual_source)
-      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
+  }
+
+  // Use dual-source color blending to perform dst alpha in a single pass
+  if (use_dual_source)
+  {
+    out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
+    out.Write("\tocol1.a = clamp(ocol1.a, 0.0, 1.0);\n"); // TODO: HDR only. Also, useless??? Doesn't do anything
   }
 }
 
 // TODO: force any dest color subtractions to run through here in HDR, and clamp them to avoid them going negative. Do the same for inv source blends (no need to force SW blends for them).
-static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+// With the new updates, we just need to clamp the DEST
+static void WriteBlend(ShaderCode& out, const ShaderHostConfig& host_config,
+                       const pixel_shader_uid_data* uid_data)
 {
   if (uid_data->blend_enable)
   {
@@ -2082,7 +2197,7 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
             "\tint4 rastemp = int4(0, 0, 0, 0), rawtextemp = int4(0, 0, 0, 0), "
-            "textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
+            "textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n" // TODO: konsttemp is never used?
             "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
             "\tint alphabump=0;\n"
             "\tint3 tevcoord=int3(0, 0, 0);\n"
@@ -2162,10 +2277,11 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
     }
   }
 
+  OverwrittenTevColorSources overwritten_sources;
   for (u32 i = 0; i < numStages; i++)
   {
     // Build the equation for this stage
-    WriteStage(out, host_config, uid_data, i, api_type, stereo);
+    WriteStage(out, host_config, uid_data, i, api_type, stereo, overwritten_sources);
   }
 
   {
@@ -2182,6 +2298,13 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
     if (last_ac.dest != TevOutput::Prev)
     {
       out.Write("\tprev.a = {};\n", tev_a_output_table[last_ac.dest]);
+    }
+
+    // Avoid NaNs which can persist on float textures
+    // Useless
+    if (host_config.hdr)
+    {
+      //out.Write("\tif (isnan(prev.a)) prev.a = 0.0;\n");
     }
   }
 

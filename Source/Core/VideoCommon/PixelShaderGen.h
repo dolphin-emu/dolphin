@@ -61,6 +61,7 @@ struct pixel_shader_uid_data
   u32 emulate_logic_op_with_blend : 1;        // Only used with logic op blend emulation
   u32 logic_op_enable : 1;                    // Only used with shader_framebuffer_fetch logic ops
   u32 logic_op_mode : 4;  // Only used with shader_framebuffer_fetch logic ops and blend emulation
+  u32 force_clamp_color : 1;  // Useful to clamp rgb if HDR is enabled and HW blend uses INVSRCCLR
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;

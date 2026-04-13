@@ -78,7 +78,8 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   code.Write("float4 RGBA8ToRGB8(float4 src)\n"
              "{{\n"
-             "  return float4(src.xyz, 1.0);\n"
+             // Force rounding to support FLOAT textures
+             "  return float4(roundEven(src.xyz * 255.0) / 255.0, 1.0);\n"
              "}}\n"
 
              "float4 RGBA8ToRGBA6(float4 src)\n"

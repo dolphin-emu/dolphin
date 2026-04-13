@@ -34,6 +34,49 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     ps->ztest = EmulatedZ::Early;
   }
 
+  bool hdr_target = bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
+                    bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ||
+                    bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16; // TODO: is this one needed?
+  if (g_ActiveConfig.bHDRRender && hdr_target)
+  {
+    // Work around with blend problems that arise from using HDR.
+    // Alpha is always clamped so it's not a problem, but color is not.
+
+    if (blend.color_update && blend.blend_enable)
+    {
+      // If the source factor was the inverse of the dest
+      // (often used to draw bloom on top of the scene, to avoid clipping highlights),
+      // we simply let the source go in unscaled, otherwise if the dest is > 1,
+      // it'd flip in intensity and visually look broken.
+      if (blend.src_factor == SrcBlendFactor::InvDstClr)
+      {
+        blend.src_factor = SrcBlendFactor::One;
+      }
+      // Similarly, if the dest uses the inv source as factor,
+      // clamp it to <= 1 shaders, to avoid it flipping.
+      if (blend.dst_factor == DstBlendFactor::InvSrcClr)
+      {
+        ps->force_clamp_color = true;
+      }
+      // For some reason this is needed or water breaks in ZTP. // TODO: WHY? We could probably reduce the branches. Actually it's not completely fixed...
+      if (blend.dst_factor_alpha == DstBlendFactor::InvSrcAlpha
+          || blend.dst_factor_alpha == DstBlendFactor::InvSrcClr
+          || blend.src_factor_alpha == SrcBlendFactor::InvDstAlpha
+          || blend.src_factor_alpha == SrcBlendFactor::InvDstClr)
+      {
+        ps->force_clamp_color = true;
+      }
+    }
+    // Logic operators work in int and break if values are outside of 8 bit range
+    if (blend.color_update && blend.logic_op_enable && blend.logic_mode != LogicOp::Copy)
+    {
+        ps->force_clamp_color = true;
+    }
+
+    // TODO: add code to always clamp alpha to 0-1 on sampling, given that we might have summed source and target alpha
+    // and in FLOAT textures that doesn't stop at 0-1. Simple clamp on sampling in uber shader for compatibility.
+  }
+
   // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
   // and don't need the below blend approximation
   if (blend.logic_op_enable && !g_backend_info.bSupportsLogicOp &&
@@ -95,7 +138,7 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
       }
     }
   }
-  if (g_ActiveConfig.bHDRRender)
+  if (g_ActiveConfig.bHDRRender && hdr_target)
   {
     // TODO: make a copy of the RTV and force SW blends if there's subtractive color blends or any logical blend,
     // the same code could also be used to force original HW accurate blends.
