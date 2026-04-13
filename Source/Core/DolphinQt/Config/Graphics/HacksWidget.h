@@ -28,6 +28,7 @@ private:
   void AddDescriptions();
 
   void UpdateGPUTextureDecodingEnabled(const QString& backend_name);
+  void UpdateBoundingBoxEnabled(const QString& backend_name);
   void UpdateDeferEFBCopiesEnabled();
   void UpdateSkipPresentingDuplicateFramesEnabled();
 

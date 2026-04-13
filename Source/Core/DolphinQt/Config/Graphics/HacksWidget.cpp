@@ -128,15 +128,8 @@ void HacksWidget::CreateWidgets()
 
 void HacksWidget::OnBackendChanged(const QString& backend_name)
 {
-  const bool bbox = g_backend_info.bSupportsBBox;
-  m_disable_bounding_box->setEnabled(bbox);
-
-  const QString tooltip = tr("%1 doesn't support this feature on your system.")
-                              .arg(tr(backend_name.toStdString().c_str()));
-
-  m_disable_bounding_box->setToolTip(!bbox ? tooltip : QString{});
-
   UpdateGPUTextureDecodingEnabled(backend_name);
+  UpdateBoundingBoxEnabled(backend_name);
 }
 
 void HacksWidget::ConnectWidgets()
@@ -216,10 +209,6 @@ void HacksWidget::AddDescriptions()
       "Uses a less accurate algorithm to calculate depth values.<br><br>Causes issues in a few "
       "games, but can result in a decent speed increase depending on the game and/or "
       "GPU.<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static const char TR_DISABLE_BOUNDINGBOX_DESCRIPTION[] =
-      QT_TR_NOOP("Disables bounding box emulation.<br><br>This may improve GPU performance "
-                 "significantly, but some games will break.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION[] =
       QT_TR_NOOP("Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies "
                  "in save states. Fixes missing and/or non-upscaled textures/objects when loading "
@@ -249,7 +238,6 @@ void HacksWidget::AddDescriptions()
   m_immediate_xfb->SetDescription(tr(TR_IMMEDIATE_XFB_DESCRIPTION));
   m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
   m_fast_depth_calculation->SetDescription(tr(TR_FAST_DEPTH_CALC_DESCRIPTION));
-  m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
   m_vi_skip->SetDescription(tr(TR_VI_SKIP_DESCRIPTION));
@@ -288,6 +276,30 @@ void HacksWidget::UpdateGPUTextureDecodingEnabled(const QString& backend_name)
     m_gpu_texture_decoding->SetDescription(
         tr(TR_GPU_DECODING_DESCRIPTION) +
         tr("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  }
+}
+
+void HacksWidget::UpdateBoundingBoxEnabled(const QString& backend_name)
+{
+  static const char TR_DISABLE_BOUNDINGBOX_DESCRIPTION[] =
+      QT_TR_NOOP("Disables bounding box emulation.<br><br>This may improve GPU performance "
+                 "significantly, but some games will break.<br><br>");
+
+  const bool bbox = g_backend_info.bSupportsBBox;
+  m_disable_bounding_box->setEnabled(bbox);
+
+  if (bbox)
+  {
+    m_disable_bounding_box->SetDescription(
+        tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION) +
+        tr("<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"));
+  }
+  else
+  {
+    m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION) +
+                                           tr("<dolphin_emphasis>The %1 backend doesn't support "
+                                              "Bounding Box emulation.</dolphin_emphasis>")
+                                               .arg(backend_name));
   }
 }
 
