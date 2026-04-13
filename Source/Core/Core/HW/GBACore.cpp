@@ -512,14 +512,6 @@ void Core::SetupEvent()
   m_event.priority = 0x80;
 }
 
-void Core::RunFrame(u16 keys)
-{
-  PushEvent({
-      .event_type = SyncEventType::RunFrame,
-      .keys = keys,
-  });
-}
-
 void Core::SyncJoybus(u64 gc_ticks, u16 keys)
 {
   PushEvent({
@@ -568,15 +560,6 @@ void Core::PushEvent(SyncEvent event)
 void Core::HandleEvent(SyncEvent event)
 {
   m_keys = event.keys;
-
-  if (event.event_type == SyncEventType::RunFrame)
-  {
-    m_last_gc_ticks = m_system.GetCoreTiming().GetTicks();
-    m_gc_ticks_remainder = 0;
-
-    m_core->runFrame(m_core);
-    return;
-  }
 
   RunUntil(event.run_until_ticks);
 
