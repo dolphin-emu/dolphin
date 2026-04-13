@@ -28,7 +28,7 @@ enum class HapticEffect(
     PRESS(
         feedbackConstant = HapticFeedbackConstantsCompat.VIRTUAL_KEY,
         maxTimings = longArrayOf(0L, 100L),
-        maxAmplitudes = intArrayOf(0, 255),
+        maxAmplitudes = intArrayOf(0, 180),
         primaryPrimitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             VibrationEffect.Composition.PRIMITIVE_QUICK_FALL
         } else {
@@ -47,7 +47,7 @@ enum class HapticEffect(
             HapticFeedbackConstantsCompat.CONTEXT_CLICK // Better than a no-op.
         },
         maxTimings = longArrayOf(0L, 70L),
-        maxAmplitudes = intArrayOf(0, 180),
+        maxAmplitudes = intArrayOf(0, 128),
         primaryPrimitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             VibrationEffect.Composition.PRIMITIVE_QUICK_RISE
         } else {
@@ -57,7 +57,7 @@ enum class HapticEffect(
     JOYSTICK(
         feedbackConstant = HapticFeedbackConstantsCompat.SEGMENT_FREQUENT_TICK,
         maxTimings = longArrayOf(0L, 50L),
-        maxAmplitudes = intArrayOf(0, 128),
+        maxAmplitudes = intArrayOf(0, 90),
         primaryPrimitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             VibrationEffect.Composition.PRIMITIVE_LOW_TICK
         } else {
