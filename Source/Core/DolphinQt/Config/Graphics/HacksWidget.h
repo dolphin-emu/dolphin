@@ -9,6 +9,7 @@ class ConfigBool;
 class ConfigSlider;
 class ConfigSliderLabel;
 class GraphicsPane;
+class QString;
 
 namespace Config
 {
@@ -26,7 +27,7 @@ private:
   void ConnectWidgets();
   void AddDescriptions();
 
-  void UpdateGPUTextureDecodingEnabled();
+  void UpdateGPUTextureDecodingEnabled(const QString& backend_name);
   void UpdateDeferEFBCopiesEnabled();
   void UpdateSkipPresentingDuplicateFramesEnabled();
 
