@@ -722,7 +722,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             )
             val toggleVibrationSettings = {
                 checkboxes.any { it.isChecked }.let { enabled ->
-                    overlayHapticsUseVibratorDirectlyName.isEnabled = enabled
+                    overlayHapticsUseVibratorDirectlyText.isEnabled = enabled
                     overlayHapticsUseVibratorDirectlySwitch.isEnabled = enabled
                     (overlayHapticsUseVibratorDirectlySwitch.isChecked && enabled).let {
                         overlayHapticsIntensityName.isEnabled = it

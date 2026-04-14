@@ -4,26 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/spacing_xtralarge"
+    android:paddingTop="@dimen/spacing_large">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/overlay_haptics"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/overlay_haptics_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="@dimen/spacing_large">
+        android:layout_marginBottom="@dimen/spacing_small"
+        android:gravity="center">
 
         <TextView
-            android:id="@+id/overlay_haptics_text"
+            android:id="@+id/overlay_haptics_header_text"
+            style="@style/TextAppearance.AppCompat.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_medlarge"
-            android:text="@string/emulation_touch_haptics"
-            android:textAlignment="viewStart"
-            android:textAppearance="@style/TextAppearance.AppCompat.Title"
-            app:layout_constraintBottom_toTopOf="@id/overlay_haptics_on_release_checkbox"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:text="@string/emulation_touch_haptics" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/overlay_haptics_checkboxes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_small">
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/overlay_haptics_on_press_checkbox"
@@ -32,11 +36,11 @@
             android:minHeight="48dp"
             android:minWidth="48dp"
             android:text="@string/overlay_haptics_on_press"
-            android:textAppearance="?android:textAppearanceListItem"
+            android:textAppearance="?android:attr/textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/overlay_haptics_on_release_checkbox"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/overlay_haptics_on_release_checkbox" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/overlay_haptics_on_release_checkbox"
@@ -45,11 +49,11 @@
             android:minHeight="48dp"
             android:minWidth="48dp"
             android:text="@string/overlay_haptics_on_release"
-            android:textAppearance="?android:textAppearanceListItem"
+            android:textAppearance="?android:attr/textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/overlay_haptics_joystick_checkbox"
             app:layout_constraintStart_toEndOf="@+id/overlay_haptics_on_press_checkbox"
-            app:layout_constraintTop_toBottomOf="@+id/overlay_haptics_text" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/overlay_haptics_joystick_checkbox"
@@ -58,40 +62,40 @@
             android:minHeight="48dp"
             android:minWidth="48dp"
             android:text="@string/overlay_haptics_joystick"
-            android:textAppearance="?android:textAppearanceListItem"
+            android:textAppearance="?android:attr/textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/overlay_haptics_on_release_checkbox"
-            app:layout_constraintTop_toTopOf="@id/overlay_haptics_on_release_checkbox" />
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/overlay_haptics_use_vibrator_directly"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_small"
-        android:paddingHorizontal="24dp">
+        android:layout_marginTop="@dimen/spacing_small">
 
         <TextView
-            android:id="@+id/overlay_haptics_use_vibrator_directly_name"
+            android:id="@+id/overlay_haptics_use_vibrator_directly_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/spacing_large"
             android:text="@string/overlay_haptics_use_vibrator_directly"
             android:textAlignment="viewStart"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintBottom_toBottomOf="@+id/overlay_haptics_use_vibrator_directly_switch"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/overlay_haptics_use_vibrator_directly_switch"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/overlay_haptics_use_vibrator_directly_switch" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
+        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/overlay_haptics_use_vibrator_directly_switch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:contentDescription="@string/overlay_haptics_use_vibrator_directly"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/overlay_haptics_use_vibrator_directly_name"
+            app:layout_constraintStart_toEndOf="@+id/overlay_haptics_use_vibrator_directly_text"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -99,29 +103,16 @@
         android:id="@+id/overlay_haptics_intensity"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/spacing_small"
-        android:paddingHorizontal="24dp">
+        android:layout_marginTop="@dimen/spacing_small">
 
         <TextView
             android:id="@+id/overlay_haptics_intensity_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/overlay_haptics_intensity"
-            android:textAlignment="viewStart"
-            android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/overlay_haptics_intensity_slider"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/overlay_haptics_intensity_slider"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/spacing_medlarge"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/overlay_haptics_intensity_value"
-            app:layout_constraintStart_toEndOf="@id/overlay_haptics_intensity_name"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
@@ -133,6 +124,16 @@
             app:layout_constraintStart_toEndOf="@+id/overlay_haptics_intensity_slider"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="50%" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/overlay_haptics_intensity_slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_medlarge"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/overlay_haptics_intensity_value"
+            app:layout_constraintStart_toEndOf="@id/overlay_haptics_intensity_name"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
