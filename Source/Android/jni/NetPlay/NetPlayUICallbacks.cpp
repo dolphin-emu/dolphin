@@ -59,13 +59,23 @@ void NetPlayUICallbacks::Update()
   env->DeleteLocalRef(player_array);
 }
 
-void NetPlayUICallbacks::AppendChat(const std::string&) {}
+void NetPlayUICallbacks::AppendChat(const std::string& message)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
+                            IDCache::GetNetplayOnChatMessageReceived(),
+                            ToJString(env, message));
+}
 
 void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                                          const std::string& netplay_name)
 {
   m_current_game_identifier = sync_identifier;
   m_current_game_name = netplay_name;
+
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnGameChanged(),
+                            ToJString(env, netplay_name));
 }
 
 void NetPlayUICallbacks::OnMsgChangeGBARom(int, const NetPlay::GBAConfig&) {}
@@ -86,8 +96,23 @@ void NetPlayUICallbacks::OnMsgStopGame() {}
 void NetPlayUICallbacks::OnMsgPowerButton() {}
 void NetPlayUICallbacks::OnPlayerConnect(const std::string&) {}
 void NetPlayUICallbacks::OnPlayerDisconnect(const std::string&) {}
-void NetPlayUICallbacks::OnPadBufferChanged(u32) {}
-void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool) {}
+
+void NetPlayUICallbacks::OnPadBufferChanged(u32 buffer)
+{
+    //TODO handle host input authority = true
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnPadBufferChanged(),
+                            static_cast<jint>(buffer));
+}
+
+void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool enabled)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
+                            IDCache::GetNetplayOnHostInputAuthorityChanged(),
+                            static_cast<jboolean>(enabled));
+}
+
 void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
 void NetPlayUICallbacks::OnConnectionLost() {}
 

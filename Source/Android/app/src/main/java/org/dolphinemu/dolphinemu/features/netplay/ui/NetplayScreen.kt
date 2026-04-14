@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,12 +45,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
@@ -58,6 +64,9 @@ import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
 @Composable
 fun NetplayScreen(
     onBackClicked: () -> Unit,
+    messages: List<NetplayMessage>,
+    onSendMessage: (String) -> Unit,
+    game: String,
     players: List<Player>,
 ) {
     Scaffold(
@@ -82,11 +91,17 @@ fun NetplayScreen(
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             LandscapeContent(
+                messages = messages,
+                onSendMessage = onSendMessage,
+                game = game,
                 players = players,
                 modifier = modifier
             )
         } else {
             PortraitContent(
+                messages = messages,
+                onSendMessage = onSendMessage,
+                game = game,
                 players = players,
                 modifier = modifier
             )
@@ -96,6 +111,9 @@ fun NetplayScreen(
 
 @Composable
 private fun PortraitContent(
+    messages: List<NetplayMessage>,
+    onSendMessage: (String) -> Unit,
+    game: String,
     players: List<Player>,
     modifier: Modifier = Modifier,
 ) {
@@ -103,6 +121,8 @@ private fun PortraitContent(
         modifier = modifier
     ) {
         Chat(
+            messages = messages,
+            onSendMessage = onSendMessage,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.3f)
@@ -112,6 +132,7 @@ private fun PortraitContent(
         MenuSpacer()
 
         PLayersAndSettings(
+            game = game,
             players = players,
             modifier = Modifier
                 .weight(1f)
@@ -122,6 +143,9 @@ private fun PortraitContent(
 
 @Composable
 private fun LandscapeContent(
+    messages: List<NetplayMessage>,
+    onSendMessage: (String) -> Unit,
+    game: String,
     players: List<Player>,
     modifier: Modifier = Modifier,
 ) {
@@ -129,6 +153,8 @@ private fun LandscapeContent(
         modifier = modifier
     ) {
         Chat(
+            messages = messages,
+            onSendMessage = onSendMessage,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
@@ -136,6 +162,7 @@ private fun LandscapeContent(
         )
 
         PLayersAndSettings(
+            game = game,
             players = players,
             modifier = Modifier
                 .weight(1f)
@@ -146,6 +173,7 @@ private fun LandscapeContent(
 
 @Composable
 private fun PLayersAndSettings(
+    game: String,
     players: List<Player>,
     modifier: Modifier = Modifier,
 ) {
@@ -153,6 +181,17 @@ private fun PLayersAndSettings(
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
+        OutlinedTextField(
+            value = game,
+            onValueChange = {},
+            label = { Text(stringResource(R.string.netplay_game_label)) },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+
+        MenuSpacer()
+
         PlayersTable(
             rows = buildList {
                 add(listOf("Player", "Ping", "Mapping"))
@@ -168,8 +207,24 @@ private fun PLayersAndSettings(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Chat(
+    messages: List<NetplayMessage>,
+    onSendMessage: (String) -> Unit,
     modifier: Modifier,
 ) {
+    val context = LocalContext.current
+
+    fun LazyListScope.messages() {
+        items(messages.size) { index ->
+            Text(text = messages[index].message(context))
+        }
+    }
+
+    var draftMessage by remember { mutableStateOf("") }
+    val submitMessage = {
+        onSendMessage(draftMessage)
+        draftMessage = ""
+    }
+
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -187,6 +242,7 @@ private fun Chat(
                     .weight(1f)
                     .padding(horizontal = DolphinTheme.scaffoldPadding)
             ) {
+                messages()
             }
 
             Row(
@@ -197,19 +253,23 @@ private fun Chat(
                     .padding(horizontal = 8.dp)
             ) {
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = draftMessage,
+                    onValueChange = { draftMessage = it },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = { submitMessage() }),
                     modifier = Modifier
                         .weight(1f)
                 )
                 TextButton(
-                    onClick = {},
+                    onClick = submitMessage,
+                    enabled = draftMessage.isNotBlank(),
                 ) {
                     Text(stringResource(R.string.netplay_chat_send))
                 }
             }
         }
     }
+
     OutlinedBox(
         onClick = { showBottomSheet = true },
         label = { Text(stringResource(R.string.netplay_chat_label)) },
@@ -221,6 +281,7 @@ private fun Chat(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            messages()
         }
     }
 }
@@ -286,10 +347,7 @@ private fun PlayersTable(
 @Composable
 private fun NetplayScreenPreview() {
     PreviewTheme(darkTheme = false) {
-        NetplayScreen(
-            onBackClicked = {},
-            players = previewPlayers,
-        )
+        PreviewNetplayScreen()
     }
 }
 
@@ -297,10 +355,7 @@ private fun NetplayScreenPreview() {
 @Composable
 private fun NetplayScreenDarkPreview() {
     PreviewTheme(darkTheme = true) {
-        NetplayScreen(
-            onBackClicked = {},
-            players = previewPlayers,
-        )
+        PreviewNetplayScreen()
     }
 }
 
@@ -308,10 +363,7 @@ private fun NetplayScreenDarkPreview() {
 @Composable
 private fun LandscapeNetplayScreenPreview() {
     PreviewTheme(darkTheme = false) {
-        NetplayScreen(
-            onBackClicked = {},
-            players = previewPlayers,
-        )
+        PreviewNetplayScreen()
     }
 }
 
@@ -320,31 +372,42 @@ private fun LandscapeNetplayScreenPreview() {
     heightDp = 411,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
+
 @Composable
 private fun LandscapeNetplayScreenDarkPreview() {
     PreviewTheme(darkTheme = true) {
-        NetplayScreen(
-            onBackClicked = {},
-            players = previewPlayers,
-        )
+        PreviewNetplayScreen()
     }
 }
 
-private val previewPlayers = listOf(
-    Player(
-        pid = 1,
-        name = "Player 1",
-        revision = "123",
-        ping = 2,
-        isHost = true,
-        mapping = "m1"
-    ),
-    Player(
-        pid = 2,
-        name = "Player 2",
-        revision = "123",
-        ping = 23,
-        isHost = false,
-        mapping = "m2"
-    ),
-)
+@Composable
+private fun PreviewNetplayScreen() {
+    NetplayScreen(
+        onBackClicked = {},
+        players = listOf(
+            Player(
+                pid = 1,
+                name = "Player 1",
+                revision = "123",
+                ping = 2,
+                isHost = true,
+                mapping = "m1"
+            ),
+            Player(
+                pid = 2,
+                name = "Player 2",
+                revision = "123",
+                ping = 23,
+                isHost = false,
+                mapping = "m2"
+            ),
+        ),
+        messages = buildList {
+            repeat(5) {
+                add(NetplayMessage.Chat("Hello"))
+            }
+        },
+        onSendMessage = {},
+        game = "Game name",
+    )
+}

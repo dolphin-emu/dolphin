@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.netplay.model
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.Netplay
 
+//TODO save settings
 class NetplayViewModel : ViewModel() {
     val launchGame = Netplay.launchGame
 
@@ -23,10 +26,25 @@ class NetplayViewModel : ViewModel() {
     val players = Netplay.players
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
+    val messages = Netplay.messages
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    val game = Netplay.game
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
+
     init {
         if (!Netplay.isClientConnected()) {
             _goBack.trySend(Unit)
         }
+    }
+
+    fun sendMessage(message: String) {
+        val trimmedMessage = message.trim()
+        if (trimmedMessage.isEmpty()) {
+            return
+        }
+
+        Netplay.sendMessage(trimmedMessage)
     }
 
     @OptIn(DelicateCoroutinesApi::class)

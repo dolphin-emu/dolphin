@@ -136,6 +136,14 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_isClientConnected(JNIEnv
   return static_cast<jboolean>(GetPointer(env)->IsConnected());
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_sendMessage(JNIEnv* env, jclass,
+                                                                    jstring jmessage)
+{
+  if (auto* client = GetPointer(env))
+    client->SendChatMessage(GetJString(env, jmessage));
+}
+
 JNIEXPORT jlong JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv* env, jclass)
 {

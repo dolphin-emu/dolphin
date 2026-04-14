@@ -33,6 +33,10 @@ static jfieldID s_net_play_client_pointer;
 static jfieldID s_netplay_boot_session_data_pointer;
 static jmethodID s_netplay_on_boot_game;
 static jmethodID s_netplay_on_connection_error;
+static jmethodID s_netplay_on_game_changed;
+static jmethodID s_netplay_on_host_input_authority_changed;
+static jmethodID s_netplay_on_pad_buffer_changed;
+static jmethodID s_netplay_on_chat_message_received;
 static jmethodID s_netplay_update;
 
 static jclass s_netplay_player_class;
@@ -266,6 +270,26 @@ jmethodID GetNetplayOnBootGame()
 jmethodID GetNetplayOnConnectionError()
 {
   return s_netplay_on_connection_error;
+}
+
+jmethodID GetNetplayOnGameChanged()
+{
+  return s_netplay_on_game_changed;
+}
+
+jmethodID GetNetplayOnHostInputAuthorityChanged()
+{
+  return s_netplay_on_host_input_authority_changed;
+}
+
+jmethodID GetNetplayOnPadBufferChanged()
+{
+  return s_netplay_on_pad_buffer_changed;
+}
+
+jmethodID GetNetplayOnChatMessageReceived()
+{
+  return s_netplay_on_chat_message_received;
 }
 
 jmethodID GetNetplayUpdate()
@@ -694,6 +718,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_netplay_boot_session_data_pointer = env->GetStaticFieldID(netplay_class, "bootSessionDataPointer", "J");
   s_netplay_on_boot_game = env->GetStaticMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
   s_netplay_on_connection_error = env->GetStaticMethodID(netplay_class, "onConnectionError", "(Ljava/lang/String;)V");
+  s_netplay_on_game_changed =
+      env->GetStaticMethodID(netplay_class, "onGameChanged", "(Ljava/lang/String;)V");
+  s_netplay_on_host_input_authority_changed =
+      env->GetStaticMethodID(netplay_class, "onHostInputAuthorityChanged", "(Z)V");
+  s_netplay_on_pad_buffer_changed =
+      env->GetStaticMethodID(netplay_class, "onPadBufferChanged", "(I)V");
+  s_netplay_on_chat_message_received =
+      env->GetStaticMethodID(netplay_class, "onChatMessageReceived", "(Ljava/lang/String;)V");
   s_netplay_update = env->GetStaticMethodID(netplay_class, "onUpdate", "([Lorg/dolphinemu/dolphinemu/features/netplay/model/Player;)V");
   env->DeleteLocalRef(netplay_class);
 
