@@ -243,7 +243,6 @@ void GCMemcardManager::SetActiveSlot(Slot slot)
 
   m_active_slot = slot;
 
-  UpdateSlotTable(slot);
   UpdateActions();
 }
 
