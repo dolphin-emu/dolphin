@@ -133,6 +133,8 @@ void GCMemcardManager::CreateWidgets()
     m_slot_create_button[slot] = new NonDefaultQPushButton(tr("&Create..."));
     m_slot_table[slot] = new QTableWidget;
     m_slot_table[slot]->setTabKeyNavigation(false);
+    m_slot_table[slot]->setHorizontalScrollMode(QAbstractItemView::ScrollMode::ScrollPerPixel);
+    m_slot_table[slot]->setVerticalScrollMode(QAbstractItemView::ScrollMode::ScrollPerPixel);
     m_slot_stat_label[slot] = new QLabel;
 
     m_slot_table[slot]->setSelectionMode(QAbstractItemView::ExtendedSelection);
