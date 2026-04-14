@@ -32,9 +32,7 @@ class WiimoteControllersWidget final : public QWidget
   Q_OBJECT
 public:
   explicit WiimoteControllersWidget(QWidget* parent);
-  ~WiimoteControllersWidget();
-
-  void UpdateBluetoothAvailableStatus();
+  ~WiimoteControllersWidget() override;
 
 private:
   void SaveSettings();
@@ -81,5 +79,4 @@ private:
   QCheckBox* m_wiimote_ciface;
   QToolButton* m_wiimote_refresh;
   QLabel* m_wiimote_refresh_indicator;
-  QLabel* m_bluetooth_unavailable;
 };
