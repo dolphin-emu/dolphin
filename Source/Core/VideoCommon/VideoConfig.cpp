@@ -101,6 +101,7 @@ void VideoConfig::Refresh()
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
+  bShowInternalResolution = Config::Get(Config::GFX_SHOW_INTERNAL_RESOLUTION);
   bShowFTimes = Config::Get(Config::GFX_SHOW_FTIMES);
   bShowVPS = Config::Get(Config::GFX_SHOW_VPS);
   bShowVTimes = Config::Get(Config::GFX_SHOW_VTIMES);

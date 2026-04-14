@@ -245,6 +245,7 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS = false;
+  bool bShowInternalResolution = false;
   bool bShowFTimes = false;
   bool bShowVPS = false;
   bool bShowVTimes = false;

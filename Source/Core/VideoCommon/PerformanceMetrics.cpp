@@ -11,6 +11,7 @@
 #include "Common/HookableEvent.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 PerformanceMetrics::PerformanceMetrics()
@@ -88,6 +89,20 @@ double PerformanceMetrics::GetFPS() const
   return m_fps_counter.GetHzAvg();
 }
 
+u32 PerformanceMetrics::GetEFBWidth() const
+{
+  if (g_framebuffer_manager)
+    return g_framebuffer_manager->GetEFBWidth();
+  return 0;
+}
+
+u32 PerformanceMetrics::GetEFBHeight() const
+{
+  if (g_framebuffer_manager)
+    return g_framebuffer_manager->GetEFBHeight();
+  return 0;
+}
+
 double PerformanceMetrics::GetVPS() const
 {
   return m_vps_counter.GetHzAvg();
@@ -124,6 +139,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   const double fps = GetFPS();
   const double vps = GetVPS();
   const double speed = GetSpeed();
+  const u32 width = GetEFBWidth();
+  const u32 height = GetEFBHeight();
 
   static ImVec2 last_display_size(-1.0f, -1.0f);
 
@@ -314,6 +331,26 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
             DT_ms(m_frame_presentation_offset.load(std::memory_order_relaxed)).count();
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), "ofs:%5.1lfms", offset);
       }
+    }
+    ImGui::End();
+  }
+
+  if (g_ActiveConfig.bShowInternalResolution)
+  {
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+
+    if (ImGui::Begin("ResolutionStats", nullptr, imgui_flags))
+    {
+      if (stack_vertically)
+        window_y += ImGui::GetWindowHeight() + window_padding;
+      else
+        window_x -= ImGui::GetWindowWidth() + window_padding;
+
+      clamp_window_position();
+
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Res: %ux%u", width, height);
     }
     ImGui::End();
   }

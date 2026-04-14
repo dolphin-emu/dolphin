@@ -41,7 +41,8 @@ public:
   double GetVPS() const;
   double GetSpeed() const;
   double GetMaxSpeed() const;
-
+  u32 GetEFBWidth() const;
+  u32 GetEFBHeight() const;
   // Call from any thread.
   void SetLatestFramePresentationOffset(DT offset);
 
