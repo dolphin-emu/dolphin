@@ -135,9 +135,10 @@ fun MenuSpacer() = Spacer(modifier = Modifier.height(16.dp))
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutlinedBox(
-    onClick: () -> Unit,
     label: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    fadeContentTop: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     Box(
@@ -153,24 +154,30 @@ fun OutlinedBox(
                         .fillMaxSize()
                 ) {
                     content()
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(16.dp)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.surface,
-                                        Color.Transparent
+                    if (fadeContentTop) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(16.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.surface,
+                                            Color.Transparent
+                                        )
                                     )
                                 )
-                            )
-                    )
+                        )
+                    }
                 }
             },
             enabled = true,
             singleLine = false,
-            contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp),
+            contentPadding = if (fadeContentTop) {
+                OutlinedTextFieldDefaults.contentPadding(top = 0.dp)
+            } else {
+                OutlinedTextFieldDefaults.contentPadding()
+            },
             visualTransformation = VisualTransformation.None,
             interactionSource = interactionSource,
             label = { label() },
@@ -183,15 +190,17 @@ fun OutlinedBox(
                 )
             }
         )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(MaterialTheme.shapes.extraSmall)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = LocalIndication.current,
-                    onClick = onClick,
-                )
-        )
+        if (onClick != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                        onClick = onClick,
+                    )
+            )
+        }
     }
 }

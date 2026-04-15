@@ -192,15 +192,25 @@ private fun PLayersAndSettings(
 
         MenuSpacer()
 
-        PlayersTable(
-            rows = buildList {
-                add(listOf("Player", "Ping", "Mapping"))
-                addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
-                repeat(4 - players.size) { add(listOf("", "", "")) }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-        )
+        OutlinedBox(
+            label = { Text(stringResource(R.string.netplay_players_label)) },
+        ) {
+            PlayersTable(
+                rows = buildList {
+                    add(
+                        listOf(
+                            stringResource(R.string.netplay_players_name),
+                            stringResource(R.string.netplay_players_ping),
+                            stringResource(R.string.netplay_players_mapping),
+                        )
+                    )
+                    addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
+                    repeat(4 - players.size) { add(listOf("", "", "")) }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
     }
 }
 
