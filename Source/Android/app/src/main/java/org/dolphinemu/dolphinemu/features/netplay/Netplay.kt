@@ -149,6 +149,9 @@ object Netplay {
     external fun sendMessage(message: String)
 
     @JvmStatic
+    external fun adjustPadBufferSize(buffer: Int)
+
+    @JvmStatic
     private external fun ReleaseNetplayClient()
 
     private fun mergeMessages(): Flow<NetplayMessage> = merge(
@@ -193,6 +196,8 @@ object Netplay {
 
     @JvmStatic
     fun onPadBufferChanged(buffer: Int) {
+        // Only for remote pad buffer settings. Ignore local max buffer changes.
+        if (_hostInputAuthorityEnabled.replayCache.firstOrNull() == true) return
         _padBuffer.tryEmit(buffer)
     }
 
@@ -239,6 +244,12 @@ object Netplay {
 
     @JvmStatic
     external fun getIndexPassword(): String
+
+    @JvmStatic
+    external fun getClientBufferSize(): Int
+
+    @JvmStatic
+    external fun setClientBufferSize(buffer: Int)
 
     suspend fun saveSetup(
         nickname: String,

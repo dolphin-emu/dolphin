@@ -10,7 +10,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,6 +34,12 @@ class NetplayViewModel : ViewModel() {
     val game = Netplay.game
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "")
 
+    val hostInputAuthority = Netplay.hostInputAuthorityEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    private val _maxBuffer = MutableStateFlow(Netplay.getClientBufferSize())
+    val maxBuffer = _maxBuffer.asStateFlow()
+
     init {
         if (!Netplay.isClientConnected()) {
             _goBack.trySend(Unit)
@@ -45,6 +53,12 @@ class NetplayViewModel : ViewModel() {
         }
 
         Netplay.sendMessage(trimmedMessage)
+    }
+
+    fun setMaxBuffer(buffer: Int) {
+        _maxBuffer.value = buffer
+        Netplay.setClientBufferSize(buffer)
+        Netplay.adjustPadBufferSize(buffer)
     }
 
     @OptIn(DelicateCoroutinesApi::class)

@@ -48,6 +48,9 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     onSendMessage = viewModel::sendMessage,
                     game = viewModel.game.collectAsState().value,
                     players = viewModel.players.collectAsState().value,
+                    hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
+                    maxBuffer = viewModel.maxBuffer.collectAsState().value,
+                    onMaxBufferChanged = viewModel::setMaxBuffer,
                 )
             }
         }

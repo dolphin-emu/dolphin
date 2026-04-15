@@ -99,7 +99,6 @@ void NetPlayUICallbacks::OnPlayerDisconnect(const std::string&) {}
 
 void NetPlayUICallbacks::OnPadBufferChanged(u32 buffer)
 {
-    //TODO handle host input authority = true
   JNIEnv* env = IDCache::GetEnvForThread();
   env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnPadBufferChanged(),
                             static_cast<jint>(buffer));

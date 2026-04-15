@@ -103,6 +103,19 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getIndexPassword(JNIEnv*
   return ToJString(env, Config::Get(Config::NETPLAY_INDEX_PASSWORD));
 }
 
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getClientBufferSize(JNIEnv*, jclass)
+{
+  return static_cast<jint>(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_setClientBufferSize(JNIEnv*, jclass,
+                                                                            jint buffer)
+{
+  Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, static_cast<u32>(buffer));
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_SaveSetup(
     JNIEnv* env, jclass, jstring jnickname, jstring traversalChoice, jstring jaddress,
@@ -142,6 +155,14 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_sendMessage(JNIEnv* env,
 {
   if (auto* client = GetPointer(env))
     client->SendChatMessage(GetJString(env, jmessage));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_adjustPadBufferSize(JNIEnv* env, jclass,
+                                                                            jint buffer)
+{
+  if (auto* client = GetPointer(env))
+    client->AdjustPadBufferSize(static_cast<u32>(buffer));
 }
 
 JNIEXPORT jlong JNICALL

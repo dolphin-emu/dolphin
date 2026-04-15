@@ -8,25 +8,32 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
@@ -48,8 +55,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.dolphinemu.dolphinemu.R
@@ -67,6 +78,9 @@ fun NetplayScreen(
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
+    hostInputAuthorityEnabled: Boolean,
+    maxBuffer: Int,
+    onMaxBufferChanged: (Int) -> Unit,
     players: List<Player>,
 ) {
     Scaffold(
@@ -95,6 +109,9 @@ fun NetplayScreen(
                 onSendMessage = onSendMessage,
                 game = game,
                 players = players,
+                hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                maxBuffer = maxBuffer,
+                onMaxBufferChanged = onMaxBufferChanged,
                 modifier = modifier
             )
         } else {
@@ -103,6 +120,9 @@ fun NetplayScreen(
                 onSendMessage = onSendMessage,
                 game = game,
                 players = players,
+                hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                maxBuffer = maxBuffer,
+                onMaxBufferChanged = onMaxBufferChanged,
                 modifier = modifier
             )
         }
@@ -115,6 +135,9 @@ private fun PortraitContent(
     onSendMessage: (String) -> Unit,
     game: String,
     players: List<Player>,
+    hostInputAuthorityEnabled: Boolean,
+    maxBuffer: Int,
+    onMaxBufferChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -134,9 +157,12 @@ private fun PortraitContent(
         PLayersAndSettings(
             game = game,
             players = players,
+            hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+            maxBuffer = maxBuffer,
+            onMaxBufferChanged = onMaxBufferChanged,
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = DolphinTheme.scaffoldPadding)
+                .padding(horizontal = DolphinTheme.scaffoldPadding),
         )
     }
 }
@@ -147,6 +173,9 @@ private fun LandscapeContent(
     onSendMessage: (String) -> Unit,
     game: String,
     players: List<Player>,
+    hostInputAuthorityEnabled: Boolean,
+    maxBuffer: Int,
+    onMaxBufferChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -164,6 +193,9 @@ private fun LandscapeContent(
         PLayersAndSettings(
             game = game,
             players = players,
+            hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+            maxBuffer = maxBuffer,
+            onMaxBufferChanged = onMaxBufferChanged,
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = DolphinTheme.scaffoldPadding)
@@ -175,6 +207,9 @@ private fun LandscapeContent(
 private fun PLayersAndSettings(
     game: String,
     players: List<Player>,
+    hostInputAuthorityEnabled: Boolean,
+    maxBuffer: Int,
+    onMaxBufferChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -209,6 +244,16 @@ private fun PLayersAndSettings(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+            )
+        }
+        
+        if (hostInputAuthorityEnabled) {
+            MenuSpacer()
+
+            BufferInput(
+                value = maxBuffer,
+                onValueChange = onMaxBufferChanged,
+                label = stringResource(R.string.netplay_max_buffer),
             )
         }
     }
@@ -353,6 +398,106 @@ private fun PlayersTable(
     }
 }
 
+@Composable
+private fun BufferInput(
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    label: String,
+) {
+    val range = 0..99
+    var maybeEmptyValue by remember(value) {
+        mutableStateOf("$value")
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = TextFieldValue(
+                text = maybeEmptyValue,
+                selection = TextRange(maybeEmptyValue.length)
+            ),
+            onValueChange = { newValue ->
+                if (newValue.text.isEmpty()) {
+                    maybeEmptyValue = newValue.text
+                    return@OutlinedTextField
+                }
+                newValue.text.toIntOrNull()?.let {
+                    if (it in range) {
+                        onValueChange(it)
+                    }
+                }
+            },
+            label = { Text(label) },
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+            ),
+            singleLine = true,
+            modifier = Modifier
+                .weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Button(
+            onClick = {
+                if (maybeEmptyValue.isEmpty()) {
+                    maybeEmptyValue = "0"
+                    onValueChange(0)
+                } else {
+                    val newValue = value - 1
+                    if (newValue in range) {
+                        onValueChange(newValue)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(
+                topStartPercent = 50,
+                topEndPercent = 0,
+                bottomEndPercent = 0,
+                bottomStartPercent = 50,
+            ),
+            modifier = Modifier
+                .height(60.dp)
+                .padding(top = 8.dp)
+        ) {
+            Icon(Icons.Filled.Remove, contentDescription = "Back")
+        }
+
+        Spacer(modifier = Modifier.width(2.dp))
+
+        Button(
+            onClick = {
+                if (maybeEmptyValue.isEmpty()) {
+                    maybeEmptyValue = "0"
+                    onValueChange(0)
+                } else {
+                    val newValue = value + 1
+                    if (newValue in range) {
+                        onValueChange(newValue)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(
+                topStartPercent = 0,
+                topEndPercent = 50,
+                bottomEndPercent = 50,
+                bottomStartPercent = 0,
+            ),
+            modifier = Modifier
+                .height(60.dp)
+                .padding(top = 8.dp)
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = "Back")
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun NetplayScreenPreview() {
@@ -419,5 +564,8 @@ private fun PreviewNetplayScreen() {
         },
         onSendMessage = {},
         game = "Game name",
+        hostInputAuthorityEnabled = true,
+        maxBuffer = 10,
+        onMaxBufferChanged = {},
     )
 }
