@@ -143,6 +143,7 @@
 #define GC_MEMCARD_NETPLAY "NetPlayTemp"
 
 #define GBA_BIOS "gba_bios.bin"
+#define GBA_CGB_BOOT_ROM "cgb_agb_boot.bin"
 #define GBA_SAVE_NETPLAY "NetPlayTemp"
 
 #define WII_STATE "state.dat"

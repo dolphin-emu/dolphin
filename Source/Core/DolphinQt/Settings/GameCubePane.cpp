@@ -211,6 +211,15 @@ void GameCubePane::CreateWidgets()
   gba_layout->addWidget(m_gba_browse_bios, gba_row, 2);
   gba_row++;
 
+  m_gba_cgb_boot_rom_edit =
+      new ConfigUserPath(F_GBACGBBOOTROM_IDX, Config::MAIN_GBA_CGB_BOOT_ROM_PATH);
+  m_gba_browse_cgb_boot_rom = new NonDefaultQPushButton(QStringLiteral("..."));
+
+  gba_layout->addWidget(new QLabel(tr("Game Boy Color Boot ROM:")), gba_row, 0);
+  gba_layout->addWidget(m_gba_cgb_boot_rom_edit, gba_row, 1);
+  gba_layout->addWidget(m_gba_browse_cgb_boot_rom, gba_row, 2);
+  gba_row++;
+
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
   {
     m_gba_rom_edits[i] = new ConfigText(Config::MAIN_GBA_ROM_PATHS[i]);
@@ -279,6 +288,8 @@ void GameCubePane::ConnectWidgets()
 #ifdef HAS_LIBMGBA
   // GBA Settings
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
+  connect(m_gba_browse_cgb_boot_rom, &QPushButton::clicked, this,
+          &GameCubePane::BrowseGBACGBBootRom);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(m_gba_save_rom_path, &QCheckBox::checkStateChanged, this,
           &GameCubePane::SaveRomPathChanged);
@@ -694,6 +705,16 @@ void GameCubePane::BrowseGBABios()
       tr("All Files (*)")));
   if (!file.isEmpty())
     m_gba_bios_edit->SetTextAndUpdate(file);
+}
+
+void GameCubePane::BrowseGBACGBBootRom()
+{
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+      this, tr("Select GBC boot ROM"),
+      QString::fromStdString(Config::Get(Config::MAIN_GBA_CGB_BOOT_ROM_PATH)),
+      tr("All Files (*)")));
+  if (!file.isEmpty())
+    m_gba_cgb_boot_rom_edit->SetTextAndUpdate(file);
 }
 
 void GameCubePane::BrowseGBARom(size_t index)

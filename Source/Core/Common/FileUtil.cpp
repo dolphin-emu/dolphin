@@ -908,6 +908,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_GBAUSER_IDX] = s_user_paths[D_USER_IDX] + GBA_USER_DIR DIR_SEP;
     s_user_paths[D_GBASAVES_IDX] = s_user_paths[D_GBAUSER_IDX] + GBASAVES_DIR DIR_SEP;
     s_user_paths[F_GBABIOS_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_BIOS;
+    s_user_paths[F_GBACGBBOOTROM_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_CGB_BOOT_ROM;
 
     s_user_paths[D_ASM_ROOT_IDX] = s_user_paths[D_USER_IDX] + ASSEMBLY_DIR DIR_SEP;
 

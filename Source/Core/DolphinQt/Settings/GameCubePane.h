@@ -57,6 +57,7 @@ private:
 
 #ifdef HAS_LIBMGBA
   void BrowseGBABios();
+  void BrowseGBACGBBootRom();
   void BrowseGBARom(size_t index);
   void SaveRomPathChanged();
   void BrowseGBASaves();
@@ -84,6 +85,8 @@ private:
   ConfigBool* m_gba_save_rom_path;
   QPushButton* m_gba_browse_bios;
   ConfigUserPath* m_gba_bios_edit;
+  QPushButton* m_gba_browse_cgb_boot_rom;
+  ConfigUserPath* m_gba_cgb_boot_rom_edit;
   std::array<QPushButton*, 5> m_gba_browse_roms;
   std::array<ConfigText*, 5> m_gba_rom_edits;
   QPushButton* m_gba_browse_saves;
