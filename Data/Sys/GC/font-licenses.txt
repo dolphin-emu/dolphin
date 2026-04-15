@@ -1,8 +1,8 @@
-The two fonts in this directory (font_western.bin and font_japanese.bin) were
+The font in this directory (font_japanese.bin) was
 generated using gc-font-tool which can be found in the docs/ directory in the
 dolphin source code.
 
-Both fonts are based on Droid Sans
+The font is based on Droid Sans
 
 Copyright 2006-2014, Google Corporation
 Licensed under the Apache License 2.0
