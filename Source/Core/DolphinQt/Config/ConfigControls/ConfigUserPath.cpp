@@ -13,13 +13,21 @@
 
 ConfigUserPath::ConfigUserPath(const unsigned int dir_index,
                                const Config::Info<std::string>& setting)
-    : ConfigUserPath(dir_index, setting, nullptr)
+    : ConfigUserPath(dir_index, setting, "", nullptr)
 {
 }
 
 ConfigUserPath::ConfigUserPath(const unsigned int dir_index,
-                               const Config::Info<std::string>& setting, Config::Layer* layer)
-    : ConfigText(setting, layer), m_dir_index(dir_index)
+                               const Config::Info<std::string>& setting,
+                               const std::string default_value)
+    : ConfigUserPath(dir_index, setting, default_value, nullptr)
+{
+}
+
+ConfigUserPath::ConfigUserPath(const unsigned int dir_index,
+                               const Config::Info<std::string>& setting,
+                               const std::string default_value, Config::Layer* layer)
+    : ConfigText(setting, layer), m_dir_index(dir_index), m_default_value(default_value)
 {
   OnConfigChanged();
 
@@ -55,5 +63,16 @@ void ConfigUserPath::Update()
 
 void ConfigUserPath::OnConfigChanged()
 {
+  RefreshText();
+}
+
+void ConfigUserPath::Reset()
+{
+  if (m_default_value.empty())
+    return;
+
+  File::SetUserPath(m_dir_index, m_default_value);
+  SaveValue(m_setting, m_default_value);
+
   RefreshText();
 }
