@@ -204,20 +204,26 @@ void GameCubePane::CreateWidgets()
   gba_box->setLayout(gba_layout);
   int gba_row = 0;
 
-  m_gba_bios_edit = new ConfigUserPath(F_GBABIOS_IDX, Config::MAIN_GBA_BIOS_PATH);
+  m_gba_bios_edit = new ConfigUserPath(F_GBABIOS_IDX, Config::MAIN_GBA_BIOS_PATH,
+                                       File::GetUserPath(D_GBAUSER_IDX) + GBA_BIOS);
   m_gba_browse_bios = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_gba_bios_reset = new NonDefaultQPushButton(QStringLiteral("Reset"));
   gba_layout->addWidget(new QLabel(tr("BIOS:")), gba_row, 0);
   gba_layout->addWidget(m_gba_bios_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_bios, gba_row, 2);
+  gba_layout->addWidget(m_gba_bios_reset, gba_row, 3);
   gba_row++;
 
   m_gba_cgb_boot_rom_edit =
-      new ConfigUserPath(F_GBACGBBOOTROM_IDX, Config::MAIN_GBA_CGB_BOOT_ROM_PATH);
+      new ConfigUserPath(F_GBACGBBOOTROM_IDX, Config::MAIN_GBA_CGB_BOOT_ROM_PATH,
+                         File::GetUserPath(D_GBAUSER_IDX) + GBA_CGB_BOOT_ROM);
   m_gba_browse_cgb_boot_rom = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_gba_cgb_boot_rom_reset = new NonDefaultQPushButton(QStringLiteral("Reset"));
 
   gba_layout->addWidget(new QLabel(tr("Game Boy Color Boot ROM:")), gba_row, 0);
   gba_layout->addWidget(m_gba_cgb_boot_rom_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_cgb_boot_rom, gba_row, 2);
+  gba_layout->addWidget(m_gba_cgb_boot_rom_reset, gba_row, 3);
   gba_row++;
 
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
@@ -287,7 +293,10 @@ void GameCubePane::ConnectWidgets()
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
+  connect(m_gba_bios_reset, &QPushButton::clicked, m_gba_bios_edit, &ConfigUserPath::Reset);
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
+  connect(m_gba_cgb_boot_rom_reset, &QPushButton::clicked, m_gba_cgb_boot_rom_edit,
+          &ConfigUserPath::Reset);
   connect(m_gba_browse_cgb_boot_rom, &QPushButton::clicked, this,
           &GameCubePane::BrowseGBACGBBootRom);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
