@@ -12,39 +12,77 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionRole
+import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
+import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupViewModel
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
+import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 
 class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
     override var themeId: Int = 0
+    private lateinit var viewModel: NetplaySetupViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        viewModel = ViewModelProvider(this)[NetplaySetupViewModel::class.java]
+
         setContent {
             DolphinTheme {
                 NetplaySetupScreen(
                     onBackClicked = { finish() },
+                    nickname = viewModel.nickname.collectAsState().value,
+                    onNicknameChanged = viewModel::setNickname,
+                    connectionType = viewModel.connectionType.collectAsState().value,
+                    onConnectionTypeChanged = viewModel::setConnectionType,
+                    connectionRole = viewModel.connectionRole.collectAsState().value,
+                    onConnectionRoleChanged = viewModel::setConnectionRole,
+                    ipAddress = viewModel.ipAddress.collectAsState().value,
+                    onIpAddressChanged = viewModel::setIpAddress,
+                    connectPort = viewModel.connectPort.collectAsState().value,
+                    onConnectPortChanged = viewModel::setConnectPort,
+                    hostCode = viewModel.hostCode.collectAsState().value,
+                    onHostCodeChanged = viewModel::setHostCode,
+                    onConnectClicked = viewModel::connect,
                 )
             }
         }
@@ -71,6 +109,19 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
 @Composable
 private fun NetplaySetupScreen(
     onBackClicked: () -> Unit,
+    connectionRole: ConnectionRole,
+    onConnectionRoleChanged: (ConnectionRole) -> Unit,
+    nickname: String,
+    onNicknameChanged: (String) -> Unit,
+    connectionType: ConnectionType,
+    onConnectionTypeChanged: (ConnectionType) -> Unit,
+    ipAddress: String,
+    onIpAddressChanged: (String) -> Unit,
+    connectPort: String,
+    onConnectPortChanged: (String) -> Unit,
+    hostCode: String,
+    onHostCodeChanged: (String) -> Unit,
+    onConnectClicked: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -85,16 +136,184 @@ private fun NetplaySetupScreen(
                     }
                 },
             )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onConnectClicked,
+            ) {
+                Text(stringResource(connectionRole.labelId))
+            }
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .consumeWindowInsets(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .padding(horizontal = DolphinTheme.scaffoldPadding)
-                .verticalScroll(rememberScrollState()),
         ) {
+            SecondaryTabRow(selectedTabIndex = ConnectionRole.all.indexOf(connectionRole)) {
+                ConnectionRole.all.forEach { role ->
+                    Tab(
+                        selected = connectionRole == role,
+                        onClick = { onConnectionRoleChanged(role) },
+                        text = { Text(stringResource(role.labelId)) },
+                    )
+                }
+            }
+
+            MenuSpacer()
+
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = DolphinTheme.scaffoldPadding)
+            ) {
+                NetplaySetupContent(
+                    nickname = nickname,
+                    onNicknameChanged = onNicknameChanged,
+                    connectionType = connectionType,
+                    onConnectionTypeChanged = onConnectionTypeChanged,
+                    ipAddress = ipAddress,
+                    onIpAddressChanged = onIpAddressChanged,
+                    hostCode = hostCode,
+                    onHostCodeChanged = onHostCodeChanged,
+                    connectPort = connectPort,
+                    onConnectPortChanged = onConnectPortChanged,
+                    connectionRole = connectionRole,
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun NetplaySetupContent(
+    nickname: String,
+    onNicknameChanged: (String) -> Unit,
+    connectionType: ConnectionType,
+    onConnectionTypeChanged: (ConnectionType) -> Unit,
+    ipAddress: String,
+    onIpAddressChanged: (String) -> Unit,
+    hostCode: String,
+    onHostCodeChanged: (String) -> Unit,
+    connectPort: String,
+    onConnectPortChanged: (String) -> Unit,
+    connectionRole: ConnectionRole,
+) {
+    OutlinedTextField(
+        value = nickname,
+        onValueChange = onNicknameChanged,
+        label = { Text(stringResource(R.string.netplay_nickname_label)) },
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    MenuSpacer()
+
+    ConnectionTypePicker(
+        connectionType = connectionType,
+        onConnectionTypeChanged = onConnectionTypeChanged,
+    )
+
+    MenuSpacer()
+
+    when (connectionRole) {
+        ConnectionRole.Connect -> ConnectMenu(
+            connectionType = connectionType,
+            ipAddress = ipAddress,
+            onIpAddressChanged = onIpAddressChanged,
+            hostCode = hostCode,
+            onHostCodeChanged = onHostCodeChanged,
+            port = connectPort,
+            onPortChanged = onConnectPortChanged,
+        )
+
+        ConnectionRole.Host -> {}
+    }
+}
+
+@Composable
+private fun ConnectionTypePicker(
+    connectionType: ConnectionType,
+    onConnectionTypeChanged: (ConnectionType) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+    ) {
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            ConnectionType.all.forEach { connectionType ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(connectionType.labelId)) },
+                    onClick = {
+                        onConnectionTypeChanged(connectionType)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+        OutlinedTextField(
+            value = stringResource(connectionType.labelId),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.netplay_connection_type)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun ConnectMenu(
+    connectionType: ConnectionType,
+    ipAddress: String,
+    onIpAddressChanged: (String) -> Unit,
+    hostCode: String,
+    onHostCodeChanged: (String) -> Unit,
+    port: String,
+    onPortChanged: (String) -> Unit,
+) {
+    when (connectionType) {
+        ConnectionType.DirectConnection -> {
+            OutlinedTextField(
+                value = ipAddress,
+                onValueChange = onIpAddressChanged,
+                label = { Text(stringResource(R.string.netplay_ip_address_label)) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+
+            MenuSpacer()
+
+            OutlinedTextField(
+                value = port,
+                onValueChange = onPortChanged,
+                label = { Text(stringResource(R.string.netplay_port_label)) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
+
+        ConnectionType.TraversalServer -> OutlinedTextField(
+            value = hostCode,
+            onValueChange = onHostCodeChanged,
+            label = { Text(stringResource(R.string.netplay_host_code_label)) },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
     }
 }
 
@@ -102,6 +321,21 @@ private fun NetplaySetupScreen(
 @Composable
 private fun NetplaySetupScreenPreview() {
     MaterialTheme {
-        NetplayScreen(onBackClicked = {})
+        NetplaySetupScreen(
+            onBackClicked = {},
+            nickname = "Preview nickname",
+            onNicknameChanged = {},
+            connectionType = ConnectionType.DirectConnection,
+            onConnectionTypeChanged = {},
+            connectionRole = ConnectionRole.Connect,
+            onConnectionRoleChanged = {},
+            ipAddress = "127.0.0.1",
+            onIpAddressChanged = {},
+            connectPort = "2626",
+            onConnectPortChanged = {},
+            hostCode = "",
+            onHostCodeChanged = {},
+            onConnectClicked = {},
+        )
     }
 }
