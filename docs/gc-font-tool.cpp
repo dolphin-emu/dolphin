@@ -1230,7 +1230,12 @@ static void freetype_to_fnt_data(
 			for (int x = xStart; x < xMax; x++)
 			{
 				// Clip pixels outsize the cell
-				if (y < 0 || x < 0 || x >= FNT_CELL_SIZE || y >= FNT_CELL_SIZE)
+				if (x >= FNT_CELL_SIZE || y >= FNT_CELL_SIZE)
+					continue;
+
+				// Rendering at y index 0 is causing bleed into other characters in CleanRip.
+				// Using 1 here instead of 0 seems hacky, but it does avoid that issue.
+				if (y < 1 || x < 0)
 					continue;
 
 				// Copy pixel
