@@ -945,6 +945,11 @@ static u32 NetDIMMBind(GuestSocket guest_socket, const GuestSocketAddress& guest
       .sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port.ip_address),
   };
 
+  const int one = 1;
+  // This cast is required for Windows -.-
+  const char* one_ptr = reinterpret_cast<const char*>(&one);
+  setsockopt(host_socket, SOL_SOCKET, SO_REUSEADDR, one_ptr, sizeof(int));
+
   const int bind_result = bind(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
   const int err = WSAGetLastError();
 
