@@ -3,6 +3,8 @@
 
 #include "InputCommon/InputConfig.h"
 
+#include <array>
+#include <optional>
 #include <vector>
 
 #include "Common/FileUtil.h"
@@ -15,6 +17,84 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
+#include "InputCommon/TriforcePadProfile.h"
+
+namespace
+{
+
+struct ProfileSource
+{
+  std::string_view profile_key;
+  std::string_view profile_directory_name;
+  bool is_triforce_profile;
+};
+
+struct SelectedProfile
+{
+  std::string path;
+  bool is_triforce_profile = false;
+};
+
+std::string GetUserProfileDirectoryPathForNamespace(std::string_view profile_directory_name)
+{
+  return File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + std::string(profile_directory_name) + "/";
+}
+
+std::vector<ProfileSource> GetGameProfileSources(const InputConfig& config)
+{
+  std::vector<ProfileSource> profile_sources;
+
+  if (config.GetProfileKey() == "Pad")
+  {
+    // Triforce reuses the GC pad backend, but it gets its own profile namespace in game INIs.
+    profile_sources.push_back({"TriforcePad", "TriforcePad", true});
+  }
+
+  profile_sources.push_back({config.GetProfileKey(), config.GetProfileDirectoryName(), false});
+  return profile_sources;
+}
+
+std::optional<SelectedProfile> FindGameProfileForPort(const InputConfig& config,
+                                                      const Common::IniFile::Section& controls,
+                                                      std::string_view port_suffix)
+{
+  for (const ProfileSource& profile_source : GetGameProfileSources(config))
+  {
+    // Triforce shares the GC pad backend, but game INIs may opt into the
+    // TriforcePad namespace to load family-aware profile sections instead.
+    const auto profile_name = fmt::format("{}Profile{}", profile_source.profile_key, port_suffix);
+    if (!controls.Exists(profile_name))
+      continue;
+
+    std::string profile_setting;
+    if (!controls.Get(profile_name, &profile_setting))
+      return std::nullopt;
+
+    const std::string profile_directory =
+        GetUserProfileDirectoryPathForNamespace(profile_source.profile_directory_name);
+    auto profiles = InputProfile::GetProfilesFromSetting(profile_setting, profile_directory);
+
+    if (profiles.empty())
+    {
+      // TODO: PanicAlert shouldn't be used for this.
+      PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
+      return std::nullopt;
+    }
+
+    return SelectedProfile{profiles[0], profile_source.is_triforce_profile};
+  }
+
+  return std::nullopt;
+}
+
+const Common::IniFile::Section* GetProfileSectionForLoad(const Common::IniFile& ini,
+                                                         bool is_triforce_profile)
+{
+  return is_triforce_profile ? TriforcePadProfile::GetEffectiveProfileSection(ini) :
+                               ini.GetSection("Profile");
+}
+
+}  // namespace
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_directory_name, const std::string& profile_key)
@@ -28,62 +108,41 @@ InputConfig::~InputConfig() = default;
 bool InputConfig::LoadConfig()
 {
   Common::IniFile inifile;
-  bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
   static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
-  std::string profile[MAX_BBMOTES];
+  std::array<std::optional<SelectedProfile>, MAX_BBMOTES> selected_profiles;
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
-    const std::string profile_directory = GetUserProfileDirectoryPath();
-
     Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
-    auto* control_section = game_ini.GetOrCreateSection("Controls");
+    Common::IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
 
-    for (int i = 0; i < 4; i++)
-    {
-      const auto profile_name = fmt::format("{}Profile{}", GetProfileKey(), num[i]);
-
-      if (control_section->Exists(profile_name))
-      {
-        std::string profile_setting;
-        if (control_section->Get(profile_name, &profile_setting))
-        {
-          auto profiles = InputProfile::GetProfilesFromSetting(profile_setting, profile_directory);
-
-          if (profiles.empty())
-          {
-            // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
-            continue;
-          }
-
-          // Use the first profile by default
-          profile[i] = profiles[0];
-          useProfile[i] = true;
-        }
-      }
-    }
+    for (int i = 0; i < 4; ++i)
+      selected_profiles[i] = FindGameProfileForPort(*this, *control_section, num[i]);
   }
 
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini") &&
       !inifile.GetSections().empty())
   {
-    int n = 0;
+    int controller_index = 0;
 
     for (auto& controller : m_controllers)
     {
       Common::IniFile::Section config;
-      // Load settings from ini
-      if (useProfile[n])
+      const std::optional<SelectedProfile>& selected_profile = selected_profiles[controller_index];
+      if (selected_profile.has_value())
       {
         std::string base;
-        SplitPath(profile[n], nullptr, &base, nullptr);
+        SplitPath(selected_profile->path, nullptr, &base, nullptr);
         Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
                                  controller->GetName() + "'",
                              6000);
 
-        inifile.Load(profile[n]);
-        config = *inifile.GetOrCreateSection("Profile");
+        inifile.Load(selected_profile->path);
+        if (const Common::IniFile::Section* const section =
+                GetProfileSectionForLoad(inifile, selected_profile->is_triforce_profile))
+        {
+          config = *section;
+        }
       }
       else
       {
@@ -93,7 +152,7 @@ bool InputConfig::LoadConfig()
       controller->UpdateReferences(g_controller_interface);
 
       // Next profile
-      n++;
+      ++controller_index;
     }
     return true;
   }

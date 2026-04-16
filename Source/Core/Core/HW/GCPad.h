@@ -4,10 +4,10 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/PadGroups.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class InputConfig;
-enum class PadGroup;
 struct GCPadStatus;
 
 namespace ControllerEmu

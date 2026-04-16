@@ -9,7 +9,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -26,6 +25,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
+#include "InputCommon/TriforcePadProfile.h"
 
 namespace ConfigLoaders
 {
@@ -69,6 +69,14 @@ struct SystemSection
 {
   Config::System system;
   std::string section;
+};
+
+struct EmbeddedProfile
+{
+  std::string_view key;
+  std::string_view directory;
+  Config::System system;
+  bool is_triforce_profile;
 };
 
 using Location = Config::Location;
@@ -217,19 +225,20 @@ private:
     if (m_id == "00000000")
       return;
 
-    const std::array<std::tuple<std::string, std::string, Config::System>, 3> profile_info = {{
-        std::make_tuple("Pad", "GCPad", Config::System::GCPad),
-        std::make_tuple("GBA", "GBA", Config::System::GCPad),
-        std::make_tuple("Wiimote", "Wiimote", Config::System::WiiPad),
+    const std::array<EmbeddedProfile, 4> profile_info = {{
+        {"Pad", "GCPad", Config::System::GCPad, false},
+        {"TriforcePad", "TriforcePad", Config::System::GCPad, true},
+        {"GBA", "GBA", Config::System::GCPad, false},
+        {"Wiimote", "Wiimote", Config::System::WiiPad, false},
     }};
 
     for (const auto& use_data : profile_info)
     {
-      std::string type = std::get<0>(use_data);
-      std::string path = "Profiles/" + std::get<1>(use_data) + "/";
+      const std::string type(use_data.key);
+      const std::string path = "Profiles/" + std::string(use_data.directory) + "/";
 
       const auto control_section = [&](std::string key) {
-        return Config::Location{std::get<2>(use_data), "Controls", key};
+        return Config::Location{use_data.system, "Controls", key};
       };
 
       for (const char num : nums)
@@ -247,10 +256,17 @@ private:
           Common::IniFile profile_ini;
           profile_ini.Load(ini_path);
 
-          const auto* ini_section = profile_ini.GetOrCreateSection("Profile");
+          const Common::IniFile::Section* const ini_section =
+              use_data.is_triforce_profile ?
+                  TriforcePadProfile::GetEffectiveProfileSection(profile_ini) :
+                  profile_ini.GetSection("Profile");
+
+          if (ini_section == nullptr)
+            continue;
+
           for (const auto& [key, value] : ini_section->GetValues())
           {
-            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num, key};
+            Config::Location location{use_data.system, std::string(use_data.directory) + num, key};
             layer->Set(location, value);
           }
         }

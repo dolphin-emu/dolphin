@@ -13,6 +13,8 @@
 #include <QLabel>
 #include <QPushButton>
 
+#include "Common/IniFile.h"
+
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
@@ -26,6 +28,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/InputConfig.h"
 
 MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {
@@ -37,6 +40,42 @@ MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 MappingWindow* MappingWidget::GetParent() const
 {
   return m_parent;
+}
+
+QWidget* MappingWidget::GetExtraWidget() const
+{
+  return nullptr;
+}
+
+std::string MappingWidget::GetUserProfileDirectoryPath()
+{
+  return GetConfig()->GetUserProfileDirectoryPath();
+}
+
+std::string MappingWidget::GetSysProfileDirectoryPath()
+{
+  return GetConfig()->GetSysProfileDirectoryPath();
+}
+
+void MappingWidget::LoadProfile(const Common::IniFile& ini)
+{
+  const Common::IniFile::Section* const section = ini.GetSection("Profile");
+  if (section != nullptr)
+  {
+    Common::IniFile::Section copy = *section;
+    GetController()->LoadConfig(&copy);
+  }
+}
+
+void MappingWidget::SaveProfile(Common::IniFile* ini)
+{
+  GetController()->SaveConfig(ini->GetOrCreateSection("Profile"));
+}
+
+bool MappingWidget::OnDialogClosing()
+{
+  SaveSettings();
+  return true;
 }
 
 int MappingWidget::GetPort() const
@@ -327,6 +366,15 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
+  const bool translate = control->translate == ControllerEmu::Translatability::Translate;
+  const QString translated_name =
+      translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
+  CreateControl(translated_name, control, layout, indicator);
+}
+
+void MappingWidget::CreateControl(const QString& name, const ControllerEmu::Control* control,
+                                  QFormLayout* layout, bool indicator)
+{
   // I know this check is terrible, but it's just UI code.
   const bool is_modifier = control->name == "Modifier";
 
@@ -351,10 +399,6 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  const bool translate = control->translate == ControllerEmu::Translatability::Translate;
-  const QString translated_name =
-      translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-
   if (indicator && control->control_ref->IsInput())
   {
     auto* const button_indicator = new ButtonIndicator{control->control_ref.get()};
@@ -364,11 +408,11 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
     hbox->setSpacing(0);
     hbox->addWidget(button_indicator);
     hbox->addWidget(button);
-    layout->addRow(translated_name, hbox);
+    layout->addRow(name, hbox);
   }
   else
   {
-    layout->addRow(translated_name, button);
+    layout->addRow(name, button);
   }
 }
 
