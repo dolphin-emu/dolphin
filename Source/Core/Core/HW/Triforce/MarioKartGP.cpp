@@ -111,16 +111,27 @@ void MarioKartGPSteeringWheel::ProcessRequest(std::span<const u8> request)
   switch (m_init_state)
   {
   case 0:
+    // The game seems to expect one 'E' response on power up.
     WriteTxBytes(std::array<u8, 3>{'E', '0', '0'});  // Error
     ++m_init_state;
     break;
-  case 1:
-    WriteTxBytes(std::array<u8, 3>{'C', '0', '6'});  // Power Off
-    ++m_init_state;
-    break;
+
   default:
-    WriteTxBytes(std::array<u8, 3>{'C', '0', '1'});  // Power On
-    break;
+    // The game won't send non-zero forces unless the '1' response is observed.
+    // After a race, the game gradually lowers the forces down to 0 and expects a '6' response.
+    // The significance of these '6' and '1' responses is not really understood.
+    // Cycling between '6' and '1' seems to make the game happy for now..
+
+    if (m_init_state == 1)
+    {
+      WriteTxBytes(std::array<u8, 3>{'C', '0', '6'});
+      ++m_init_state;
+    }
+    else
+    {
+      WriteTxBytes(std::array<u8, 3>{'C', '0', '1'});
+      m_init_state = 1;
+    }
   }
 }
 
