@@ -273,12 +273,56 @@ SDL_JoystickID Gamepad::GetSDLInstanceID() const
   return SDL_GetJoystickID(m_joystick);
 }
 
-class SpringEffect final : public Core::SpringEffect
+class ScopedHapticEffect
 {
 public:
-  explicit SpringEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
+  explicit ScopedHapticEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
 
-  ~SpringEffect() override { SetForce(0.0, 0.0); }
+protected:
+  ~ScopedHapticEffect() { UpdateEffect(nullptr); }
+
+  void UpdateEffect(const SDL_HapticEffect* effect)
+  {
+    if (effect == nullptr)
+    {
+      if (m_effect_id != -1)
+      {
+        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
+      }
+
+      return;
+    }
+
+    if (m_effect_id == -1)
+    {
+      // Create and start a new effect.
+      m_effect_id = SDL_CreateHapticEffect(m_haptic, effect);
+      if (m_effect_id == -1)
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
+        return;
+      }
+
+      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
+    }
+    else
+    {
+      // Update an already running effect.
+      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, effect))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
+    }
+  }
+
+private:
+  SDL_Haptic* const m_haptic;
+  int m_effect_id = -1;
+};
+
+class SpringEffect final : ScopedHapticEffect, public Core::SpringEffect
+{
+public:
+  using ScopedHapticEffect::ScopedHapticEffect;
 
   void SetForce(double gain, double center_position) override
   {
@@ -286,11 +330,7 @@ public:
 
     if (gain == 0.0)
     {
-      if (m_effect_id != -1)
-      {
-        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
-      }
-
+      UpdateEffect(nullptr);
       return;
     }
 
@@ -319,38 +359,14 @@ public:
 
     condition.center[0] = ControllerEmu::MapFloat<s16>(center_position, 0);
 
-    if (m_effect_id == -1)
-    {
-      // Create and start a new effect.
-      m_effect_id = SDL_CreateHapticEffect(m_haptic, &effect);
-      if (m_effect_id == -1)
-      {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
-        return;
-      }
-
-      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
-    }
-    else
-    {
-      // Update an already running effect.
-      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, &effect))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
-    }
+    UpdateEffect(&effect);
   }
-
-private:
-  SDL_Haptic* const m_haptic;
-  int m_effect_id = -1;
 };
 
-class FrictionEffect final : public Core::FrictionEffect
+class FrictionEffect final : ScopedHapticEffect, public Core::FrictionEffect
 {
 public:
-  explicit FrictionEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
-
-  ~FrictionEffect() override { SetForce(0.0); }
+  using ScopedHapticEffect::ScopedHapticEffect;
 
   void SetForce(double gain) override
   {
@@ -358,11 +374,7 @@ public:
 
     if (gain == 0.0)
     {
-      if (m_effect_id != -1)
-      {
-        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
-      }
-
+      UpdateEffect(nullptr);
       return;
     }
 
@@ -389,30 +401,8 @@ public:
     condition.right_coeff[0] = coeff;
     condition.left_coeff[0] = coeff;
 
-    if (m_effect_id == -1)
-    {
-      // Create and start a new effect.
-      m_effect_id = SDL_CreateHapticEffect(m_haptic, &effect);
-      if (m_effect_id == -1)
-      {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
-        return;
-      }
-
-      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
-    }
-    else
-    {
-      // Update an already running effect.
-      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, &effect))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
-    }
+    UpdateEffect(&effect);
   }
-
-private:
-  SDL_Haptic* const m_haptic;
-  int m_effect_id = -1;
 };
 
 std::unique_ptr<Core::SpringEffect> Gamepad::CreateSpringEffect()
