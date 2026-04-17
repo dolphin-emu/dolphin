@@ -754,14 +754,4 @@ auto WiimoteScannerWindows::FindAttachedWiimotes() -> FindResults
   return FindWiimoteHIDDevices();
 }
 
-bool WiimoteScannerWindows::IsReady() const
-{
-  bool found_radio = false;
-  EnumerateRadios([&](auto) {
-    found_radio = true;
-    return EnumerationControl::Stop;
-  });
-  return found_radio;
-}
-
 }  // namespace WiimoteReal
