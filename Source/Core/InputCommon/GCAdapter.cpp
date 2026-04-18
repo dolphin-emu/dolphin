@@ -460,7 +460,7 @@ static void ScanThreadFunc()
 
   while (s_adapter_detect_thread_running.IsSet())
   {
-    if (!s_detected && UseAdapter() &&
+    if (!s_detected && s_is_adapter_wanted &&
         env->CallStaticBooleanMethod(s_adapter_class, is_usb_device_available_func))
     {
       std::lock_guard lk(s_init_mutex);
@@ -481,6 +481,27 @@ void SetAdapterCallback(std::function<void(void)> func)
 #endif
 }
 
+static void StartScanThread()
+{
+  if (s_adapter_detect_thread_running.IsSet())
+    return;
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
+  if (!s_libusb_context->IsValid())
+    return;
+#endif
+  s_adapter_detect_thread_running.Set(true);
+  s_adapter_detect_thread = std::thread(ScanThreadFunc);
+}
+
+static void StopScanThread()
+{
+  if (s_adapter_detect_thread_running.TestAndClear())
+  {
+    s_hotplug_event.Set();
+    s_adapter_detect_thread.join();
+  }
+}
+
 static void RefreshConfig()
 {
   s_is_adapter_wanted = false;
@@ -491,6 +512,11 @@ static void RefreshConfig()
                            SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
     s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
   }
+
+  if (s_is_adapter_wanted)
+    StartScanThread();
+  else
+    StopScanThread();
 }
 
 void Init()
@@ -529,30 +555,6 @@ void Init()
   if (!s_config_callback_id)
     s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();
-
-  if (UseAdapter())
-    StartScanThread();
-}
-
-void StartScanThread()
-{
-  if (s_adapter_detect_thread_running.IsSet())
-    return;
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-  if (!s_libusb_context->IsValid())
-    return;
-#endif
-  s_adapter_detect_thread_running.Set(true);
-  s_adapter_detect_thread = std::thread(ScanThreadFunc);
-}
-
-void StopScanThread()
-{
-  if (s_adapter_detect_thread_running.TestAndClear())
-  {
-    s_hotplug_event.Set();
-    s_adapter_detect_thread.join();
-  }
 }
 
 static void Setup()
@@ -826,7 +828,7 @@ static void Reset()
 
 GCPadStatus Input(int chan)
 {
-  if (!UseAdapter())
+  if (!s_is_adapter_wanted)
     return {};
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -964,11 +966,6 @@ void ResetDeviceType(int chan)
   s_port_states[chan].controller_type = ControllerType::None;
 }
 
-bool UseAdapter()
-{
-  return s_is_adapter_wanted;
-}
-
 void ResetRumble()
 {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -992,7 +989,7 @@ void ResetRumble()
 // being called while the libusb state is being reset
 static void ResetRumbleLockNeeded()
 {
-  if (!UseAdapter() || (s_handle == nullptr || s_status != AdapterStatus::Detected))
+  if (!s_is_adapter_wanted || s_handle == nullptr || s_status != AdapterStatus::Detected)
   {
     return;
   }
@@ -1019,7 +1016,7 @@ static void ResetRumbleLockNeeded()
 
 void Output(int chan, u8 rumble_command)
 {
-  if (!UseAdapter() || !s_config_rumble_enabled[chan])
+  if (!s_is_adapter_wanted || !s_config_rumble_enabled[chan])
     return;
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
