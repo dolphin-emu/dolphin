@@ -1759,7 +1759,9 @@ struct fmt::formatter<PEControl>
 union TCInfo
 {
   BitField<0, 16, u32> scale_minus_1;
+  // Unimplemented.
   BitField<16, 1, bool, u32> range_bias;
+  // Unimplemented.
   BitField<17, 1, bool, u32> cylindric_wrap;
   // These bits only have effect in the s field of TCoordInfo
   BitField<18, 1, bool, u32> line_offset;
@@ -1779,7 +1781,8 @@ struct fmt::formatter<std::pair<bool, TCInfo>>
                               "{0} coord range bias: {2}\n"
                               "{0} coord cylindric wrap: {3}",
                               is_s ? 'S' : 'T', info.scale_minus_1 + 1,
-                              info.range_bias ? "Yes" : "No", info.cylindric_wrap ? "Yes" : "No");
+                              info.range_bias ? "Yes (unimplemented)" : "No",
+                              info.cylindric_wrap ? "Yes (unimplemented)" : "No");
     if (is_s)
     {
       out = fmt::format_to(out,
