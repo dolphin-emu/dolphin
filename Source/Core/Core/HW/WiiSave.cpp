@@ -126,7 +126,7 @@ public:
 
     Md5 md5_calc;
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
-    header.md5 = std::move(md5_calc);
+    header.md5 = md5_calc;
     return header;
   }
 
@@ -541,7 +541,7 @@ CopyResult Copy(Storage* source, Storage* dest)
   return CopyResult::Success;
 }
 
-CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
+CopyResult Import(const std::string& data_bin_path, const std::function<bool()>& can_overwrite)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");

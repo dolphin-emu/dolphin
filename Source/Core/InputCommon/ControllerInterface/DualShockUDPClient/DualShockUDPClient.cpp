@@ -179,7 +179,7 @@ struct Server
     m_description = std::move(other.m_description);
     m_address = std::move(other.m_address);
     m_port = other.m_port;
-    m_port_info = std::move(other.m_port_info);
+    m_port_info = other.m_port_info;
   }
 
   Server& operator=(const Server&) = delete;

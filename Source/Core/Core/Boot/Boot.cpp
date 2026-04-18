@@ -270,7 +270,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
   if (extension == ".wad")
   {
-    std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
+    std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(path);
     if (wad)
       return std::make_unique<BootParameters>(std::move(*wad), std::move(boot_session_data_));
   }
@@ -707,7 +707,7 @@ void StateFlags::UpdateChecksum()
   checksum = std::accumulate(flag_data.cbegin(), flag_data.cend(), 0U);
 }
 
-void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
+void UpdateStateFlags(const std::function<void(StateFlags*)>& update_function)
 {
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;

@@ -13,7 +13,7 @@ class NetPlayClient;
 class NetPlayGolfUI
 {
 public:
-  explicit NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_client);
+  explicit NetPlayGolfUI(std::weak_ptr<NetPlay::NetPlayClient> netplay_client);
   ~NetPlayGolfUI();
 
   void Display();

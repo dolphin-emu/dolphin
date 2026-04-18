@@ -837,9 +837,9 @@ static void GenerateBuilderNodesFromFileSystem(const VolumeDisc& volume, const P
   }
 }
 
-DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory,
+DirectoryBlobPartition::DirectoryBlobPartition(std::string root_directory,
                                                std::optional<bool> is_wii)
-    : m_root_directory(root_directory)
+    : m_root_directory(std::move(root_directory))
 {
   std::vector<u8> disc_header(DISCHEADER_SIZE);
   if (ReadFileToVector(m_root_directory + "sys/boot.bin", &disc_header) < 0x20)

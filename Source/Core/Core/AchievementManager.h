@@ -243,8 +243,8 @@ private:
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
                       void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
-  void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
-                  const UpdatedItems callback_data);
+  void FetchBadge(Badge* badge, u32 badge_type, BadgeNameFunction function,
+                  UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION

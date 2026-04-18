@@ -148,7 +148,7 @@ public:
   // calling it does not guarantee when a report will actually be sent.
   //
   // This method is NOT thread-safe.
-  void ReportPerformanceInfo(PerformanceSample&& sample);
+  void ReportPerformanceInfo(PerformanceSample sample);
 
   // Forward Send method calls to the reporter.
   template <typename T>

@@ -4,6 +4,7 @@
 #include "VideoCommon/Resources/ShaderResource.h"
 
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -382,11 +383,11 @@ CompileVertexShader(VertexShaderUid* uid, std::string_view preprocessor_settings
 }
 }  // namespace
 ShaderResource::ShaderResource(Resource::ResourceContext resource_context,
-                               const std::optional<GXPipelineUid>& pipeline_uid,
-                               const std::string& preprocessor_setting,
+                               std::optional<GXPipelineUid> pipeline_uid,
+                               std::string preprocessor_setting,
                                const ShaderHostConfig& shader_host_config)
     : Resource(std::move(resource_context)), m_shader_host_config{.bits = shader_host_config.bits},
-      m_uid(pipeline_uid), m_preprocessor_settings(preprocessor_setting)
+      m_uid(std::move(pipeline_uid)), m_preprocessor_settings(std::move(preprocessor_setting))
 {
   m_shader_asset = m_resource_context.asset_cache->CreateAsset<RasterSurfaceShaderAsset>(
       m_resource_context.primary_asset_id, m_resource_context.asset_library, this);

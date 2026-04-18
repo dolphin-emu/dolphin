@@ -69,7 +69,7 @@ enum SOResultCode : s32
 NetIPTopDevice::NetIPTopDevice(EmulationKernel& ios, const std::string& device_name)
     : EmulationDevice(ios, device_name)
 {
-  m_work_queue.Reset("Network Worker", [this](AsyncTask task) {
+  m_work_queue.Reset("Network Worker", [this](const AsyncTask& task) {
     const IPCReply reply = task.handler();
     {
       std::lock_guard lg(m_async_reply_lock);

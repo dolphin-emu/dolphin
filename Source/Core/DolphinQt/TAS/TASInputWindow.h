@@ -64,12 +64,12 @@ protected:
   TASSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
                                     InputOverrider* overrider, QGridLayout* layout, int zero,
                                     int default_, int min, int max,
-                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                    QWidget* shortcut_widget,
+                                    const QKeySequence& shortcut_key_sequence,
+                                    Qt::Orientation orientation, QWidget* shortcut_widget,
                                     std::optional<ControlState> scale = {});
   TASSpinBox* CreateSliderValuePair(QGridLayout* layout, int default_, int max,
-                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                    QWidget* shortcut_widget);
+                                    const QKeySequence& shortcut_key_sequence,
+                                    Qt::Orientation orientation, QWidget* shortcut_widget);
 
   void SetupScrollArea(QLayout* layout);
 

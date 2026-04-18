@@ -4,6 +4,7 @@
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 
 #include <memory>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -23,8 +24,8 @@ namespace ConfigLoaders
 class NetPlayConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
-  explicit NetPlayConfigLayerLoader(const NetPlay::NetSettings& settings)
-      : ConfigLayerLoader(Config::LayerType::Netplay), m_settings(settings)
+  explicit NetPlayConfigLayerLoader(NetPlay::NetSettings settings)
+      : ConfigLayerLoader(Config::LayerType::Netplay), m_settings(std::move(settings))
   {
   }
 

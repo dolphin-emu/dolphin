@@ -4,6 +4,7 @@
 #include "Core/HW/MMIO.h"
 
 #include <functional>
+#include <utility>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -113,12 +114,12 @@ class ComplexHandlingMethod : public ReadHandlingMethod<T>, public WriteHandling
 {
 public:
   explicit ComplexHandlingMethod(std::function<T(Core::System&, u32)> read_lambda)
-      : read_lambda_(read_lambda), write_lambda_(InvalidWriteLambda())
+      : read_lambda_(std::move(read_lambda)), write_lambda_(InvalidWriteLambda())
   {
   }
 
   explicit ComplexHandlingMethod(std::function<void(Core::System&, u32, T)> write_lambda)
-      : read_lambda_(InvalidReadLambda()), write_lambda_(write_lambda)
+      : read_lambda_(InvalidReadLambda()), write_lambda_(std::move(write_lambda))
   {
   }
 
@@ -159,12 +160,12 @@ private:
 template <typename T>
 ReadHandlingMethod<T>* ComplexRead(std::function<T(Core::System&, u32)> lambda)
 {
-  return new ComplexHandlingMethod<T>(lambda);
+  return new ComplexHandlingMethod<T>(std::move(lambda));
 }
 template <typename T>
 WriteHandlingMethod<T>* ComplexWrite(std::function<void(Core::System&, u32, T)> lambda)
 {
-  return new ComplexHandlingMethod<T>(lambda);
+  return new ComplexHandlingMethod<T>(std::move(lambda));
 }
 
 // Invalid: specialization of the complex handling type with lambdas that

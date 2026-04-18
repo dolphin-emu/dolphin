@@ -222,7 +222,7 @@ struct StateFlags
 
 // Reads the state file from the NAND, then calls the passed update function to update the struct,
 // and finally writes the updated state file to the NAND.
-void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
+void UpdateStateFlags(const std::function<void(StateFlags*)>& update_function);
 
 /// Create title directories for the system menu (if needed).
 ///

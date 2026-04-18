@@ -55,7 +55,7 @@ static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 // Takes care of the nasty recovery of the 'this' pointer from card_slot,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(Core::System& system, u64 userdata,
-                                               std::function<void(CEXIMemoryCard*)> callback)
+                                               const std::function<void(CEXIMemoryCard*)>& callback)
 {
   Slot card_slot = static_cast<Slot>(userdata);
   IEXIDevice* self = system.GetExpansionInterface().GetDevice(card_slot);

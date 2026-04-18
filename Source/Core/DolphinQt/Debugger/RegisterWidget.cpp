@@ -517,8 +517,9 @@ void RegisterWidget::PopulateTable()
   m_table->resizeColumnsToContents();
 }
 
-void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
-                                 std::function<u64()> get_reg, std::function<void(u64)> set_reg)
+void RegisterWidget::AddRegister(int row, int column, RegisterType type,
+                                 const std::string& register_name, std::function<u64()> get_reg,
+                                 std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, std::move(get_reg), std::move(set_reg));
 

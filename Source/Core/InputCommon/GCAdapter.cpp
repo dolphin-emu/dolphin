@@ -15,6 +15,8 @@
 #include <chrono>
 #include <mutex>
 #include <optional>
+#include <utility>
+
 using namespace std::chrono_literals;
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -477,7 +479,7 @@ static void ScanThreadFunc()
 void SetAdapterCallback(std::function<void(void)> func)
 {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-  s_detect_callback = func;
+  s_detect_callback = std::move(func);
 #endif
 }
 

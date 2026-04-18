@@ -33,8 +33,8 @@ namespace DiscIO
 {
 bool IsGCZBlob(File::DirectIOFile& file);
 
-CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, const std::string& filename)
-    : m_file(std::move(file)), m_file_name(filename)
+CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, std::string filename)
+    : m_file(std::move(file)), m_file_name(std::move(filename))
 {
   m_file_size = m_file.GetSize();
   m_file.Seek(0, File::SeekOrigin::Begin);

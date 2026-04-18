@@ -18,8 +18,7 @@ class ShaderResource final : public Resource
 {
 public:
   ShaderResource(Resource::ResourceContext resource_context,
-                 const std::optional<GXPipelineUid>& pipeline_uid,
-                 const std::string& preprocessor_settings,
+                 std::optional<GXPipelineUid> pipeline_uid, std::string preprocessor_setting,
                  const ShaderHostConfig& shader_host_config);
 
   class Data

@@ -15,9 +15,8 @@ class OGLPipeline final : public AbstractPipeline
 {
 public:
   explicit OGLPipeline(const AbstractPipelineConfig& config, const GLVertexFormat* vertex_format,
-                       const RasterizationState& rasterization_state, const DepthState& depth_state,
-                       const BlendingState& blending_state, PipelineProgram* program,
-                       GLenum gl_primitive);
+                       RasterizationState rasterization_state, DepthState depth_state,
+                       BlendingState blending_state, PipelineProgram* program, GLenum gl_primitive);
   ~OGLPipeline() override;
 
   const GLVertexFormat* GetVertexFormat() const { return m_vertex_format; }

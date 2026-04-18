@@ -207,7 +207,7 @@ void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
   Send(builder);
 }
 
-void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
+void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample sample)
 {
   if (ShouldStartPerformanceSampling())
   {
@@ -216,7 +216,7 @@ void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
 
   if (m_sampling_performance_info)
   {
-    m_performance_samples.emplace_back(std::move(sample));
+    m_performance_samples.emplace_back(sample);
   }
 
   if (m_performance_samples.size() >= NUM_PERFORMANCE_SAMPLES_PER_REPORT)

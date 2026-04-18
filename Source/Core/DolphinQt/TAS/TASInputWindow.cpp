@@ -166,8 +166,8 @@ QGridLayout* TASInputWindow::CreateSliderValuePairLayout(
 TASSpinBox* TASInputWindow::CreateSliderValuePair(
     std::string_view group_name, std::string_view control_name, InputOverrider* overrider,
     QGridLayout* layout, int zero, int default_, int min, int max,
-    QKeySequence shortcut_key_sequence, Qt::Orientation orientation, QWidget* shortcut_widget,
-    std::optional<ControlState> scale)
+    const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
+    QWidget* shortcut_widget, std::optional<ControlState> scale)
 {
   TASSpinBox* value = CreateSliderValuePair(layout, default_, max, shortcut_key_sequence,
                                             orientation, shortcut_widget);
@@ -194,7 +194,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambiguous shortcuts
 TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int default_, int max,
-                                                  QKeySequence shortcut_key_sequence,
+                                                  const QKeySequence& shortcut_key_sequence,
                                                   Qt::Orientation orientation,
                                                   QWidget* shortcut_widget)
 {

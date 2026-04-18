@@ -1360,7 +1360,7 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 }
 
 void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
-                                    const AchievementManager::BadgeNameFunction function,
+                                    AchievementManager::BadgeNameFunction function,
                                     UpdatedItems callback_data)
 {
   if (!m_client || !HasAPIToken())

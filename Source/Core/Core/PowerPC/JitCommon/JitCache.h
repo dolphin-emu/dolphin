@@ -162,7 +162,8 @@ public:
   // Code Cache
   u8** GetEntryPoints();
   JitBlock** GetFastBlockMapFallback();
-  void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
+  void RunOnBlocks(const Core::CPUThreadGuard& guard,
+                   const std::function<void(const JitBlock&)>& f) const;
   void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
   std::size_t GetBlockCount() const { return block_map.size(); }
 

@@ -9,6 +9,7 @@
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -141,9 +142,8 @@ bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
   return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
 }
 
-HostFileSystem::HostFileSystem(const std::string& root_path,
-                               std::vector<NandRedirect> nand_redirects)
-    : m_root_path{root_path}, m_nand_redirects(std::move(nand_redirects))
+HostFileSystem::HostFileSystem(std::string root_path, std::vector<NandRedirect> nand_redirects)
+    : m_root_path{std::move(root_path)}, m_nand_redirects(std::move(nand_redirects))
 {
   while (m_root_path.ends_with('/'))
     m_root_path.pop_back();
@@ -279,7 +279,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   return entry;
 }
 
-void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_path)
+void HostFileSystem::DoStateRead(PointerWrap& p, const std::string& start_directory_path)
 {
   std::string path = BuildFilename(start_directory_path).host_path;
   File::DeleteDirRecursively(path);
@@ -324,7 +324,7 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
   }
 }
 
-void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path)
+void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, const std::string& start_directory_path)
 {
   std::string path = BuildFilename(start_directory_path).host_path;
   File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);

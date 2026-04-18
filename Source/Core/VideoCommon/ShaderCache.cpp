@@ -3,6 +3,8 @@
 
 #include "VideoCommon/ShaderCache.h"
 
+#include <utility>
+
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -1018,8 +1020,8 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
   class PipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, u32 priority_)
-        : shader_cache(shader_cache_), uid(uid_), priority(priority_)
+    PipelineWorkItem(ShaderCache* shader_cache_, GXPipelineUid uid_, u32 priority_)
+        : shader_cache(shader_cache_), uid(std::move(uid_)), priority(priority_)
     {
       // Check if all the stages required for this pipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the pipeline for the next frame.
@@ -1090,8 +1092,8 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
   class UberPipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_, u32 priority_)
-        : shader_cache(shader_cache_), uid(uid_), priority(priority_)
+    UberPipelineWorkItem(ShaderCache* shader_cache_, GXUberPipelineUid uid_, u32 priority_)
+        : shader_cache(shader_cache_), uid(std::move(uid_)), priority(priority_)
     {
       // Check if all the stages required for this UberPipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the UberPipeline for the next frame.

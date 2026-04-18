@@ -203,7 +203,7 @@ void LoadPatches()
   }
 
   const size_t enabled_patch_count =
-      std::ranges::count_if(s_on_frame, [](Patch patch) { return patch.enabled; });
+      std::ranges::count_if(s_on_frame, [](const Patch& patch) { return patch.enabled; });
   if (enabled_patch_count > 0)
   {
     OSD::AddMessage(fmt::format("{} game patch(es) enabled", enabled_patch_count),

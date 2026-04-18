@@ -552,7 +552,7 @@ QString Settings::GetDefaultGame() const
   return QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
 }
 
-void Settings::SetDefaultGame(QString path)
+void Settings::SetDefaultGame(const QString& path)
 {
   if (GetDefaultGame() != path)
   {
@@ -851,7 +851,7 @@ void Settings::RefreshWidgetVisibility()
   emit GameCountVisibilityChanged(IsGameCountVisible());
 }
 
-void Settings::SetDebugFont(QFont font)
+void Settings::SetDebugFont(const QFont& font)
 {
   if (GetDebugFont() != font)
   {

@@ -91,7 +91,7 @@ void ConfigStringChoice::OnConfigChanged()
   Load();
 }
 
-ConfigComplexChoice::ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2,
+ConfigComplexChoice::ConfigComplexChoice(const InfoVariant& setting1, const InfoVariant& setting2,
                                          Config::Layer* layer)
     : m_layer(layer), m_setting1(setting1), m_setting2(setting2)
 {

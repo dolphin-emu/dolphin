@@ -56,7 +56,7 @@ signals:
   void GameCountUpdated(int total_games, int visible_games) const;
   void OnStartWithRiivolution(const UICommon::GameFile& game);
   void NetPlayHost(const UICommon::GameFile& game);
-  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
+  void SelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
   void OpenGeneralSettings();
   void OpenGraphicsSettings();
 #ifdef USE_RETRO_ACHIEVEMENTS

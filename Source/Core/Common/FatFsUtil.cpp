@@ -598,7 +598,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   return true;
 }
 
-static bool Unpack(const std::function<bool()>& cancelled, const std::string path,
+static bool Unpack(const std::function<bool()>& cancelled, const std::string& path,
                    bool is_directory, const char* name, std::vector<u8>& tmp_buffer)
 {
   if (cancelled())

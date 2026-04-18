@@ -106,7 +106,8 @@ void InfinityBaseWindow::CreateMainWindow()
   setLayout(main_layout);
 }
 
-void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, FigureUIPosition slot)
+void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, const QString& name,
+                                       FigureUIPosition slot)
 {
   auto* hbox_infinity = new QHBoxLayout();
 

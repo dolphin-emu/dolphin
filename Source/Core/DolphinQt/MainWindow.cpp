@@ -22,6 +22,7 @@
 
 #include <future>
 #include <optional>
+#include <utility>
 #include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -201,7 +202,7 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   return wsi;
 }
 
-static std::vector<std::string> StringListToStdVector(QStringList list)
+static std::vector<std::string> StringListToStdVector(const QStringList& list)
 {
   std::vector<std::string> result;
   result.reserve(list.size());
@@ -474,7 +475,7 @@ void MainWindow::CreateComponents()
   m_code_widget = new CodeWidget(this);
   m_assembler_widget = new AssemblerWidget(this);
 
-  const auto request_watch = [this](QString name, u32 addr) {
+  const auto request_watch = [this](const QString& name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
   };
   const auto request_breakpoint = [this](u32 addr) { m_breakpoint_widget->AddBP(addr); };
