@@ -104,6 +104,7 @@ public:
   void ShutdownFastmemArena();
   void DoState(PointerWrap& p);
 
+  bool UpdatePhysicalMappings();
   void UpdateDBATMappings(const PowerPC::BatTable& dbat_table);
   void AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
   void RemovePageTableMappings(const std::set<u32>& mappings);
@@ -269,6 +270,8 @@ private:
   // TODO: Do we want to handle the mirrors of the GC RAM?
   std::array<PhysicalMemoryRegion, 4> m_physical_regions{};
 
+  std::vector<LogicalMemoryView> m_physical_mapped_entries;
+
   // The key is the logical address
   std::map<u32, LogicalMemoryView> m_dbat_mapped_entries;
   std::map<u32, LogicalMemoryView> m_page_table_mapped_entries;
@@ -285,6 +288,8 @@ private:
   Core::System& m_system;
 
   static HostPageType GetHostPageTypeForPageSize(u32 page_size);
+
+  bool AddPhysicalMapping(const PhysicalMemoryRegion& region);
 
   void TryAddLargePageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
   bool TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
