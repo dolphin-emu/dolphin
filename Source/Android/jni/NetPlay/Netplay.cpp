@@ -26,121 +26,91 @@ static NetPlay::NetPlayClient* GetPointer(JNIEnv* env)
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getNickname(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getNickname(JNIEnv* env,
+                                                                                  jclass)
 {
   return ToJString(env, Config::Get(Config::NETPLAY_NICKNAME));
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setNickname(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jstring jnickname)
+{
+  Config::SetBase(Config::NETPLAY_NICKNAME, GetJString(env, jnickname));
+}
+
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getTraversalChoice(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getTraversalChoice(
+    JNIEnv* env, jclass)
 {
   return ToJString(env, Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE));
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setTraversalChoice(
+    JNIEnv* env, jclass, jstring jtraversalChoice)
+{
+  Config::SetBase(Config::NETPLAY_TRAVERSAL_CHOICE, GetJString(env, jtraversalChoice));
+}
+
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getAddress(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getAddress(JNIEnv* env,
+                                                                                 jclass)
 {
   return ToJString(env, Config::Get(Config::NETPLAY_ADDRESS));
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setAddress(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jstring jaddress)
+{
+  Config::SetBase(Config::NETPLAY_ADDRESS, GetJString(env, jaddress));
+}
+
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getHostCode(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getHostCode(JNIEnv* env,
+                                                                                  jclass)
 {
   return ToJString(env, Config::Get(Config::NETPLAY_HOST_CODE));
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setHostCode(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jstring jhostCode)
+{
+  Config::SetBase(Config::NETPLAY_HOST_CODE, GetJString(env, jhostCode));
+}
+
 JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getConnectPort(JNIEnv*, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getConnectPort(JNIEnv*,
+                                                                                     jclass)
 {
   return static_cast<jint>(Config::Get(Config::NETPLAY_CONNECT_PORT));
 }
 
-JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getHostPort(JNIEnv*, jclass)
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setConnectPort(JNIEnv*,
+                                                                                     jclass,
+                                                                                     jint port)
 {
-  return static_cast<jint>(Config::Get(Config::NETPLAY_HOST_PORT));
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getUseUpnp(JNIEnv*, jclass)
-{
-  return static_cast<jboolean>(Config::Get(Config::NETPLAY_USE_UPNP));
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getEnableChunkedUploadLimit(JNIEnv*, jclass)
-{
-  return static_cast<jboolean>(Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT));
+  Config::SetBase(Config::NETPLAY_CONNECT_PORT, static_cast<u16>(port));
 }
 
 JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getChunkedUploadLimit(JNIEnv*, jclass)
-{
-  return static_cast<jint>(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT));
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getUseIndex(JNIEnv*, jclass)
-{
-  return static_cast<jboolean>(Config::Get(Config::NETPLAY_USE_INDEX));
-}
-
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getIndexRegion(JNIEnv* env, jclass)
-{
-  return ToJString(env, Config::Get(Config::NETPLAY_INDEX_REGION));
-}
-
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getIndexName(JNIEnv* env, jclass)
-{
-  return ToJString(env, Config::Get(Config::NETPLAY_INDEX_NAME));
-}
-
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getIndexPassword(JNIEnv* env, jclass)
-{
-  return ToJString(env, Config::Get(Config::NETPLAY_INDEX_PASSWORD));
-}
-
-JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_getClientBufferSize(JNIEnv*, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_getClientBufferSize(JNIEnv*,
+                                                                                          jclass)
 {
   return static_cast<jint>(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_setClientBufferSize(JNIEnv*, jclass,
-                                                                            jint buffer)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_00024Settings_setClientBufferSize(
+    JNIEnv*, jclass, jint buffer)
 {
   Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, static_cast<u32>(buffer));
-}
-
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_SaveSetup(
-    JNIEnv* env, jclass, jstring jnickname, jstring traversalChoice, jstring jaddress,
-    jstring jhostCode, jint connectPort, jint hostPort, jboolean useUpnp, jboolean useListenPort,
-    jint listenPort, jboolean enableChunkedUploadLimit, jint chunkedUploadLimit, jboolean useIndex,
-    jstring jindexRegion, jstring jindexName, jstring jindexPassword)
-{
-  Config::ConfigChangeCallbackGuard config_guard;
-
-  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, GetJString(env, jnickname));
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, GetJString(env, traversalChoice));
-  Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, GetJString(env, jaddress));
-  Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, GetJString(env, jhostCode));
-  Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, static_cast<u16>(connectPort));
-  Config::SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(hostPort));
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, static_cast<bool>(useUpnp));
-  Config::SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
-                           static_cast<bool>(enableChunkedUploadLimit));
-  Config::SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
-                           static_cast<u32>(chunkedUploadLimit));
-  Config::SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, static_cast<bool>(useIndex));
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION, GetJString(env, jindexRegion));
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, GetJString(env, jindexName));
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD, GetJString(env, jindexPassword));
-  Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT, static_cast<u16>(listenPort));
 }
 
 JNIEXPORT jboolean JNICALL

@@ -37,7 +37,7 @@ class NetplayViewModel : ViewModel() {
     val hostInputAuthority = Netplay.hostInputAuthorityEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
-    private val _maxBuffer = MutableStateFlow(Netplay.getClientBufferSize())
+    private val _maxBuffer = MutableStateFlow(Netplay.Settings.getClientBufferSize())
     val maxBuffer = _maxBuffer.asStateFlow()
 
     init {
@@ -57,7 +57,7 @@ class NetplayViewModel : ViewModel() {
 
     fun setMaxBuffer(buffer: Int) {
         _maxBuffer.value = buffer
-        Netplay.setClientBufferSize(buffer)
+        Netplay.Settings.setClientBufferSize(buffer)
         Netplay.adjustPadBufferSize(buffer)
     }
 
