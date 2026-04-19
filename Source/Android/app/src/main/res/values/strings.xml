@@ -424,6 +424,7 @@
     <string name="debug_submenu">Debug</string>
     <string name="debug_warning">Warning: Debug settings will slow emulation</string>
     <string name="debug_fastmem">Disable Fastmem</string>
+    <string name="debug_page_table_fastmem">Disable Page Table Fastmem</string>
     <string name="debug_fastmem_arena">Disable Fastmem Arena</string>
     <string name="debug_large_entry_points_map">Disable Large Entry Points Map</string>
     <string name="debug_jit_profiling_header">Jit Profiling</string>
