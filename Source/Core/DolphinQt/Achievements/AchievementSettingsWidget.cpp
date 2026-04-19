@@ -131,6 +131,10 @@ void AchievementSettingsWidget::CreateLayout()
          "whenever the player makes progress on an achievement that tracks an accumulated value, "
          "such as 60 out of 120 stars."));
 
+  m_sound_enabled_input = new ToolTipCheckBox(tr("Play Sounds for Notifications"));
+  m_sound_enabled_input->SetDescription(
+      tr("Play audio cues for unlocking achievements and submitting to leaderboards."));
+
   m_common_layout->addWidget(m_common_integration_enabled_input);
   m_common_layout->addWidget(m_common_username_label);
   m_common_layout->addWidget(m_common_username_input);
@@ -153,6 +157,7 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_leaderboard_tracker_enabled_input);
   m_common_layout->addWidget(m_common_challenge_indicators_enabled_input);
   m_common_layout->addWidget(m_common_progress_enabled_input);
+  m_common_layout->addWidget(m_sound_enabled_input);
 
   m_common_layout->setAlignment(Qt::AlignTop);
   setLayout(m_common_layout);
@@ -180,6 +185,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleProgress);
+  connect(m_sound_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::SaveSettings);
 }
 
 void AchievementSettingsWidget::OnControllerInterfaceConfigure()
@@ -251,6 +258,9 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
+
+  SignalBlocking(m_sound_enabled_input)->setChecked(Config::Get(Config::RA_SOUND_ENABLED));
+  m_sound_enabled_input->setEnabled(enabled);
 }
 
 void AchievementSettingsWidget::SaveSettings()
@@ -273,6 +283,8 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_SOUND_ENABLED, m_sound_enabled_input->isChecked());
+
   Config::Save();
 }
 

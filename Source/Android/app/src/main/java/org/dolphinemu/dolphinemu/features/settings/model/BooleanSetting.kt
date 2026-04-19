@@ -932,6 +932,12 @@ enum class BooleanSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ProgressEnabled",
         false
+    ),
+    ACHIEVEMENTS_SOUND_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "SoundFeedback",
+        true
     );
 
     override val isOverridden: Boolean

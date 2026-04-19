@@ -5,10 +5,14 @@
 
 #include "Core/AchievementManager.h"
 
+#include <algorithm>
 #include <memory>
 
 #include <fmt/format.h>
 
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/SoundStream.h"
+#include "AudioCommon/WaveFile.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -19,6 +23,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/AchievementApprovedHash.h"
@@ -66,6 +71,11 @@ void AchievementManager::Init(void* hwnd)
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
+    LoadSounds();
+
+    m_audio_thread_stop = false;
+    m_audio_thread = std::thread(&AchievementManager::AudioThreadLoop, this);
+
     {
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryPeeker, Request);
@@ -95,6 +105,104 @@ void AchievementManager::Init(void* hwnd)
       Login("");
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+  }
+}
+
+void AchievementManager::LoadSounds()
+{
+  std::string sys_dir = File::GetSysDirectory() + DIR_SEP + "Sounds" + DIR_SEP;
+
+  auto load_wav = [&](SoundType type, const std::string& filename) {
+    SoundFile sf;
+    if (AudioCommon::LoadWavFile(sys_dir + filename, &sf.data, &sf.sample_rate, &sf.channels))
+    {
+      m_loaded_sounds[type] = std::move(sf);
+    }
+    else
+    {
+      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load or parse {}", filename);
+    }
+  };
+
+  load_wav(SoundType::Info, "info.wav");
+  load_wav(SoundType::Unlock, "unlock.wav");
+  load_wav(SoundType::Leaderboard, "lb.wav");
+  load_wav(SoundType::LeaderboardCancel, "lbcancel.wav");
+  load_wav(SoundType::LeaderboardSubmit, "lbsubmit.wav");
+}
+
+void AchievementManager::PlayAudioCue(SoundType type)
+{
+  if (!Config::Get(Config::RA_SOUND_ENABLED))
+    return;
+
+  std::lock_guard lg(m_audio_mutex);
+  m_audio_queue.push_back(type);
+  m_audio_cv.notify_one();
+}
+
+void AchievementManager::AudioThreadLoop()
+{
+  Common::SetCurrentThreadName("RA Audio Thread");
+
+  std::vector<s16> mix_buf;
+
+  while (true)
+  {
+    SoundType type_to_play;
+    {
+      std::unique_lock lk(m_audio_mutex);
+      m_audio_cv.wait(lk, [this] { return m_audio_thread_stop || !m_audio_queue.empty(); });
+      if (m_audio_thread_stop)
+        return;
+
+      type_to_play = m_audio_queue.front();
+      m_audio_queue.erase(m_audio_queue.begin());
+    }
+
+    if (!m_loaded_sounds.count(type_to_play))
+      continue;
+
+    const auto& sound = m_loaded_sounds[type_to_play];
+    if (sound.data.empty())
+      continue;
+
+    size_t samples_to_push = sound.sample_rate / 60;
+    mix_buf.resize(samples_to_push * 2);
+
+    size_t sample_index = 0;
+    size_t total_samples = sound.data.size() / sound.channels;
+
+    while (sample_index < total_samples)
+    {
+      if (m_audio_thread_stop || !Core::IsRunningOrStarting(Core::System::GetInstance()))
+        break;
+
+      auto* sound_stream = Core::System::GetInstance().GetSoundStream();
+      if (sound_stream)
+      {
+        auto* mixer = sound_stream->GetMixer();
+        if (mixer)
+        {
+          mixer->SetAchievementSampleRate(sound.sample_rate);
+
+          size_t remaining = total_samples - sample_index;
+          size_t to_push = std::min(samples_to_push, remaining);
+
+          for (size_t i = 0; i < to_push; ++i)
+          {
+            size_t idx = (sample_index + i) * sound.channels;
+            mix_buf[i * 2] = sound.data[idx];
+            mix_buf[i * 2 + 1] = (sound.channels == 1) ? sound.data[idx] : sound.data[idx + 1];
+          }
+
+          mixer->PushAchievementSamples(mix_buf.data(), to_push);
+          sample_index += to_push;
+        }
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
   }
 }
 
@@ -800,6 +908,12 @@ void AchievementManager::Shutdown()
     CloseGame();
     m_queue.Shutdown();
     Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+
+    m_audio_thread_stop = true;
+    m_audio_cv.notify_one();
+    if (m_audio_thread.joinable())
+      m_audio_thread.join();
+
     std::lock_guard lg{m_lock};
     // DON'T log out - keep those credentials for next run.
     rc_client_destroy(m_client);
@@ -958,6 +1072,8 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
     INFO_LOG_FMT(ACHIEVEMENTS, "Username alias {} -> {}.", config_username, user->username);
     Config::SetBaseOrCurrent(Config::RA_USERNAME, user->username);
   }
+
+  instance.PlayAudioCue(SoundType::Info);
   instance.login_event.Trigger(RC_OK);
 
   INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.",
@@ -1046,6 +1162,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
     {
       INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
       instance.m_display_welcome_message = true;
+      instance.PlayAudioCue(SoundType::Info);
     }
   }
   else
@@ -1149,6 +1266,7 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                                                                         OSD::Color::CYAN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   instance.update_event.Trigger(UpdatedItems{.achievements = {client_event->achievement->id}});
+  instance.PlayAudioCue(SoundType::Unlock);
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   switch (rc_client_raintegration_get_achievement_state(instance.m_client,
                                                         client_event->achievement->id))
@@ -1183,7 +1301,9 @@ void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* 
                                 client_event->leaderboard->description),
                     OSD::Duration::VERY_LONG, OSD::Color::GREEN);
   }
-  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  auto& instance = AchievementManager::GetInstance();
+  instance.PlayAudioCue(SoundType::Leaderboard);
+  instance.FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* client_event)
@@ -1193,7 +1313,9 @@ void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* c
     OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
   }
-  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  auto& instance = AchievementManager::GetInstance();
+  instance.PlayAudioCue(SoundType::LeaderboardCancel);
+  instance.FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event)
@@ -1206,6 +1328,7 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
                                 client_event->leaderboard->title),
                     OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
   }
+  instance.PlayAudioCue(SoundType::LeaderboardSubmit);
   instance.FetchBoardInfo(client_event->leaderboard->id);
   instance.update_event.Trigger(UpdatedItems{.leaderboards = {client_event->leaderboard->id}});
 }

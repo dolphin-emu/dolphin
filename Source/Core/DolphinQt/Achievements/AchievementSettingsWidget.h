@@ -59,6 +59,7 @@ private:
   ToolTipCheckBox* m_common_challenge_indicators_enabled_input;
   ToolTipCheckBox* m_common_discord_presence_enabled_input;
   ToolTipCheckBox* m_common_progress_enabled_input;
+  ToolTipCheckBox* m_sound_enabled_input;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS
