@@ -4,6 +4,7 @@
 #include "DolphinQt/Config/ARCodeWidget.h"
 
 #include <algorithm>
+#include <functional>
 #include <utility>
 
 #include <QCursor>
@@ -72,6 +73,7 @@ void ARCodeWidget::CreateWidgets()
   m_code_add = new NonDefaultQPushButton(tr("&Add New Code..."));
   m_code_edit = new NonDefaultQPushButton(tr("&Edit Code..."));
   m_code_remove = new NonDefaultQPushButton(tr("&Remove Code"));
+  m_code_toggle_all = new NonDefaultQPushButton(tr("Disable All"));
 
   m_cheat_code_editor = new CheatCodeEditor(this);
 
@@ -82,6 +84,7 @@ void ARCodeWidget::CreateWidgets()
   button_layout->addWidget(m_code_add);
   button_layout->addWidget(m_code_edit);
   button_layout->addWidget(m_code_remove);
+  button_layout->addWidget(m_code_toggle_all);
 
   auto* const layout = new QVBoxLayout{this};
 
@@ -113,6 +116,7 @@ void ARCodeWidget::ConnectWidgets()
   connect(m_code_add, &QPushButton::clicked, this, &ARCodeWidget::OnCodeAddClicked);
   connect(m_code_edit, &QPushButton::clicked, this, &ARCodeWidget::OnCodeEditClicked);
   connect(m_code_remove, &QPushButton::clicked, this, &ARCodeWidget::OnCodeRemoveClicked);
+  connect(m_code_toggle_all, &QPushButton::clicked, this, &ARCodeWidget::OnCodeToggleAllClicked);
 }
 
 void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
@@ -122,7 +126,7 @@ void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
   if (!m_restart_required)
     ActionReplay::ApplyCodes(m_ar_codes, m_game_id, m_game_revision);
 
-  UpdateList();
+  UpdateToggleButton();
   SaveCodes();
 }
 
@@ -155,6 +159,21 @@ void ARCodeWidget::SortDisabledCodesFirst()
   std::ranges::stable_partition(m_ar_codes, std::logical_not{}, &ActionReplay::ARCode::enabled);
   UpdateList();
   SaveCodes();
+}
+
+bool ARCodeWidget::IsEveryCodeEnabled()
+{
+  return std::ranges::all_of(m_ar_codes, &ActionReplay::ARCode::enabled);
+}
+
+void ARCodeWidget::UpdateToggleButton()
+{
+  if (IsEveryCodeEnabled())
+    m_code_toggle_all->setText(tr("Disable All"));
+  else
+    m_code_toggle_all->setText(tr("Enable All"));
+
+  m_code_toggle_all->setDisabled(m_ar_codes.empty());
 }
 
 void ARCodeWidget::OnListReordered()
@@ -229,6 +248,7 @@ void ARCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
+  UpdateToggleButton();
 }
 
 void ARCodeWidget::LoadCodes()
@@ -340,4 +360,29 @@ void ARCodeWidget::OnCodeRemoveClicked()
   UpdateList();
 
   m_code_remove->setEnabled(false);
+}
+
+void ARCodeWidget::OnCodeToggleAllClicked()
+{
+  const bool new_state = !IsEveryCodeEnabled();
+  const Qt::CheckState new_check_state =
+      new_state ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
+
+  {
+    // Without this blocker, the call to setCheckState below would end up loading and saving the ini
+    // file once per code.
+    QSignalBlocker blocker(m_code_list);
+
+    for (int i = 0; i < m_ar_codes.size(); ++i)
+    {
+      m_ar_codes[i].enabled = new_state;
+      m_code_list->item(i)->setCheckState(new_check_state);
+    }
+  }
+
+  if (!m_restart_required)
+    ActionReplay::ApplyCodes(m_ar_codes, m_game_id, m_game_revision);
+
+  UpdateList();
+  SaveCodes();
 }
