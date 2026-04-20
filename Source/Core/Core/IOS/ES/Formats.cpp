@@ -322,7 +322,7 @@ u16 TMDReader::GetNumContents() const
 
 bool TMDReader::GetContent(u16 index, Content* content) const
 {
-  if (index >= GetNumContents())
+  if (!IsValid() || index >= GetNumContents())
   {
     return false;
   }
