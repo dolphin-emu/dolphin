@@ -230,11 +230,17 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
 
 std::string VolumeWAD::GetGameID(const Partition& partition) const
 {
+  if (!m_tmd.IsValid())
+    return {};
+
   return m_tmd.GetGameID();
 }
 
 std::string VolumeWAD::GetGameTDBID(const Partition& partition) const
 {
+  if (!m_tmd.IsValid())
+    return {};
+
   return m_tmd.GetGameTDBID();
 }
 
