@@ -71,8 +71,6 @@ void AchievementManager::Init(void* hwnd)
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
-    LoadSounds();
-
     m_audio_thread_stop = false;
     m_audio_thread = std::thread(&AchievementManager::AudioThreadLoop, this);
 
@@ -110,17 +108,27 @@ void AchievementManager::Init(void* hwnd)
 
 void AchievementManager::LoadSounds()
 {
+  // User overrides go in User/Sounds/
+  std::string user_dir = File::GetUserPath(D_USER_IDX) + "Sounds" + DIR_SEP;
+
+  // Default official assets go in Sys/Sounds/
   std::string sys_dir = File::GetSysDirectory() + DIR_SEP + "Sounds" + DIR_SEP;
 
   auto load_wav = [&](SoundType type, const std::string& filename) {
+    std::string path = user_dir + filename;
+
+    // Fall back to Sys directory if the user hasn't provided a custom override
+    if (!File::Exists(path))
+      path = sys_dir + filename;
+
     SoundFile sf;
-    if (AudioCommon::LoadWavFile(sys_dir + filename, &sf.data, &sf.sample_rate, &sf.channels))
+    if (AudioCommon::LoadWavFile(path, &sf.data, &sf.sample_rate, &sf.channels))
     {
       m_loaded_sounds[type] = std::move(sf);
     }
     else
     {
-      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load or parse {}", filename);
+      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load or parse {}", path);
     }
   };
 
@@ -145,6 +153,9 @@ void AchievementManager::AudioThreadLoop()
 {
   Common::SetCurrentThreadName("RA Audio Thread");
 
+  // Load files in the background to prevent stalling AchievementManager::Init()
+  LoadSounds();
+
   std::vector<s16> mix_buf;
 
   while (true)
@@ -167,41 +178,58 @@ void AchievementManager::AudioThreadLoop()
     if (sound.data.empty())
       continue;
 
-    size_t samples_to_push = sound.sample_rate / 60;
-    mix_buf.resize(samples_to_push * 2);
-
-    size_t sample_index = 0;
+    size_t samples_pushed = 0;
     size_t total_samples = sound.data.size() / sound.channels;
 
-    while (sample_index < total_samples)
+    // Pre-buffer 30ms of audio to prevent starvation when playback first begins
+    const size_t prebuffer_samples = (30 * sound.sample_rate) / 1000;
+
+    auto start_time = std::chrono::steady_clock::now();
+
+    while (samples_pushed < total_samples)
     {
       if (m_audio_thread_stop || !Core::IsRunningOrStarting(Core::System::GetInstance()))
         break;
 
-      auto* sound_stream = Core::System::GetInstance().GetSoundStream();
-      if (sound_stream)
+      auto current_time = std::chrono::steady_clock::now();
+      auto elapsed_us =
+          std::chrono::duration_cast<std::chrono::microseconds>(current_time - start_time).count();
+
+      // Calculate how many samples SHOULD have played by this exact microsecond
+      size_t expected_played = (elapsed_us * sound.sample_rate) / 1000000;
+      size_t target_pushed = expected_played + prebuffer_samples;
+
+      if (target_pushed > samples_pushed)
       {
-        auto* mixer = sound_stream->GetMixer();
-        if (mixer)
+        size_t to_push = target_pushed - samples_pushed;
+        size_t remaining = total_samples - samples_pushed;
+        to_push = std::min(to_push, remaining);
+
+        mix_buf.resize(to_push * 2);
+
+        for (size_t i = 0; i < to_push; ++i)
         {
-          mixer->SetAchievementSampleRate(sound.sample_rate);
-
-          size_t remaining = total_samples - sample_index;
-          size_t to_push = std::min(samples_to_push, remaining);
-
-          for (size_t i = 0; i < to_push; ++i)
-          {
-            size_t idx = (sample_index + i) * sound.channels;
-            mix_buf[i * 2] = sound.data[idx];
-            mix_buf[i * 2 + 1] = (sound.channels == 1) ? sound.data[idx] : sound.data[idx + 1];
-          }
-
-          mixer->PushAchievementSamples(mix_buf.data(), to_push);
-          sample_index += to_push;
+          size_t idx = (samples_pushed + i) * sound.channels;
+          mix_buf[i * 2] = sound.data[idx];
+          mix_buf[i * 2 + 1] = (sound.channels == 1) ? sound.data[idx] : sound.data[idx + 1];
         }
+
+        auto* sound_stream = Core::System::GetInstance().GetSoundStream();
+        if (sound_stream)
+        {
+          auto* mixer = sound_stream->GetMixer();
+          if (mixer)
+          {
+            mixer->SetAchievementSampleRate(sound.sample_rate);
+            mixer->PushAchievementSamples(mix_buf.data(), to_push);
+          }
+        }
+
+        samples_pushed += to_push;
       }
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(16));
+      // Wake up roughly twice per emulated frame
+      std::this_thread::sleep_for(std::chrono::milliseconds(8));
     }
   }
 }
