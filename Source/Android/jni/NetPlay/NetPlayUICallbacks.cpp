@@ -4,6 +4,7 @@
 #include "UICommon/GameFile.h"
 #include "NetPlayUICallbacks.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Core.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -12,17 +13,38 @@ namespace NetPlay {
 NetPlayUICallbacks::NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommon::GameFile>> games)
     : m_games(std::move(games))
 {
+  m_state_changed_hook = Core::AddOnStateChangedCallback([this](Core::State state) {
+    if ((state == Core::State::Uninitialized || state == Core::State::Stopping) &&
+        !m_got_stop_request)
+    {
+      JNIEnv* env = IDCache::GetEnvForThread();
+      auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
+          env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+      if (client)
+        client->RequestStopGame();
+    }
+  });
 }
 
 NetPlayUICallbacks::~NetPlayUICallbacks() = default;
 
 void NetPlayUICallbacks::BootGame(const std::string& filename, std::unique_ptr<BootSessionData> boot_session_data) {
+    m_got_stop_request = false;
     JNIEnv* env = IDCache::GetEnvForThread();
     env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnBootGame(),
                               ToJString(env, filename), reinterpret_cast<jlong>(boot_session_data.release()));
 }
 
-void NetPlayUICallbacks::StopGame() {}
+void NetPlayUICallbacks::StopGame()
+{
+  if (m_got_stop_request)
+    return;
+
+  m_got_stop_request = true;
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnStopGame());
+}
+
 bool NetPlayUICallbacks::IsHosting() const { return false; }
 
 void NetPlayUICallbacks::Update()

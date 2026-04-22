@@ -10,6 +10,9 @@ import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
@@ -219,6 +222,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     Log.debug("[EmulationFragment] Starting emulation thread for Netplay.")
                     val paths = requireNotNull(gamePaths) {
                         "Cannot start emulation without any game paths"
+                    }
+                    lifecycleScope.launch {
+                        Netplay.stopGame.first()
+                        stopEmulation()
                     }
                     NativeLibrary.RunNetPlay(paths, riivolution)
                 } else {

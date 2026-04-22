@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/HookableEvent.h"
 #include "Core/NetPlayClient.h"
 #include "UICommon/GameFile.h"
 
@@ -61,6 +62,8 @@ private:
   std::vector<std::shared_ptr<const UICommon::GameFile>> m_games;
   NetPlay::SyncIdentifier m_current_game_identifier;
   std::string m_current_game_name;
+  Common::EventHook m_state_changed_hook;
+  bool m_got_stop_request = true;
 };
 
 }  // namespace NetPlay

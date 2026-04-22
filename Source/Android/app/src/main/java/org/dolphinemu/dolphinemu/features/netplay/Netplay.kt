@@ -44,6 +44,9 @@ object Netplay {
     private val _launchGame = Channel<String>(Channel.CONFLATED)
     val launchGame = _launchGame.receiveAsFlow()
 
+    private val _stopGame = Channel<Unit>(Channel.CONFLATED)
+    val stopGame = _stopGame.receiveAsFlow()
+
     private val _connectionErrors = Channel<String>(Channel.BUFFERED)
     val connectionErrors = _connectionErrors.receiveAsFlow()
 
@@ -123,6 +126,7 @@ object Netplay {
         }
 
         _launchGame.flush()
+        _stopGame.flush()
         _connectionErrors.flush()
         _players.resetReplayCache()
         _messages.resetReplayCache()
@@ -166,7 +170,14 @@ object Netplay {
     @JvmStatic
     fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
         this.bootSessionDataPointer = bootSessionDataPointer
+        _stopGame.flush()
         _launchGame.trySend(gameFilePath)
+    }
+
+    @Keep
+    @JvmStatic
+    fun onStopGame() {
+        _stopGame.trySend(Unit)
     }
 
     @JvmStatic
@@ -244,6 +255,6 @@ object Netplay {
     }
 }
 
-private fun Channel<String>.flush() {
+private fun <T> Channel<T>.flush() {
     while (this.tryReceive().isSuccess) Unit
 }
