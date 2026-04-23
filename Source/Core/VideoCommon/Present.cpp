@@ -392,7 +392,7 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
 {
   // Resize target to half its original size
   auto draw_rc = rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TopAndBottom)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
@@ -409,7 +409,7 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   // Create two target rectangle offset to the sides of the backbuffer
   auto left_rc = draw_rc;
   auto right_rc = draw_rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TopAndBottom)
   {
     left_rc.top -= m_backbuffer_height / 4;
     left_rc.bottom -= m_backbuffer_height / 4;
@@ -483,7 +483,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
       // resolution
       resulting_aspect_ratio *= 2.0;
     }
-    else if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
+    else if (g_ActiveConfig.stereo_mode == StereoMode::TopAndBottom)
     {
       // Render twice as tall if using top-and-bottom 3D, since the 3D will halve the vertical
       // resolution
@@ -831,7 +831,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
     g_gfx->SelectMainBuffer();
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::SideBySide ||
-           g_ActiveConfig.stereo_mode == StereoMode::TAB)
+           g_ActiveConfig.stereo_mode == StereoMode::TopAndBottom)
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 

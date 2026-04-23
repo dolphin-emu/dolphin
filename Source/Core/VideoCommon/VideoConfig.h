@@ -34,7 +34,7 @@ enum class StereoMode : int
 {
   Off,
   SideBySide,
-  TAB,
+  TopAndBottom,
   Anaglyph,
   QuadBuffer,
   Passive
