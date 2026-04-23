@@ -567,7 +567,7 @@ void HotkeyScheduler::Run()
         }
       }
 
-      if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+      if (IsHotkey(HK_TOGGLE_STEREO_TOP_AND_BOTTOM))
       {
         if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::TAB)
         {
