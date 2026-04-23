@@ -33,7 +33,7 @@ enum class AspectMode : int
 enum class StereoMode : int
 {
   Off,
-  SBS,
+  SideBySide,
   TAB,
   Anaglyph,
   QuadBuffer,

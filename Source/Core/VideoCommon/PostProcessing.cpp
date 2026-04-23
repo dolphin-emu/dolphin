@@ -1017,7 +1017,7 @@ static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
   case StereoMode::Anaglyph:
   case StereoMode::Passive:
     return is_intermediary_buffer;
-  case StereoMode::SBS:
+  case StereoMode::SideBySide:
   case StereoMode::TAB:
   case StereoMode::Off:
   default:

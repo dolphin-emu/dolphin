@@ -477,7 +477,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 
   if (g_ActiveConfig.stereo_per_eye_resolution_full)
   {
-    if (g_ActiveConfig.stereo_mode == StereoMode::SBS)
+    if (g_ActiveConfig.stereo_mode == StereoMode::SideBySide)
     {
       // Render twice as wide if using side-by-side 3D, since the 3D will halve the horizontal
       // resolution
@@ -830,7 +830,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
 
     g_gfx->SelectMainBuffer();
   }
-  else if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+  else if (g_ActiveConfig.stereo_mode == StereoMode::SideBySide ||
            g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
