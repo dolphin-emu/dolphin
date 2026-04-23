@@ -8,6 +8,7 @@
 #include <jni.h>
 
 #include "Common/CommonTypes.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/NetPlayClient.h"
 #include "UICommon/GameFile.h"
@@ -164,6 +165,15 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv* env, jclass
       NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port});
 
   return reinterpret_cast<jlong>(client);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_ReleaseBootSessionData(JNIEnv* env, jclass)
+{
+  auto* data = reinterpret_cast<BootSessionData*>(
+      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetplayBootSessionDataPointer()));
+  delete data;
+  env->SetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetplayBootSessionDataPointer(), 0);
 }
 
 JNIEXPORT void JNICALL

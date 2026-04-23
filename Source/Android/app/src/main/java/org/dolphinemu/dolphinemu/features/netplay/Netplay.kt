@@ -27,8 +27,6 @@ import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 
-//TODO add other necessary @Keep annotations
-//TODO clear boot session data at appropriate time
 object Netplay {
     @Keep
     private var netPlayClientPointer: Long = 0
@@ -123,6 +121,11 @@ object Netplay {
         sessionScope?.cancel()
         sessionScope = null
 
+        if (bootSessionDataPointer != 0L) {
+            ReleaseBootSessionData()
+            bootSessionDataPointer = 0
+        }
+
         if (netPlayClientPointer != 0L) {
             ReleaseNetplayClient()
             netPlayClientPointer = 0
@@ -159,6 +162,9 @@ object Netplay {
     external fun adjustPadBufferSize(buffer: Int)
 
     @JvmStatic
+    private external fun ReleaseBootSessionData()
+
+    @JvmStatic
     private external fun ReleaseNetplayClient()
 
     private fun mergeMessages(): Flow<NetplayMessage> = merge(
@@ -170,6 +176,7 @@ object Netplay {
 
     // NetPlayUI callbacks
 
+    @Keep
     @JvmStatic
     fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
         this.bootSessionDataPointer = bootSessionDataPointer
@@ -189,31 +196,37 @@ object Netplay {
         _connectionLost.trySend(Unit)
     }
 
+    @Keep
     @JvmStatic
     fun onConnectionError(message: String) {
         _connectionErrors.trySend(message)
     }
 
+    @Keep
     @JvmStatic
     fun onUpdate(players: Array<Player>) {
         _players.tryEmit(players.toList())
     }
 
+    @Keep
     @JvmStatic
     fun onChatMessageReceived(message: String) {
         _chatMessages.tryEmit(message)
     }
 
+    @Keep
     @JvmStatic
     fun onHostInputAuthorityChanged(enabled: Boolean) {
         _hostInputAuthorityEnabled.tryEmit(enabled)
     }
 
+    @Keep
     @JvmStatic
     fun onGameChanged(game: String) {
         _game.tryEmit(game)
     }
 
+    @Keep
     @JvmStatic
     fun onPadBufferChanged(buffer: Int) {
         // Only for remote pad buffer settings. Ignore local max buffer changes.
