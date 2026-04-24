@@ -208,7 +208,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (NativeLibrary.IsUninitialized()) {
             NativeLibrary.SetIsBooting()
             val emulationThread = Thread({
-                if (loadPreviousTemporaryState) {
+                // Don't load temporary saves when launching Netplay, this path can trigger
+                // when a game starts due to orientation changes caused by a mismatch in menu
+                // vs emulation activity orientations.
+                if (loadPreviousTemporaryState && !Netplay.isLaunching) {
                     Log.debug("[EmulationFragment] Starting emulation thread from previous state.")
                     val paths = requireNotNull(gamePaths) {
                         "Cannot start emulation without any game paths"
