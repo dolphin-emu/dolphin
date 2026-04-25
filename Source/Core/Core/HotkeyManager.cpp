@@ -314,7 +314,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_TOGGLE, HK_FREELOOK_TOGGLE},
      // i18n: Stereoscopic 3D
-     {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_ANAGLYPH},
+     {_trans("3D"), HK_TOGGLE_STEREO_SIDE_BY_SIDE, HK_TOGGLE_STEREO_ANAGLYPH},
      // i18n: Stereoscopic 3D
      {_trans("3D Depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
      {_trans("Load State"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
