@@ -40,6 +40,9 @@ static jmethodID s_netplay_on_host_input_authority_changed;
 static jmethodID s_netplay_on_pad_buffer_changed;
 static jmethodID s_netplay_on_chat_message_received;
 static jmethodID s_netplay_update;
+static jmethodID s_netplay_on_show_chunked_progress_dialog;
+static jmethodID s_netplay_on_set_chunked_progress;
+static jmethodID s_netplay_on_hide_chunked_progress_dialog;
 
 static jclass s_netplay_player_class;
 static jmethodID s_netplay_player_constructor;
@@ -307,6 +310,21 @@ jmethodID GetNetplayOnChatMessageReceived()
 jmethodID GetNetplayUpdate()
 {
   return s_netplay_update;
+}
+
+jmethodID GetNetplayOnShowChunkedProgressDialog()
+{
+  return s_netplay_on_show_chunked_progress_dialog;
+}
+
+jmethodID GetNetplayOnSetChunkedProgress()
+{
+  return s_netplay_on_set_chunked_progress;
+}
+
+jmethodID GetNetplayOnHideChunkedProgressDialog()
+{
+  return s_netplay_on_hide_chunked_progress_dialog;
 }
 
 jclass GetNetplayPlayerClass()
@@ -741,6 +759,12 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_netplay_on_chat_message_received =
       env->GetStaticMethodID(netplay_class, "onChatMessageReceived", "(Ljava/lang/String;)V");
   s_netplay_update = env->GetStaticMethodID(netplay_class, "onUpdate", "([Lorg/dolphinemu/dolphinemu/features/netplay/model/Player;)V");
+  s_netplay_on_show_chunked_progress_dialog =
+      env->GetStaticMethodID(netplay_class, "onShowChunkedProgressDialog", "(Ljava/lang/String;J[I)V");
+  s_netplay_on_set_chunked_progress =
+      env->GetStaticMethodID(netplay_class, "onSetChunkedProgress", "(IJ)V");
+  s_netplay_on_hide_chunked_progress_dialog =
+      env->GetStaticMethodID(netplay_class, "onHideChunkedProgressDialog", "()V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass netplay_player_class =

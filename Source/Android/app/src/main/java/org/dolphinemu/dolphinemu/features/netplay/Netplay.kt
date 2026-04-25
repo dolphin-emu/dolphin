@@ -13,7 +13,9 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -26,6 +28,7 @@ import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
+import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 
 object Netplay {
     @Keep
@@ -87,6 +90,9 @@ object Netplay {
     )
     val padBuffer = _padBuffer.asSharedFlow()
 
+    private val _saveTransferProgress = MutableStateFlow<SaveTransferProgress?>(null)
+    val saveTransferProgress = _saveTransferProgress.asStateFlow()
+
     suspend fun join(): Boolean = withContext(Dispatchers.IO) {
         val scope = createSessionScope()
 
@@ -140,6 +146,7 @@ object Netplay {
         _game.resetReplayCache()
         _hostInputAuthorityEnabled.resetReplayCache()
         _padBuffer.resetReplayCache()
+        _saveTransferProgress.value = null
     }
 
     private fun createSessionScope(): CoroutineScope {
@@ -232,6 +239,44 @@ object Netplay {
         // Only for remote pad buffer settings. Ignore local max buffer changes.
         if (_hostInputAuthorityEnabled.replayCache.firstOrNull() == true) return
         _padBuffer.tryEmit(buffer)
+    }
+
+    @Keep
+    @JvmStatic
+    fun onShowChunkedProgressDialog(title: String, dataSize: Long, playerIds: IntArray) {
+        val players = _players.replayCache.firstOrNull()
+        _saveTransferProgress.value = SaveTransferProgress(
+            title = title,
+            totalSize = dataSize,
+            playerProgresses = playerIds.map { playerId ->
+                SaveTransferProgress.PlayerProgress(
+                    playerId = playerId,
+                    name = players?.find { it.pid == playerId }?.name ?: "Invalid Player ID",
+                    progress = 0,
+                )
+            },
+        )
+    }
+
+    @Keep
+    @JvmStatic
+    fun onSetChunkedProgress(playerId: Int, progress: Long) {
+        val current = _saveTransferProgress.value
+        _saveTransferProgress.value = current?.copy(
+            playerProgresses = current.playerProgresses.map {
+                if (it.playerId == playerId) {
+                    it.copy(progress = progress)
+                } else {
+                    it
+                }
+            }
+        )
+    }
+
+    @Keep
+    @JvmStatic
+    fun onHideChunkedProgressDialog() {
+        _saveTransferProgress.value = null
     }
 
     // Settings

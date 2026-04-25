@@ -186,9 +186,36 @@ void NetPlayUICallbacks::ShowGameDigestDialog(const std::string&) {}
 void NetPlayUICallbacks::SetGameDigestProgress(int, int) {}
 void NetPlayUICallbacks::SetGameDigestResult(int, const std::string&) {}
 void NetPlayUICallbacks::AbortGameDigest() {}
-void NetPlayUICallbacks::ShowChunkedProgressDialog(const std::string&, u64, std::span<const int>) {}
-void NetPlayUICallbacks::HideChunkedProgressDialog() {}
-void NetPlayUICallbacks::SetChunkedProgress(int, u64) {}
+
+void NetPlayUICallbacks::ShowChunkedProgressDialog(const std::string& title, u64 data_size,
+                                                    std::span<const int> players)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+
+  jintArray j_players = env->NewIntArray(static_cast<jsize>(players.size()));
+  env->SetIntArrayRegion(j_players, 0, static_cast<jsize>(players.size()), players.data());
+
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
+                            IDCache::GetNetplayOnShowChunkedProgressDialog(),
+                            ToJString(env, title), static_cast<jlong>(data_size), j_players);
+  env->DeleteLocalRef(j_players);
+}
+
+void NetPlayUICallbacks::HideChunkedProgressDialog()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
+                            IDCache::GetNetplayOnHideChunkedProgressDialog());
+}
+
+void NetPlayUICallbacks::SetChunkedProgress(int pid, u64 progress)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
+                            IDCache::GetNetplayOnSetChunkedProgress(),
+                            static_cast<jint>(pid), static_cast<jlong>(progress));
+}
+
 void NetPlayUICallbacks::SetHostWiiSyncData(std::vector<u64>, std::string) {}
 
 }  // namespace NetPlay

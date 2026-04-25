@@ -34,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
@@ -70,10 +71,12 @@ import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
+import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +90,7 @@ fun NetplayScreen(
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
     players: List<Player>,
+    saveTransferProgress: SaveTransferProgress?,
 ) {
     Scaffold(
         topBar = {
@@ -136,16 +140,31 @@ fun NetplayScreen(
         LaunchedEffect(Unit) {
             connectionLost.collect { showConnectionLostDialog = true }
         }
-        if (showConnectionLostDialog) {
-            AlertDialog(
-                text = { Text(stringResource(R.string.netplay_connection_lost)) },
-                confirmButton = {
-                    TextButton(onClick = onBackClicked) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                onDismissRequest = onBackClicked,
-            )
+
+        var dismissSaveTransferProgressDialog by remember { mutableStateOf(false) }
+        if (saveTransferProgress == null) {
+            dismissSaveTransferProgressDialog = false
+        }
+
+        when {
+            showConnectionLostDialog -> {
+                AlertDialog(
+                    text = { Text(stringResource(R.string.netplay_connection_lost)) },
+                    confirmButton = {
+                        TextButton(onClick = onBackClicked) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    },
+                    onDismissRequest = onBackClicked,
+                )
+            }
+
+            saveTransferProgress != null && !dismissSaveTransferProgressDialog -> {
+                SaveTransferProgressDialog(
+                    saveTransferProgress = saveTransferProgress,
+                    onDismiss = { dismissSaveTransferProgressDialog = true },
+                )
+            }
         }
     }
 }
@@ -519,6 +538,68 @@ private fun BufferInput(
     }
 }
 
+@Composable
+private fun SaveTransferProgressDialog(
+    saveTransferProgress: SaveTransferProgress,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        title = { Text(saveTransferProgress.title) },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                saveTransferProgress.playerProgresses.forEachIndexed { index, playerProgress ->
+                    SaveTransferProgressRow(
+                        playerProgress = playerProgress,
+                        totalSize = saveTransferProgress.totalSize,
+                    )
+
+                    if (index < saveTransferProgress.playerProgresses.lastIndex) {
+                        HorizontalDivider()
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.netplay_save_transfer_progress_close))
+            }
+        },
+        onDismissRequest = onDismiss,
+    )
+}
+
+@Composable
+private fun SaveTransferProgressRow(
+    playerProgress: SaveTransferProgress.PlayerProgress,
+    totalSize: Long,
+) {
+    fun formatMib(bytes: Long) = String.format(Locale.US, "%.2f", bytes / 1024f / 1024f)
+    val progressFraction = (playerProgress.progress.toFloat() / totalSize).coerceIn(0f, 1f)
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LinearProgressIndicator(
+            progress = { progressFraction },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = playerProgress.name,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "${formatMib(playerProgress.progress)}/${formatMib(totalSize)} MiB",
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun NetplayScreenPreview() {
@@ -589,5 +670,22 @@ private fun PreviewNetplayScreen() {
         hostInputAuthorityEnabled = true,
         maxBuffer = 10,
         onMaxBufferChanged = {},
+        saveTransferProgress = null,
+//        saveTransferProgress = SaveTransferProgress(
+//            title = "Title",
+//            totalSize = 1024L,
+//            playerProgresses = listOf(
+//                SaveTransferProgress.PlayerProgress(
+//                    playerId = 1,
+//                    name = "Player 1",
+//                    progress = 256,
+//                ),
+//                SaveTransferProgress.PlayerProgress(
+//                    playerId = 2,
+//                    name = "Player 2",
+//                    progress = 512,
+//                ),
+//            ),
+//        ),
     )
 }

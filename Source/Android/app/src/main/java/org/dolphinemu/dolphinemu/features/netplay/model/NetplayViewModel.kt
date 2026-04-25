@@ -2,8 +2,6 @@
 
 package org.dolphinemu.dolphinemu.features.netplay.model
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -41,6 +39,8 @@ class NetplayViewModel : ViewModel() {
 
     private val _maxBuffer = MutableStateFlow(Netplay.Settings.getClientBufferSize())
     val maxBuffer = _maxBuffer.asStateFlow()
+
+    val saveTransferProgress = Netplay.saveTransferProgress
 
     init {
         if (!Netplay.isClientConnected()) {

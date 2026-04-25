@@ -52,6 +52,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
                     maxBuffer = viewModel.maxBuffer.collectAsState().value,
                     onMaxBufferChanged = viewModel::setMaxBuffer,
+                    saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
                 )
             }
         }
