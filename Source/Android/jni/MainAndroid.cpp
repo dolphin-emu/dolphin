@@ -56,8 +56,6 @@
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
-#include "InputCommon/GCAdapter.h"
-
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
@@ -531,20 +529,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ResetDolphin
   HostThreadLock guard;
   SConfig::ResetAllSettings();
   UICommon::SetUserDirectory(File::GetUserPath(D_USER_IDX));
-}
-
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, jclass)
-{
-  HostThreadLock guard;
-  if (GCAdapter::UseAdapter())
-  {
-    GCAdapter::StartScanThread();
-  }
-  else
-  {
-    GCAdapter::StopScanThread();
-  }
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv*, jclass)

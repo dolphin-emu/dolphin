@@ -26,8 +26,6 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-#include "InputCommon/GCAdapter.h"
-
 using SIDeviceName = std::pair<SerialInterface::SIDevices, const char*>;
 static constexpr std::array s_gc_types = {
     SIDeviceName{SerialInterface::SIDEVICE_NONE, _trans("None")},
@@ -205,10 +203,6 @@ void GamecubeControllersWidget::SaveSettings()
       }
     }
   }
-  if (GCAdapter::UseAdapter())
-    GCAdapter::StartScanThread();
-  else
-    GCAdapter::StopScanThread();
 
   SConfig::GetInstance().SaveSettings();
 }

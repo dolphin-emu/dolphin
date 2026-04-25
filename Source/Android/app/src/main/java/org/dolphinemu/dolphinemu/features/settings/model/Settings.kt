@@ -56,7 +56,6 @@ class Settings : Closeable {
             NativeConfig.save(NativeConfig.LAYER_BASE)
 
             NativeLibrary.ReloadLoggerConfig()
-            NativeLibrary.UpdateGCAdapterScanThread()
         } else {
             NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME)
         }
