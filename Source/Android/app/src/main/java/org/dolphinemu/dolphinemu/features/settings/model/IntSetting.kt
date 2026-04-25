@@ -185,11 +185,7 @@ enum class IntSetting(
             MAIN_SLOT_A,
             MAIN_SLOT_B,
             MAIN_SERIAL_PORT_1,
-            MAIN_FALLBACK_REGION,
-            MAIN_SI_DEVICE_0,
-            MAIN_SI_DEVICE_1,
-            MAIN_SI_DEVICE_2,
-            MAIN_SI_DEVICE_3
+            MAIN_FALLBACK_REGION
         )
 
         private val NOT_RUNTIME_EDITABLE: Set<IntSetting> =

@@ -232,10 +232,6 @@ protected:
 
   u32 m_current_game = 0;
 
-  PadMappingArray m_pad_map{};
-  GBAConfigArray m_gba_config{};
-  PadMappingArray m_wiimote_map{};
-
   bool m_is_recording = false;
 
 private:
@@ -261,7 +257,6 @@ private:
   bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
                                sf::Packet& packet);
 
-  void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
                                sf::Packet& packet);

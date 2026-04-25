@@ -40,7 +40,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
@@ -627,17 +626,15 @@ void NetPlayClient::OnChunkedDataAbort(sf::Packet& packet)
 
 void NetPlayClient::OnPadMapping(sf::Packet& packet)
 {
-  for (PlayerId& mapping : m_pad_map)
+  for (PlayerId& mapping : m_net_settings.pad_map)
     packet >> mapping;
-
-  UpdateDevices();
 
   m_dialog->Update();
 }
 
 void NetPlayClient::OnWiimoteMapping(sf::Packet& packet)
 {
-  for (PlayerId& mapping : m_wiimote_map)
+  for (PlayerId& mapping : m_net_settings.wiimote_map)
     packet >> mapping;
 
   m_dialog->Update();
@@ -645,9 +642,9 @@ void NetPlayClient::OnWiimoteMapping(sf::Packet& packet)
 
 void NetPlayClient::OnGBAConfig(sf::Packet& packet)
 {
-  for (size_t i = 0; i < m_gba_config.size(); ++i)
+  for (size_t i = 0; i < m_net_settings.gba_config.size(); ++i)
   {
-    auto& config = m_gba_config[i];
+    auto& config = m_net_settings.gba_config[i];
     const auto old_config = config;
 
     packet >> config.enabled >> config.has_rom >> config.title;
@@ -666,7 +663,6 @@ void NetPlayClient::OnGBAConfig(sf::Packet& packet)
   }
 
   SendGameStatus();
-  UpdateDevices();
 
   m_dialog->Update();
 }
@@ -680,7 +676,7 @@ void NetPlayClient::OnPadData(sf::Packet& packet)
 
     GCPadStatus pad;
     packet >> pad.button;
-    if (!m_gba_config.at(map).enabled)
+    if (!m_net_settings.gba_config.at(map).enabled)
     {
       packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
           pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
@@ -702,7 +698,7 @@ void NetPlayClient::OnPadHostData(sf::Packet& packet)
 
     GCPadStatus pad;
     packet >> pad.button;
-    if (!m_gba_config.at(map).enabled)
+    if (!m_net_settings.gba_config.at(map).enabled)
     {
       packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
           pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
@@ -1699,7 +1695,7 @@ void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus
 {
   packet << static_cast<PadIndex>(in_game_pad);
   packet << pad.button;
-  if (!m_gba_config[in_game_pad].enabled)
+  if (!m_net_settings.gba_config[in_game_pad].enabled)
   {
     packet << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
            << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
@@ -1769,21 +1765,15 @@ bool NetPlayClient::StartGame(const std::string& path)
     Movie::WiimoteEnabledArray wiimotes{};
     for (unsigned int i = 0; i < 4; ++i)
     {
-      if (m_pad_map[i] > 0 && m_gba_config[i].enabled)
+      if (m_net_settings.pad_map[i] > 0 && m_net_settings.gba_config[i].enabled)
         controllers[i] = Movie::ControllerType::GBA;
-      else if (m_pad_map[i] > 0)
+      else if (m_net_settings.pad_map[i] > 0)
         controllers[i] = Movie::ControllerType::GC;
       else
         controllers[i] = Movie::ControllerType::None;
-      wiimotes[i] = m_wiimote_map[i] > 0;
+      wiimotes[i] = m_net_settings.wiimote_map[i] > 0;
     }
     movie.BeginRecordingInput(controllers, wiimotes);
-  }
-
-  for (unsigned int i = 0; i < 4; ++i)
-  {
-    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
-                       m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
   }
 
   // boot game
@@ -1807,11 +1797,11 @@ bool NetPlayClient::StartGame(const std::string& path)
                                       if (File::Exists(redirect_path))
                                         File::DeleteDirRecursively(redirect_path);
                                     });
+
+  m_net_settings.local_player_id = m_local_player->pid;
   boot_session_data->SetNetplaySettings(std::make_unique<NetPlay::NetSettings>(m_net_settings));
 
   m_dialog->BootGame(path, std::move(boot_session_data));
-
-  UpdateDevices();
 
   return true;
 }
@@ -1874,52 +1864,6 @@ void NetPlayClient::SyncCodeResponse(const bool success)
 bool NetPlayClient::ChangeGame(const std::string&)
 {
   return true;
-}
-
-// called from ---NETPLAY--- thread
-void NetPlayClient::UpdateDevices()
-{
-  u8 local_pad = 0;
-  u8 pad = 0;
-
-  auto& si = Core::System::GetInstance().GetSerialInterface();
-  for (auto player_id : m_pad_map)
-  {
-    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(local_pad));
-
-    if (m_gba_config[pad].enabled && player_id > 0)
-    {
-      si.ChangeDevice(SerialInterface::SIDEVICE_GC_GBA_EMULATED, pad);
-    }
-    else if (player_id == m_local_player->pid)
-    {
-      // Use local controller types for local controllers if they are compatible
-      if (SerialInterface::SIDevice_IsGCController(si_device))
-      {
-        si.ChangeDevice(si_device, pad);
-
-        if (si_device == SerialInterface::SIDEVICE_WIIU_ADAPTER)
-        {
-          GCAdapter::ResetDeviceType(local_pad);
-        }
-      }
-      else
-      {
-        si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
-      }
-      local_pad++;
-    }
-    else if (player_id > 0)
-    {
-      if (si_device != SerialInterface::SIDEVICE_AM_BASEBOARD)
-        si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
-    }
-    else
-    {
-      si.ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
-    }
-    pad++;
-  }
 }
 
 // called from ---NETPLAY--- thread
@@ -2178,7 +2122,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   bool data_added = false;
   GCPadStatus pad_status;
 
-  if (m_gba_config[ingame_pad].enabled)
+  if (m_net_settings.gba_config[ingame_pad].enabled)
   {
     pad_status = Pad::GetGBAStatus(local_pad);
   }
@@ -2269,9 +2213,9 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 
   if (pad_num < 0)
   {
-    for (size_t i = 0; i < m_pad_map.size(); i++)
+    for (size_t i = 0; i < m_net_settings.pad_map.size(); i++)
     {
-      if (m_pad_map[i] <= 0)
+      if (m_net_settings.pad_map[i] <= 0)
         continue;
 
       while (!m_first_pad_status_received[i])
@@ -2283,9 +2227,9 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
       }
     }
 
-    for (size_t i = 0; i < m_pad_map.size(); i++)
+    for (size_t i = 0; i < m_net_settings.pad_map.size(); i++)
     {
-      if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
+      if (m_net_settings.pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
         continue;
 
       const GCPadStatus& pad_status = m_last_pad_status[i];
@@ -2293,7 +2237,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
       AddPadStateToPacket(static_cast<int>(i), pad_status, packet);
     }
   }
-  else if (m_pad_map[pad_num] != 0)
+  else if (m_net_settings.pad_map[pad_num] != 0)
   {
     while (!m_first_pad_status_received[pad_num])
     {
@@ -2400,18 +2344,18 @@ bool NetPlayClient::LocalPlayerHasControllerMapped() const
 
 bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
 {
-  return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad,
+  return std::none_of(m_net_settings.pad_map.begin(), m_net_settings.pad_map.begin() + ingame_pad,
                       [](auto mapping) { return mapping > 0; });
 }
 
 int NetPlayClient::NumLocalPads() const
 {
-  return std::ranges::count(m_pad_map, m_local_player->pid);
+  return std::ranges::count(m_net_settings.pad_map, m_local_player->pid);
 }
 
 int NetPlayClient::NumLocalWiimotes() const
 {
-  return std::ranges::count(m_wiimote_map, m_local_player->pid);
+  return std::ranges::count(m_net_settings.wiimote_map, m_local_player->pid);
 }
 
 static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
@@ -2453,30 +2397,30 @@ static int LocalToInGame(int local_pad, const PadMappingArray& pad_map, PlayerId
 
 int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
 {
-  return InGameToLocal(ingame_pad, m_pad_map, m_local_player->pid);
+  return InGameToLocal(ingame_pad, m_net_settings.pad_map, m_local_player->pid);
 }
 
 int NetPlayClient::LocalPadToInGamePad(int local_pad) const
 {
-  return LocalToInGame(local_pad, m_pad_map, m_local_player->pid);
+  return LocalToInGame(local_pad, m_net_settings.pad_map, m_local_player->pid);
 }
 
 int NetPlayClient::InGameWiimoteToLocalWiimote(int ingame_wiimote) const
 {
-  return InGameToLocal(ingame_wiimote, m_wiimote_map, m_local_player->pid);
+  return InGameToLocal(ingame_wiimote, m_net_settings.wiimote_map, m_local_player->pid);
 }
 
 int NetPlayClient::LocalWiimoteToInGameWiimote(int local_wiimote) const
 {
-  return LocalToInGame(local_wiimote, m_wiimote_map, m_local_player->pid);
+  return LocalToInGame(local_wiimote, m_net_settings.wiimote_map, m_local_player->pid);
 }
 
 bool NetPlayClient::PlayerHasControllerMapped(const PlayerId pid) const
 {
   const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
 
-  return std::ranges::any_of(m_pad_map, mapping_matches_player_id) ||
-         std::ranges::any_of(m_wiimote_map, mapping_matches_player_id);
+  return std::ranges::any_of(m_net_settings.pad_map, mapping_matches_player_id) ||
+         std::ranges::any_of(m_net_settings.wiimote_map, mapping_matches_player_id);
 }
 
 bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
@@ -2498,7 +2442,7 @@ void NetPlayClient::SendGameStatus()
   m_dialog->FindGameFile(m_selected_game, &result);
   for (size_t i = 0; i < 4; ++i)
   {
-    if (m_gba_config[i].enabled && m_gba_config[i].has_rom &&
+    if (m_net_settings.gba_config[i].enabled && m_net_settings.gba_config[i].has_rom &&
         m_net_settings.gba_rom_paths[i].empty())
     {
       result = SyncIdentifierComparison::DifferentGame;
@@ -2611,17 +2555,17 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 
 const PadMappingArray& NetPlayClient::GetPadMapping() const
 {
-  return m_pad_map;
+  return m_net_settings.pad_map;
 }
 
 const GBAConfigArray& NetPlayClient::GetGBAConfig() const
 {
-  return m_gba_config;
+  return m_net_settings.gba_config;
 }
 
 const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
 {
-  return m_wiimote_map;
+  return m_net_settings.wiimote_map;
 }
 
 void NetPlayClient::AdjustPadBufferSize(const unsigned int size)

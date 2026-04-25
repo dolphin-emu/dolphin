@@ -14,6 +14,10 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/Config/WiimoteSettings.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
 
 namespace PowerPC
@@ -50,6 +54,38 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::SESSION_USE_FMA, dtm->bUseFMA);
 
   config_layer->Set(Config::MAIN_JIT_FOLLOW_BRANCH, dtm->bFollowBranch);
+
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
+    const auto config_info = Config::GetInfoForSIDevice(i);
+    if (dtm->GBAControllers & (1 << i))
+    {
+      device = SerialInterface::SIDEVICE_GC_GBA_EMULATED;
+    }
+    else if (dtm->controllers & (1 << i))
+    {
+      const SerialInterface::SIDevices si_device = Config::Get(config_info);
+      if (SerialInterface::SIDevice_IsGCController(si_device))
+      {
+        device = si_device;
+      }
+      else
+      {
+        device = (dtm->bongos & (1 << i)) != 0 ? SerialInterface::SIDEVICE_GC_TARUKONGA :
+                                                 SerialInterface::SIDEVICE_GC_CONTROLLER;
+      }
+    }
+
+    config_layer->Set(config_info, device);
+  }
+
+  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  {
+    const bool is_using_wiimote = (dtm->controllers & (1 << (i + 4))) != 0;
+    config_layer->Set(Config::GetInfoForWiimoteSource(i),
+                      is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
+  }
 }
 
 void SaveToDTM(Movie::DTMHeader* dtm)
