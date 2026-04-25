@@ -24,12 +24,6 @@ public:
   {
   }
 
-  ~CacheFiller()
-  {
-    m_stop_thread.store(true, std::memory_order_relaxed);
-    m_thread.join();
-  }
-
   bool Read(u64 offset, u64 size, u8* out_ptr)
   {
     if (size == 0)
@@ -126,7 +120,7 @@ private:
 
     while (true)
     {
-      if (m_stop_thread.load(std::memory_order_relaxed))
+      if (m_thread.get_stop_token().stop_requested())
       {
         INFO_LOG_FMT(DISCIO, "CachedBlobReader: Stopped");
         break;
@@ -178,8 +172,7 @@ private:
 
   DiscScrubber m_scrubber;
 
-  std::atomic_bool m_stop_thread{};
-  std::thread m_thread;
+  std::jthread m_thread;
 };
 
 class CachedBlobReader final : public BlobReader
