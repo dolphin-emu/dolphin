@@ -135,7 +135,12 @@ void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool enabled)
 }
 
 void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
-void NetPlayUICallbacks::OnConnectionLost() {}
+
+void NetPlayUICallbacks::OnConnectionLost()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnConnectionLost());
+}
 
 void NetPlayUICallbacks::OnConnectionError(const std::string& message)
 {

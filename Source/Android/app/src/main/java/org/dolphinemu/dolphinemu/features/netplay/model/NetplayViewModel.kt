@@ -25,6 +25,8 @@ class NetplayViewModel : ViewModel() {
     private val _goBack = Channel<Unit>(CONFLATED)
     val goBack = _goBack.receiveAsFlow()
 
+    val connectionLost = Netplay.connectionLost
+
     val players = Netplay.players
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 

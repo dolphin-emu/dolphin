@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +65,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
@@ -75,6 +79,7 @@ import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
 @Composable
 fun NetplayScreen(
     onBackClicked: () -> Unit,
+    connectionLost: Flow<Unit>,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
@@ -124,6 +129,22 @@ fun NetplayScreen(
                 maxBuffer = maxBuffer,
                 onMaxBufferChanged = onMaxBufferChanged,
                 modifier = modifier
+            )
+        }
+
+        var showConnectionLostDialog by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            connectionLost.collect { showConnectionLostDialog = true }
+        }
+        if (showConnectionLostDialog) {
+            AlertDialog(
+                text = { Text(stringResource(R.string.netplay_connection_lost)) },
+                confirmButton = {
+                    TextButton(onClick = onBackClicked) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                onDismissRequest = onBackClicked,
             )
         }
     }
@@ -246,7 +267,7 @@ private fun PLayersAndSettings(
                     .fillMaxWidth()
             )
         }
-        
+
         if (hostInputAuthorityEnabled) {
             MenuSpacer()
 
@@ -539,6 +560,7 @@ private fun LandscapeNetplayScreenDarkPreview() {
 private fun PreviewNetplayScreen() {
     NetplayScreen(
         onBackClicked = {},
+        connectionLost = emptyFlow(),
         players = listOf(
             Player(
                 pid = 1,

@@ -47,6 +47,9 @@ object Netplay {
     private val _stopGame = Channel<Unit>(Channel.CONFLATED)
     val stopGame = _stopGame.receiveAsFlow()
 
+    private val _connectionLost = Channel<Unit>(Channel.CONFLATED)
+    val connectionLost = _connectionLost.receiveAsFlow()
+
     private val _connectionErrors = Channel<String>(Channel.BUFFERED)
     val connectionErrors = _connectionErrors.receiveAsFlow()
 
@@ -63,7 +66,7 @@ object Netplay {
     val players = _players.asSharedFlow().distinctUntilChanged()
 
     private val _chatMessages = MutableSharedFlow<String>(
-        replay = 1,
+        extraBufferCapacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val chatMessages = _chatMessages.asSharedFlow()
@@ -178,6 +181,12 @@ object Netplay {
     @JvmStatic
     fun onStopGame() {
         _stopGame.trySend(Unit)
+    }
+
+    @Keep
+    @JvmStatic
+    fun onConnectionLost() {
+        _connectionLost.trySend(Unit)
     }
 
     @JvmStatic

@@ -44,6 +44,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
             DolphinTheme {
                 NetplayScreen(
                     onBackClicked = { finish() },
+                    connectionLost = viewModel.connectionLost,
                     messages = viewModel.messages.collectAsState().value,
                     onSendMessage = viewModel::sendMessage,
                     game = viewModel.game.collectAsState().value,

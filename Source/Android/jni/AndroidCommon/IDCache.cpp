@@ -33,6 +33,7 @@ static jfieldID s_net_play_client_pointer;
 static jfieldID s_netplay_boot_session_data_pointer;
 static jmethodID s_netplay_on_boot_game;
 static jmethodID s_netplay_on_stop_game;
+static jmethodID s_netplay_on_connection_lost;
 static jmethodID s_netplay_on_connection_error;
 static jmethodID s_netplay_on_game_changed;
 static jmethodID s_netplay_on_host_input_authority_changed;
@@ -271,6 +272,11 @@ jmethodID GetNetplayOnBootGame()
 jmethodID GetNetplayOnStopGame()
 {
   return s_netplay_on_stop_game;
+}
+
+jmethodID GetNetplayOnConnectionLost()
+{
+  return s_netplay_on_connection_lost;
 }
 
 jmethodID GetNetplayOnConnectionError()
@@ -724,6 +730,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_netplay_boot_session_data_pointer = env->GetStaticFieldID(netplay_class, "bootSessionDataPointer", "J");
   s_netplay_on_boot_game = env->GetStaticMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
   s_netplay_on_stop_game = env->GetStaticMethodID(netplay_class, "onStopGame", "()V");
+  s_netplay_on_connection_lost = env->GetStaticMethodID(netplay_class, "onConnectionLost", "()V");
   s_netplay_on_connection_error = env->GetStaticMethodID(netplay_class, "onConnectionError", "(Ljava/lang/String;)V");
   s_netplay_on_game_changed =
       env->GetStaticMethodID(netplay_class, "onGameChanged", "(Ljava/lang/String;)V");
