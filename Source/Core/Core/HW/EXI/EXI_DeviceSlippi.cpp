@@ -1424,11 +1424,11 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
 
     bool is_slow = (offset_us < -t1 && fall_behind_counter > 50) ||
                    (offset_us < -t2 && fall_far_behind_counter > 15);
-    if (is_slow && last_search.mode != SlippiMatchmaking::OnlinePlayMode::TEAMS)
+    if (is_slow && matchmaking->RemotePlayerCount() == 1)
     {
-      // We don't show this message for teams because it seems to false positive a lot there, maybe
-      // because the min offset is always selected? Idk I feel like doubles has some perf issues I
-      // don't understand atm.
+      // Only show this in 1v1. With more peers, CalcTimeOffsetUs returns the min across peers,
+      // which biases negative as the peer count grows and false-positives this warning. The
+      // message text ("if this appears with most opponents") also only makes sense in 1v1.
       OSD::AddTypedMessage(
           OSD::MessageType::PerformanceWarning,
           "Possible poor match performance detected.\nIf this message appears with most opponents, "
