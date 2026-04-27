@@ -515,7 +515,7 @@
    "InjectionAddress": "801A4CB4",
    "Name": "Required: Slippi Recording",
    "Codetype": "Auto",
-   "Annotation": "Common/AllocBuffer.asm",
+   "Annotation": "Common/AllocSceneBuffer.asm",
    "Tags": ""
   },
   {
@@ -1149,6 +1149,27 @@
    "Tags": ""
   },
   {
+   "InjectionAddress": "80178088",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/ResultsScreen/ControlAllPanels.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8017900C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/ResultsScreen/GrayPanelsForRemotePlayers.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8017A890",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Menus/ResultsScreen/MoveScaleTable.asm",
+   "Tags": ""
+  },
+  {
    "InjectionAddress": "8025B8A4",
    "Name": "Required: Slippi Online",
    "Codetype": "Auto",
@@ -1398,6 +1419,13 @@
    "Name": "Required: Slippi Online",
    "Codetype": "Auto",
    "Annotation": "Online/Static/SaveState.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8000568C",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Static/StaticData.asm",
    "Tags": ""
   },
   {

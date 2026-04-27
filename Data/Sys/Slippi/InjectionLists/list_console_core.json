@@ -291,7 +291,7 @@
    "InjectionAddress": "801A4CB4",
    "Name": "Slippi Recording",
    "Codetype": "Auto",
-   "Annotation": "Common/AllocBuffer.asm",
+   "Annotation": "Common/AllocSceneBuffer.asm",
    "Tags": ""
   },
   {
