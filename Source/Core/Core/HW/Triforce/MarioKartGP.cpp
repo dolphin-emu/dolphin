@@ -14,6 +14,13 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+namespace
+{
+constexpr std::array<u8, 3> ACK_NO_ERROR{'E', '0', '0'};
+constexpr std::array<u8, 3> ACK_POWER_ON{'C', '0', '1'};
+constexpr std::array<u8, 3> ACK_POWER_OFF{'C', '0', '6'};
+}  // namespace
+
 namespace Triforce
 {
 
@@ -94,10 +101,10 @@ void MarioKartGPSteeringWheel::ProcessRequest(std::span<const u8> request)
 {
   DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: Request: {:02x}", fmt::join(request, " "));
 
-  const u8 cmd = request[3];
-  if (cmd != 0x01)
+  const u32 cmd = Common::swap32(request.data());
+  if (cmd != 0xffffff01)
   {
-    WARN_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: Unknown command: {:02x}", cmd);
+    WARN_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: Unknown command: {:08x}", cmd);
     return;
   }
 
@@ -111,15 +118,27 @@ void MarioKartGPSteeringWheel::ProcessRequest(std::span<const u8> request)
   switch (m_init_state)
   {
   case 0:
-    WriteTxBytes(std::array<u8, 3>{'E', '0', '0'});  // Error
+    // The game seems to expect this on power up.
+    WriteTxBytes(ACK_NO_ERROR);
     ++m_init_state;
     break;
-  case 1:
-    WriteTxBytes(std::array<u8, 3>{'C', '0', '6'});  // Power Off
-    ++m_init_state;
-    break;
+
   default:
-    WriteTxBytes(std::array<u8, 3>{'C', '0', '1'});  // Power On
+    // The game won't send non-zero forces unless the "POWER_ON" response is observed.
+    // After a race, the game gradually lowers the force to 0 and expects a "POWER_OFF" response.
+    // The meaning of these responses is not really understood.
+    // Cycling between "POWER_OFF" and "POWER_ON" seems to make the game happy for now..
+
+    if (m_init_state == 1)
+    {
+      WriteTxBytes(ACK_POWER_OFF);
+      ++m_init_state;
+    }
+    else
+    {
+      WriteTxBytes(ACK_POWER_ON);
+      m_init_state = 1;
+    }
     break;
   }
 }
