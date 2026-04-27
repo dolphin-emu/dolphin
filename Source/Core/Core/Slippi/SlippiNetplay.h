@@ -32,7 +32,8 @@
 #endif
 
 #define ROLLBACK_MAX_FRAMES 7
-#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL 30 // Number of frames to wait before attempting to time-sync
+#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL                                                            \
+  30  // Number of frames to wait before attempting to time-sync
 #define SLIPPI_PING_DISPLAY_INTERVAL 60
 #define SLIPPI_REMOTE_PLAYER_MAX 3
 #define SLIPPI_REMOTE_PLAYER_COUNT 3
@@ -253,22 +254,22 @@ protected:
   u8 m_player_idx = 0;
 
   struct ActiveConnectionInfo
-	{
-		u8 player_idx;
-		bool is_disconnected = false;
-	};
+  {
+    u8 player_idx;
+    bool is_disconnected = false;
+  };
 
   // Owned by the network thread (constructor + ThreadFunc + Send/OnData which run on the
-	// network thread via the SendAsync queue). Do not read from other threads — use the
-	// playerActive atomics below for cross-thread checks of liveness.
-	std::unordered_map<std::string, std::map<ENetPeer *, ActiveConnectionInfo>> m_active_connections;
+  // network thread via the SendAsync queue). Do not read from other threads — use the
+  // playerActive atomics below for cross-thread checks of liveness.
+  std::unordered_map<std::string, std::map<ENetPeer*, ActiveConnectionInfo>> m_active_connections;
 
   // Lock-free view of which global player indices still have at least one live peer.
-	// Written by the network thread when activeConnections changes, and by the EXI
-	// thread via ForceDisconnectPlayer. Read from any thread (notably the main/EXI
-	// thread via GetActivePlayerIndices). The network thread also uses this to drive
-	// per-peer ENet disconnects for players force-dropped from the EXI side.
-	std::atomic<bool> player_active[SLIPPI_PLAYER_COUNT_MAX] = {};
+  // Written by the network thread when activeConnections changes, and by the EXI
+  // thread via ForceDisconnectPlayer. Read from any thread (notably the main/EXI
+  // thread via GetActivePlayerIndices). The network thread also uses this to drive
+  // per-peer ENet disconnects for players force-dropped from the EXI side.
+  std::atomic<bool> player_active[SLIPPI_PLAYER_COUNT_MAX] = {};
 
   std::deque<std::unique_ptr<SlippiPad>> m_local_pad_queue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>>
@@ -284,7 +285,8 @@ protected:
   FrameTiming last_frame_timing[SLIPPI_REMOTE_PLAYER_MAX];
   std::array<Common::SPSCQueue<FrameTiming>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
 
-  std::atomic<SlippiConnectStatus> slippi_connect_status{SlippiConnectStatus::NET_CONNECT_STATUS_UNSET};
+  std::atomic<SlippiConnectStatus> slippi_connect_status{
+      SlippiConnectStatus::NET_CONNECT_STATUS_UNSET};
   std::vector<int> failed_connections;
   SlippiMatchInfo match_info;
 
@@ -299,8 +301,8 @@ private:
   void Send(sf::Packet& packet);
   void Disconnect();
   // Network-thread only — call from inside ThreadFunc.
-	bool AreAllConnectionsDisconnected();
-	bool AreAllPeersDisconnectedForKey(const std::string &key);
+  bool AreAllConnectionsDisconnected();
+  bool AreAllPeersDisconnectedForKey(const std::string& key);
 
   bool m_is_connected = false;
 

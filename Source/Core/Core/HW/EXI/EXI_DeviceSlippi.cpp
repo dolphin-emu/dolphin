@@ -1191,10 +1191,10 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
     }
 
     // Reset per-player stall counters
-		for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
-		{
-			stall_frame_counts[i] = 0;
-		}
+    for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+    {
+      stall_frame_counts[i] = 0;
+    }
 
     // Reset skip variables
     frames_to_skip = 0;
@@ -1250,51 +1250,52 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalized_frame)
   }
 
   // Check each active remote player individually. If any single player is short on
-	// new inputs we still skip the frame, but we only force-disconnect the specific
-	// player(s) whose stall counter exceeds the threshold. In a 1v1 this collapses to
-	// the previous behavior (sole opponent gets dropped → connectionDisconnected path
-	// fires next frame). In multiplayer, the despawn/continue path takes over.
-	// ROLLBACK_MAX_FRAMES is our look-ahead limit: see the prior comment block in git
-	// history for the savestate math.
-	bool any_player_needs_inputs = false;
-	u8 remote_player_count = matchmaking->RemotePlayerCount();
-	for (u8 i = 0; i < remote_player_count; i++)
+  // new inputs we still skip the frame, but we only force-disconnect the specific
+  // player(s) whose stall counter exceeds the threshold. In a 1v1 this collapses to
+  // the previous behavior (sole opponent gets dropped → connectionDisconnected path
+  // fires next frame). In multiplayer, the despawn/continue path takes over.
+  // ROLLBACK_MAX_FRAMES is our look-ahead limit: see the prior comment block in git
+  // history for the savestate math.
+  bool any_player_needs_inputs = false;
+  u8 remote_player_count = matchmaking->RemotePlayerCount();
+  for (u8 i = 0; i < remote_player_count; i++)
   {
     auto pad = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
-		if (pad->is_disconnected)
-		{
-			stall_frame_counts[i] = 0;
-			continue;
-		}
-
-    s32 latest_remote_frame = pad->latest_frame;
-		bool has_enough_new_inputs =
-		    latest_remote_frame - finalized_frame >= (frame - finalized_frame - ROLLBACK_MAX_FRAMES);
-		if (has_enough_new_inputs)
+    if (pad->is_disconnected)
     {
       stall_frame_counts[i] = 0;
-			continue;
-		}
-
-		stall_frame_counts[i]++;
-		any_player_needs_inputs = true;
-
-		if (stall_frame_counts[i] > 60 * 7)
-    {
-      WARN_LOG_FMT(SLIPPI_ONLINE, "Force-disconnecting player {} after 7s stall (frame: {} | latest: {})",
-        pad->player_idx, frame, latest_remote_frame);
-			slippi_netplay->ForceDisconnectPlayer(pad->player_idx);
-			stall_frame_counts[i] = 0;
-			continue;
+      continue;
     }
-    WARN_LOG_FMT(SLIPPI_ONLINE, "Halting for one frame due to rollback limit (frame: {} | latest: {} | finalized: {} | player: {})...",
-      frame, latest_remote_frame, finalized_frame, pad->player_idx);
+
+    s32 latest_remote_frame = pad->latest_frame;
+    bool has_enough_new_inputs =
+        latest_remote_frame - finalized_frame >= (frame - finalized_frame - ROLLBACK_MAX_FRAMES);
+    if (has_enough_new_inputs)
+    {
+      stall_frame_counts[i] = 0;
+      continue;
+    }
+
+    stall_frame_counts[i]++;
+    any_player_needs_inputs = true;
+
+    if (stall_frame_counts[i] > 60 * 7)
+    {
+      WARN_LOG_FMT(SLIPPI_ONLINE,
+                   "Force-disconnecting player {} after 7s stall (frame: {} | latest: {})",
+                   pad->player_idx, frame, latest_remote_frame);
+      slippi_netplay->ForceDisconnectPlayer(pad->player_idx);
+      stall_frame_counts[i] = 0;
+      continue;
+    }
+    WARN_LOG_FMT(SLIPPI_ONLINE,
+                 "Halting for one frame due to rollback limit (frame: {} | latest: {} | finalized: "
+                 "{} | player: {})...",
+                 frame, latest_remote_frame, finalized_frame, pad->player_idx);
   }
 
   if (any_player_needs_inputs)
-		return true;
-
-  
+    return true;
 
   s32 frame_time = 16683;
   s32 t1 = 10000;
@@ -1536,69 +1537,70 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
 
   s32 latest_frame_from_opps = Slippi::GAME_FIRST_FRAME - 1;
   u32 last_checksum_frame = 0;
-	u32 last_checksum = 0;
+  u32 last_checksum = 0;
 
   for (int i = 0; i < remote_player_count; i++)
   {
     results[i] = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
     if (results[i]->is_disconnected)
-		{
-			continue;
-		}
+    {
+      continue;
+    }
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
     if (results[i]->latest_frame > latest_frame_from_opps)
-		{
-			last_checksum_frame = static_cast<u32>(results[i]->checksum_frame);
-			last_checksum = results[i]->checksum;
-			latest_frame_from_opps = results[i]->latest_frame;
-		}
+    {
+      last_checksum_frame = static_cast<u32>(results[i]->checksum_frame);
+      last_checksum = results[i]->checksum;
+      latest_frame_from_opps = results[i]->latest_frame;
+    }
   }
 
   // Determine whether each remote fighter should be despawned due to disconnect. This needs
-	// to be computed before the loop below overwrites the disconnected players' latestFrame.
-	// We want the signal to be synchronized across clients, so we wait until
-	// (2*ROLLBACK_MAX_FRAMES + 2) frames have passed since the last input we received from the
-	// disconnected player, then advance to the next frame that is a multiple of
-	// SLIPPI_DESPAWN_FRAME_INTERVAL. This gives us a window where slightly different last
-	// received frames might still work out to the same despawn frame
-	const s32 SLIPPI_DESPAWN_FRAME_INTERVAL = 30;
-	u8 should_despawn[SLIPPI_REMOTE_PLAYER_MAX] = {0, 0, 0};
-	for (int i = 0; i < remote_player_count; i++)
-	{
-		if (!results[i]->is_disconnected)
-			continue;
+  // to be computed before the loop below overwrites the disconnected players' latestFrame.
+  // We want the signal to be synchronized across clients, so we wait until
+  // (2*ROLLBACK_MAX_FRAMES + 2) frames have passed since the last input we received from the
+  // disconnected player, then advance to the next frame that is a multiple of
+  // SLIPPI_DESPAWN_FRAME_INTERVAL. This gives us a window where slightly different last
+  // received frames might still work out to the same despawn frame
+  const s32 SLIPPI_DESPAWN_FRAME_INTERVAL = 30;
+  u8 should_despawn[SLIPPI_REMOTE_PLAYER_MAX] = {0, 0, 0};
+  for (int i = 0; i < remote_player_count; i++)
+  {
+    if (!results[i]->is_disconnected)
+      continue;
 
-		s32 lastInputFrame = results[i]->latest_frame;
-		s32 thresholdFrame = lastInputFrame + 2 * ROLLBACK_MAX_FRAMES + 2;
+    s32 lastInputFrame = results[i]->latest_frame;
+    s32 thresholdFrame = lastInputFrame + 2 * ROLLBACK_MAX_FRAMES + 2;
 
-		// Round up to the next frame that is a multiple of the despawn interval
-		s32 despawnFrame =
-		    ((thresholdFrame + SLIPPI_DESPAWN_FRAME_INTERVAL - 1) / SLIPPI_DESPAWN_FRAME_INTERVAL) *
-		    SLIPPI_DESPAWN_FRAME_INTERVAL;
+    // Round up to the next frame that is a multiple of the despawn interval
+    s32 despawnFrame =
+        ((thresholdFrame + SLIPPI_DESPAWN_FRAME_INTERVAL - 1) / SLIPPI_DESPAWN_FRAME_INTERVAL) *
+        SLIPPI_DESPAWN_FRAME_INTERVAL;
 
-		if (frame >= despawnFrame)
-			should_despawn[i] = 1;
-	}
+    if (frame >= despawnFrame)
+      should_despawn[i] = 1;
+  }
 
   for (int i = 0; i < remote_player_count; i++)
-	{
-		if (!results[i]->is_disconnected)
-		{
-			// INFO_LOG_FMT(SLIPPI_ONLINE, "Sending checksum values: [{}] {}", results[i]->checksumFrame,
-			// results[i]->checksum);
-			appendWordToBuffer(&m_read_queue, static_cast<u32>(results[i]->checksum_frame));
-			appendWordToBuffer(&m_read_queue, results[i]->checksum);
-			continue;
-		}
+  {
+    if (!results[i]->is_disconnected)
+    {
+      // INFO_LOG_FMT(SLIPPI_ONLINE, "Sending checksum values: [{}] {}", results[i]->checksumFrame,
+      // results[i]->checksum);
+      appendWordToBuffer(&m_read_queue, static_cast<u32>(results[i]->checksum_frame));
+      appendWordToBuffer(&m_read_queue, results[i]->checksum);
+      continue;
+    }
 
-		// This is sorta jank but we loop again to overwrite values on any disconnected pads to prevent checksum
-		// issues and prevent stalling due to old pad data. We are essentially "tricking" the ASM side here
-		// and likely a better solution would be for the ASM side to know who is disconnected and handle it accordingly
-		results[i]->latest_frame = latest_frame_from_opps;
-		appendWordToBuffer(&m_read_queue, last_checksum_frame);
-		appendWordToBuffer(&m_read_queue, last_checksum);
-	}
+    // This is sorta jank but we loop again to overwrite values on any disconnected pads to prevent
+    // checksum issues and prevent stalling due to old pad data. We are essentially "tricking" the
+    // ASM side here and likely a better solution would be for the ASM side to know who is
+    // disconnected and handle it accordingly
+    results[i]->latest_frame = latest_frame_from_opps;
+    appendWordToBuffer(&m_read_queue, last_checksum_frame);
+    appendWordToBuffer(&m_read_queue, last_checksum);
+  }
 
   for (int i = remote_player_count; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
   {
@@ -1659,10 +1661,10 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
   }
 
   // Append the per-remote-player should-despawn flags
-	for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
-	{
-		m_read_queue.push_back(should_despawn[i]);
-	}
+  for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+  {
+    m_read_queue.push_back(should_despawn[i]);
+  }
 
   // ERROR_LOG_FMT(SLIPPI_ONLINE, "EXI: [{}] %X %X %X %X %X %X %X %X", latest_frame,
   // m_read_queue[5], m_read_queue[6], m_read_queue[7], m_read_queue[8], m_read_queue[9],
@@ -2043,14 +2045,14 @@ void CEXISlippi::prepareOnlineMatchState()
     auto status = slippi_netplay->GetSlippiConnectStatus();
     bool is_connected =
         status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
-    
+
     // If any players are disconnected and the match state is being requested (we are in a lobby),
-		// we should just disconnect. This allows for games to finish with a disconnected player but
-		// after that the "lobby" is terminated.
-		if (slippi_netplay->GetActivePlayerIndices().size() != matchmaking->RemotePlayerCount())
-		{
-			is_connected = false;
-		}
+    // we should just disconnect. This allows for games to finish with a disconnected player but
+    // after that the "lobby" is terminated.
+    if (slippi_netplay->GetActivePlayerIndices().size() != matchmaking->RemotePlayerCount())
+    {
+      is_connected = false;
+    }
 #endif
 
     if (is_connected)
@@ -2344,8 +2346,8 @@ void CEXISlippi::prepareOnlineMatchState()
       }
 
       auto is_teams = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS;
-			auto team_id = is_teams ? s->team_id : 0;
-			if (is_teams && are_all_same_team)
+      auto team_id = is_teams ? s->team_id : 0;
+      if (is_teams && are_all_same_team)
       {
         // Overwrite team_id. Color is overwritten by ASM
         team_id = team_assignments[s->player_idx];
@@ -2358,29 +2360,32 @@ void CEXISlippi::prepareOnlineMatchState()
       online_match_block[0x69 + (s->player_idx) * 0x24] = team_id;
     }
 
-    // Handle character coloring. This normally wouldn't be necessary but in the case where one person selects Zelda
-		// and one person selects Sheik of the same color, the game wont automatically force the color changes
-		std::unordered_map<u16, u8> color_counts;
-		for (size_t i = 0; i < ordered_selections.size(); i++)
+    // Handle character coloring. This normally wouldn't be necessary but in the case where one
+    // person selects Zelda and one person selects Sheik of the same color, the game wont
+    // automatically force the color changes
+    std::unordered_map<u16, u8> color_counts;
+    for (size_t i = 0; i < ordered_selections.size(); i++)
     {
-      const auto &s = ordered_selections[i];
+      const auto& s = ordered_selections[i];
 
       // Make key including char id and char color
-			u8 char_id = s->character_id == 0x13 ? 0x12 : s->character_id; // Force Sheik to count with Zelda
-			u16 key = static_cast<u16>(char_id) << 8 | static_cast<u16>(s->character_color);
+      u8 char_id =
+          s->character_id == 0x13 ? 0x12 : s->character_id;  // Force Sheik to count with Zelda
+      u16 key = static_cast<u16>(char_id) << 8 | static_cast<u16>(s->character_color);
 
       // Set the shade of the fighter and increment the count
-			u8 &count = color_counts[key];
-			online_match_block[0x67 + (0x24 * i)] = count;
-			count += 1;
+      u8& count = color_counts[key];
+      online_match_block[0x67 + (0x24 * i)] = count;
+      count += 1;
     }
     // Set teams mode
-		online_match_block[0x8] = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 1 : 0;
-		//online_match_block[0x8] = remote_player_count >= 2 ? 1 : 0; // TODO: If we dont set it to teams, it crashes sometimes
+    online_match_block[0x8] = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 1 : 0;
+    // online_match_block[0x8] = remote_player_count >= 2 ? 1 : 0; // TODO: If we dont set it to
+    // teams, it crashes sometimes
 
-		// Set p3/p4 player type to human or none depending on the amount of players
-		online_match_block[0x61 + 2 * 0x24] = remote_player_count >= 2 ? 0 : 3;
-		online_match_block[0x61 + 3 * 0x24] = remote_player_count >= 3 ? 0 : 3;
+    // Set p3/p4 player type to human or none depending on the amount of players
+    online_match_block[0x61 + 2 * 0x24] = remote_player_count >= 2 ? 0 : 3;
+    online_match_block[0x61 + 3 * 0x24] = remote_player_count >= 3 ? 0 : 3;
 
     u16* stage = (u16*)&online_match_block[0xE];
     *stage = Common::swap16(stage_id);
@@ -2415,36 +2420,37 @@ void CEXISlippi::prepareOnlineMatchState()
   }
 
   // Configure mode, timer, stocks, etc
-	if (last_search.mode == SlippiMatchmaking::OnlinePlayMode::PARTY)
-	{
-		online_match_block[0x0] = 0x12; // Time mode, 4 char players in UI, count down timer
-		online_match_block[0x3] = 0xCC; // Show score UI
-		u32 *match_timer = reinterpret_cast<u32 *>(&online_match_block[0x10]);
-		*match_timer = Common::swap32(5 * 60); // 5 Minute timer
-	}
-	else
-	{
-		// Reset everything. I still feel like maybe the online_match_block should not be static so we don't have to reset
-		// states like this but I'm a bit worried about making that change and causing weird bugs.
-		online_match_block[0x0] = 0x32; // Stock mode, 4 char players in UI, count down timer
-		online_match_block[0x3] = 0x4C; // Hide score UI
-		u32 *match_timer = reinterpret_cast<u32 *>(&online_match_block[0x10]);
-		*match_timer = Common::swap32(8 * 60); // 8 Minute timer
-	}
+  if (last_search.mode == SlippiMatchmaking::OnlinePlayMode::PARTY)
+  {
+    online_match_block[0x0] = 0x12;  // Time mode, 4 char players in UI, count down timer
+    online_match_block[0x3] = 0xCC;  // Show score UI
+    u32* match_timer = reinterpret_cast<u32*>(&online_match_block[0x10]);
+    *match_timer = Common::swap32(5 * 60);  // 5 Minute timer
+  }
+  else
+  {
+    // Reset everything. I still feel like maybe the online_match_block should not be static so we
+    // don't have to reset states like this but I'm a bit worried about making that change and
+    // causing weird bugs.
+    online_match_block[0x0] = 0x32;  // Stock mode, 4 char players in UI, count down timer
+    online_match_block[0x3] = 0x4C;  // Hide score UI
+    u32* match_timer = reinterpret_cast<u32*>(&online_match_block[0x10]);
+    *match_timer = Common::swap32(8 * 60);  // 8 Minute timer
+  }
 
-	// Configure items. Have to reset things when there are no items.
-	online_match_block[0xB] = 0xFF; // Items off
-	u64 new_items_value = 0xF80000000F000000; // Default value (all items off)
-	if (recent_mm_result.items != 0)
-	{
-		// Set the items bitfield. There are 31 bits each representing one item that can be enabled
-		new_items_value |= static_cast<u64>(recent_mm_result.items) << 28;
+  // Configure items. Have to reset things when there are no items.
+  online_match_block[0xB] = 0xFF;            // Items off
+  u64 new_items_value = 0xF80000000F000000;  // Default value (all items off)
+  if (recent_mm_result.items != 0)
+  {
+    // Set the items bitfield. There are 31 bits each representing one item that can be enabled
+    new_items_value |= static_cast<u64>(recent_mm_result.items) << 28;
 
-		// Set item frequency to high
-		online_match_block[0xB] = 3;
-	}
-	u64 *item_bits = reinterpret_cast<u64 *>(&online_match_block[0x23]);
-	*item_bits = Common::swap64(new_items_value);
+    // Set item frequency to high
+    online_match_block[0xB] = 3;
+  }
+  u64* item_bits = reinterpret_cast<u64*>(&online_match_block[0x23]);
+  *item_bits = Common::swap64(new_items_value);
 
   // Add rng offset to output
   appendWordToBuffer(&m_read_queue, rng_offset);
@@ -2501,16 +2507,17 @@ void CEXISlippi::prepareOnlineMatchState()
   // Create the opponent string using the names of all players on opposing teams
   std::vector<std::string> opponent_names = {};
   int teamIdx = online_match_block[0x69 + m_local_player_idx * 0x24];
-	for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
+  {
     auto is_teams = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS;
-		auto is_same_team = online_match_block[0x69 + i * 0x24] == teamIdx;
-		auto player_is_human = online_match_block[0x61 + i * 0x24] == 0;
-		if (m_local_player_idx == i || !player_is_human || (is_same_team && is_teams))
-			continue;
+    auto is_same_team = online_match_block[0x69 + i * 0x24] == teamIdx;
+    auto player_is_human = online_match_block[0x61 + i * 0x24] == 0;
+    if (m_local_player_idx == i || !player_is_human || (is_same_team && is_teams))
+      continue;
 
     auto name = matchmaking->GetPlayerName(i);
-		if (name != "")
-			opponent_names.push_back(name);
+    if (name != "")
+      opponent_names.push_back(name);
   }
 
   int num_opponents = opponent_names.size() == 0 ? 1 : static_cast<int>(opponent_names.size());
