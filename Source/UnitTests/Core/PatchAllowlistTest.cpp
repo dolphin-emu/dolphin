@@ -132,7 +132,7 @@ TEST(PatchAllowlist, VerifyHashes)
   {
     ADD_FAILURE() << "Approved list hash does not match the one in AchievementApprovedHash.h."
                   << std::endl
-                  << "Please update APPROVED_LIST_HASH to the following:" << std::endl
+                  << "Please update ACHIEVEMENT_APPROVED_LIST_HASH to the following:" << std::endl
                   << Common::SHA1::DigestToSource(digest);
   }
   // Compare with old allowlist
