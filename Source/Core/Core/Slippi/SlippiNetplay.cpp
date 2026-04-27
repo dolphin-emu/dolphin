@@ -2,6 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <climits>
+#include <fstream>
+#include <memory>
+#include <thread>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ENet.h"
@@ -18,11 +24,6 @@
 #include "Core/Slippi/SlippiPremadeText.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
-
-#include <algorithm>
-#include <fstream>
-#include <memory>
-#include <thread>
 
 static std::mutex pad_mutex;
 static std::mutex ack_mutex;
@@ -84,7 +85,7 @@ SlippiNetplayClient::SlippiNetplayClient(std::vector<std::string> addrs, std::ve
     this->frame_offset_data[i] = FrameOffsetData();
     this->last_frame_timing[i] = FrameTiming();
     this->ping_us[i] = 0;
-    this->last_frame_acked[i] = 0;
+    this->last_frame_acked[i] = 0; // First frame should be 1 in this context so 0 is the correct reset (I think)
   }
 
   SLIPPI_NETPLAY = std::move(this);
@@ -132,7 +133,7 @@ SlippiNetplayClient::SlippiNetplayClient(std::vector<std::string> addrs, std::ve
 		ActiveConnectionInfo connInfo;
 		connInfo.player_idx = match_info.remote_player_selections[i].player_idx;
 		m_active_connections[key_strm.str()][peer] = connInfo;
-    INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (constr): {}", key_strm.str());
+    player_active[connInfo.player_idx].store(true, std::memory_order_release);
 
     if (peer == nullptr)
     {
@@ -145,7 +146,7 @@ SlippiNetplayClient::SlippiNetplayClient(std::vector<std::string> addrs, std::ve
     }
   }
 
-  slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED;
+  slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED, std::memory_order_release);
 
   m_thread = std::thread(&SlippiNetplayClient::ThreadFunc, this);
 }
@@ -155,7 +156,7 @@ SlippiNetplayClient::SlippiNetplayClient(bool is_decider)
 {
   this->is_decider = is_decider;
   SLIPPI_NETPLAY = std::move(this);
-  slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
+  slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_FAILED, std::memory_order_release);
 }
 
 u8 SlippiNetplayClient::PlayerIdxFromPort(u8 port)
@@ -699,7 +700,7 @@ void SlippiNetplayClient::Send(sf::Packet& packet)
 void SlippiNetplayClient::Disconnect()
 {
   ENetEvent net_event;
-  slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED;
+  slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED, std::memory_order_release);
   if (m_active_connections.empty())
     return;
 
@@ -736,12 +737,22 @@ void SlippiNetplayClient::Disconnect()
     }
   }
   m_active_connections.clear();
+  for (auto &active : player_active)
+		active.store(false, std::memory_order_release);
   m_server.clear();
   SLIPPI_NETPLAY = nullptr;
 }
 
 void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 {
+  // Drop outbound packets once we've decided to tear down. Saves work and avoids
+	// queuing sends that the network thread is about to stop draining anyway.
+	if (slippi_connect_status.load(std::memory_order_acquire) ==
+	    SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED)
+	{
+		return;
+	}
+
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
     m_async_queue.Push(std::move(packet));
@@ -764,7 +775,7 @@ void SlippiNetplayClient::ThreadFunc()
     connections.push_back(false);
   }
 
-  while (slippi_connect_status == SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED)
+  while (slippi_connect_status.load(std::memory_order_acquire) == SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED)
   {
     // This will confirm that connection went through successfully
     ENetEvent net_event;
@@ -823,10 +834,10 @@ void SlippiNetplayClient::ThreadFunc()
         ActiveConnectionInfo early_conn_info;
 				early_conn_info.player_idx = match_info.remote_player_selections[early_conn_remote_idx].player_idx;
 				m_active_connections[key_strm.str()][net_event.peer] = early_conn_info;
-				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (early): {}", key_strm.str().c_str());
+				player_active[early_conn_info.player_idx].store(true, std::memory_order_release);
 
-        INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr {}:{}",
-                     net_event.peer->address.host, net_event.peer->address.port);
+        // INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr {}:{}",
+        //              net_event.peer->address.host, net_event.peer->address.port);
 
         auto is_already_connected = false;
         for (int i = 0; i < m_server.size(); i++)
@@ -893,7 +904,7 @@ void SlippiNetplayClient::ThreadFunc()
     {
       m_client->intercept = Common::ENet::InterceptCallback;
       INFO_LOG_FMT(SLIPPI_ONLINE, "Slippi online connection successful!");
-      slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
+      slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED, std::memory_order_release);
       break;
     }
 
@@ -917,7 +928,7 @@ void SlippiNetplayClient::ThreadFunc()
         }
       }
 
-      slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
+      slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_FAILED, std::memory_order_release);
       INFO_LOG_FMT(SLIPPI_ONLINE, "Slippi online connection failed");
       return;
     }
@@ -981,6 +992,39 @@ void SlippiNetplayClient::ThreadFunc()
 
   while (m_do_loop.IsSet())
   {
+
+    // If anyone (e.g. ForceDisconnectPlayer on the EXI thread) flipped the status
+		// to DISCONNECTED, exit the loop so the existing teardown path runs Disconnect()
+		// and tears down all ENet peers cleanly.
+		if (slippi_connect_status.load(std::memory_order_acquire) ==
+		    SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED)
+		{
+			INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Status is DISCONNECTED, exiting netplay thread loop");
+			break;
+		}
+
+		// If a player has been marked inactive (e.g. by ForceDisconnectPlayer on the
+		// EXI thread) but their peer hasn't been torn down yet, kick the peer now so
+		// the connection doesn't linger. We mark the activeConnections entry as
+		// disconnected immediately to avoid re-issuing the disconnect on subsequent
+		// loop iterations; the eventual ENET_EVENT_TYPE_DISCONNECT handler is a no-op
+		// in that case (already marked).
+		for (auto &conn_entry : m_active_connections)
+		{
+			for (auto &peer_entry : conn_entry.second)
+			{
+				if (peer_entry.second.is_disconnected)
+					continue;
+				if (player_active[peer_entry.second.player_idx].load(std::memory_order_acquire))
+					continue;
+				INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Force-disconnecting ENet peer {}:{} for player {}",
+				         peer_entry.first->address.host, peer_entry.first->address.port,
+				         peer_entry.second.player_idx);
+				enet_peer_disconnect(peer_entry.first, 0);
+				peer_entry.second.is_disconnected = true;
+			}
+		}
+
     ENetEvent net_event;
     int net;
     net = enet_host_service(m_client, &net_event, 250);
@@ -1012,6 +1056,17 @@ void SlippiNetplayClient::ThreadFunc()
 					m_active_connections[key][net_event.peer].is_disconnected = true;
 				}
 
+        bool all_peers_disconnected_for_key = AreAllPeersDisconnectedForKey(key);
+
+				// If this was the last live peer for that player, publish them as inactive
+				// to the lock-free playerActive view used by the main thread.
+				if (all_peers_disconnected_for_key && m_active_connections.count(key) &&
+				    m_active_connections[key].count(net_event.peer))
+				{
+					auto player_idx_for_key = m_active_connections[key][net_event.peer].player_idx;
+					player_active[player_idx_for_key].store(false, std::memory_order_release);
+				}
+
         // Check to make sure this address+port are one of the ones we are actually connected to.
         // When connecting to someone that randomizes ports, you can get one valid connection from
         // one port and a failed connection on another port. We don't want to cause a real
@@ -1031,12 +1086,12 @@ void SlippiNetplayClient::ThreadFunc()
             SLIPPI_ONLINE,
             "[Netplay] Disconnect late {}:{}. All peers disconnected: {}. Is connected client: {}",
             net_event.peer->address.host, net_event.peer->address.port,
-            AreAllPeersDisconnectedForKey(key) ? "true" : "false",
+            all_peers_disconnected_for_key ? "true" : "false",
 				         is_connected_client ? "true" : "false");
 
         // If the disconnect event doesn't come from the client we are actually listening to,
         // it can be safely ignored
-        if (is_connected_client && AreAllPeersDisconnectedForKey(key))
+        if (is_connected_client && all_peers_disconnected_for_key)
         {
           INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Final disconnect received for a client.");
           
@@ -1061,9 +1116,10 @@ void SlippiNetplayClient::ThreadFunc()
 						break;
 					}
 				}
-				ActiveConnectionInfo lateConnInfo;
-				lateConnInfo.player_idx = match_info.remote_player_selections[late_conn_remote_idx].player_idx;
-				m_active_connections[key_strm.str()][net_event.peer] = lateConnInfo;
+				ActiveConnectionInfo late_conn_info;
+				late_conn_info.player_idx = match_info.remote_player_selections[late_conn_remote_idx].player_idx;
+				m_active_connections[key_strm.str()][net_event.peer] = late_conn_info;
+        player_active[late_conn_info.player_idx].store(true, std::memory_order_release);
 				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (late): {}", key_strm.str().c_str());
         break;
       }
@@ -1103,7 +1159,7 @@ bool SlippiNetplayClient::IsConnectionSelected()
 
 SlippiNetplayClient::SlippiConnectStatus SlippiNetplayClient::GetSlippiConnectStatus()
 {
-  return slippi_connect_status;
+  return slippi_connect_status.load(std::memory_order_acquire);;
 }
 
 std::vector<int> SlippiNetplayClient::GetFailedConnections()
@@ -1149,7 +1205,7 @@ void SlippiNetplayClient::SendConnectionSelected()
 
 void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
 {
-  auto status = slippi_connect_status;
+  auto status = slippi_connect_status.load(std::memory_order_acquire);;
   bool connection_failed =
       status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
   bool connection_disconnected =
@@ -1165,13 +1221,28 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
     m_local_pad_queue.push_front(std::move(pad));
   }
 
-  // Remove pad reports that have been received and acked
-  int min_ack_frame = last_frame_acked[0];
-  for (int i = 1; i < m_remote_player_count; i++)
-  {
-    if (last_frame_acked[i] < min_ack_frame)
-      min_ack_frame = last_frame_acked[i];
-  }
+  // Remove pad reports that have been received and acked. Skip disconnected players,
+	// otherwise their last_frame_acked is stuck and min_ack_frame never advances
+	int min_ack_frame = INT_MAX;
+	for (int i = 0; i < m_remote_player_count; i++)
+	{
+		auto remote_player_idx = match_info.remote_player_selections[i].player_idx;
+		if (!player_active[remote_player_idx].load(std::memory_order_acquire))
+			continue;
+		if (last_frame_acked[i] < min_ack_frame)
+			min_ack_frame = last_frame_acked[i];
+	}
+
+  // Cap how far behind min_ack_frame is allowed to fall. This protects against a peer
+	// that stops acking. The value used should be sensibly large enough to prevent
+	// any issues
+	if (!m_local_pad_queue.empty())
+	{
+		int current_frame = m_local_pad_queue.front()->frame;
+		int minimum_allowed = current_frame - (ROLLBACK_MAX_FRAMES * 2 + 2);
+		min_ack_frame = std::max(min_ack_frame, minimum_allowed);
+	}
+
   /*INFO_LOG_FMT(SLIPPI_ONLINE,
                "Checking to drop local inputs, oldest frame: {} | min_ack_frame: {} | {}, {}, {}",
                m_local_pad_queue.back()->frame, min_ack_frame, last_frame_acked[0],
@@ -1382,9 +1453,8 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
   pad_output->checksum_frame = remote_checksums[index].frame;
   pad_output->checksum = remote_checksums[index].value;
 
-  auto active_players = GetActivePlayerIndices();
 	pad_output->player_idx = index >= m_player_idx ? index + 1 : index;
-	pad_output->is_disconnected = !active_players[pad_output->player_idx];
+	pad_output->is_disconnected = !player_active[pad_output->player_idx].load(std::memory_order_acquire);
 
   // Copy inputs from the remote pad queue to the output. We iterate backwards because
   // we want to get the oldest frames possible (will have been cleared to contain the last
@@ -1425,18 +1495,55 @@ void SlippiNetplayClient::DropOldRemoteInputs(int32_t finalizedFrame)
 
 std::unordered_map<u8, bool> SlippiNetplayClient::GetActivePlayerIndices()
 {
+  // Lock-free: reads the playerActive atomics maintained by the network thread.
 	std::unordered_map<u8, bool> result;
-	for (auto &conn : m_active_connections)
+	for (u8 i = 0; i < SLIPPI_PLAYER_COUNT_MAX; i++)
 	{
-		for (auto &peer : conn.second)
-		{
-			if (!peer.second.is_disconnected)
-				result[peer.second.player_idx] = true;
-		}
+		if (player_active[i].load(std::memory_order_acquire))
+			result[i] = true;
 	}
 	return result;
 }
 
+void SlippiNetplayClient::ForceDisconnectPlayer(u8 player_idx)
+{
+	// Flips the lock-free liveness view to false so the main/EXI thread treats this
+	// player as disconnected. The network thread observes !playerActive on its next
+	// loop iteration and issues enet_peer_disconnect on any still-live peer for this
+	// player so the connection doesn't linger.
+	if (player_idx >= SLIPPI_PLAYER_COUNT_MAX)
+		return;
+	player_active[player_idx].store(false, std::memory_order_release);
+
+	// If no remote players are still active, transition the overall status to
+	// DISCONNECTED so the existing disconnect-detection paths fire (game ends in
+	// 1v1; in multiplayer this branch only runs once everyone else has dropped).
+	// The network thread observes this and tears down ENet peers via Disconnect().
+	bool any_remaining_active = false;
+	for (u8 i = 0; i < m_remote_player_count; i++)
+	{
+		auto remote_idx = match_info.remote_player_selections[i].player_idx;
+		if (player_active[remote_idx].load(std::memory_order_acquire))
+		{
+			any_remaining_active = true;
+			break;
+		}
+	}
+
+	if (!any_remaining_active &&
+	    slippi_connect_status.load(std::memory_order_acquire) == SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED)
+	{
+		WARN_LOG_FMT(SLIPPI_ONLINE, "[Netplay] All remote players force-disconnected, flipping status to DISCONNECTED");
+		slippi_connect_status.store(SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED, std::memory_order_release);
+	}
+
+	// Wake the network thread so it picks up either the pending peer disconnect or
+	// the status flip without waiting for its 250ms enet_host_service timeout.
+	if (m_client)
+		Common::ENet::WakeupThread(m_client);
+}
+
+// Network-thread only (called from ThreadFunc disconnect handler).
 bool SlippiNetplayClient::AreAllPeersDisconnectedForKey(const std::string &key)
 {
 	if (!m_active_connections.count(key))
@@ -1450,6 +1557,7 @@ bool SlippiNetplayClient::AreAllPeersDisconnectedForKey(const std::string &key)
 	return true;
 }
 
+// Network-thread only (called from ThreadFunc disconnect handler).
 bool SlippiNetplayClient::AreAllConnectionsDisconnected()
 {
 	for (auto &conn : m_active_connections)
@@ -1473,11 +1581,10 @@ int32_t SlippiNetplayClient::GetSlippiLatestRemoteFrame(int maxFrameCount)
   // Return the lowest frame among remote queues
   int lowest_frame = 0;
   bool is_frame_set = false;
-  auto activePlayers = GetActivePlayerIndices();
   for (int i = 0; i < m_remote_player_count; i++)
   {
     auto remote_player_idx = match_info.remote_player_selections[i].player_idx;
-		if (!activePlayers[remote_player_idx])
+		if (!player_active[remote_player_idx].load(std::memory_order_acquire))
 		{
 			continue;
 		}

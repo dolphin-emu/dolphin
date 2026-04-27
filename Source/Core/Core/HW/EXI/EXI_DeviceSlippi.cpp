@@ -1190,9 +1190,11 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
       available_savestates.push_back(std::make_unique<SlippiSavestate>());
     }
 
-    // Reset stall counter
-    is_connection_stalled = false;
-    stall_frame_count = 0;
+    // Reset per-player stall counters
+		for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+		{
+			stall_frame_counts[i] = 0;
+		}
 
     // Reset skip variables
     frames_to_skip = 0;
@@ -1247,39 +1249,52 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalized_frame)
     return false;
   }
 
-  if (is_connection_stalled)
+  // Check each active remote player individually. If any single player is short on
+	// new inputs we still skip the frame, but we only force-disconnect the specific
+	// player(s) whose stall counter exceeds the threshold. In a 1v1 this collapses to
+	// the previous behavior (sole opponent gets dropped → connectionDisconnected path
+	// fires next frame). In multiplayer, the despawn/continue path takes over.
+	// ROLLBACK_MAX_FRAMES is our look-ahead limit: see the prior comment block in git
+	// history for the savestate math.
+	bool any_player_needs_inputs = false;
+	u8 remote_player_count = matchmaking->RemotePlayerCount();
+	for (u8 i = 0; i < remote_player_count; i++)
   {
-    return false;
-  }
+    auto pad = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
+		if (pad->is_disconnected)
+		{
+			stall_frame_counts[i] = 0;
+			continue;
+		}
 
-  // Return true if we are too far ahead for rollback. ROLLBACK_MAX_FRAMES is the number of frames
-  // we can receive for the opponent at one time and is our "look-ahead" limit
-  // Example: finalized_frame = 100 means the last savestate we need is 101. We can then store
-  // states 101 to 107 before running out of savestates. So 107 - 100 = 7. We need to make sure
-  // we have enough inputs to finalize to not overflow the available states, so if our latest frame
-  // is 101, we can't let frame 109 be created. 101 - 100 >= 109 - 100 - 7 : 1 >= 2 (false).
-  // It has to work this way because we only have room to move our states forward by one for frame
-  // 108
-  s32 latest_remote_frame = slippi_netplay->GetSlippiLatestRemoteFrame(ROLLBACK_MAX_FRAMES);
-  auto has_enough_new_inputs =
-      latest_remote_frame - finalized_frame >= (frame - finalized_frame - ROLLBACK_MAX_FRAMES);
-  if (!has_enough_new_inputs)
-  {
-    stall_frame_count++;
-    if (stall_frame_count > 60 * 7)
+    s32 latest_remote_frame = pad->latest_frame;
+		bool has_enough_new_inputs =
+		    latest_remote_frame - finalized_frame >= (frame - finalized_frame - ROLLBACK_MAX_FRAMES);
+		if (has_enough_new_inputs)
     {
-      // 7 second stall will disconnect game
-      is_connection_stalled = true;
-    }
+      stall_frame_counts[i] = 0;
+			continue;
+		}
 
-    WARN_LOG_FMT(
-        SLIPPI_ONLINE,
-        "Halting for one frame due to rollback limit (frame: {} | latest: {} | finalized: {})...",
-        frame, latest_remote_frame, finalized_frame);
-    return true;
+		stall_frame_counts[i]++;
+		any_player_needs_inputs = true;
+
+		if (stall_frame_counts[i] > 60 * 7)
+    {
+      WARN_LOG_FMT(SLIPPI_ONLINE, "Force-disconnecting player {} after 7s stall (frame: {} | latest: {})",
+        pad->player_idx, frame, latest_remote_frame);
+			slippi_netplay->ForceDisconnectPlayer(pad->player_idx);
+			stall_frame_counts[i] = 0;
+			continue;
+    }
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Halting for one frame due to rollback limit (frame: {} | latest: {} | finalized: {} | player: {})...",
+      frame, latest_remote_frame, finalized_frame, pad->player_idx);
   }
 
-  stall_frame_count = 0;
+  if (any_player_needs_inputs)
+		return true;
+
+  
 
   s32 frame_time = 16683;
   s32 t1 = 10000;
@@ -1455,9 +1470,6 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
 
 void CEXISlippi::handleSendInputs(s32 frame, u8 delay, s32 checksum_frame, u32 checksum, u8* inputs)
 {
-  if (is_connection_stalled)
-    return;
-
   // On the first frame sent, we need to queue up empty dummy pads for as many
   // frames as we have delay
   if (frame == 1)
@@ -1506,8 +1518,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
     // populated for when the frame inputs are requested on a rollback
     frame_result = 2;
   }
-  else if (state != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED ||
-           is_connection_stalled)
+  else if (state != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED)
   {
     frame_result = 3;  // Indicates we have disconnected
   }
@@ -1523,8 +1534,9 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
 
   std::unique_ptr<SlippiRemotePadOutput> results[SLIPPI_REMOTE_PLAYER_MAX];
 
-  u32 lastChecksumFrame = 0;
-	u32 lastChecksum = 0;
+  s32 latest_frame_from_opps = Slippi::GAME_FIRST_FRAME - 1;
+  u32 last_checksum_frame = 0;
+	u32 last_checksum = 0;
 
   for (int i = 0; i < remote_player_count; i++)
   {
@@ -1535,9 +1547,39 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
 		}
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
-    lastChecksumFrame = static_cast<u32>(results[i]->checksum_frame);
-		lastChecksum = results[i]->checksum;
+    if (results[i]->latest_frame > latest_frame_from_opps)
+		{
+			last_checksum_frame = static_cast<u32>(results[i]->checksum_frame);
+			last_checksum = results[i]->checksum;
+			latest_frame_from_opps = results[i]->latest_frame;
+		}
   }
+
+  // Determine whether each remote fighter should be despawned due to disconnect. This needs
+	// to be computed before the loop below overwrites the disconnected players' latestFrame.
+	// We want the signal to be synchronized across clients, so we wait until
+	// (2*ROLLBACK_MAX_FRAMES + 2) frames have passed since the last input we received from the
+	// disconnected player, then advance to the next frame that is a multiple of
+	// SLIPPI_DESPAWN_FRAME_INTERVAL. This gives us a window where slightly different last
+	// received frames might still work out to the same despawn frame
+	const s32 SLIPPI_DESPAWN_FRAME_INTERVAL = 30;
+	u8 should_despawn[SLIPPI_REMOTE_PLAYER_MAX] = {0, 0, 0};
+	for (int i = 0; i < remote_player_count; i++)
+	{
+		if (!results[i]->is_disconnected)
+			continue;
+
+		s32 lastInputFrame = results[i]->latest_frame;
+		s32 thresholdFrame = lastInputFrame + 2 * ROLLBACK_MAX_FRAMES + 2;
+
+		// Round up to the next frame that is a multiple of the despawn interval
+		s32 despawnFrame =
+		    ((thresholdFrame + SLIPPI_DESPAWN_FRAME_INTERVAL - 1) / SLIPPI_DESPAWN_FRAME_INTERVAL) *
+		    SLIPPI_DESPAWN_FRAME_INTERVAL;
+
+		if (frame >= despawnFrame)
+			should_despawn[i] = 1;
+	}
 
   for (int i = 0; i < remote_player_count; i++)
 	{
@@ -1553,9 +1595,9 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
 		// This is sorta jank but we loop again to overwrite values on any disconnected pads to prevent checksum
 		// issues and prevent stalling due to old pad data. We are essentially "tricking" the ASM side here
 		// and likely a better solution would be for the ASM side to know who is disconnected and handle it accordingly
-		results[i]->latest_frame = frame;
-		appendWordToBuffer(&m_read_queue, lastChecksumFrame);
-		appendWordToBuffer(&m_read_queue, lastChecksum);
+		results[i]->latest_frame = latest_frame_from_opps;
+		appendWordToBuffer(&m_read_queue, last_checksum_frame);
+		appendWordToBuffer(&m_read_queue, last_checksum);
 	}
 
   for (int i = remote_player_count; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
@@ -1615,6 +1657,12 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
 
     m_read_queue.insert(m_read_queue.end(), tx.begin(), tx.end());
   }
+
+  // Append the per-remote-player should-despawn flags
+	for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+	{
+		m_read_queue.push_back(should_despawn[i]);
+	}
 
   // ERROR_LOG_FMT(SLIPPI_ONLINE, "EXI: [{}] %X %X %X %X %X %X %X %X", latest_frame,
   // m_read_queue[5], m_read_queue[6], m_read_queue[7], m_read_queue[8], m_read_queue[9],
@@ -2328,7 +2376,7 @@ void CEXISlippi::prepareOnlineMatchState()
     }
     // Set teams mode
 		online_match_block[0x8] = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 1 : 0;
-		//online_match_block[0x8] = remotePlayerCount >= 2 ? 1 : 0; // TODO: If we dont set it to teams, it crashes sometimes
+		//online_match_block[0x8] = remote_player_count >= 2 ? 1 : 0; // TODO: If we dont set it to teams, it crashes sometimes
 
 		// Set p3/p4 player type to human or none depending on the amount of players
 		online_match_block[0x61 + 2 * 0x24] = remote_player_count >= 2 ? 0 : 3;

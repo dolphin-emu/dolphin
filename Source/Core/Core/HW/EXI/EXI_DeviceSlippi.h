@@ -21,7 +21,6 @@
 #include "Core/Slippi/SlippiUser.h"
 #include "EXI_Device.h"
 
-#define ROLLBACK_MAX_FRAMES 7
 #define MAX_NAME_LENGTH 15
 #define MAX_MESSAGE_LENGTH 25
 #define CONNECT_CODE_LENGTH 8
@@ -291,8 +290,7 @@ private:
   std::vector<u8> playback_savestate_payload;
   std::vector<u8> gecko_list;
 
-  u32 stall_frame_count = 0;
-  bool is_connection_stalled = false;
+  u32 stall_frame_counts[SLIPPI_REMOTE_PLAYER_MAX] = {};
 
   std::vector<u8> m_read_queue;
   std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
