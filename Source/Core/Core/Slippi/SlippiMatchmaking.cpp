@@ -640,6 +640,7 @@ void SlippiMatchmaking::handleMatchmaking()
   m_mm_result.id = match_id;
   m_mm_result.players = m_player_info;
   m_mm_result.stages = m_allowed_stages;
+  m_mm_result.items = get_resp.value<u32>("items", 0);
 
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();
