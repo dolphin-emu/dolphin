@@ -13,25 +13,30 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 
 class NetplaySetupViewModel : ViewModel() {
     private val _connectionRole = MutableStateFlow<ConnectionRole>(ConnectionRole.Connect)
     val connectionRole = _connectionRole.asStateFlow()
 
-    private val _nickname = MutableStateFlow(Netplay.Settings.getNickname())
+    private val _nickname = MutableStateFlow(StringSetting.NETPLAY_NICKNAME.string)
     val nickname = _nickname.asStateFlow()
 
-    private val _connectionType = MutableStateFlow(Netplay.Settings.getConnectionType())
+    private val _connectionType = MutableStateFlow(
+        ConnectionType.fromString(StringSetting.NETPLAY_TRAVERSAL_CHOICE.string)
+    )
     val connectionType = _connectionType.asStateFlow()
 
-    private val _ipAddress = MutableStateFlow(Netplay.Settings.getAddress())
+    private val _ipAddress = MutableStateFlow(StringSetting.NETPLAY_ADDRESS.string)
     val ipAddress = _ipAddress.asStateFlow()
 
-    private val _hostCode = MutableStateFlow(Netplay.Settings.getHostCode())
+    private val _hostCode = MutableStateFlow(StringSetting.NETPLAY_HOST_CODE.string)
     val hostCode = _hostCode.asStateFlow()
 
-    private val _connectPort = MutableStateFlow(Netplay.Settings.getConnectPort().toString())
+    private val _connectPort = MutableStateFlow(IntSetting.NETPLAY_CONNECT_PORT.int.toString())
     val connectPort = _connectPort.asStateFlow()
 
     private val _showNetplayScreen = Channel<Unit>(CONFLATED)
@@ -52,30 +57,34 @@ class NetplaySetupViewModel : ViewModel() {
 
     fun setNickname(nickname: String) {
         _nickname.value = nickname
-        Netplay.Settings.setNickname(nickname)
+        StringSetting.NETPLAY_NICKNAME.setString(NativeConfig.LAYER_BASE, nickname)
     }
 
     fun setConnectionType(connectionType: ConnectionType) {
         _connectionType.value = connectionType
-        Netplay.Settings.setTraversalChoice(connectionType.configValue)
+        StringSetting.NETPLAY_TRAVERSAL_CHOICE.setString(
+            NativeConfig.LAYER_BASE, connectionType.configValue
+        )
     }
 
     fun setIpAddress(ipAddress: String) {
         if (ipAddress.all { it.isDigit() || it == '.' }) {
             _ipAddress.value = ipAddress
-            Netplay.Settings.setAddress(ipAddress)
+            StringSetting.NETPLAY_ADDRESS.setString(NativeConfig.LAYER_BASE, ipAddress)
         }
     }
 
     fun setHostCode(hostCode: String) {
         _hostCode.value = hostCode
-        Netplay.Settings.setHostCode(hostCode)
+        StringSetting.NETPLAY_HOST_CODE.setString(NativeConfig.LAYER_BASE, hostCode)
     }
 
     fun setConnectPort(port: String) {
         if (port.all { it.isDigit() }) {
             _connectPort.value = port
-            port.toIntOrNull()?.let { Netplay.Settings.setConnectPort(it) }
+            port.toIntOrNull()?.let {
+                IntSetting.NETPLAY_CONNECT_PORT.setInt(NativeConfig.LAYER_BASE, it)
+            }
         }
     }
 

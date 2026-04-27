@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
@@ -279,47 +278,6 @@ object Netplay {
         _saveTransferProgress.value = null
     }
 
-    // Settings
-    object Settings {
-        @JvmStatic
-        external fun getNickname(): String
-
-        @JvmStatic
-        external fun setNickname(nickname: String)
-
-        fun getConnectionType(): ConnectionType = ConnectionType.all
-            .find { it.configValue == getTraversalChoice() } ?: throw IllegalStateException()
-
-        @JvmStatic
-        external fun getTraversalChoice(): String
-
-        @JvmStatic
-        external fun setTraversalChoice(traversalChoice: String)
-
-        @JvmStatic
-        external fun getAddress(): String
-
-        @JvmStatic
-        external fun setAddress(address: String)
-
-        @JvmStatic
-        external fun getHostCode(): String
-
-        @JvmStatic
-        external fun setHostCode(hostCode: String)
-
-        @JvmStatic
-        external fun getConnectPort(): Int
-
-        @JvmStatic
-        external fun setConnectPort(port: Int)
-
-        @JvmStatic
-        external fun getClientBufferSize(): Int
-
-        @JvmStatic
-        external fun setClientBufferSize(buffer: Int)
-    }
 }
 
 private fun <T> Channel<T>.flush() {

@@ -15,8 +15,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 
-//TODO save settings
 class NetplayViewModel : ViewModel() {
     val launchGame = Netplay.launchGame
 
@@ -37,7 +38,7 @@ class NetplayViewModel : ViewModel() {
     val hostInputAuthority = Netplay.hostInputAuthorityEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
-    private val _maxBuffer = MutableStateFlow(Netplay.Settings.getClientBufferSize())
+    private val _maxBuffer = MutableStateFlow(IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.int)
     val maxBuffer = _maxBuffer.asStateFlow()
 
     val saveTransferProgress = Netplay.saveTransferProgress
@@ -59,7 +60,7 @@ class NetplayViewModel : ViewModel() {
 
     fun setMaxBuffer(buffer: Int) {
         _maxBuffer.value = buffer
-        Netplay.Settings.setClientBufferSize(buffer)
+        IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.setInt(NativeConfig.LAYER_BASE, buffer)
         Netplay.adjustPadBufferSize(buffer)
     }
 
