@@ -22,6 +22,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/WorkQueueThread.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::evdev
@@ -587,6 +588,8 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
     ie.value = 0;
 
     static_cast<void>(!write(fd, &ie, sizeof(ie)));
+
+    m_ffb_fd = fd;
   }
 
   // Constant FF effect
@@ -724,6 +727,170 @@ bool evdevDevice::IsValid() const
   }
 
   return true;
+}
+
+class SpringEffect final : public Core::SpringEffect
+{
+public:
+  explicit SpringEffect(int ffb_fd) : m_ffb_fd{ffb_fd} {}
+
+  ~SpringEffect() override { SetForce(0.0, 0.0); }
+
+  void SetForce(double gain, double center_position) override
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "SpringEffect: {:.2} {:.2}", gain, center_position);
+
+    if (gain == 0.0)
+    {
+      if (m_effect_id != -1)
+      {
+        if (ioctl(m_ffb_fd, EVIOCRMFF, m_effect_id) < 0)
+          ERROR_LOG_FMT(COMMON, "EVIOCRMFF: {}", Common::LastStrerrorString());
+
+        // TODO: Is it correct to not remove this effect on destruction.
+        // Is it enough to close the parent fd ?
+
+        m_effect_id = -1;
+      }
+
+      return;
+    }
+
+    ff_effect effect{
+        .type = FF_SPRING,
+        .id = m_effect_id,
+    };
+
+    // <linux/input.h>
+    // "Values above 32767 ms (0x7fff) should not be used and have unspecified results."
+    effect.replay.length = 0x7fff;
+
+    auto& condition = effect.u.condition;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition[0].right_saturation = unsigned_gain;
+    condition[0].left_saturation = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition[0].right_coeff = coeff;
+    condition[0].left_coeff = coeff;
+
+    condition[0].center = ControllerEmu::MapFloat<s16>(center_position, 0);
+
+    if (ioctl(m_ffb_fd, EVIOCSFF, &effect) < 0)
+    {
+      ERROR_LOG_FMT(COMMON, "EVIOCSFF FF_SPRING: {}", Common::LastStrerrorString());
+      return;
+    }
+
+    if (m_effect_id == -1)
+    {
+      m_effect_id = effect.id;
+
+      const input_event play{
+          .type = EV_FF,
+          .code = u16(m_effect_id),
+          .value = std::numeric_limits<s32>::max(),
+      };
+
+      if (write(m_ffb_fd, &play, sizeof(play)) < 0)
+        ERROR_LOG_FMT(COMMON, "EV_FF: {}", Common::LastStrerrorString());
+    }
+  }
+
+private:
+  const int m_ffb_fd;
+  s16 m_effect_id = -1;
+};
+
+class FrictionEffect final : public Core::FrictionEffect
+{
+public:
+  explicit FrictionEffect(int ffb_fd) : m_ffb_fd{ffb_fd} {}
+
+  ~FrictionEffect() override { SetForce(0.0); }
+
+  void SetForce(double gain) override
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "FrictionEffect: {:.2}", gain);
+
+    if (gain == 0.0)
+    {
+      if (m_effect_id != -1)
+      {
+        if (ioctl(m_ffb_fd, EVIOCRMFF, m_effect_id) < 0)
+          ERROR_LOG_FMT(COMMON, "EVIOCRMFF: {}", Common::LastStrerrorString());
+
+        // TODO: Is it correct to not remove this effect on destruction.
+        // Is it enough to close the parent fd ?
+
+        m_effect_id = -1;
+      }
+
+      return;
+    }
+
+    ff_effect effect{
+        .type = FF_FRICTION,
+        .id = m_effect_id,
+    };
+
+    // <linux/input.h>
+    // "Values above 32767 ms (0x7fff) should not be used and have unspecified results."
+    effect.replay.length = 0x7fff;
+
+    auto& condition = effect.u.condition;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition[0].right_saturation = unsigned_gain;
+    condition[0].left_saturation = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition[0].right_coeff = coeff;
+    condition[0].left_coeff = coeff;
+
+    if (ioctl(m_ffb_fd, EVIOCSFF, &effect) < 0)
+    {
+      ERROR_LOG_FMT(COMMON, "EVIOCSFF FF_SPRING: {}", Common::LastStrerrorString());
+      return;
+    }
+
+    if (m_effect_id == -1)
+    {
+      m_effect_id = effect.id;
+
+      const input_event play{
+          .type = EV_FF,
+          .code = u16(m_effect_id),
+          .value = std::numeric_limits<s32>::max(),
+      };
+
+      if (write(m_ffb_fd, &play, sizeof(play)) < 0)
+        ERROR_LOG_FMT(COMMON, "EV_FF: {}", Common::LastStrerrorString());
+    }
+  }
+
+private:
+  const int m_ffb_fd;
+  s16 m_effect_id = -1;
+};
+
+std::unique_ptr<Core::SpringEffect> evdevDevice::CreateSpringEffect()
+{
+  if (m_ffb_fd == -1)
+    return nullptr;
+
+  return std::make_unique<SpringEffect>(m_ffb_fd);
+}
+
+std::unique_ptr<Core::FrictionEffect> evdevDevice::CreateFrictionEffect()
+{
+  if (m_ffb_fd == -1)
+    return nullptr;
+
+  return std::make_unique<FrictionEffect>(m_ffb_fd);
 }
 
 evdevDevice::Effect::Effect(int fd) : m_fd(fd)
