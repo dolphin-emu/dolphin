@@ -68,8 +68,9 @@
     <ClCompile Include="Config\ConfigControls\ConfigUserPath.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\SDLHints\SDLHintsWindow.cpp" />
-    <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
+    <ClCompile Include="Config\ControllerInterface\DualShockUDPClientEditServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
+    <ClCompile Include="Config\ControllerInterface\DualShockUDPSettings.cpp" />
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersPane.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
@@ -305,8 +306,9 @@
     <QtMoc Include="Config\ConfigControls\ConfigUserPath.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\SDLHints\SDLHintsWindow.h" />
-    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
+    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientEditServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
+    <QtMoc Include="Config\ControllerInterface\DualShockUDPSettings.h" />
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\ControllersPane.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />

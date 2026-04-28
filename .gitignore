@@ -43,3 +43,6 @@ CMakeLists.txt.user
 /.vscode/
 # Ignore flatpak-builder's cache dir
 .flatpak-builder
+
+# clangd cache for Neovim
+.cache/clangd
