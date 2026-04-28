@@ -104,7 +104,7 @@ void AdvancedPane::CreateLayout()
   clock_override_layout->addLayout(cpu_clock_override_slider_layout);
 
   m_cpu_clock_override_slider = new QSlider(Qt::Horizontal);
-  m_cpu_clock_override_slider->setRange(1, 400);
+  m_cpu_clock_override_slider->setRange(80, 120);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
   m_cpu_clock_override_slider_label = new QLabel();
