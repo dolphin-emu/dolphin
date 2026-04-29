@@ -197,7 +197,17 @@ void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool enabled)
   env->DeleteLocalRef(netplay_session);
 }
 
-void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
+void NetPlayUICallbacks::OnDesync(u32 frame, const std::string& player)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnDesync(),
+                      static_cast<jint>(frame), ToJString(env, player));
+  env->DeleteLocalRef(netplay_session);
+}
 
 void NetPlayUICallbacks::OnConnectionLost()
 {

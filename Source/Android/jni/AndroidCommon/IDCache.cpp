@@ -43,6 +43,7 @@ static jmethodID s_netplay_update;
 static jmethodID s_netplay_on_show_chunked_progress_dialog;
 static jmethodID s_netplay_on_set_chunked_progress;
 static jmethodID s_netplay_on_hide_chunked_progress_dialog;
+static jmethodID s_netplay_on_desync;
 
 static jclass s_netplay_player_class;
 static jmethodID s_netplay_player_constructor;
@@ -325,6 +326,11 @@ jmethodID GetNetplayOnSetChunkedProgress()
 jmethodID GetNetplayOnHideChunkedProgressDialog()
 {
   return s_netplay_on_hide_chunked_progress_dialog;
+}
+
+jmethodID GetNetplayOnDesync()
+{
+  return s_netplay_on_desync;
 }
 
 jclass GetNetplayPlayerClass()
@@ -766,6 +772,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetMethodID(netplay_class, "onSetChunkedProgress", "(IJ)V");
   s_netplay_on_hide_chunked_progress_dialog =
       env->GetMethodID(netplay_class, "onHideChunkedProgressDialog", "()V");
+  s_netplay_on_desync =
+      env->GetMethodID(netplay_class, "onDesync", "(ILjava/lang/String;)V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass netplay_player_class =

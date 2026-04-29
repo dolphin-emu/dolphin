@@ -9,9 +9,12 @@ import android.view.LayoutInflater
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
@@ -231,6 +234,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         netplaySession.stopGame.first()
                         stopEmulation()
                     }
+                    netplaySession
+                        .desyncMessages
+                        .onEach { Toast.makeText(requireContext(), it.message(requireContext()), Toast.LENGTH_SHORT).show() }
+                        .launchIn(lifecycleScope)
                     NativeLibrary.RunNetPlay(
                         paths,
                         riivolution,

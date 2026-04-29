@@ -46,6 +46,7 @@ jmethodID GetNetplayUpdate();
 jmethodID GetNetplayOnShowChunkedProgressDialog();
 jmethodID GetNetplayOnSetChunkedProgress();
 jmethodID GetNetplayOnHideChunkedProgressDialog();
+jmethodID GetNetplayOnDesync();
 
 jclass GetNetplayPlayerClass();
 jmethodID GetNetplayPlayerConstructor();

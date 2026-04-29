@@ -95,6 +95,12 @@ class NetplaySession(
     )
     val padBuffer = _padBuffer.asSharedFlow()
 
+    private val _desyncMessages = MutableSharedFlow<NetplayMessage.Desync>(
+        extraBufferCapacity = 32,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val desyncMessages = _desyncMessages.asSharedFlow()
+
     private val _saveTransferProgress = MutableStateFlow<SaveTransferProgress?>(null)
     val saveTransferProgress = _saveTransferProgress.asStateFlow()
 
@@ -148,6 +154,7 @@ class NetplaySession(
         game.map { NetplayMessage.GameChanged(it) },
         hostInputAuthorityEnabled.map { NetplayMessage.HostInputAuthorityChanged(it) },
         padBuffer.map { NetplayMessage.BufferChanged(it) },
+        desyncMessages,
     )
 
     private fun releaseNativeResources() {
@@ -234,6 +241,11 @@ class NetplaySession(
     fun onPadBufferChanged(buffer: Int) {
         if (_hostInputAuthorityEnabled.replayCache.firstOrNull() == true) return
         _padBuffer.tryEmit(buffer)
+    }
+
+    @Keep
+    fun onDesync(frame: Int, player: String) {
+        _desyncMessages.tryEmit(NetplayMessage.Desync(player, frame))
     }
 
     @Keep

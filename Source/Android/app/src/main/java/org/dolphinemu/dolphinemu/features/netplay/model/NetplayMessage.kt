@@ -26,4 +26,9 @@ sealed class NetplayMessage {
         override fun message(context: Context) =
             context.getString(R.string.netplay_message_buffer_changed, buffer)
     }
+
+    class Desync(private val player: String, private val frame: Int) : NetplayMessage() {
+        override fun message(context: Context) =
+            context.getString(R.string.netplay_message_desync, player, frame)
+    }
 }
