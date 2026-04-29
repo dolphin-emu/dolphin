@@ -65,6 +65,7 @@
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -722,19 +723,7 @@ void GameList::OpenContainingFolder()
   if (!game)
     return;
 
-  // Remove everything after the last separator in the game's path, resulting in the parent
-  // directory path with a trailing separator. Keeping the trailing separator prevents Windows from
-  // mistakenly opening a .bat or .exe file in the grandparent folder when that file has the same
-  // base name as the folder (See https://bugs.dolphin-emu.org/issues/12411).
-  std::string parent_directory_path;
-  SplitPath(game->GetFilePath(), &parent_directory_path, nullptr, nullptr);
-  if (parent_directory_path.empty())
-  {
-    return;
-  }
-
-  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(parent_directory_path));
-  QDesktopServices::openUrl(url);
+  QtUtils::ShowFileInFolder(game->GetFilePath());
 }
 
 void GameList::OpenWiiSaveFolder()
@@ -766,45 +755,44 @@ void GameList::OpenGCSaveFolder()
 
   for (Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    QUrl url;
     const ExpansionInterface::EXIDeviceType current_exi_device =
         Config::Get(Config::GetInfoForEXIDevice(slot));
     switch (current_exi_device)
     {
     case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
-      std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
-      QDir dir(QString::fromStdString(override_path.empty() ?
-                                          Config::GetGCIFolderPath(slot, game->GetRegion()) :
-                                          override_path));
+      namespace fs = std::filesystem;
 
-      if (!dir.entryList({QStringLiteral("%1-%2-*.gci")
-                              .arg(QString::fromStdString(game->GetMakerID()))
-                              .arg(QString::fromStdString(game->GetGameID().substr(0, 4)))})
-               .empty())
+      std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
+      const auto dir =
+          override_path.empty() ? Config::GetGCIFolderPath(slot, game->GetRegion()) : override_path;
+
+      const auto gci_filename_prefix =
+          fs::path{fmt::format("{}-{}-", game->GetMakerID(), game->GetGameID().substr(0, 4))}
+              .native();
+      const auto gci_extension = fs::path{".gci"}.native();
+
+      for (const auto& entry : fs::directory_iterator(dir))
       {
-        url = QUrl::fromLocalFile(dir.absolutePath());
+        if (entry.path().filename().native().starts_with(gci_filename_prefix) &&
+            entry.path().extension() == gci_extension)
+        {
+          QtUtils::ShowFileInFolder(entry.path().generic_string());
+          found = true;
+          break;
+        }
       }
       break;
     }
     case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
-      const std::string memcard_path = Config::GetMemcardPath(slot, game->GetRegion());
-
-      std::string memcard_dir;
-
-      SplitPath(memcard_path, &memcard_dir, nullptr, nullptr);
-      url = QUrl::fromLocalFile(QString::fromStdString(memcard_dir));
+      QtUtils::ShowFileInFolder(Config::GetMemcardPath(slot, game->GetRegion()));
+      found = true;
       break;
     }
     default:
       break;
     }
-
-    found |= !url.isEmpty();
-
-    if (!url.isEmpty())
-      QDesktopServices::openUrl(url);
   }
 
   if (!found)

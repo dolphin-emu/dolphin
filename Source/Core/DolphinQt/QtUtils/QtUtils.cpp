@@ -4,9 +4,42 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 
 #include <QDateTimeEdit>
+#include <QDesktopServices>
+#include <QDir>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QProcess>
 #include <QScreen>
+
+#if defined(QT_DBUS_LIB)
+#include <QDBusConnectionInterface>
+#include <QDBusInterface>
+#endif
+
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+
+namespace
+{
+
+void ShowFolderOfFile(std::string_view file_path)
+{
+  // Remove everything after the last separator in the game's path, resulting in the parent
+  // directory path with a trailing separator. Keeping the trailing separator prevents Windows from
+  // mistakenly opening a .bat or .exe file in the grandparent folder when that file has the same
+  // base name as the folder (See https://bugs.dolphin-emu.org/issues/12411).
+  std::string parent_directory_path;
+  SplitPath(file_path, &parent_directory_path, nullptr, nullptr);
+  if (parent_directory_path.empty())
+  {
+    return;
+  }
+
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(parent_directory_path));
+  QDesktopServices::openUrl(url);
+}
+
+}  // namespace
 
 namespace QtUtils
 {
@@ -66,6 +99,56 @@ void CenterOnParentWindow(QWidget* const widget)
   const QPoint pos{window_pos + offset};
 
   widget->setGeometry(QRect(pos, size));
+}
+
+void ShowFileInFolder(std::string_view file_path)
+{
+#if defined(QT_DBUS_LIB)
+  QDBusInterface dbus{QString::fromLatin1("org.freedesktop.DBus"),
+                      QString::fromLatin1("/org/freedesktop/DBus"),
+                      QString::fromLatin1("org.freedesktop.DBus")};
+
+  dbus.call(QString::fromLatin1("StartServiceByName"),
+            QString::fromLatin1("org.freedesktop.FileManager1"), 0u);
+
+  QDBusInterface iface{QString::fromLatin1("org.freedesktop.FileManager1"),
+                       QString::fromLatin1("/org/freedesktop/FileManager1"),
+                       QString::fromLatin1("org.freedesktop.FileManager1")};
+  if (iface.isValid())
+  {
+    QStringList urls;
+    urls << QUrl::fromLocalFile(QString::fromUtf8(file_path)).toString();
+
+    const QDBusReply<void> reply = iface.call(QString::fromLatin1("ShowItems"), urls, QString{});
+    if (reply.isValid())
+      return;
+
+    const auto& err = reply.error();
+    WARN_LOG_FMT(COMMON, "DBus call failed: {} - {}", err.name().toStdString(),
+                 err.message().toStdString());
+  }
+  else
+  {
+    WARN_LOG_FMT(COMMON, "Invalid DBus interface: {}", iface.lastError().message().toStdString());
+  }
+
+#elif defined(_WIN32)
+  if (QProcess{}.startDetached(QString::fromLatin1("explorer.exe"),
+                               {QString::fromLatin1("/select"), QString::fromLatin1(","),
+                                QDir::toNativeSeparators(QString::fromUtf8(file_path))}))
+  {
+    return;
+  }
+#elif defined(__APPLE__)
+  if (QProcess{}.startDetached(QString::fromLatin1("open"),
+                               {QString::fromLatin1("-R"), QString::fromUtf8(file_path)}))
+  {
+    return;
+  }
+#endif
+
+  // Fall back on failure or unsupported platforms.
+  ShowFolderOfFile(file_path);
 }
 
 }  // namespace QtUtils
