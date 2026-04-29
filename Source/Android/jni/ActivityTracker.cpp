@@ -6,7 +6,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 #include "UICommon/UICommon.h"
-#include "jni/Host.h"
 
 extern "C" {
 
@@ -24,7 +23,6 @@ Java_org_dolphinemu_dolphinemu_utils_ActivityTracker_setBackgroundExecutionAllow
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_utils_ActivityTracker_flushUnsavedData(JNIEnv*, jclass)
 {
-  HostThreadLock guard;
   UICommon::FlushUnsavedData();
 }
 }
