@@ -64,7 +64,7 @@ public:
     {
       std::string logical_address;
       auto& memory = Core::System::GetInstance().GetMemory();
-      auto logical_base = reinterpret_cast<uintptr_t>(memory.GetLogicalBase());
+      auto logical_base = reinterpret_cast<uintptr_t>(memory.GetLogicalBaseWithPageTable());
       if (access_address >= logical_base && access_address < logical_base + 0x1'0000'0000)
         logical_address = fmt::format(" (PPC {:#010x})", access_address - logical_base);
 
@@ -80,7 +80,8 @@ public:
     // After we return from the signal handler, the memory access will happen again.
     // Let it succeed this time so the signal handler won't get called over and over.
     auto& memory = Core::System::GetInstance().GetMemory();
-    const uintptr_t logical_base = reinterpret_cast<uintptr_t>(memory.GetLogicalBase());
+    const uintptr_t logical_base =
+        reinterpret_cast<uintptr_t>(memory.GetLogicalBaseWithPageTable());
     const u32 logical_address = static_cast<u32>(access_address - logical_base);
     const u32 mask = s_minimum_mapping_size - 1;
     for (u32 i = logical_address & mask; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
@@ -100,27 +101,6 @@ public:
 
 private:
   StubBlockCache m_block_cache;
-};
-
-// This is used as a performance optimization. If several page table updates are performed while
-// DR is disabled, MMU.cpp will only have to rescan the page table one time once DR is enabled again
-// instead of after each page table update.
-class DisableDR final
-{
-public:
-  DisableDR()
-  {
-    auto& system = Core::System::GetInstance();
-    system.GetPPCState().msr.DR = 0;
-    system.GetPowerPC().MSRUpdated();
-  }
-
-  ~DisableDR()
-  {
-    auto& system = Core::System::GetInstance();
-    system.GetPPCState().msr.DR = 1;
-    system.GetPowerPC().MSRUpdated();
-  }
 };
 
 class PageTableHostMappingTest : public ::testing::Test
@@ -240,9 +220,13 @@ public:
     SCOPED_TRACE(
         fmt::format("ExpectMapped({:#010x}, {:#010x})", logical_address, physical_address));
 
-    auto& memory = Core::System::GetInstance().GetMemory();
+    auto& system = Core::System::GetInstance();
+    if (system.GetPPCState().pagetable_update_pending)
+      system.GetMMU().PageTableUpdated();
+
+    auto& memory = system.GetMemory();
     u8* physical_base = memory.GetPhysicalBase();
-    u8* logical_base = memory.GetLogicalBase();
+    u8* logical_base = memory.GetLogicalBaseWithPageTable();
 
     auto* physical_ptr = reinterpret_cast<volatile u32*>(physical_base + physical_address);
     auto* logical_ptr = reinterpret_cast<volatile u32*>(logical_base + logical_address);
@@ -267,9 +251,13 @@ public:
     SCOPED_TRACE(
         fmt::format("ExpectReadOnlyMapped({:#010x}, {:#010x})", logical_address, physical_address));
 
-    auto& memory = Core::System::GetInstance().GetMemory();
+    auto& system = Core::System::GetInstance();
+    if (system.GetPPCState().pagetable_update_pending)
+      system.GetMMU().PageTableUpdated();
+
+    auto& memory = system.GetMemory();
     u8* physical_base = memory.GetPhysicalBase();
-    u8* logical_base = memory.GetLogicalBase();
+    u8* logical_base = memory.GetLogicalBaseWithPageTable();
 
     auto* physical_ptr = reinterpret_cast<volatile u32*>(physical_base + physical_address);
     auto* logical_ptr = reinterpret_cast<volatile u32*>(logical_base + logical_address);
@@ -293,8 +281,12 @@ public:
   {
     SCOPED_TRACE(fmt::format("ExpectNotMapped({:#010x})", logical_address));
 
-    auto& memory = Core::System::GetInstance().GetMemory();
-    u8* logical_base = memory.GetLogicalBase();
+    auto& system = Core::System::GetInstance();
+    if (system.GetPPCState().pagetable_update_pending)
+      system.GetMMU().PageTableUpdated();
+
+    auto& memory = system.GetMemory();
+    u8* logical_base = memory.GetLogicalBaseWithPageTable();
 
     auto* logical_ptr = reinterpret_cast<volatile u32*>(logical_base + logical_address);
     s_detection_address = logical_ptr;
@@ -382,7 +374,6 @@ public:
 
   static void AddHostSizedMapping(u32 logical_address, u32 physical_address, u32 index)
   {
-    DisableDR disable_dr;
     for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
       AddMapping(logical_address + i, physical_address + i, index);
   }
@@ -396,7 +387,6 @@ public:
 
   static void RemoveHostSizedMapping(u32 logical_address, u32 physical_address, u32 index)
   {
-    DisableDR disable_dr;
     for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
       RemoveMapping(logical_address + i, physical_address + i, index);
   }
@@ -438,23 +428,17 @@ TEST_F(PageTableHostMappingTest, Basic)
 
 TEST_F(PageTableHostMappingTest, LargeHostPageMismatchedAddresses)
 {
-  {
-    DisableDR disable_dr;
-    AddMapping(0x10110000, 0x00111000, 0);
-    for (u32 i = PowerPC::HW_PAGE_SIZE; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
-      AddMapping(0x10110000 + i, 0x00110000 + i, 0);
-  }
+  AddMapping(0x10110000, 0x00111000, 0);
+  for (u32 i = PowerPC::HW_PAGE_SIZE; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
+    AddMapping(0x10110000 + i, 0x00110000 + i, 0);
 
   ExpectMappedOnlyIf4KHostPages(0x10110000, 0x00111000);
 }
 
 TEST_F(PageTableHostMappingTest, LargeHostPageMisalignedAddresses)
 {
-  {
-    DisableDR disable_dr;
-    for (u32 i = 0; i < s_minimum_mapping_size * 2; i += PowerPC::HW_PAGE_SIZE)
-      AddMapping(0x10120000 + i, 0x00121000 + i, 0);
-  }
+  for (u32 i = 0; i < s_minimum_mapping_size * 2; i += PowerPC::HW_PAGE_SIZE)
+    AddMapping(0x10120000 + i, 0x00121000 + i, 0);
 
   ExpectMappedOnlyIf4KHostPages(0x10120000, 0x00121000);
   ExpectMappedOnlyIf4KHostPages(0x10120000 + s_minimum_mapping_size,
@@ -463,14 +447,11 @@ TEST_F(PageTableHostMappingTest, LargeHostPageMisalignedAddresses)
 
 TEST_F(PageTableHostMappingTest, ChangeSR)
 {
+  for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
   {
-    DisableDR disable_dr;
-    for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
-    {
-      auto [pte1, pte2] = CreateMapping(0x20130000 + i, 0x00130000 + i);
-      pte1.VSID = 0xabc;
-      SetPTE(pte1, pte2, 0x20130000 + i, 0);
-    }
+    auto [pte1, pte2] = CreateMapping(0x20130000 + i, 0x00130000 + i);
+    pte1.VSID = 0xabc;
+    SetPTE(pte1, pte2, 0x20130000 + i, 0);
   }
   ExpectNotMapped(0x20130000);
 
@@ -635,14 +616,11 @@ TEST_F(PageTableHostMappingTest, WIMG)
 {
   for (u32 i = 0; i < 16; ++i)
   {
+    for (u32 j = 0; j < s_minimum_mapping_size; j += PowerPC::HW_PAGE_SIZE)
     {
-      DisableDR disable_dr;
-      for (u32 j = 0; j < s_minimum_mapping_size; j += PowerPC::HW_PAGE_SIZE)
-      {
-        auto [pte1, pte2] = CreateMapping(0x101e0000 + j, 0x001e0000 + j);
-        pte2.WIMG = i;
-        SetPTE(pte1, pte2, 0x101e0000 + j, 0);
-      }
+      auto [pte1, pte2] = CreateMapping(0x101e0000 + j, 0x001e0000 + j);
+      pte2.WIMG = i;
+      SetPTE(pte1, pte2, 0x101e0000 + j, 0);
     }
 
     if ((i & 0b1100) != 0)
@@ -657,7 +635,6 @@ TEST_F(PageTableHostMappingTest, RC)
   auto& mmu = Core::System::GetInstance().GetMMU();
 
   const auto set_up_mapping = [] {
-    DisableDR disable_dr;
     for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
     {
       auto [pte1, pte2] = CreateMapping(0x101f0000 + i, 0x001f0000 + i);

@@ -183,8 +183,10 @@ bool MemoryManager::InitFastmemArena()
   // the emulated system. This lets the JIT emulate PPC load/store instructions by translating a PPC
   // address to a host address as follows and then using a regular load/store instruction:
   //
-  // RMEM = ppcState.msr.DR ? m_logical_base : m_physical_base
-  // host_address = RMEM + u32(ppc_address_base + ppc_address_offset)
+  // logical_base = m_ppc_state.pagetable_update_pending ?
+  //                m_logical_base_without_page_table : m_logical_base_with_page_table;
+  // RMEM = m_ppc_state.msr.DR ? m_logical_base : logical_base;
+  // host_address = RMEM + u32(ppc_address_base + ppc_address_offset);
   //
   // If the resulting host address is backed by real memory, the memory access will simply work.
   // If not, a segfault handler will backpatch the JIT code to instead call functions in MMU.cpp.
@@ -199,19 +201,22 @@ bool MemoryManager::InitFastmemArena()
   // 4 GiB range by at most 2 GiB in either direction. So, make sure we have 2 GiB of guard pages
   // on each side of each 4 GiB range.
   //
-  // We need two 4 GiB ranges, one for PPC addresses with address translation disabled
-  // (m_physical_base) and one for PPC addresses with address translation enabled (m_logical_base),
-  // so our memory map ends up looking like this:
+  // We need three 4 GiB ranges, one for PPC addresses with address translation disabled
+  // (m_physical_base) and two for PPC addresses with address translation enabled
+  // (m_logical_base_without_page_table and m_logical_base_with_page_table), so our memory map ends
+  // up looking like this:
   //
   // 2 GiB guard
   // 4 GiB view for disabled address translation
   // 2 GiB guard
-  // 4 GiB view for enabled address translation
+  // 4 GiB view for enabled address translation without page table
+  // 2 GiB guard
+  // 4 GiB view for enabled address translation with page table
   // 2 GiB guard
 
   constexpr size_t ppc_view_size = 0x1'0000'0000;
   constexpr size_t guard_size = 0x8000'0000;
-  constexpr size_t memory_size = ppc_view_size * 2 + guard_size * 3;
+  constexpr size_t memory_size = ppc_view_size * 3 + guard_size * 4;
 
   m_fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
   if (!m_fastmem_arena)
@@ -221,7 +226,8 @@ bool MemoryManager::InitFastmemArena()
   }
 
   m_physical_base = m_fastmem_arena + guard_size;
-  m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
+  m_logical_base_without_page_table = m_fastmem_arena + ppc_view_size + guard_size * 2;
+  m_logical_base_with_page_table = m_fastmem_arena + ppc_view_size * 2 + guard_size * 3;
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -247,11 +253,17 @@ bool MemoryManager::InitFastmemArena()
 
 void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
 {
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (const auto& [logical_address, entry] : m_dbat_mapped_entries_without_page_table)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_dbat_mapped_entries.clear();
+  m_dbat_mapped_entries_without_page_table.clear();
+
+  for (const auto& [logical_address, entry] : m_dbat_mapped_entries_with_page_table)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_dbat_mapped_entries_with_page_table.clear();
 
   RemoveAllPageTableMappings();
 
@@ -298,18 +310,30 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
           if (m_is_fastmem_arena_initialized)
           {
             u32 position = physical_region.shm_position + intersection_start - mapping_address;
-            u8* base = m_logical_base + mapped_logical_address;
 
-            void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base, true);
-            if (!mapped_pointer)
+            u8* base_1 = m_logical_base_without_page_table + mapped_logical_address;
+            void* mapped_pointer_1 = m_arena.MapInMemoryRegion(position, mapped_size, base_1, true);
+            if (!mapped_pointer_1)
             {
               PanicAlertFmt("Memory::UpdateDBATMappings(): Failed to map memory region at 0x{:08X} "
-                            "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                            "(size 0x{:08X}) into logical fastmem region 1 at 0x{:08X}.",
                             intersection_start, mapped_size, logical_address);
               continue;
             }
-            m_dbat_mapped_entries.emplace(logical_address,
-                                          LogicalMemoryView{mapped_pointer, mapped_size});
+            m_dbat_mapped_entries_without_page_table.emplace(
+                logical_address, LogicalMemoryView{mapped_pointer_1, mapped_size});
+
+            u8* base_2 = m_logical_base_with_page_table + mapped_logical_address;
+            void* mapped_pointer_2 = m_arena.MapInMemoryRegion(position, mapped_size, base_2, true);
+            if (!mapped_pointer_2)
+            {
+              PanicAlertFmt("Memory::UpdateDBATMappings(): Failed to map memory region at 0x{:08X} "
+                            "(size 0x{:08X}) into logical fastmem region 2 at 0x{:08X}.",
+                            intersection_start, mapped_size, logical_address);
+              continue;
+            }
+            m_dbat_mapped_entries_with_page_table.emplace(
+                logical_address, LogicalMemoryView{mapped_pointer_2, mapped_size});
           }
 
           u32 bat_index = mapped_logical_address / PowerPC::BAT_PAGE_SIZE;
@@ -401,7 +425,8 @@ void MemoryManager::AddHostPageTableMapping(u32 logical_address, u32 translated_
 
     // Found an overlapping region; map it.
     const u32 position = physical_region.shm_position + intersection_start - mapping_address;
-    u8* const base = m_logical_base + logical_address + intersection_start - translated_address;
+    u8* const base =
+        m_logical_base_with_page_table + logical_address + intersection_start - translated_address;
     const u32 mapped_size = intersection_end - intersection_start;
 
     const auto it = m_page_table_mapped_entries.find(logical_address);
@@ -573,11 +598,17 @@ void MemoryManager::ShutdownFastmemArena()
     m_arena.UnmapFromMemoryRegion(base, region.size);
   }
 
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (const auto& [logical_address, entry] : m_dbat_mapped_entries_without_page_table)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_dbat_mapped_entries.clear();
+  m_dbat_mapped_entries_without_page_table.clear();
+
+  for (const auto& [logical_address, entry] : m_dbat_mapped_entries_with_page_table)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_dbat_mapped_entries_with_page_table.clear();
 
   for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
   {
@@ -593,7 +624,8 @@ void MemoryManager::ShutdownFastmemArena()
   m_fastmem_arena = nullptr;
   m_fastmem_arena_size = 0;
   m_physical_base = nullptr;
-  m_logical_base = nullptr;
+  m_logical_base_without_page_table = nullptr;
+  m_logical_base_with_page_table = nullptr;
 
   m_is_fastmem_arena_initialized = false;
 }

@@ -145,16 +145,26 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
   if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
   {
-    auto& ppc_state = m_system.GetPPCState();
     const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
-        ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
+        m_ppc_state.msr.DR ?
+            (m_ppc_state.pagetable_update_pending ? memory.GetLogicalBaseWithoutPageTable() :
+                                                    memory.GetLogicalBaseWithPageTable()) :
+            memory.GetPhysicalBase());
 
     if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
     {
       WARN_LOG_FMT(DYNA_REC,
                    "Jit64 address calculation overflowed! Please report if this happens a lot. "
                    "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
-                   ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+                   ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR);
+    }
+
+    if (m_ppc_state.msr.DR && m_ppc_state.pagetable_update_pending)
+    {
+      // Switch from logical base without page table to logical base with page table,
+      // then rerun the code that faulted.
+      m_system.GetMMU().PageTableUpdated();
+      return true;
     }
 
     return BackPatch(ctx);
@@ -373,7 +383,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   // We must also update constant propagation
   m_constant_propagation.ClearGPRs(js.op->regsOut);
 
-  if (js.op->opinfo->flags & FL_SET_MSR)
+  if (js.op->opinfo->flags & (FL_SET_MSR | FL_TLBIE))
     EmitUpdateMembase();
 
   if (js.op->canEndBlock)
@@ -520,11 +530,12 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   if (msr.IsImm())
   {
     MOV(64, R(RMEM),
-        ImmPtr(UReg_MSR(msr.Imm32()).DR ? memory.GetLogicalBase() : memory.GetPhysicalBase()));
+        ImmPtr(UReg_MSR(msr.Imm32()).DR ? memory.GetLogicalBaseWithPageTable() :
+                                          memory.GetPhysicalBase()));
   }
   else
   {
-    MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
+    MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBaseWithPageTable()));
     MOV(64, R(scratch_reg), ImmPtr(memory.GetPhysicalBase()));
     TEST(32, msr, Imm32(dr_bit));
     CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
