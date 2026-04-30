@@ -265,10 +265,53 @@ NetPlayUICallbacks::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
 }
 
 std::string NetPlayUICallbacks::FindGBARomPath(const std::array<u8, 20>&, std::string_view, int) { return {}; }
-void NetPlayUICallbacks::ShowGameDigestDialog(const std::string&) {}
-void NetPlayUICallbacks::SetGameDigestProgress(int, int) {}
-void NetPlayUICallbacks::SetGameDigestResult(int, const std::string&) {}
-void NetPlayUICallbacks::AbortGameDigest() {}
+
+void NetPlayUICallbacks::ShowGameDigestDialog(const std::string& title)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnShowGameDigestDialog(),
+                      ToJString(env, title));
+  env->DeleteLocalRef(netplay_session);
+}
+
+void NetPlayUICallbacks::SetGameDigestProgress(int pid, int progress)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnSetGameDigestProgress(),
+                      static_cast<jint>(pid), static_cast<jint>(progress));
+  env->DeleteLocalRef(netplay_session);
+}
+
+void NetPlayUICallbacks::SetGameDigestResult(int pid, const std::string& result)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnSetGameDigestResult(),
+                      static_cast<jint>(pid), ToJString(env, result));
+  env->DeleteLocalRef(netplay_session);
+}
+
+void NetPlayUICallbacks::AbortGameDigest()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnAbortGameDigest());
+  env->DeleteLocalRef(netplay_session);
+}
 
 void NetPlayUICallbacks::ShowChunkedProgressDialog(const std::string& title, u64 data_size,
                                                     std::span<const int> players)

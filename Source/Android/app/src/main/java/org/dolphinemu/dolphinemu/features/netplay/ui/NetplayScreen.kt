@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
@@ -91,6 +93,7 @@ fun NetplayScreen(
     onMaxBufferChanged: (Int) -> Unit,
     players: List<Player>,
     saveTransferProgress: SaveTransferProgress?,
+    gameDigestProgress: GameDigestProgress?,
 ) {
     Scaffold(
         topBar = {
@@ -136,14 +139,19 @@ fun NetplayScreen(
             )
         }
 
-        var showConnectionLostDialog by remember { mutableStateOf(false) }
+        var showConnectionLostDialog by rememberSaveable { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             connectionLost.collect { showConnectionLostDialog = true }
         }
 
-        var dismissSaveTransferProgressDialog by remember { mutableStateOf(false) }
+        var dismissSaveTransferProgressDialog by rememberSaveable { mutableStateOf(false) }
         if (saveTransferProgress == null) {
             dismissSaveTransferProgressDialog = false
+        }
+
+        var dismissGameDigestDialog by rememberSaveable { mutableStateOf(false) }
+        if (gameDigestProgress == null) {
+            dismissGameDigestDialog = false
         }
 
         when {
@@ -163,6 +171,13 @@ fun NetplayScreen(
                 SaveTransferProgressDialog(
                     saveTransferProgress = saveTransferProgress,
                     onDismiss = { dismissSaveTransferProgressDialog = true },
+                )
+            }
+
+            gameDigestProgress != null && !dismissGameDigestDialog -> {
+                GameDigestProgressDialog(
+                    gameDigestProgress = gameDigestProgress,
+                    onDismiss = { dismissGameDigestDialog = true },
                 )
             }
         }
@@ -548,6 +563,7 @@ private fun SaveTransferProgressDialog(
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 saveTransferProgress.playerProgresses.forEachIndexed { index, playerProgress ->
                     SaveTransferProgressRow(
@@ -596,6 +612,82 @@ private fun SaveTransferProgressRow(
             Text(
                 text = "${formatMib(playerProgress.progress)}/${formatMib(totalSize)} MiB",
             )
+        }
+    }
+}
+
+@Composable
+private fun GameDigestProgressDialog(
+    gameDigestProgress: GameDigestProgress,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        title = { Text(gameDigestProgress.title) },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                gameDigestProgress.playerProgresses.forEachIndexed { index, playerProgress ->
+                    GameDigestPlayerRow(playerProgress)
+                    if (index < gameDigestProgress.playerProgresses.lastIndex) {
+                        HorizontalDivider()
+                    }
+                }
+                if (gameDigestProgress.matches != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(
+                            if (gameDigestProgress.matches) {
+                                R.string.netplay_game_digest_match
+                            } else {
+                                R.string.netplay_game_digest_mismatch
+                            }
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (gameDigestProgress.matches != null) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.netplay_game_digest_close))
+                }
+            }
+        },
+        onDismissRequest = { onDismiss() },
+    )
+}
+
+@Composable
+private fun GameDigestPlayerRow(
+    playerProgress: GameDigestProgress.PlayerProgress,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LinearProgressIndicator(
+            progress = { playerProgress.progress / 100f },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (playerProgress.result == null) {
+                Text(
+                    text = playerProgress.name,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "${playerProgress.progress}%",
+                )
+            } else {
+                Text(
+                    text = "${playerProgress.name}:\u00A0${playerProgress.result}",
+                )
+            }
         }
     }
 }
@@ -671,6 +763,7 @@ private fun PreviewNetplayScreen() {
         maxBuffer = 10,
         onMaxBufferChanged = {},
         saveTransferProgress = null,
+        gameDigestProgress = null,
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,

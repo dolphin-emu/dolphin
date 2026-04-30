@@ -41,6 +41,8 @@ class NetplayViewModel(
 
     val saveTransferProgress = netplaySession.saveTransferProgress
 
+    val gameDigestProgress = netplaySession.gameDigestProgress
+
     fun sendMessage(message: String) {
         val trimmedMessage = message.trim()
         if (trimmedMessage.isEmpty()) {

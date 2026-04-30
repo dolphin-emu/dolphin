@@ -44,6 +44,10 @@ static jmethodID s_netplay_on_show_chunked_progress_dialog;
 static jmethodID s_netplay_on_set_chunked_progress;
 static jmethodID s_netplay_on_hide_chunked_progress_dialog;
 static jmethodID s_netplay_on_desync;
+static jmethodID s_netplay_on_show_game_digest_dialog;
+static jmethodID s_netplay_on_set_game_digest_progress;
+static jmethodID s_netplay_on_set_game_digest_result;
+static jmethodID s_netplay_on_abort_game_digest;
 
 static jclass s_netplay_player_class;
 static jmethodID s_netplay_player_constructor;
@@ -331,6 +335,26 @@ jmethodID GetNetplayOnHideChunkedProgressDialog()
 jmethodID GetNetplayOnDesync()
 {
   return s_netplay_on_desync;
+}
+
+jmethodID GetNetplayOnShowGameDigestDialog()
+{
+  return s_netplay_on_show_game_digest_dialog;
+}
+
+jmethodID GetNetplayOnSetGameDigestProgress()
+{
+  return s_netplay_on_set_game_digest_progress;
+}
+
+jmethodID GetNetplayOnSetGameDigestResult()
+{
+  return s_netplay_on_set_game_digest_result;
+}
+
+jmethodID GetNetplayOnAbortGameDigest()
+{
+  return s_netplay_on_abort_game_digest;
 }
 
 jclass GetNetplayPlayerClass()
@@ -774,6 +798,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetMethodID(netplay_class, "onHideChunkedProgressDialog", "()V");
   s_netplay_on_desync =
       env->GetMethodID(netplay_class, "onDesync", "(ILjava/lang/String;)V");
+  s_netplay_on_show_game_digest_dialog =
+      env->GetMethodID(netplay_class, "onShowGameDigestDialog", "(Ljava/lang/String;)V");
+  s_netplay_on_set_game_digest_progress =
+      env->GetMethodID(netplay_class, "onSetGameDigestProgress", "(II)V");
+  s_netplay_on_set_game_digest_result =
+      env->GetMethodID(netplay_class, "onSetGameDigestResult", "(ILjava/lang/String;)V");
+  s_netplay_on_abort_game_digest =
+      env->GetMethodID(netplay_class, "onAbortGameDigest", "()V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass netplay_player_class =

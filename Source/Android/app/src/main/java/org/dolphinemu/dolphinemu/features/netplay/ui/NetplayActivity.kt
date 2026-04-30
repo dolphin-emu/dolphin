@@ -56,6 +56,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     maxBuffer = viewModel.maxBuffer.collectAsState().value,
                     onMaxBufferChanged = viewModel::setMaxBuffer,
                     saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
+                    gameDigestProgress = viewModel.gameDigestProgress.collectAsState().value,
                 )
             }
         }

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
@@ -103,6 +104,9 @@ class NetplaySession(
 
     private val _saveTransferProgress = MutableStateFlow<SaveTransferProgress?>(null)
     val saveTransferProgress = _saveTransferProgress.asStateFlow()
+
+    private val _gameDigestProgress = MutableStateFlow<GameDigestProgress?>(null)
+    val gameDigestProgress = _gameDigestProgress.asStateFlow()
 
     suspend fun join(): Boolean = withContext(Dispatchers.IO) {
         if (isClosed) throw IllegalStateException("Cannot join a closed session")
@@ -281,6 +285,60 @@ class NetplaySession(
     @Keep
     fun onHideChunkedProgressDialog() {
         _saveTransferProgress.value = null
+    }
+
+    @Keep
+    fun onShowGameDigestDialog(title: String) {
+        val players = _players.replayCache.firstOrNull()
+        _gameDigestProgress.value = GameDigestProgress(
+            title = title,
+            playerProgresses = players?.map { player ->
+                GameDigestProgress.PlayerProgress(
+                    playerId = player.pid,
+                    name = player.name,
+                    progress = 0,
+                    result = null,
+                )
+            } ?: emptyList(),
+            matches = null,
+        )
+    }
+
+    @Keep
+    fun onSetGameDigestProgress(playerId: Int, progress: Int) {
+        val current = _gameDigestProgress.value ?: return
+        _gameDigestProgress.value = current.copy(
+            playerProgresses = current.playerProgresses.map {
+                if (it.playerId == playerId) it.copy(progress = progress) else it
+            }
+        )
+    }
+
+    @Keep
+    fun onSetGameDigestResult(playerId: Int, result: String) {
+        val current = _gameDigestProgress.value ?: return
+        val updated = current.copy(
+            playerProgresses = current.playerProgresses.map {
+                if (it.playerId == playerId) it.copy(result = result) else it
+            }
+        )
+        val finished = updated.playerProgresses.all { it.result != null }
+        _gameDigestProgress.value = if (finished) {
+            val results = updated.playerProgresses.map { it.result }
+            updated.copy(matches = results.distinct().size == 1)
+        } else {
+            updated
+        }
+    }
+
+    /**
+     * Hosts send this when they dismiss their dialog even in a successful scenario. Ensuring
+     * that the value is cleared before a new game digest is started. Without this, StateFlow
+     * would not be a good choice.
+     */
+    @Keep
+    fun onAbortGameDigest() {
+        _gameDigestProgress.value = null
     }
 }
 
