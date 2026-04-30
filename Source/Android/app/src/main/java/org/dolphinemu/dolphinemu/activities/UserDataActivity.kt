@@ -244,7 +244,7 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
 
                     deleteChildrenRecursively(userDirectory)
 
-                    DirectoryInitialization.getGameListCache(this).delete()
+                    DirectoryInitialization.getGameListCache().delete()
 
                     var ze: ZipEntry? = zis.nextEntry
                     val buffer = ByteArray(BUFFER_SIZE)
