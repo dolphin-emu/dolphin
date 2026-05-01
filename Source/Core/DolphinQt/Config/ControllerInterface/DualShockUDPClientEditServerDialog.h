@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include <QDialog>
 
 class QDialogButtonBox;
@@ -10,16 +12,18 @@ class QGridLayout;
 class QLineEdit;
 class QSpinBox;
 
-class DualShockUDPClientAddServerDialog final : public QDialog
+class DualShockUDPClientEditServerDialog final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit DualShockUDPClientAddServerDialog(QWidget* parent);
+  explicit DualShockUDPClientEditServerDialog(QWidget* parent,
+                                              std::optional<size_t> existing_index);
 
 private:
   void CreateWidgets();
-  void OnServerAdded();
+  void OnServerFinished();
 
+  std::optional<size_t> m_existing_index;
   QDialogButtonBox* m_buttonbox;
   QGridLayout* m_main_layout;
   QLineEdit* m_description;
