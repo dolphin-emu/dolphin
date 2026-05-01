@@ -1051,3 +1051,38 @@ void JitArm64::eieio(UGeckoInstruction inst)
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
     js.mustCheckFifo = true;
 }
+
+void JitArm64::tlbie(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  const ARM64Reg RB = gpr.R(inst.RB);
+  const auto WA = gpr.GetScopedReg();
+  const auto WB = gpr.GetScopedReg();
+  const ARM64Reg XA = EncodeRegTo64(WA);
+  const ARM64Reg XB = EncodeRegTo64(WB);
+
+  constexpr u32 index_bits = 6;
+  static_assert(1 << index_bits == PowerPC::TLB_SIZE / PowerPC::TLB_WAYS);
+  static_assert((1 << index_bits) - 1 == PowerPC::HW_PAGE_INDEX_MASK);
+  UBFX(WA, RB, PowerPC::HW_PAGE_INDEX_SHIFT, index_bits);
+
+  MOVI2R(WB, 1);
+  STRB(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF(pagetable_update_pending));
+
+  constexpr decltype(PowerPC::PowerPCState::tlb) tlb;
+  static_assert(sizeof(tlb[0]) / tlb[0].size() == ((1 << 3) + 1) << 2);
+  ADD(WA, WA, WA, ArithOption(WA, ShiftType::LSL, 3));
+  ADD(XA, PPC_REG, XA, ArithOption(XA, ShiftType::LSL, 2));
+
+  if (m_ppc_state.msr.DR && jo.fastmem)
+  {
+    MOVP2R(MEM_REG, m_system.GetMemory().GetLogicalBaseWithoutPageTable());
+    STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
+  }
+
+  MOVI2R(XB, 0xffff'ffff'ffff'ffff);
+  STR(IndexType::Unsigned, XB, XA, PPCSTATE_OFF_STD_ARRAY(tlb, 0));
+  STR(IndexType::Unsigned, XB, XA, PPCSTATE_OFF_STD_ARRAY(tlb, 1));
+}
