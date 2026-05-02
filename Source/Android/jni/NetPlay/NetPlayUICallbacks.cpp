@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
 #include "NetPlayUICallbacks.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -169,7 +171,13 @@ void NetPlayUICallbacks::OnMsgStartGame()
 }
 
 void NetPlayUICallbacks::OnMsgStopGame() {}
-void NetPlayUICallbacks::OnMsgPowerButton() {}
+
+void NetPlayUICallbacks::OnMsgPowerButton()
+{
+  if (Core::IsRunning(Core::System::GetInstance()))
+    UICommon::TriggerSTMPowerEvent();
+}
+
 void NetPlayUICallbacks::OnPlayerConnect(const std::string&) {}
 void NetPlayUICallbacks::OnPlayerDisconnect(const std::string&) {}
 
