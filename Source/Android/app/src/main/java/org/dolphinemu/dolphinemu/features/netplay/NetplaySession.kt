@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 
 class NetplaySession(
     private val onClosed: (NetplaySession) -> Unit,
@@ -52,6 +53,8 @@ class NetplaySession(
 
     val isLaunching: Boolean
         get() = bootSessionDataPointer != 0L
+
+    val nickName by lazy { StringSetting.NETPLAY_NICKNAME.string }
 
     private val _launchGame = Channel<String>(Channel.CONFLATED)
     val launchGame = _launchGame.receiveAsFlow()
@@ -143,7 +146,10 @@ class NetplaySession(
         join()
     }
 
-    fun sendMessage(message: String) = nativeSendMessage(message)
+    fun sendMessage(message: String) {
+        _chatMessages.tryEmit( "$nickName: $message")
+        nativeSendMessage(message)
+    }
 
     fun adjustPadBufferSize(buffer: Int) = nativeAdjustPadBufferSize(buffer)
 
