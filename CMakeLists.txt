@@ -19,6 +19,9 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
+# When using the Visual Studio generator, only show our targets and not the ones from Externals.
+set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
+
 if (MSVC)
   set(CMAKE_C_STANDARD 99)
   set(CMAKE_CXX_STANDARD 23)
