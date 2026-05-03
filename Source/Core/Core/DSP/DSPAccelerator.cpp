@@ -139,8 +139,8 @@ u16 Accelerator::ReadSample(const s16* coefs)
 
   int coef_idx = (m_pred_scale >> 4) & 0x7;
 
-  s32 coef1 = coefs[coef_idx * 2 + 0];
-  s32 coef2 = coefs[coef_idx * 2 + 1];
+  const s64 coef1 = static_cast<s64>(coefs[coef_idx * 2 + 0]);
+  const s64 coef2 = static_cast<s64>(coefs[coef_idx * 2 + 1]);
 
   switch (m_sample_format.decode)
   {
@@ -149,13 +149,13 @@ u16 Accelerator::ReadSample(const s16* coefs)
     // ADPCM really only supports 4-bit decoding, but for larger values on hardware, it just ignores
     // the upper 12 bits
     raw_sample &= 0xF;
-    int scale = 1 << (m_pred_scale & 0xF);
+    s32 scale = 1 << (m_pred_scale & 0xF);
 
     if (raw_sample >= 8)
       raw_sample -= 16;
 
-    s32 val32 = (scale * raw_sample) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
-    val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
+    s64 val64 = (scale * raw_sample) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    val = static_cast<s16>(std::clamp<s64>(val64, -0x8000, 0x7FFF));
     step_size = 2;
 
     m_yn2 = m_yn1;
@@ -205,9 +205,9 @@ u16 Accelerator::ReadSample(const s16* coefs)
       ERROR_LOG_FMT(DSPLLE, "ReadSample() invalid gain mode in format {:#x}", m_sample_format.hex);
       break;
     }
-    s32 val32 = ((static_cast<s32>(m_gain) * raw_sample) >> gain_shift) +
+    s64 val64 = ((static_cast<s32>(m_gain) * raw_sample) >> gain_shift) +
                 (((coef1 * m_yn1) >> gain_shift) + ((coef2 * m_yn2) >> gain_shift));
-    val = static_cast<s16>(val32);
+    val = static_cast<s16>(std::clamp<s64>(val64, -0x8000, 0x7FFF));
     m_yn2 = m_yn1;
     m_yn1 = val;
     step_size = 2;
