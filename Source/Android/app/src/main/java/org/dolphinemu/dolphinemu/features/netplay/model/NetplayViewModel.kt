@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,14 +21,24 @@ import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
+import org.dolphinemu.dolphinemu.utils.NetworkHelper
 
 class NetplayViewModel(
     private val netplaySession: NetplaySession,
+    private val networkHelper: NetworkHelper,
 ) : ViewModel() {
 
     val launchGame = netplaySession.launchGame
 
     val isHosting = netplaySession.isHosting
+
+    private val _joinAddresses = MutableStateFlow(
+        mapOf(
+            JoinInfoType.EXTERNAL to JoinAddress.Loading,
+            JoinInfoType.LOCAL to getLocalIp(),
+        )
+    )
+    val joinAddresses = _joinAddresses.asStateFlow()
 
     val connectionLost = netplaySession.connectionLost
 
@@ -61,6 +72,7 @@ class NetplayViewModel(
     init {
         if (netplaySession.isHosting) {
             setInitialGame()
+            fetchExternalIp()
         }
     }
 
@@ -88,6 +100,24 @@ class NetplayViewModel(
         netplaySession.changeGame(gameFile)
     }
 
+    private fun getLocalIp(): JoinAddress {
+        val localIp = networkHelper.getLocalIpString()
+            ?: return JoinAddress.Unknown { _joinAddresses.value += JoinInfoType.LOCAL to getLocalIp() }
+        val port = netplaySession.getPort()
+        return JoinAddress.Loaded("$localIp:$port")
+    }
+
+    private fun fetchExternalIp() {
+        _joinAddresses.value += JoinInfoType.EXTERNAL to JoinAddress.Loading
+        viewModelScope.launch(Dispatchers.IO) {
+            val ip = netplaySession.getExternalIpAddress()
+            val port = netplaySession.getPort()
+            val address = if (ip != null) JoinAddress.Loaded("$ip:$port")
+            else JoinAddress.Unknown { fetchExternalIp() }
+            _joinAddresses.value += JoinInfoType.EXTERNAL to address
+        }
+    }
+
     private fun setInitialGame() {
         val game = gameFiles.value
             .find { it.getGameId() == StringSetting.NETPLAY_GAME.string }
@@ -108,10 +138,13 @@ class NetplayViewModel(
         }
     }
 
-    class Factory(private val session: NetplaySession) : ViewModelProvider.Factory {
+    class Factory(
+        private val session: NetplaySession,
+        private val networkHelper: NetworkHelper,
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return NetplayViewModel(session) as T
+            return NetplayViewModel(session, networkHelper) as T
         }
     }
 }

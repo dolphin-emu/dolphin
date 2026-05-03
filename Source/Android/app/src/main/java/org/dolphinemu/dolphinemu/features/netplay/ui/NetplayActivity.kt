@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayViewModel
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
+import org.dolphinemu.dolphinemu.utils.NetworkHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 
 class NetplayActivity : AppCompatActivity(), ThemeProvider {
@@ -37,7 +38,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
             return
         }
 
-        val viewModel = ViewModelProvider(this, NetplayViewModel.Factory(session))[NetplayViewModel::class.java]
+        val viewModel = ViewModelProvider(this, NetplayViewModel.Factory(session, NetworkHelper))[NetplayViewModel::class.java]
 
         viewModel.launchGame
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -62,6 +63,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     onMaxBufferChanged = viewModel::setMaxBuffer,
                     saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
                     gameDigestProgress = viewModel.gameDigestProgress.collectAsState().value,
+                    joinAddresses = viewModel.joinAddresses.collectAsState().value,
                 )
             }
         }

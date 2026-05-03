@@ -8,6 +8,7 @@
 #include <jni.h>
 
 #include "Common/CommonTypes.h"
+#include "Core/NetPlayCommon.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/NetPlayClient.h"
@@ -172,6 +173,25 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeStartGame(J
     return;
 
   server->RequestStartGame();
+}
+
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeGetPort(JNIEnv* env,
+                                                                             jobject obj)
+{
+  if (auto* server = GetServerPointer(env, obj))
+    return static_cast<jint>(server->GetPort());
+  return 0;
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeGetExternalIpAddress(
+    JNIEnv* env, jobject)
+{
+  std::string ip = NetPlay::GetExternalIPAddress();
+  if (ip.empty())
+    return nullptr;
+  return ToJString(env, ip);
 }
 
 JNIEXPORT void JNICALL

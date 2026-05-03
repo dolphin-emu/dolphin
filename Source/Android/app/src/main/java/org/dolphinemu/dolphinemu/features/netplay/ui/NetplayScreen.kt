@@ -2,10 +2,11 @@
 
 package org.dolphinemu.dolphinemu.features.netplay.ui
 
+import android.content.Intent
 import android.content.res.Configuration
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,11 +34,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,6 +53,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -62,7 +71,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -84,6 +92,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
+import org.dolphinemu.dolphinemu.features.netplay.model.JoinAddress
+import org.dolphinemu.dolphinemu.features.netplay.model.JoinInfoType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
@@ -92,6 +102,7 @@ import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
+import org.dolphinemu.dolphinemu.ui.theme.ReadOnlyTextField
 import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.Locale
 
@@ -113,6 +124,7 @@ fun NetplayScreen(
     players: List<Player>,
     saveTransferProgress: SaveTransferProgress?,
     gameDigestProgress: GameDigestProgress?,
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
 ) {
     Scaffold(
         topBar = {
@@ -141,8 +153,10 @@ fun NetplayScreen(
             .consumeWindowInsets(innerPadding)
             .padding(innerPadding)
 
+        // State which must live above the landscape/portrait split.
         var showChat by rememberSaveable { mutableStateOf(false) }
         var showGamePicker by rememberSaveable { mutableStateOf(false) }
+        var selectedJoinInfoType by rememberSaveable { mutableStateOf(JoinInfoType.EXTERNAL) }
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             LandscapeContent(
@@ -160,6 +174,9 @@ fun NetplayScreen(
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 maxBuffer = maxBuffer,
                 onMaxBufferChanged = onMaxBufferChanged,
+                joinAddresses = joinAddresses,
+                selectedJoinInfoType = selectedJoinInfoType,
+                onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
                 modifier = modifier
             )
         } else {
@@ -178,6 +195,9 @@ fun NetplayScreen(
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 maxBuffer = maxBuffer,
                 onMaxBufferChanged = onMaxBufferChanged,
+                joinAddresses = joinAddresses,
+                selectedJoinInfoType = selectedJoinInfoType,
+                onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
                 modifier = modifier
             )
         }
@@ -243,6 +263,9 @@ private fun PortraitContent(
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
+    selectedJoinInfoType: JoinInfoType,
+    onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -273,6 +296,9 @@ private fun PortraitContent(
             maxBuffer = maxBuffer,
             onMaxBufferChanged = onMaxBufferChanged,
             isHosting = isHosting,
+            joinAddresses = joinAddresses,
+            selectedJoinInfoType = selectedJoinInfoType,
+            onSelectedJoinInfoTypeChanged = onSelectedJoinInfoTypeChanged,
             modifier = Modifier
                 .padding(horizontal = DolphinTheme.scaffoldPadding),
         )
@@ -299,10 +325,14 @@ private fun LandscapeContent(
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
+    selectedJoinInfoType: JoinInfoType,
+    onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
+            .padding(horizontal = DolphinTheme.scaffoldPadding)
     ) {
         Chat(
             messages = messages,
@@ -312,8 +342,9 @@ private fun LandscapeContent(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(horizontal = DolphinTheme.scaffoldPadding)
         )
+
+        Spacer(modifier = Modifier.width(16.dp))
 
         Column(
             modifier = Modifier
@@ -331,8 +362,10 @@ private fun LandscapeContent(
                 maxBuffer = maxBuffer,
                 onMaxBufferChanged = onMaxBufferChanged,
                 isHosting = isHosting,
+                joinAddresses = joinAddresses,
+                selectedJoinInfoType = selectedJoinInfoType,
+                onSelectedJoinInfoTypeChanged = onSelectedJoinInfoTypeChanged,
                 modifier = Modifier
-                    .padding(horizontal = DolphinTheme.scaffoldPadding)
             )
 
             if (isHosting) {
@@ -354,6 +387,9 @@ private fun PLayersAndSettings(
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
     isHosting: Boolean,
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
+    selectedJoinInfoType: JoinInfoType,
+    onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -367,6 +403,16 @@ private fun PLayersAndSettings(
             onShowGamePickerChanged = onShowGamePickerChanged,
             isHosting = isHosting,
         )
+
+        if (isHosting) {
+            MenuSpacer()
+
+            JoinAddressSection(
+                joinAddresses = joinAddresses,
+                selectedType = selectedJoinInfoType,
+                onSelectedTypeChanged = onSelectedJoinInfoTypeChanged,
+            )
+        }
 
         MenuSpacer()
 
@@ -479,6 +525,7 @@ private fun Chat(
     OutlinedBox(
         onClick = { onShowBottomSheetChanged(true) },
         label = { Text(stringResource(R.string.netplay_chat_label)) },
+        fadeContentTop = true,
         modifier = modifier
     ) {
         LazyColumn(
@@ -532,26 +579,16 @@ private fun GamePicker(
         }
     }
 
-    Box(
+    ReadOnlyTextField(
+        value = game,
+        label = stringResource(R.string.netplay_game_label),
+        onClick = if (isHosting) {
+            { onShowGamePickerChanged(true) }
+        } else {
+            null
+        },
         modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = game,
-            onValueChange = {},
-            label = { Text(stringResource(R.string.netplay_game_label)) },
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (isHosting) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(top = 8.dp)
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .clickable { onShowGamePickerChanged(true) }
-            )
-        }
-    }
+    )
 }
 
 @Composable
@@ -607,6 +644,150 @@ private fun GameGridItem(
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun JoinAddressSection(
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
+    selectedType: JoinInfoType,
+    onSelectedTypeChanged: (JoinInfoType) -> Unit,
+) {
+    val address = joinAddresses[selectedType] ?: joinAddresses.values.first()
+
+    @Suppress("UnusedBoxWithConstraintsScope")
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        if (maxWidth > 392.dp) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                JoinInfoDropdown(
+                    joinAddresses = joinAddresses,
+                    selectedType = selectedType,
+                    onSelectedTypeChanged = onSelectedTypeChanged,
+                    modifier = Modifier.weight(0.39f),
+                )
+                AddressRow(
+                    address = address,
+                    modifier = Modifier.weight(0.61f),
+                )
+            }
+        } else {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                JoinInfoDropdown(
+                    joinAddresses = joinAddresses,
+                    selectedType = selectedType,
+                    onSelectedTypeChanged = onSelectedTypeChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                MenuSpacer()
+                AddressRow(
+                    address = address,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun JoinInfoDropdown(
+    joinAddresses: Map<JoinInfoType, JoinAddress>,
+    selectedType: JoinInfoType,
+    onSelectedTypeChanged: (JoinInfoType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = stringResource(selectedType.labelId),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.netplay_host_address_label)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            joinAddresses.keys.forEach { type ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(type.labelId)) },
+                    onClick = {
+                        onSelectedTypeChanged(type)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddressRow(
+    address: JoinAddress,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+
+    ReadOnlyTextField(
+        value = when (address) {
+            is JoinAddress.Loading -> stringResource(R.string.netplay_address_loading)
+            is JoinAddress.Loaded -> address.address
+            is JoinAddress.Unknown -> stringResource(R.string.netplay_address_unknown)
+        },
+        label = stringResource(R.string.netplay_address_label),
+        onClick = when (address) {
+            is JoinAddress.Loaded -> {
+                {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, address.address)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                }
+            }
+
+            is JoinAddress.Unknown -> address.retry
+            is JoinAddress.Loading -> null
+        },
+        textStyle = if (address is JoinAddress.Loading) {
+            LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            null
+        },
+        trailingIcon = {
+            when (address) {
+                is JoinAddress.Loaded -> Icon(
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = stringResource(R.string.netplay_address_share),
+                )
+
+                is JoinAddress.Unknown -> Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = stringResource(R.string.netplay_address_retry),
+                )
+
+                is JoinAddress.Loading -> CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                )
+            }
+        },
+        modifier = modifier,
+    )
 }
 
 /**
@@ -981,6 +1162,10 @@ private fun PreviewNetplayScreen() {
         onMaxBufferChanged = {},
         saveTransferProgress = null,
         gameDigestProgress = null,
+        joinAddresses = mapOf(
+            JoinInfoType.EXTERNAL to JoinAddress.Loaded("203.0.113.1:2626"),
+            JoinInfoType.LOCAL to JoinAddress.Loaded("192.168.1.5:2626"),
+        ),
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,

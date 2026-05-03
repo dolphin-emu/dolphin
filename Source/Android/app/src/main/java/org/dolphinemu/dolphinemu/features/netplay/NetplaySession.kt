@@ -158,6 +158,10 @@ class NetplaySession(
 
     fun startGame() = nativeStartGame()
 
+    fun getPort(): Int = nativeGetPort()
+
+    fun getExternalIpAddress(): String? = nativeGetExternalIpAddress()
+
     fun consumeBootSessionData(): Long {
         return bootSessionDataPointer.also {
             bootSessionDataPointer = 0
@@ -238,6 +242,10 @@ class NetplaySession(
     private external fun nativeChangeGame(gameFile: GameFile)
 
     private external fun nativeStartGame()
+
+    private external fun nativeGetPort(): Int
+
+    private external fun nativeGetExternalIpAddress(): String?
 
     // NetPlayUI callbacks
 

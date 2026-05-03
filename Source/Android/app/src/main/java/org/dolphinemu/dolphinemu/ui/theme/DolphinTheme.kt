@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -28,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.android.material.color.MaterialColors
@@ -201,6 +205,38 @@ fun OutlinedBox(
                         indication = LocalIndication.current,
                         onClick = onClick,
                     )
+            )
+        }
+    }
+}
+
+@Composable
+fun ReadOnlyTextField(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    textStyle: TextStyle? = null,
+) {
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = trailingIcon,
+            textStyle = textStyle ?: LocalTextStyle.current,
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (onClick != null) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = 8.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .clickable(onClick = onClick)
             )
         }
     }
