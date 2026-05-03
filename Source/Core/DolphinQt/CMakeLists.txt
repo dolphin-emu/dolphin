@@ -701,7 +701,7 @@ if(APPLE)
       "$<TARGET_BUNDLE_DIR:dolphin-emu>"
     )
   endif()
-else()
+elseif (NOT WIN32)
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
