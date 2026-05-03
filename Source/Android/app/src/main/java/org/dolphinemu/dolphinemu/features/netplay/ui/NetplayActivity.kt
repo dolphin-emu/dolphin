@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
@@ -53,6 +54,8 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     game = viewModel.game.collectAsState().value,
                     isHosting = viewModel.isHosting,
                     onStartGame = viewModel::startGame,
+                    onGameSelected = viewModel::changeGame,
+                    gameFiles = viewModel.gameFiles.collectAsState().value,
                     players = viewModel.players.collectAsState().value,
                     hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
                     maxBuffer = viewModel.maxBuffer.collectAsState().value,

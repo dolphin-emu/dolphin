@@ -3,12 +3,14 @@
 package org.dolphinemu.dolphinemu.features.netplay.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -30,6 +35,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -42,9 +48,10 @@ import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +62,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -66,8 +75,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
@@ -75,10 +87,12 @@ import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
+import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
+import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +105,8 @@ fun NetplayScreen(
     onSendMessage: (String) -> Unit,
     game: String,
     onStartGame: () -> Unit,
+    onGameSelected: (GameFile) -> Unit,
+    gameFiles: List<GameFile>,
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
@@ -125,12 +141,21 @@ fun NetplayScreen(
             .consumeWindowInsets(innerPadding)
             .padding(innerPadding)
 
+        var showChat by rememberSaveable { mutableStateOf(false) }
+        var showGamePicker by rememberSaveable { mutableStateOf(false) }
+
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             LandscapeContent(
                 isHosting = isHosting,
                 messages = messages,
                 onSendMessage = onSendMessage,
+                showChat = showChat,
+                onShowChatChanged = { showChat = it },
                 game = game,
+                gameFiles = gameFiles,
+                onGameSelected = onGameSelected,
+                showGamePicker = showGamePicker,
+                onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 maxBuffer = maxBuffer,
@@ -142,7 +167,13 @@ fun NetplayScreen(
                 isHosting = isHosting,
                 messages = messages,
                 onSendMessage = onSendMessage,
+                showChat = showChat,
+                onShowChatChanged = { showChat = it },
                 game = game,
+                gameFiles = gameFiles,
+                onGameSelected = onGameSelected,
+                showGamePicker = showGamePicker,
+                onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 maxBuffer = maxBuffer,
@@ -201,7 +232,13 @@ private fun PortraitContent(
     isHosting: Boolean,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
+    showChat: Boolean,
+    onShowChatChanged: (Boolean) -> Unit,
     game: String,
+    gameFiles: List<GameFile>,
+    onGameSelected: (GameFile) -> Unit,
+    showGamePicker: Boolean,
+    onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
@@ -215,6 +252,8 @@ private fun PortraitContent(
         Chat(
             messages = messages,
             onSendMessage = onSendMessage,
+            showBottomSheet = showChat,
+            onShowBottomSheetChanged = onShowChatChanged,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
@@ -225,10 +264,15 @@ private fun PortraitContent(
 
         PLayersAndSettings(
             game = game,
+            gameFiles = gameFiles,
+            onGameSelected = onGameSelected,
+            showGamePicker = showGamePicker,
+            onShowGamePickerChanged = onShowGamePickerChanged,
             players = players,
             hostInputAuthorityEnabled = hostInputAuthorityEnabled,
             maxBuffer = maxBuffer,
             onMaxBufferChanged = onMaxBufferChanged,
+            isHosting = isHosting,
             modifier = Modifier
                 .padding(horizontal = DolphinTheme.scaffoldPadding),
         )
@@ -244,7 +288,13 @@ private fun LandscapeContent(
     isHosting: Boolean,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
+    showChat: Boolean,
+    onShowChatChanged: (Boolean) -> Unit,
     game: String,
+    gameFiles: List<GameFile>,
+    onGameSelected: (GameFile) -> Unit,
+    showGamePicker: Boolean,
+    onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
@@ -257,6 +307,8 @@ private fun LandscapeContent(
         Chat(
             messages = messages,
             onSendMessage = onSendMessage,
+            showBottomSheet = showChat,
+            onShowBottomSheetChanged = onShowChatChanged,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
@@ -270,10 +322,15 @@ private fun LandscapeContent(
         ) {
             PLayersAndSettings(
                 game = game,
+                gameFiles = gameFiles,
+                onGameSelected = onGameSelected,
+                showGamePicker = showGamePicker,
+                onShowGamePickerChanged = onShowGamePickerChanged,
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 maxBuffer = maxBuffer,
                 onMaxBufferChanged = onMaxBufferChanged,
+                isHosting = isHosting,
                 modifier = Modifier
                     .padding(horizontal = DolphinTheme.scaffoldPadding)
             )
@@ -288,22 +345,27 @@ private fun LandscapeContent(
 @Composable
 private fun PLayersAndSettings(
     game: String,
+    gameFiles: List<GameFile>,
+    onGameSelected: (GameFile) -> Unit,
+    showGamePicker: Boolean,
+    onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
+    isHosting: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
     ) {
-        OutlinedTextField(
-            value = game,
-            onValueChange = {},
-            label = { Text(stringResource(R.string.netplay_game_label)) },
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
+        GamePicker(
+            game = game,
+            gameFiles = gameFiles,
+            onGameSelected = onGameSelected,
+            showGamePicker = showGamePicker,
+            onShowGamePickerChanged = onShowGamePickerChanged,
+            isHosting = isHosting,
         )
 
         MenuSpacer()
@@ -345,6 +407,8 @@ private fun PLayersAndSettings(
 private fun Chat(
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
+    showBottomSheet: Boolean,
+    onShowBottomSheetChanged: (Boolean) -> Unit,
     modifier: Modifier,
 ) {
     val context = LocalContext.current
@@ -361,12 +425,18 @@ private fun Chat(
         draftMessage = ""
     }
 
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val density = LocalDensity.current
+    val bottomSheetState = remember {
+        SheetState(
+            skipPartiallyExpanded = true,
+            density = density,
+            initialValue = if (showBottomSheet) SheetValue.Expanded else SheetValue.Hidden,
+        )
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = { onShowBottomSheetChanged(false) },
             sheetState = bottomSheetState,
             modifier = Modifier
                 .statusBarsPadding()
@@ -407,7 +477,7 @@ private fun Chat(
     }
 
     OutlinedBox(
-        onClick = { showBottomSheet = true },
+        onClick = { onShowBottomSheetChanged(true) },
         label = { Text(stringResource(R.string.netplay_chat_label)) },
         modifier = modifier
     ) {
@@ -418,6 +488,123 @@ private fun Chat(
                 .fillMaxSize()
         ) {
             messages()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GamePicker(
+    game: String,
+    gameFiles: List<GameFile>,
+    onGameSelected: (GameFile) -> Unit,
+    showGamePicker: Boolean,
+    onShowGamePickerChanged: (Boolean) -> Unit,
+    isHosting: Boolean,
+) {
+    val density = LocalDensity.current
+    val bottomSheetState = remember {
+        SheetState(
+            skipPartiallyExpanded = true,
+            density = density,
+            initialValue = if (showGamePicker) SheetValue.Expanded else SheetValue.Hidden,
+        )
+    }
+
+    if (showGamePicker) {
+        ModalBottomSheet(
+            onDismissRequest = { onShowGamePickerChanged(false) },
+            sheetState = bottomSheetState,
+            modifier = Modifier.statusBarsPadding()
+        ) {
+            GameList(
+                gameFiles = gameFiles,
+                onGameSelected = { gameFile ->
+                    onGameSelected(gameFile)
+                    onShowGamePickerChanged(false)
+                },
+                contentPadding = PaddingValues(
+                    start = DolphinTheme.scaffoldPadding,
+                    end = DolphinTheme.scaffoldPadding,
+                    bottom = 16.dp
+                ),
+            )
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = game,
+            onValueChange = {},
+            label = { Text(stringResource(R.string.netplay_game_label)) },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (isHosting) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(top = 8.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .clickable { onShowGamePickerChanged(true) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameList(
+    gameFiles: List<GameFile>,
+    onGameSelected: (GameFile) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 120.dp),
+        contentPadding = contentPadding,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(gameFiles, key = { it.getPath() }) { gameFile ->
+            GameGridItem(
+                gameFile = gameFile,
+                onClick = { onGameSelected(gameFile) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameGridItem(
+    gameFile: GameFile,
+    onClick: () -> Unit,
+) {
+    Card(
+        onClick = onClick,
+    ) {
+        Column {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(gameFile)
+                    .error(R.drawable.no_banner)
+                    .build(),
+                contentDescription = gameFile.getTitle(),
+                contentScale = ContentScale.Crop,
+                imageLoader = CoilUtils.imageLoader,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.7f)
+            )
+            Text(
+                text = gameFile.getTitle(),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                minLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .padding(8.dp)
+            )
         }
     }
 }
@@ -787,6 +974,8 @@ private fun PreviewNetplayScreen() {
         game = "Game name",
         isHosting = true,
         onStartGame = {},
+        onGameSelected = {},
+        gameFiles = emptyList(),
         hostInputAuthorityEnabled = true,
         maxBuffer = 10,
         onMaxBufferChanged = {},

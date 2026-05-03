@@ -115,7 +115,8 @@ enum class StringSetting(
         ""
     ),
     NETPLAY_ADDRESS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Address", "127.0.0.1"),
-    NETPLAY_NICKNAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Nickname", "Player");
+    NETPLAY_NICKNAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Nickname", "Player"),
+    NETPLAY_GAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Game", "");
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)

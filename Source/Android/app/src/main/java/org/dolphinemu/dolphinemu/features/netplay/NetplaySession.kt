@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
+import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
@@ -153,6 +154,8 @@ class NetplaySession(
 
     fun adjustPadBufferSize(buffer: Int) = nativeAdjustPadBufferSize(buffer)
 
+    fun changeGame(gameFile: GameFile) = nativeChangeGame(gameFile)
+
     fun startGame() = nativeStartGame()
 
     fun consumeBootSessionData(): Long {
@@ -231,6 +234,8 @@ class NetplaySession(
     private external fun nativeReleaseServer(pointer: Long)
 
     private external fun nativeReleaseBootSessionData(pointer: Long)
+
+    private external fun nativeChangeGame(gameFile: GameFile)
 
     private external fun nativeStartGame()
 

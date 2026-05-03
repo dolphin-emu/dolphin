@@ -4,17 +4,22 @@ package org.dolphinemu.dolphinemu.features.netplay.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
+import org.dolphinemu.dolphinemu.model.GameFile
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 
 class NetplayViewModel(
     private val netplaySession: NetplaySession,
@@ -41,9 +46,23 @@ class NetplayViewModel(
     private val _maxBuffer = MutableStateFlow(IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.int)
     val maxBuffer = _maxBuffer.asStateFlow()
 
+    val gameFiles = GameFileCacheManager.getGameFiles().asFlow()
+        .map { it.toList() }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(),
+            GameFileCacheManager.getGameFiles().value?.toList() ?: emptyList()
+        )
+
     val saveTransferProgress = netplaySession.saveTransferProgress
 
     val gameDigestProgress = netplaySession.gameDigestProgress
+
+    init {
+        if (netplaySession.isHosting) {
+            setInitialGame()
+        }
+    }
 
     fun startGame() {
         netplaySession.startGame()
@@ -62,6 +81,21 @@ class NetplayViewModel(
         _maxBuffer.value = buffer
         IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.setInt(NativeConfig.LAYER_BASE, buffer)
         netplaySession.adjustPadBufferSize(buffer)
+    }
+
+    fun changeGame(gameFile: GameFile) {
+        StringSetting.NETPLAY_GAME.setString(NativeConfig.LAYER_BASE, gameFile.getGameId())
+        netplaySession.changeGame(gameFile)
+    }
+
+    private fun setInitialGame() {
+        val game = gameFiles.value
+            .find { it.getGameId() == StringSetting.NETPLAY_GAME.string }
+            ?: gameFiles.value.firstOrNull()
+
+        if (game != null) {
+            changeGame(game)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

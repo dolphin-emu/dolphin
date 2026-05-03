@@ -149,6 +149,21 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeHost(JNIEnv
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeChangeGame(JNIEnv* env,
+                                                                                jobject obj,
+                                                                                jobject jgame_file)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return;
+
+  const auto& game_file = *reinterpret_cast<std::shared_ptr<const UICommon::GameFile>*>(
+      env->GetLongField(jgame_file, IDCache::GetGameFilePointer()));
+
+  server->ChangeGame(game_file->GetSyncIdentifier(), game_file->GetLongName());
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeStartGame(JNIEnv* env,
                                                                           jobject obj)
 {
