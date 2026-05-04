@@ -24,7 +24,7 @@ constexpr float PosScale(T val, float scale)
 }
 
 template <>
-constexpr float PosScale(float val, [[maybe_unused]] float scale)
+constexpr float PosScale(float val, float /* scale */)
 {
   return val;
 }

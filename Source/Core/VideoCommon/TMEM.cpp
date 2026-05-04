@@ -143,7 +143,7 @@ void InvalidateAll()
 // On invalidate cache:
 // 1. invalidate all texture units.
 
-void Invalidate([[maybe_unused]] u32 param)
+void Invalidate(u32 /* param */)
 {
   // The exact arguments of Invalidate commands is currently unknown.
   // It appears to contain the TMEM address and a size.
