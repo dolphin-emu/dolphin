@@ -57,7 +57,7 @@ void Microphone::StreamInit()
 {
 }
 
-void Microphone::StreamStart([[maybe_unused]] u32 sampling_rate)
+void Microphone::StreamStart(u32 /* sampling_rate */)
 {
 }
 
