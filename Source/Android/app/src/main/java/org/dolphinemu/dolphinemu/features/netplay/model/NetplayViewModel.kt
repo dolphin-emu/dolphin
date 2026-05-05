@@ -12,7 +12,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
@@ -28,19 +30,28 @@ class NetplayViewModel(
     private val networkHelper: NetworkHelper,
 ) : ViewModel() {
 
+    private val isTraversal = StringSetting.NETPLAY_TRAVERSAL_CHOICE.string == "traversal"
+
     val launchGame = netplaySession.launchGame
 
     val isHosting = netplaySession.isHosting
 
     private val _joinAddresses = MutableStateFlow(
-        mapOf(
-            JoinInfoType.EXTERNAL to JoinAddress.Loading,
-            JoinInfoType.LOCAL to getLocalIp(),
-        )
+        buildMap {
+            if (isHosting) {
+                if (isTraversal) {
+                    put(JoinInfoType.ROOM_ID, JoinAddress.Loading)
+                }
+                put(JoinInfoType.EXTERNAL, JoinAddress.Loading)
+                put(JoinInfoType.LOCAL, getLocalIp())
+            }
+        }
     )
     val joinAddresses = _joinAddresses.asStateFlow()
 
     val connectionLost = netplaySession.connectionLost
+
+    val fatalTraversalError = netplaySession.fatalTraversalError
 
     val players = netplaySession.players
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -72,7 +83,11 @@ class NetplayViewModel(
     init {
         if (netplaySession.isHosting) {
             setInitialGame()
-            fetchExternalIp()
+            if (isTraversal) {
+                collectTraversalState()
+            } else {
+                fetchExternalIp()
+            }
         }
     }
 
@@ -116,6 +131,32 @@ class NetplayViewModel(
             else JoinAddress.Unknown { fetchExternalIp() }
             _joinAddresses.value += JoinInfoType.EXTERNAL to address
         }
+    }
+
+    private fun collectTraversalState() {
+        val retry = { netplaySession.reconnectTraversal() }
+        netplaySession.traversalState.onEach { state ->
+            when (state) {
+                is TraversalState.Connecting -> {
+                    _joinAddresses.value += mapOf(
+                        JoinInfoType.ROOM_ID to JoinAddress.Loading,
+                        JoinInfoType.EXTERNAL to JoinAddress.Loading,
+                    )
+                }
+                is TraversalState.Connected -> {
+                    _joinAddresses.value += mapOf(
+                        JoinInfoType.ROOM_ID to JoinAddress.Loaded(state.hostCode),
+                        JoinInfoType.EXTERNAL to JoinAddress.Loaded(state.externalAddress),
+                    )
+                }
+                is TraversalState.Failure -> {
+                    _joinAddresses.value += mapOf(
+                        JoinInfoType.ROOM_ID to JoinAddress.Unknown(retry),
+                        JoinInfoType.EXTERNAL to JoinAddress.Unknown(retry),
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun setInitialGame() {

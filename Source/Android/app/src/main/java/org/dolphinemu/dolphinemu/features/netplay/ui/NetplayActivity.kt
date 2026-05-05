@@ -50,6 +50,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                 NetplayScreen(
                     onBackClicked = { finish() },
                     connectionLost = viewModel.connectionLost,
+                    fatalTraversalError = viewModel.fatalTraversalError,
                     messages = viewModel.messages.collectAsState().value,
                     onSendMessage = viewModel::sendMessage,
                     game = viewModel.game.collectAsState().value,

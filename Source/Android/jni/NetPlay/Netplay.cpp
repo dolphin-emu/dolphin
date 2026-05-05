@@ -8,6 +8,7 @@
 #include <jni.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/TraversalClient.h"
 #include "Core/NetPlayCommon.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/NetplaySettings.h"
@@ -192,6 +193,14 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeGetExternal
   if (ip.empty())
     return nullptr;
   return ToJString(env, ip);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReconnectTraversal(JNIEnv*,
+                                                                                       jobject)
+{
+  if (Common::g_TraversalClient)
+    Common::g_TraversalClient->ReconnectToServer();
 }
 
 JNIEXPORT void JNICALL

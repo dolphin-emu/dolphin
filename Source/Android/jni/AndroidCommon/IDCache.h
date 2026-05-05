@@ -52,6 +52,7 @@ jmethodID GetNetplayOnShowGameDigestDialog();
 jmethodID GetNetplayOnSetGameDigestProgress();
 jmethodID GetNetplayOnSetGameDigestResult();
 jmethodID GetNetplayOnAbortGameDigest();
+jmethodID GetNetplayOnTraversalStateChanged();
 
 jclass GetNetplayPlayerClass();
 jmethodID GetNetplayPlayerConstructor();

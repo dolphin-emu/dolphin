@@ -1018,8 +1018,12 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_use_upnp">Forward port (UPnP)</string>
     <string name="netplay_host_address_label">Join info</string>
     <string name="netplay_address_label">Address</string>
-    <string name="netplay_address_type_external">External IP</string>
-    <string name="netplay_address_type_local">Local IP</string>
+    <string name="netplay_code_label">Code</string>
+    <string name="netplay_address_type_room_id">Room</string>
+    <string name="netplay_address_type_external">External</string>
+    <string name="netplay_address_type_local">Local</string>
+    <string name="netplay_traversal_error_bad_host">Couldn\'t look up central server</string>
+    <string name="netplay_traversal_error_version_too_old">Dolphin is too old for traversal server</string>
     <string name="netplay_address_loading">Loading…</string>
     <string name="netplay_address_unknown">Unknown</string>
     <string name="netplay_address_share">Share address</string>

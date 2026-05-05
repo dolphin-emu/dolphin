@@ -97,6 +97,7 @@ import org.dolphinemu.dolphinemu.features.netplay.model.JoinInfoType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
+import org.dolphinemu.dolphinemu.features.netplay.model.TraversalState
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
@@ -112,6 +113,7 @@ fun NetplayScreen(
     onBackClicked: () -> Unit,
     isHosting: Boolean,
     connectionLost: Flow<Unit>,
+    fatalTraversalError: Flow<TraversalState.Failure>,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
@@ -156,7 +158,9 @@ fun NetplayScreen(
         // State which must live above the landscape/portrait split.
         var showChat by rememberSaveable { mutableStateOf(false) }
         var showGamePicker by rememberSaveable { mutableStateOf(false) }
-        var selectedJoinInfoType by rememberSaveable { mutableStateOf(JoinInfoType.EXTERNAL) }
+        var selectedJoinInfoType by rememberSaveable {
+            mutableStateOf(joinAddresses.keys.firstOrNull() ?: JoinInfoType.EXTERNAL)
+        }
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             LandscapeContent(
@@ -207,6 +211,11 @@ fun NetplayScreen(
             connectionLost.collect { showConnectionLostDialog = true }
         }
 
+        var traversalError by rememberSaveable { mutableStateOf<TraversalState.Failure?>(null) }
+        LaunchedEffect(Unit) {
+            fatalTraversalError.collect { traversalError = it }
+        }
+
         var dismissSaveTransferProgressDialog by rememberSaveable { mutableStateOf(false) }
         if (saveTransferProgress == null) {
             dismissSaveTransferProgressDialog = false
@@ -217,10 +226,24 @@ fun NetplayScreen(
             dismissGameDigestDialog = false
         }
 
+        val currentTraversalError = traversalError
+
         when {
             showConnectionLostDialog -> {
                 AlertDialog(
                     text = { Text(stringResource(R.string.netplay_connection_lost)) },
+                    confirmButton = {
+                        TextButton(onClick = onBackClicked) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    },
+                    onDismissRequest = onBackClicked,
+                )
+            }
+
+            currentTraversalError != null -> {
+                AlertDialog(
+                    text = { Text(currentTraversalError.message(LocalContext.current)) },
                     confirmButton = {
                         TextButton(onClick = onBackClicked) {
                             Text(stringResource(R.string.ok))
@@ -669,6 +692,7 @@ private fun JoinAddressSection(
                     modifier = Modifier.weight(0.39f),
                 )
                 AddressRow(
+                    joinInfoType = selectedType,
                     address = address,
                     modifier = Modifier.weight(0.61f),
                 )
@@ -683,6 +707,7 @@ private fun JoinAddressSection(
                 )
                 MenuSpacer()
                 AddressRow(
+                    joinInfoType = selectedType,
                     address = address,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -737,6 +762,7 @@ private fun JoinInfoDropdown(
 
 @Composable
 private fun AddressRow(
+    joinInfoType: JoinInfoType,
     address: JoinAddress,
     modifier: Modifier = Modifier,
 ) {
@@ -748,7 +774,10 @@ private fun AddressRow(
             is JoinAddress.Loaded -> address.address
             is JoinAddress.Unknown -> stringResource(R.string.netplay_address_unknown)
         },
-        label = stringResource(R.string.netplay_address_label),
+        label = stringResource(
+            if (joinInfoType == JoinInfoType.ROOM_ID) R.string.netplay_code_label
+            else R.string.netplay_address_label
+        ),
         onClick = when (address) {
             is JoinAddress.Loaded -> {
                 {
@@ -1128,6 +1157,7 @@ private fun PreviewNetplayScreen() {
     NetplayScreen(
         onBackClicked = {},
         connectionLost = emptyFlow(),
+        fatalTraversalError = emptyFlow(),
         players = listOf(
             Player(
                 pid = 1,

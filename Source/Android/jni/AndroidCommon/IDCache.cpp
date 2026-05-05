@@ -49,6 +49,7 @@ static jmethodID s_netplay_on_show_game_digest_dialog;
 static jmethodID s_netplay_on_set_game_digest_progress;
 static jmethodID s_netplay_on_set_game_digest_result;
 static jmethodID s_netplay_on_abort_game_digest;
+static jmethodID s_netplay_on_traversal_state_changed;
 
 static jclass s_netplay_player_class;
 static jmethodID s_netplay_player_constructor;
@@ -361,6 +362,11 @@ jmethodID GetNetplayOnSetGameDigestResult()
 jmethodID GetNetplayOnAbortGameDigest()
 {
   return s_netplay_on_abort_game_digest;
+}
+
+jmethodID GetNetplayOnTraversalStateChanged()
+{
+  return s_netplay_on_traversal_state_changed;
 }
 
 jclass GetNetplayPlayerClass()
@@ -813,6 +819,9 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetMethodID(netplay_class, "onSetGameDigestResult", "(ILjava/lang/String;)V");
   s_netplay_on_abort_game_digest =
       env->GetMethodID(netplay_class, "onAbortGameDigest", "()V");
+  s_netplay_on_traversal_state_changed = env->GetMethodID(
+      netplay_class, "onTraversalStateChanged",
+      "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass netplay_player_class =

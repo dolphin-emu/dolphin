@@ -1,14 +1,61 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <android/log.h>
+
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 #include "NetPlayUICallbacks.h"
+#include "Common/TraversalClient.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
 #include "Core/System.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+namespace
+{
+std::string InetAddressToString(const Common::TraversalInetAddress& addr)
+{
+  std::string ip;
+
+  if (addr.isIPV6)
+  {
+    ip = "IPv6-Not-Implemented";
+  }
+  else
+  {
+    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+    ip = std::to_string(ipv4[0]);
+    for (u32 i = 1; i != 4; ++i)
+    {
+      ip += ".";
+      ip += std::to_string(ipv4[i]);
+    }
+  }
+
+  return ip + ":" + std::to_string(ntohs(addr.port));
+}
+
+const char* FailureReasonToString(Common::TraversalClient::FailureReason reason)
+{
+  switch (reason)
+  {
+  case Common::TraversalClient::FailureReason::BadHost:
+    return "BadHost";
+  case Common::TraversalClient::FailureReason::VersionTooOld:
+    return "VersionTooOld";
+  case Common::TraversalClient::FailureReason::ServerForgotAboutUs:
+    return "ServerForgotAboutUs";
+  case Common::TraversalClient::FailureReason::SocketSendError:
+    return "SocketSendError";
+  case Common::TraversalClient::FailureReason::ResendTimeout:
+    return "ResendTimeout";
+  default:
+    return "Unknown";
+  }
+}
+}  // namespace
 
 namespace NetPlay {
 
@@ -242,8 +289,48 @@ void NetPlayUICallbacks::OnConnectionError(const std::string& message)
   env->DeleteLocalRef(netplay_session);
 }
 
+// No-op — all error info is captured by OnTraversalStateChanged which always fires alongside.
 void NetPlayUICallbacks::OnTraversalError(Common::TraversalClient::FailureReason) {}
-void NetPlayUICallbacks::OnTraversalStateChanged(Common::TraversalClient::State) {}
+
+void NetPlayUICallbacks::OnTraversalStateChanged(Common::TraversalClient::State state)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  jstring host_code = nullptr;
+  jstring external_address = nullptr;
+  jstring failure_reason = nullptr;
+
+  if (Common::g_TraversalClient)
+  {
+    if (state == Common::TraversalClient::State::Connected)
+    {
+      const auto host_id = Common::g_TraversalClient->GetHostID();
+      host_code = ToJString(env, std::string(host_id.begin(), host_id.end()));
+      external_address =
+          ToJString(env, InetAddressToString(Common::g_TraversalClient->GetExternalAddress()));
+    }
+    else if (state == Common::TraversalClient::State::Failure)
+    {
+      failure_reason =
+          ToJString(env, FailureReasonToString(Common::g_TraversalClient->GetFailureReason()));
+    }
+
+    env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnTraversalStateChanged(),
+                        static_cast<jint>(state), host_code, external_address, failure_reason);
+  }
+
+  if (host_code)
+    env->DeleteLocalRef(host_code);
+  if (external_address)
+    env->DeleteLocalRef(external_address);
+  if (failure_reason)
+    env->DeleteLocalRef(failure_reason);
+  env->DeleteLocalRef(netplay_session);
+}
+
 void NetPlayUICallbacks::OnGameStartAborted() {}
 void NetPlayUICallbacks::OnGolferChanged(bool, const std::string&) {}
 void NetPlayUICallbacks::OnTtlDetermined(u8) {}

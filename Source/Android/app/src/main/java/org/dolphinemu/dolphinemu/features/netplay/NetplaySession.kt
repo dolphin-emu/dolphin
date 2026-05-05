@@ -25,11 +25,12 @@ import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
-import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
+import org.dolphinemu.dolphinemu.features.netplay.model.TraversalState
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
+import org.dolphinemu.dolphinemu.model.GameFile
 
 class NetplaySession(
     private val onClosed: (NetplaySession) -> Unit,
@@ -117,6 +118,15 @@ class NetplaySession(
     private val _gameDigestProgress = MutableStateFlow<GameDigestProgress?>(null)
     val gameDigestProgress = _gameDigestProgress.asStateFlow()
 
+    private val _traversalState = MutableSharedFlow<TraversalState>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val traversalState = _traversalState.asSharedFlow()
+
+    private val _fatalTraversalError = Channel<TraversalState.Failure>(Channel.CONFLATED)
+    val fatalTraversalError = _fatalTraversalError.receiveAsFlow()
+
     suspend fun join(): Boolean = withContext(Dispatchers.IO) {
         if (isClosed) throw IllegalStateException("Cannot join a closed session")
 
@@ -148,7 +158,7 @@ class NetplaySession(
     }
 
     fun sendMessage(message: String) {
-        _chatMessages.tryEmit( "$nickName: $message")
+        _chatMessages.tryEmit("$nickName: $message")
         nativeSendMessage(message)
     }
 
@@ -161,6 +171,8 @@ class NetplaySession(
     fun getPort(): Int = nativeGetPort()
 
     fun getExternalIpAddress(): String? = nativeGetExternalIpAddress()
+
+    fun reconnectTraversal() = nativeReconnectTraversal()
 
     fun consumeBootSessionData(): Long {
         return bootSessionDataPointer.also {
@@ -246,6 +258,8 @@ class NetplaySession(
     private external fun nativeGetPort(): Int
 
     private external fun nativeGetExternalIpAddress(): String?
+
+    private external fun nativeReconnectTraversal()
 
     // NetPlayUI callbacks
 
@@ -389,6 +403,26 @@ class NetplaySession(
     @Keep
     fun onAbortGameDigest() {
         _gameDigestProgress.value = null
+    }
+
+    @Keep
+    fun onTraversalStateChanged(
+        state: Int,
+        hostCode: String?,
+        externalAddress: String?,
+        failureReason: String?,
+    ) {
+        val traversalState = when (state) {
+            0 -> TraversalState.Connecting
+            1 -> TraversalState.Connected(hostCode!!, externalAddress!!)
+            2 -> TraversalState.Failure(failureReason!!)
+            else -> return
+        }
+        _traversalState.tryEmit(traversalState)
+
+        if (failureReason == "BadHost" || failureReason == "VersionTooOld") {
+            _fatalTraversalError.trySend(TraversalState.Failure(failureReason))
+        }
     }
 }
 
