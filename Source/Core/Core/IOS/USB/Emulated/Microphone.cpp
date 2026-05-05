@@ -36,8 +36,7 @@ Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name)
 {
 }
 #else
-Microphone::Microphone(MicrophoneState sampler, std::string worker_name)
-    : m_sampler(std::move(sampler))
+Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name) : m_sampler(sampler)
 {
 }
 #endif
