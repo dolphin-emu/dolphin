@@ -24,7 +24,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/ENet.h"
 #include "Common/FileUtil.h"
-#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -220,16 +219,9 @@ void NetPlayServer::SetupIndex()
   }
   else
   {
-    Common::HttpRequest request;
-    // ENet does not support IPv6, so IPv4 has to be used
-    request.UseIPv4();
-    Common::HttpRequest::Response response =
-        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
-
-    if (!response.has_value())
+    session.server_id = GetExternalIPAddress();
+    if (session.server_id.empty())
       return;
-
-    session.server_id = std::string(response->begin(), response->end());
   }
 
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
