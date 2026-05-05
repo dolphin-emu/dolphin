@@ -120,12 +120,22 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
-  const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
-  HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
-  if (console_attached && stdout_handle)
+  const HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+  const HANDLE stderr_handle = ::GetStdHandle(STD_ERROR_HANDLE);
+
+  // If we already have a console don't try to use one from our parent. This happens when running
+  // Dolphin using `Git Bash`.
+  if (stdout_handle == nullptr && stderr_handle == nullptr)
   {
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
+    // See if the parent process has a console we can use (which happens when Dolphin is launched
+    // via `Command Prompt` or `PowerShell`). If this fails Dolphin was probably launched via the
+    // GUI, in which case we don't want a console anyway.
+    const bool attached_to_parent_console = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+    if (attached_to_parent_console)
+    {
+      static_cast<void>(freopen("CONOUT$", "w", stdout));
+      static_cast<void>(freopen("CONOUT$", "w", stderr));
+    }
   }
 #endif
 
