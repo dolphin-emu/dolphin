@@ -146,6 +146,12 @@ enum class IntSetting(
         Settings.SECTION_INI_NETPLAY,
         "BufferSizeClient",
         1
+    ),
+    NETPLAY_BUFFER_SIZE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "BufferSize",
+        5
     );
 
     override val isOverridden: Boolean

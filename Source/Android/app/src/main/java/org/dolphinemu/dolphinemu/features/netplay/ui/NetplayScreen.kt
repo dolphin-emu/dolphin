@@ -121,8 +121,10 @@ fun NetplayScreen(
     onGameSelected: (GameFile) -> Unit,
     gameFiles: List<GameFile>,
     hostInputAuthorityEnabled: Boolean,
-    maxBuffer: Int,
-    onMaxBufferChanged: (Int) -> Unit,
+    buffer: Int,
+    onBufferChanged: (Int) -> Unit,
+    clientBuffer: Int,
+    onClientBufferChanged: (Int) -> Unit,
     players: List<Player>,
     saveTransferProgress: SaveTransferProgress?,
     gameDigestProgress: GameDigestProgress?,
@@ -176,8 +178,10 @@ fun NetplayScreen(
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
-                maxBuffer = maxBuffer,
-                onMaxBufferChanged = onMaxBufferChanged,
+                buffer = buffer,
+                onBufferChanged = onBufferChanged,
+                clientBuffer = clientBuffer,
+                onClientBufferChanged = onClientBufferChanged,
                 joinAddresses = joinAddresses,
                 selectedJoinInfoType = selectedJoinInfoType,
                 onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
@@ -197,8 +201,10 @@ fun NetplayScreen(
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
-                maxBuffer = maxBuffer,
-                onMaxBufferChanged = onMaxBufferChanged,
+                buffer = buffer,
+                onBufferChanged = onBufferChanged,
+                clientBuffer = clientBuffer,
+                onClientBufferChanged = onClientBufferChanged,
                 joinAddresses = joinAddresses,
                 selectedJoinInfoType = selectedJoinInfoType,
                 onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
@@ -284,8 +290,10 @@ private fun PortraitContent(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
-    maxBuffer: Int,
-    onMaxBufferChanged: (Int) -> Unit,
+    buffer: Int,
+    onBufferChanged: (Int) -> Unit,
+    clientBuffer: Int,
+    onClientBufferChanged: (Int) -> Unit,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
     selectedJoinInfoType: JoinInfoType,
     onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
@@ -316,8 +324,10 @@ private fun PortraitContent(
             onShowGamePickerChanged = onShowGamePickerChanged,
             players = players,
             hostInputAuthorityEnabled = hostInputAuthorityEnabled,
-            maxBuffer = maxBuffer,
-            onMaxBufferChanged = onMaxBufferChanged,
+            buffer = buffer,
+            onBufferChanged = onBufferChanged,
+            clientBuffer = clientBuffer,
+            onClientBufferChanged = onClientBufferChanged,
             isHosting = isHosting,
             joinAddresses = joinAddresses,
             selectedJoinInfoType = selectedJoinInfoType,
@@ -346,8 +356,10 @@ private fun LandscapeContent(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
-    maxBuffer: Int,
-    onMaxBufferChanged: (Int) -> Unit,
+    buffer: Int,
+    onBufferChanged: (Int) -> Unit,
+    clientBuffer: Int,
+    onClientBufferChanged: (Int) -> Unit,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
     selectedJoinInfoType: JoinInfoType,
     onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
@@ -382,8 +394,10 @@ private fun LandscapeContent(
                 onShowGamePickerChanged = onShowGamePickerChanged,
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
-                maxBuffer = maxBuffer,
-                onMaxBufferChanged = onMaxBufferChanged,
+                buffer = buffer,
+                onBufferChanged = onBufferChanged,
+                clientBuffer = clientBuffer,
+                onClientBufferChanged = onClientBufferChanged,
                 isHosting = isHosting,
                 joinAddresses = joinAddresses,
                 selectedJoinInfoType = selectedJoinInfoType,
@@ -407,8 +421,10 @@ private fun PLayersAndSettings(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
-    maxBuffer: Int,
-    onMaxBufferChanged: (Int) -> Unit,
+    buffer: Int,
+    onBufferChanged: (Int) -> Unit,
+    clientBuffer: Int,
+    onClientBufferChanged: (Int) -> Unit,
     isHosting: Boolean,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
     selectedJoinInfoType: JoinInfoType,
@@ -459,13 +475,23 @@ private fun PLayersAndSettings(
             )
         }
 
-        if (hostInputAuthorityEnabled) {
+        if (isHosting && !hostInputAuthorityEnabled) {
             MenuSpacer()
 
             BufferInput(
-                value = maxBuffer,
-                onValueChange = onMaxBufferChanged,
-                label = stringResource(R.string.netplay_max_buffer),
+                value = buffer,
+                onValueChange = onBufferChanged,
+                label = stringResource(R.string.netplay_buffer),
+            )
+        }
+
+        if (!isHosting && hostInputAuthorityEnabled) {
+            MenuSpacer()
+
+            BufferInput(
+                value = clientBuffer,
+                onValueChange = onClientBufferChanged,
+                label = stringResource(R.string.netplay_client_buffer),
             )
         }
     }
@@ -1188,8 +1214,10 @@ private fun PreviewNetplayScreen() {
         onGameSelected = {},
         gameFiles = emptyList(),
         hostInputAuthorityEnabled = true,
-        maxBuffer = 10,
-        onMaxBufferChanged = {},
+        buffer = 5,
+        onBufferChanged = {},
+        clientBuffer = 10,
+        onClientBufferChanged = {},
         saveTransferProgress = null,
         gameDigestProgress = null,
         joinAddresses = mapOf(

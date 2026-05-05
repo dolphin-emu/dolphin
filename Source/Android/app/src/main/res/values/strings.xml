@@ -1008,7 +1008,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_players_name">Name</string>
     <string name="netplay_players_ping">Ping</string>
     <string name="netplay_players_mapping">Mapping</string>
-    <string name="netplay_max_buffer">Max buffer</string>
+    <string name="netplay_buffer">Buffer</string>
+    <string name="netplay_client_buffer">Max buffer</string>
     <string name="netplay_connection_lost">Netplay connection lost</string>
     <string name="netplay_save_transfer_progress_close">Close</string>
     <string name="netplay_game_digest_match">The hashes match</string>

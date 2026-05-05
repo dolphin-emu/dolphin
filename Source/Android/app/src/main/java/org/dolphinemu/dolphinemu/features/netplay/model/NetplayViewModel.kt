@@ -65,8 +65,11 @@ class NetplayViewModel(
     val hostInputAuthority = netplaySession.hostInputAuthorityEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
-    private val _maxBuffer = MutableStateFlow(IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.int)
-    val maxBuffer = _maxBuffer.asStateFlow()
+    private val _buffer = MutableStateFlow(IntSetting.NETPLAY_BUFFER_SIZE.int)
+    val buffer = _buffer.asStateFlow()
+
+    private val _clientBuffer = MutableStateFlow(IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.int)
+    val clientBuffer = _clientBuffer.asStateFlow()
 
     val gameFiles = GameFileCacheManager.getGameFiles().asFlow()
         .map { it.toList() }
@@ -104,10 +107,16 @@ class NetplayViewModel(
         netplaySession.sendMessage(trimmedMessage)
     }
 
-    fun setMaxBuffer(buffer: Int) {
-        _maxBuffer.value = buffer
-        IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.setInt(NativeConfig.LAYER_BASE, buffer)
-        netplaySession.adjustPadBufferSize(buffer)
+    fun setBuffer(value: Int) {
+        _buffer.value = value
+        IntSetting.NETPLAY_BUFFER_SIZE.setInt(NativeConfig.LAYER_BASE, value)
+        netplaySession.adjustServerPadBufferSize(value)
+    }
+
+    fun setClientBuffer(value: Int) {
+        _clientBuffer.value = value
+        IntSetting.NETPLAY_CLIENT_BUFFER_SIZE.setInt(NativeConfig.LAYER_BASE, value)
+        netplaySession.adjustClientPadBufferSize(value)
     }
 
     fun changeGame(gameFile: GameFile) {

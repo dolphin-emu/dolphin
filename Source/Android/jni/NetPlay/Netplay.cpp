@@ -50,12 +50,20 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeSendMessage
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeAdjustPadBufferSize(JNIEnv* env,
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeAdjustClientPadBufferSize(JNIEnv* env,
                                                                                    jobject obj,
                                                                                    jint buffer)
 {
   if (auto* client = GetClientPointer(env, obj))
     client->AdjustPadBufferSize(static_cast<u32>(buffer));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeAdjustServerPadBufferSize(
+    JNIEnv* env, jobject obj, jint buffer)
+{
+  if (auto* server = GetServerPointer(env, obj))
+    server->AdjustPadBufferSize(static_cast<u32>(buffer));
 }
 
 JNIEXPORT jlong JNICALL
