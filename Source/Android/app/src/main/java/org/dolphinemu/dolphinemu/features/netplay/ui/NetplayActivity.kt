@@ -60,6 +60,8 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     gameFiles = viewModel.gameFiles.collectAsState().value,
                     players = viewModel.players.collectAsState().value,
                     hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
+                    networkMode = viewModel.networkMode.collectAsState().value,
+                    onNetworkModeChanged = viewModel::setNetworkMode,
                     buffer = viewModel.buffer.collectAsState().value,
                     onBufferChanged = viewModel::setBuffer,
                     clientBuffer = viewModel.clientBuffer.collectAsState().value,

@@ -95,6 +95,7 @@ import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinAddress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinInfoType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
+import org.dolphinemu.dolphinemu.features.netplay.model.NetworkMode
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.TraversalState
@@ -121,6 +122,8 @@ fun NetplayScreen(
     onGameSelected: (GameFile) -> Unit,
     gameFiles: List<GameFile>,
     hostInputAuthorityEnabled: Boolean,
+    networkMode: NetworkMode,
+    onNetworkModeChanged: (NetworkMode) -> Unit,
     buffer: Int,
     onBufferChanged: (Int) -> Unit,
     clientBuffer: Int,
@@ -178,6 +181,8 @@ fun NetplayScreen(
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                networkMode = networkMode,
+                onNetworkModeChanged = onNetworkModeChanged,
                 buffer = buffer,
                 onBufferChanged = onBufferChanged,
                 clientBuffer = clientBuffer,
@@ -201,6 +206,8 @@ fun NetplayScreen(
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                networkMode = networkMode,
+                onNetworkModeChanged = onNetworkModeChanged,
                 buffer = buffer,
                 onBufferChanged = onBufferChanged,
                 clientBuffer = clientBuffer,
@@ -290,6 +297,8 @@ private fun PortraitContent(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
+    networkMode: NetworkMode,
+    onNetworkModeChanged: (NetworkMode) -> Unit,
     buffer: Int,
     onBufferChanged: (Int) -> Unit,
     clientBuffer: Int,
@@ -324,6 +333,8 @@ private fun PortraitContent(
             onShowGamePickerChanged = onShowGamePickerChanged,
             players = players,
             hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+            networkMode = networkMode,
+            onNetworkModeChanged = onNetworkModeChanged,
             buffer = buffer,
             onBufferChanged = onBufferChanged,
             clientBuffer = clientBuffer,
@@ -356,6 +367,8 @@ private fun LandscapeContent(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
+    networkMode: NetworkMode,
+    onNetworkModeChanged: (NetworkMode) -> Unit,
     buffer: Int,
     onBufferChanged: (Int) -> Unit,
     clientBuffer: Int,
@@ -394,6 +407,8 @@ private fun LandscapeContent(
                 onShowGamePickerChanged = onShowGamePickerChanged,
                 players = players,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                networkMode = networkMode,
+                onNetworkModeChanged = onNetworkModeChanged,
                 buffer = buffer,
                 onBufferChanged = onBufferChanged,
                 clientBuffer = clientBuffer,
@@ -421,6 +436,8 @@ private fun PLayersAndSettings(
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
     hostInputAuthorityEnabled: Boolean,
+    networkMode: NetworkMode,
+    onNetworkModeChanged: (NetworkMode) -> Unit,
     buffer: Int,
     onBufferChanged: (Int) -> Unit,
     clientBuffer: Int,
@@ -472,6 +489,15 @@ private fun PLayersAndSettings(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+            )
+        }
+
+        if (isHosting) {
+            MenuSpacer()
+
+            NetworkModeDropdown(
+                networkMode = networkMode,
+                onNetworkModeChanged = onNetworkModeChanged,
             )
         }
 
@@ -902,6 +928,47 @@ private fun PlayersTable(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NetworkModeDropdown(
+    networkMode: NetworkMode,
+    onNetworkModeChanged: (NetworkMode) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+    ) {
+        OutlinedTextField(
+            value = stringResource(networkMode.labelId),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.netplay_network_mode_label)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            // No golf mode for now since it requires in game UI.
+            listOf(NetworkMode.FAIR_INPUT_DELAY, NetworkMode.HOST_INPUT_AUTHORITY).forEach { mode ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(mode.labelId)) },
+                    onClick = {
+                        onNetworkModeChanged(mode)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun BufferInput(
     value: Int,
@@ -1214,6 +1281,8 @@ private fun PreviewNetplayScreen() {
         onGameSelected = {},
         gameFiles = emptyList(),
         hostInputAuthorityEnabled = true,
+        networkMode = NetworkMode.HOST_INPUT_AUTHORITY,
+        onNetworkModeChanged = {},
         buffer = 5,
         onBufferChanged = {},
         clientBuffer = 10,

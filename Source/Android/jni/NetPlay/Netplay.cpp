@@ -50,6 +50,14 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeSendMessage
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeSetHostInputAuthority(
+        JNIEnv* env, jobject obj, jboolean enable)
+{
+    if (auto* server = GetServerPointer(env, obj))
+        server->SetHostInputAuthority(static_cast<bool>(enable));
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeAdjustClientPadBufferSize(JNIEnv* env,
                                                                                    jobject obj,
                                                                                    jint buffer)

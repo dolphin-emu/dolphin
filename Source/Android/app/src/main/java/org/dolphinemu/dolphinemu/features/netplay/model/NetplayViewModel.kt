@@ -65,6 +65,11 @@ class NetplayViewModel(
     val hostInputAuthority = netplaySession.hostInputAuthorityEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
+    private val _networkMode = MutableStateFlow(
+        NetworkMode.fromConfigValue(StringSetting.NETPLAY_NETWORK_MODE.string)
+    )
+    val networkMode = _networkMode.asStateFlow()
+
     private val _buffer = MutableStateFlow(IntSetting.NETPLAY_BUFFER_SIZE.int)
     val buffer = _buffer.asStateFlow()
 
@@ -105,6 +110,12 @@ class NetplayViewModel(
         }
 
         netplaySession.sendMessage(trimmedMessage)
+    }
+
+    fun setNetworkMode(mode: NetworkMode) {
+        _networkMode.value = mode
+        StringSetting.NETPLAY_NETWORK_MODE.setString(NativeConfig.LAYER_BASE, mode.configValue)
+        netplaySession.setHostInputAuthority(mode.isHostInputAuthority)
     }
 
     fun setBuffer(value: Int) {
