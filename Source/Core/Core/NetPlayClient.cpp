@@ -2505,7 +2505,7 @@ void NetPlayClient::SendGameStatus()
     }
   }
 
-  packet << static_cast<u32>(result);
+  packet << result;
   Send(packet);
 }
 
