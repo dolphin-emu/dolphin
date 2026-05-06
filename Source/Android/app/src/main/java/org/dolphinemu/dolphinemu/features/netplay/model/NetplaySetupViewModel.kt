@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 
 class NetplaySetupViewModel : ViewModel() {
     private val _connectionRole = MutableStateFlow<ConnectionRole>(ConnectionRole.Connect)
@@ -25,6 +26,10 @@ class NetplaySetupViewModel : ViewModel() {
 
     private val _connectPort = MutableStateFlow(Netplay.getConnectPort().toString())
     val connectPort = _connectPort.asStateFlow()
+
+    init {
+        GameFileCacheManager.startLoad()
+    }
 
     fun setConnectionRole(connectionRole: ConnectionRole) {
         _connectionRole.value = connectionRole
@@ -55,6 +60,10 @@ class NetplaySetupViewModel : ViewModel() {
     }
 
     fun connect() {
+        if (GameFileCacheManager.isLoading().value == true) {
+            return
+        }
+
         Netplay.saveSetup(
             nickname = nickname.value,
             connectionType = connectionType.value,

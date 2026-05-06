@@ -3,9 +3,15 @@
 
 #include "jni/NetPlay/NetPlayUICallbacks.h"
 
+#include "jni/AndroidCommon/IDCache.h"
+
 namespace NetPlay {
 
-NetPlayUICallbacks::NetPlayUICallbacks() = default;
+NetPlayUICallbacks::NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommon::GameFile>> games)
+    : m_games(std::move(games))
+{
+}
+
 NetPlayUICallbacks::~NetPlayUICallbacks() = default;
 
 void NetPlayUICallbacks::BootGame(const std::string&, std::unique_ptr<BootSessionData>) {}
@@ -13,9 +19,28 @@ void NetPlayUICallbacks::StopGame() {}
 bool NetPlayUICallbacks::IsHosting() const { return false; }
 void NetPlayUICallbacks::Update() {}
 void NetPlayUICallbacks::AppendChat(const std::string&) {}
-void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier&, const std::string&) {}
+
+void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
+                                         const std::string& netplay_name)
+{
+  m_current_game_identifier = sync_identifier;
+  m_current_game_name = netplay_name;
+}
+
 void NetPlayUICallbacks::OnMsgChangeGBARom(int, const NetPlay::GBAConfig&) {}
-void NetPlayUICallbacks::OnMsgStartGame() {}
+
+void NetPlayUICallbacks::OnMsgStartGame()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
+      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+  if (client)
+  {
+    if (const auto game = FindGameFile(m_current_game_identifier))
+      client->StartGame(game->GetFilePath());
+  }
+}
+
 void NetPlayUICallbacks::OnMsgStopGame() {}
 void NetPlayUICallbacks::OnMsgPowerButton() {}
 void NetPlayUICallbacks::OnPlayerConnect(const std::string&) {}
@@ -35,9 +60,26 @@ void NetPlayUICallbacks::OnIndexRefreshFailed(std::string) {}
 bool NetPlayUICallbacks::IsRecording() { return false; }
 
 std::shared_ptr<const UICommon::GameFile>
-NetPlayUICallbacks::FindGameFile(const NetPlay::SyncIdentifier&, NetPlay::SyncIdentifierComparison*)
+NetPlayUICallbacks::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
+                                 NetPlay::SyncIdentifierComparison* found)
 {
-    return nullptr;
+  NetPlay::SyncIdentifierComparison temp;
+  if (!found)
+    found = &temp;
+
+  *found = NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  std::shared_ptr<const UICommon::GameFile> result;
+  for (const auto& game : m_games)
+  {
+    const auto cmp = game->CompareSyncIdentifier(sync_identifier);
+    if (cmp < *found)
+    {
+      *found = cmp;
+      result = game;
+    }
+  }
+  return result;
 }
 
 std::string NetPlayUICallbacks::FindGBARomPath(const std::array<u8, 20>&, std::string_view, int) { return {}; }

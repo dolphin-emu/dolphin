@@ -3,14 +3,18 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <jni.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/NetPlayClient.h"
+#include "UICommon/GameFile.h"
+#include "UICommon/GameFileCache.h"
 
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
 #include "jni/NetPlay/NetPlayUICallbacks.h"
 
 extern "C" {
@@ -121,7 +125,7 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_SaveSetup(
 }
 
 JNIEXPORT jlong JNICALL
-Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv*, jclass)
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv* env, jclass)
 {
   const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   const bool is_traversal = traversal_choice == "traversal";
@@ -135,8 +139,17 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv*, jclass)
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
   const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
+  jobject jgame_file_cache = env->GetStaticObjectField(
+      IDCache::GetGameFileCacheManagerClass(), IDCache::GetGameFileCacheManagerInstance());
+  auto* game_file_cache = reinterpret_cast<UICommon::GameFileCache*>(
+      env->GetLongField(jgame_file_cache, IDCache::GetGameFileCachePointer()));
+
+  std::vector<std::shared_ptr<const UICommon::GameFile>> games;
+  game_file_cache->ForEach(
+      [&games](const std::shared_ptr<const UICommon::GameFile>& game) { games.push_back(game); });
+
   auto* client = new NetPlay::NetPlayClient(
-      host_ip, host_port, new NetPlay::NetPlayUICallbacks(), nickname,
+      host_ip, host_port, new NetPlay::NetPlayUICallbacks(std::move(games)), nickname,
       NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port});
 
   return reinterpret_cast<jlong>(client);

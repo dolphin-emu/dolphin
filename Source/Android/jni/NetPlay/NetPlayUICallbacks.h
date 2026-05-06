@@ -1,14 +1,18 @@
 #pragma once
 
+#include <memory>
 #include <span>
+#include <string>
+#include <vector>
 
 #include "Core/NetPlayClient.h"
+#include "UICommon/GameFile.h"
 
 namespace NetPlay {
 
 class NetPlayUICallbacks : public NetPlay::NetPlayUI {
 public:
-  NetPlayUICallbacks();
+  NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommon::GameFile>> games);
   ~NetPlayUICallbacks() override;
 
   void BootGame(const std::string& filename,
@@ -52,6 +56,11 @@ public:
   void HideChunkedProgressDialog() override;
   void SetChunkedProgress(int pid, u64 progress) override;
   void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
+
+private:
+  std::vector<std::shared_ptr<const UICommon::GameFile>> m_games;
+  NetPlay::SyncIdentifier m_current_game_identifier;
+  std::string m_current_game_name;
 };
 
 }  // namespace NetPlay

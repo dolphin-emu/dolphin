@@ -25,6 +25,13 @@ static jmethodID s_game_file_constructor;
 static jclass s_game_file_cache_class;
 static jfieldID s_game_file_cache_pointer;
 
+static jclass s_game_file_cache_manager_class;
+static jfieldID s_game_file_cache_manager_instance;
+
+static jclass s_netplay_class;
+static jfieldID s_net_play_client_pointer;
+static jmethodID s_netplay_on_msg_start_game;
+
 static jclass s_analytics_class;
 static jmethodID s_get_analytics_value;
 
@@ -218,6 +225,26 @@ jclass GetGameFileCacheClass()
 jfieldID GetGameFileCachePointer()
 {
   return s_game_file_cache_pointer;
+}
+
+jclass GetGameFileCacheManagerClass()
+{
+  return s_game_file_cache_manager_class;
+}
+
+jfieldID GetGameFileCacheManagerInstance()
+{
+  return s_game_file_cache_manager_instance;
+}
+
+jclass GetNetplayClass()
+{
+  return s_netplay_class;
+}
+
+jfieldID GetNetPlayClientPointer()
+{
+  return s_net_play_client_pointer;
 }
 
 jclass GetPairClass()
@@ -615,6 +642,21 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_game_file_cache_pointer = env->GetFieldID(game_file_cache_class, "pointer", "J");
   env->DeleteLocalRef(game_file_cache_class);
 
+  const jclass game_file_cache_manager_class =
+      env->FindClass("org/dolphinemu/dolphinemu/services/GameFileCacheManager");
+  s_game_file_cache_manager_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(game_file_cache_manager_class));
+  s_game_file_cache_manager_instance = env->GetStaticFieldID(
+      game_file_cache_manager_class, "gameFileCache",
+      "Lorg/dolphinemu/dolphinemu/model/GameFileCache;");
+  env->DeleteLocalRef(game_file_cache_manager_class);
+
+  const jclass netplay_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/netplay/Netplay");
+  s_netplay_class = reinterpret_cast<jclass>(env->NewGlobalRef(netplay_class));
+  s_net_play_client_pointer = env->GetStaticFieldID(netplay_class, "netPlayClientPointer", "J");
+  env->DeleteLocalRef(netplay_class);
+
   const jclass analytics_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Analytics");
   s_analytics_class = reinterpret_cast<jclass>(env->NewGlobalRef(analytics_class));
   s_get_analytics_value = env->GetStaticMethodID(s_analytics_class, "getValue",
@@ -828,6 +870,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_native_library_class);
   env->DeleteGlobalRef(s_game_file_class);
   env->DeleteGlobalRef(s_game_file_cache_class);
+  env->DeleteGlobalRef(s_game_file_cache_manager_class);
+  env->DeleteGlobalRef(s_netplay_class);
   env->DeleteGlobalRef(s_analytics_class);
   env->DeleteGlobalRef(s_pair_class);
   env->DeleteGlobalRef(s_hash_map_class);
