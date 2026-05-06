@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -84,10 +85,12 @@ import java.util.Locale
 @Composable
 fun NetplayScreen(
     onBackClicked: () -> Unit,
+    isHosting: Boolean,
     connectionLost: Flow<Unit>,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
+    onStartGame: () -> Unit,
     hostInputAuthorityEnabled: Boolean,
     maxBuffer: Int,
     onMaxBufferChanged: (Int) -> Unit,
@@ -109,6 +112,13 @@ fun NetplayScreen(
                 },
             )
         },
+        floatingActionButton = {
+            if (isHosting) {
+                ExtendedFloatingActionButton(onClick = onStartGame) {
+                    Text(stringResource(R.string.netplay_start))
+                }
+            }
+        },
     ) { innerPadding ->
         val modifier = Modifier
             .fillMaxSize()
@@ -117,6 +127,7 @@ fun NetplayScreen(
 
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             LandscapeContent(
+                isHosting = isHosting,
                 messages = messages,
                 onSendMessage = onSendMessage,
                 game = game,
@@ -128,6 +139,7 @@ fun NetplayScreen(
             )
         } else {
             PortraitContent(
+                isHosting = isHosting,
                 messages = messages,
                 onSendMessage = onSendMessage,
                 game = game,
@@ -186,6 +198,7 @@ fun NetplayScreen(
 
 @Composable
 private fun PortraitContent(
+    isHosting: Boolean,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
@@ -197,13 +210,14 @@ private fun PortraitContent(
 ) {
     Column(
         modifier = modifier
+            .verticalScroll(rememberScrollState())
     ) {
         Chat(
             messages = messages,
             onSendMessage = onSendMessage,
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.3f)
+                .height(200.dp)
                 .padding(horizontal = DolphinTheme.scaffoldPadding)
         )
 
@@ -216,14 +230,18 @@ private fun PortraitContent(
             maxBuffer = maxBuffer,
             onMaxBufferChanged = onMaxBufferChanged,
             modifier = Modifier
-                .weight(1f)
                 .padding(horizontal = DolphinTheme.scaffoldPadding),
         )
+
+        if (isHosting) {
+            Spacer(modifier = Modifier.height(DolphinTheme.fabClearancePadding))
+        }
     }
 }
 
 @Composable
 private fun LandscapeContent(
+    isHosting: Boolean,
     messages: List<NetplayMessage>,
     onSendMessage: (String) -> Unit,
     game: String,
@@ -245,16 +263,25 @@ private fun LandscapeContent(
                 .padding(horizontal = DolphinTheme.scaffoldPadding)
         )
 
-        PLayersAndSettings(
-            game = game,
-            players = players,
-            hostInputAuthorityEnabled = hostInputAuthorityEnabled,
-            maxBuffer = maxBuffer,
-            onMaxBufferChanged = onMaxBufferChanged,
+        Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = DolphinTheme.scaffoldPadding)
-        )
+                .verticalScroll(rememberScrollState())
+        ) {
+            PLayersAndSettings(
+                game = game,
+                players = players,
+                hostInputAuthorityEnabled = hostInputAuthorityEnabled,
+                maxBuffer = maxBuffer,
+                onMaxBufferChanged = onMaxBufferChanged,
+                modifier = Modifier
+                    .padding(horizontal = DolphinTheme.scaffoldPadding)
+            )
+
+            if (isHosting) {
+                Spacer(modifier = Modifier.height(DolphinTheme.fabClearancePadding))
+            }
+        }
     }
 }
 
@@ -269,7 +296,6 @@ private fun PLayersAndSettings(
 ) {
     Column(
         modifier = modifier
-            .verticalScroll(rememberScrollState())
     ) {
         OutlinedTextField(
             value = game,
@@ -759,6 +785,8 @@ private fun PreviewNetplayScreen() {
         },
         onSendMessage = {},
         game = "Game name",
+        isHosting = true,
+        onStartGame = {},
         hostInputAuthorityEnabled = true,
         maxBuffer = 10,
         onMaxBufferChanged = {},

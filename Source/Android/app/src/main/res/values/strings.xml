@@ -1014,4 +1014,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_game_digest_match">The hashes match</string>
     <string name="netplay_game_digest_mismatch">The hashes do not match</string>
     <string name="netplay_game_digest_close">Close</string>
+    <string name="netplay_host_port_label">Port</string>
+    <string name="netplay_use_upnp">Forward port (UPnP)</string>
 </resources>

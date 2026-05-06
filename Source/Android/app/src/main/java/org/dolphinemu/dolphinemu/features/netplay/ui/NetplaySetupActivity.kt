@@ -57,6 +57,11 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
                     onConnectPortChanged = viewModel::setConnectPort,
                     hostCode = viewModel.hostCode.collectAsState().value,
                     onHostCodeChanged = viewModel::setHostCode,
+                    hostPort = viewModel.hostPort.collectAsState().value,
+                    onHostPortChanged = viewModel::setHostPort,
+                    useUpnp = viewModel.useUpnp.collectAsState().value,
+                    onUseUpnpChanged = viewModel::setUseUpnp,
+                    onHostClicked = viewModel::host,
                     onConnectClicked = viewModel::connect,
                 )
             }

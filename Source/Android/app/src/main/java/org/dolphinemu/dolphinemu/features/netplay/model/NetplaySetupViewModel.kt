@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -47,6 +48,12 @@ class NetplaySetupViewModel(
 
     private val _connectPort = MutableStateFlow(IntSetting.NETPLAY_CONNECT_PORT.int.toString())
     val connectPort = _connectPort.asStateFlow()
+
+    private val _hostPort = MutableStateFlow(IntSetting.NETPLAY_HOST_PORT.int.toString())
+    val hostPort = _hostPort.asStateFlow()
+
+    private val _useUpnp = MutableStateFlow(BooleanSetting.NETPLAY_USE_UPNP.boolean)
+    val useUpnp = _useUpnp.asStateFlow()
 
     private val _showNetplayScreen = Channel<Unit>(CONFLATED)
     val showNetplayScreen = _showNetplayScreen.receiveAsFlow()
@@ -96,6 +103,24 @@ class NetplaySetupViewModel(
                 IntSetting.NETPLAY_CONNECT_PORT.setInt(NativeConfig.LAYER_BASE, it)
             }
         }
+    }
+
+    fun setHostPort(port: String) {
+        if (port.all { it.isDigit() }) {
+            _hostPort.value = port
+            port.toIntOrNull()?.let {
+                IntSetting.NETPLAY_HOST_PORT.setInt(NativeConfig.LAYER_BASE, it)
+            }
+        }
+    }
+
+    fun setUseUpnp(useUpnp: Boolean) {
+        _useUpnp.value = useUpnp
+        BooleanSetting.NETPLAY_USE_UPNP.setBoolean(NativeConfig.LAYER_BASE, useUpnp)
+    }
+
+    fun host() {
+
     }
 
     fun connect() {

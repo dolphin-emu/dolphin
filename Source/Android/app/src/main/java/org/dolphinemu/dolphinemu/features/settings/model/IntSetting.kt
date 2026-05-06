@@ -140,6 +140,7 @@ enum class IntSetting(
     WIIMOTE_4_SOURCE(Settings.FILE_WIIMOTE, "Wiimote4", "Source", 0),
     WIIMOTE_BB_SOURCE(Settings.FILE_WIIMOTE, "BalanceBoard", "Source", 0),
     NETPLAY_CONNECT_PORT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "ConnectPort", 2626),
+    NETPLAY_HOST_PORT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "HostPort", 2626),
     NETPLAY_CLIENT_BUFFER_SIZE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_NETPLAY,

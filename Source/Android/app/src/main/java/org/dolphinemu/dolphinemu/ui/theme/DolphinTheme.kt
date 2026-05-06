@@ -36,6 +36,7 @@ import com.google.android.material.R as MaterialR
 
 object DolphinTheme {
     val scaffoldPadding = 16.dp
+    val fabClearancePadding = 80.dp
 }
 
 @Composable
