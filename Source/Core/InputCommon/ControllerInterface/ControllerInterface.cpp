@@ -319,7 +319,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
     InvokeDevicesChangedCallbacks();
 }
 
-// Update input for all devices if lock can be acquired without waiting.
+// Update input for all devices.
 void ControllerInterface::UpdateInput()
 {
   // This should never happen
@@ -337,13 +337,7 @@ void ControllerInterface::UpdateInput()
   std::vector<std::weak_ptr<ciface::Core::Device>> devices_to_remove;
 
   {
-    // TODO: if we are an emulation input channel, we should probably always lock.
-    // Prefer outdated values over blocking UI or CPU thread (this avoids short but noticeable frame
-    // drops)
-    if (!m_devices_mutex.try_lock())
-      return;
-
-    std::lock_guard lk_devices(m_devices_mutex, std::adopt_lock);
+    std::lock_guard lk_devices(m_devices_mutex);
 
     tls_is_updating_devices = true;
 
