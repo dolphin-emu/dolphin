@@ -3,9 +3,13 @@
 
 package org.dolphinemu.dolphinemu.features.netplay
 
+import androidx.annotation.Keep
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 
 object Netplay {
+    @Keep
+    private var netPlayClientPointer: Long = 0
+
     @JvmStatic
     external fun getNickname(): String
 
@@ -93,4 +97,10 @@ object Netplay {
         indexPassword: String,
     )
 
+    fun join() {
+        netPlayClientPointer = Join()
+    }
+
+    @JvmStatic
+    private external fun Join(): Long
 }

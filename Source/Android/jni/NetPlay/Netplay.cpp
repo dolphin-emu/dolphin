@@ -1,14 +1,17 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <memory>
 #include <string>
 
 #include <jni.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/NetPlayClient.h"
 
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/NetPlay/NetPlayUICallbacks.h"
 
 extern "C" {
 
@@ -115,6 +118,28 @@ Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_SaveSetup(
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, GetJString(env, jindexName));
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD, GetJString(env, jindexPassword));
   Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT, static_cast<u16>(listenPort));
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_Netplay_Join(JNIEnv*, jclass)
+{
+  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const bool is_traversal = traversal_choice == "traversal";
+
+  std::string host_ip;
+  host_ip = is_traversal ? Config::Get(Config::NETPLAY_HOST_CODE) :
+            Config::Get(Config::NETPLAY_ADDRESS);
+
+  const u16 host_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
+  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
+
+  auto* client = new NetPlay::NetPlayClient(
+      host_ip, host_port, new NetPlay::NetPlayUICallbacks(), nickname,
+      NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port});
+
+  return reinterpret_cast<jlong>(client);
 }
 
 }  // extern "C"

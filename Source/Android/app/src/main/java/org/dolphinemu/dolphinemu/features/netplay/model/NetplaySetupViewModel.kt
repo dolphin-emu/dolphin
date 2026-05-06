@@ -62,5 +62,6 @@ class NetplaySetupViewModel : ViewModel() {
             hostCode = hostCode.value,
             connectPort = connectPort.value.toInt(),
         )
+        Netplay.join()
     }
 }
