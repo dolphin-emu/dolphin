@@ -21,18 +21,24 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SheetValue.Hidden
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.material.color.MaterialColors
 import androidx.appcompat.R as AppCompatR
@@ -239,5 +245,44 @@ fun ReadOnlyTextField(
                     .clickable(onClick = onClick)
             )
         }
+    }
+}
+
+// A copy-paste of the internal function used in rememberModalBottomSheetState since
+// rememberModalBottomSheetState doesn't expose a way to set the initial value.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun rememberSheetState(
+    skipPartiallyExpanded: Boolean = false,
+    confirmValueChange: (SheetValue) -> Boolean = { true },
+    initialValue: SheetValue = Hidden,
+    skipHiddenState: Boolean = false,
+    positionalThreshold: Dp = 56.dp,
+    velocityThreshold: Dp = 125.dp,
+): SheetState {
+    val density = LocalDensity.current
+    val positionalThresholdToPx = { with(density) { positionalThreshold.toPx() } }
+    val velocityThresholdToPx = { with(density) { velocityThreshold.toPx() } }
+    return rememberSaveable(
+        skipPartiallyExpanded,
+        confirmValueChange,
+        skipHiddenState,
+        saver =
+            SheetState.Saver(
+                skipPartiallyExpanded = skipPartiallyExpanded,
+                positionalThreshold = positionalThresholdToPx,
+                velocityThreshold = velocityThresholdToPx,
+                confirmValueChange = confirmValueChange,
+                skipHiddenState = skipHiddenState,
+            ),
+    ) {
+        SheetState(
+            skipPartiallyExpanded,
+            positionalThresholdToPx,
+            velocityThresholdToPx,
+            initialValue,
+            confirmValueChange,
+            skipHiddenState,
+        )
     }
 }

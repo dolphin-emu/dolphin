@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
@@ -57,7 +58,6 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -86,6 +86,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.flow.Flow
@@ -105,6 +106,7 @@ import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
 import org.dolphinemu.dolphinemu.ui.theme.ReadOnlyTextField
+import org.dolphinemu.dolphinemu.ui.theme.rememberSheetState
 import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.Locale
 
@@ -564,7 +566,13 @@ private fun Chat(
 
     fun LazyListScope.messages() {
         items(messages.size) { index ->
-            Text(text = messages[index].message(context))
+            Text(
+                text = messages[index].message(context),
+                style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 18.sp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp)
+            )
         }
     }
 
@@ -574,14 +582,10 @@ private fun Chat(
         draftMessage = ""
     }
 
-    val density = LocalDensity.current
-    val bottomSheetState = remember {
-        SheetState(
-            skipPartiallyExpanded = true,
-            density = density,
-            initialValue = if (showBottomSheet) SheetValue.Expanded else SheetValue.Hidden,
-        )
-    }
+    val bottomSheetState = rememberSheetState(
+        skipPartiallyExpanded = true,
+        initialValue = if (showBottomSheet) SheetValue.Expanded else SheetValue.Hidden,
+    )
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -594,7 +598,7 @@ private fun Chat(
                 reverseLayout = true,
                 contentPadding = PaddingValues(bottom = 4.dp),
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1f, fill = false)
                     .padding(horizontal = DolphinTheme.scaffoldPadding)
             ) {
                 messages()
@@ -605,7 +609,7 @@ private fun Chat(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(8.dp)
             ) {
                 OutlinedTextField(
                     value = draftMessage,
@@ -615,11 +619,14 @@ private fun Chat(
                     modifier = Modifier
                         .weight(1f)
                 )
-                TextButton(
+                IconButton(
                     onClick = submitMessage,
                     enabled = draftMessage.isNotBlank(),
                 ) {
-                    Text(stringResource(R.string.netplay_chat_send))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = stringResource(R.string.netplay_chat_send),
+                    )
                 }
             }
         }
@@ -652,14 +659,10 @@ private fun GamePicker(
     onShowGamePickerChanged: (Boolean) -> Unit,
     isHosting: Boolean,
 ) {
-    val density = LocalDensity.current
-    val bottomSheetState = remember {
-        SheetState(
-            skipPartiallyExpanded = true,
-            density = density,
-            initialValue = if (showGamePicker) SheetValue.Expanded else SheetValue.Hidden,
-        )
-    }
+    val bottomSheetState = rememberSheetState(
+        skipPartiallyExpanded = true,
+        initialValue = if (showGamePicker) SheetValue.Expanded else SheetValue.Hidden,
+    )
 
     if (showGamePicker) {
         ModalBottomSheet(
