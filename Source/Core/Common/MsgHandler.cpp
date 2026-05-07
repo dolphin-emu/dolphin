@@ -73,6 +73,19 @@ const char* GetCaption(MsgType style)
     return "Unhandled caption";
   }
 }
+
+Log::LogLevel GetMessageAlertLogLevel(const MsgType style)
+{
+  switch (style)
+  {
+  case MsgType::Critical:
+    return Log::LogLevel::LERROR;
+  case MsgType::Warning:
+    return Log::LogLevel::LWARNING;
+  default:
+    return Log::LogLevel::LINFO;
+  }
+}
 }  // Anonymous namespace
 
 // Select which of these functions that are used for message boxes. If
@@ -108,10 +121,10 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::Lo
                              MsgType style, const char* file, int line)
 {
   const char* caption = GetCaption(style);
+  const Log::LogLevel level = GetMessageAlertLogLevel(style);
   // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
   // caller's line file and line number
-  Common::Log::GenericLogFmt<2>(Common::Log::LogLevel::LERROR, log_type, file, line,
-                                FMT_STRING("{}: {}"), caption, text);
+  Common::Log::GenericLogFmt<2>(level, log_type, file, line, FMT_STRING("{}: {}"), caption, text);
 
   // Panic alerts.
   if (style == MsgType::Warning && s_abort_on_panic_alert)
