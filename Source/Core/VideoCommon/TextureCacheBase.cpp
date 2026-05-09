@@ -392,6 +392,71 @@ void TextureCacheBase::RenderReinterpretEntry(const RcTcacheEntry& entry, Abstra
   entry->texture->FinishedRendering();
 }
 
+RcTcacheEntry TextureCacheBase::CreateResizeEntry(const RcTcacheEntry& existing_entry,
+                                                  u32 new_native_width, u32 new_native_height,
+                                                  u64 base_hash, u64 full_hash)
+{
+  TextureConfig new_config = existing_entry->texture->GetConfig();
+  new_config.width = new_config.width * new_native_width / existing_entry->BlockAlignedWidth();
+  new_config.height = new_config.height * new_native_height / existing_entry->BlockAlignedHeight();
+
+  RcTcacheEntry resized_entry = AllocateCacheEntry(new_config);
+  if (!resized_entry)
+    return {};
+
+  resized_entry->SetDimensions(new_native_width, new_native_height, 1);
+  resized_entry->SetGeneralParameters(
+      existing_entry->addr, resized_entry->memory_stride * resized_entry->NumBlocksY(),
+      existing_entry->format, existing_entry->should_force_safe_hashing);
+  // If the new size if bigger, there's a bit of a contradiction: we assume that the extra data is
+  // unused, yet it will be part of the hash. But this is what GetTexture() wants.
+  resized_entry->SetHashes(base_hash, full_hash);
+  resized_entry->frameCount = existing_entry->frameCount;
+  // TODO REVIEW: Is this correct?
+  resized_entry->SetNotCopy();
+  resized_entry->is_efb_copy = existing_entry->is_efb_copy;
+  // If the new size if bigger, we are assuming that the extra data is unused, so we don't care if
+  // it overlaps.
+  resized_entry->may_have_overlapping_textures = existing_entry->may_have_overlapping_textures;
+
+  m_textures_by_address.emplace(resized_entry->addr, resized_entry);
+
+  return resized_entry;
+}
+
+void TextureCacheBase::RenderResizeEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
+                                         u32 old_width, u32 old_height)
+{
+  const AbstractPipeline* pipeline = g_shader_cache->GetTextureResizePipeline();
+  if (!pipeline)
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to obtain texture resize pipeline");
+    return;
+  }
+
+  g_gfx->BeginUtilityDrawing();
+  struct Uniforms
+  {
+    u32 src_width, src_height;
+    u32 dst_width, dst_height;
+  };
+  Uniforms uniforms = {
+      .src_width = old_width,
+      .src_height = old_height,
+      .dst_width = entry->GetWidth(),
+      .dst_height = entry->GetHeight(),
+  };
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+  g_gfx->SetAndDiscardFramebuffer(entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, texture);
+  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+  entry->texture->FinishedRendering();
+}
+
 void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_width, u32 new_height)
 {
   if (entry->GetWidth() == new_width && entry->GetHeight() == new_height)
@@ -1516,6 +1581,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     TexAddrCache::iterator iter;
     bool needs_conversion;
     bool needs_reinterpretation;
+    bool needs_resizing;
     u32 negative_score;
   };
   std::optional<UnprocessedCopy> unprocessed_copy = std::nullopt;
@@ -1530,14 +1596,51 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     // out a purple screen in XFB2Tex. Check for this here and convert them if necessary.
 
     // Do not load strided EFB copies, they are not meant to be used directly.
-    // Also do not directly load EFB copies, which were partly overwritten.
-    if (entry->IsEfbCopy() && entry->native_width == texture_info.GetRawWidth() &&
-        entry->native_height == texture_info.GetRawHeight() &&
-        entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
+    // Also do not directly load EFB copies which were partly overwritten.
+    if (entry->IsEfbCopy() && entry->memory_stride == entry->BytesPerRow() &&
+        !entry->may_have_overlapping_textures)
     {
+      // TODO: Should the native width/height be compared with entry->BlockAlignedWidth/Height()
+      // instead?
+      bool is_incorrect_size = entry->native_width != texture_info.GetRawWidth() ||
+                               entry->native_height != texture_info.GetRawHeight();
+      u64 testing_base_hash = base_hash;
+      if (is_incorrect_size)
+      {
+        if (!g_ActiveConfig.bAllowIncorrectEFBSizeVRAM)
+        {
+          ++iter;
+          continue;
+        }
+        // Some games allocate a texture once, and then use it as a EFB target even for smaller
+        // sizes. Finally, they set the UV parameters to avoid using the garbage data.
+        //
+        // An example is Excite Truck, which uses a 640x448 texture for the shadow alpha, even in 2
+        // players where the EFB copy is 320x448 instead (318x448 in the car select screen):
+        // the resulting texture has the top-left quadrant as the even lines of the copy, the
+        // top-right quadrant as the odd lines of the copy, and the bottom half as garbage.
+        // It then sets the UV coordinates to only use the top-left quadrant (which "works",
+        // though it halves its vertical resolution).
+        //
+        // The reason why this is an option is because it's unsafely assuming that the game is
+        // indeed not using the garbage data.
+        //
+        // TODO: On hardware, does the texture cache hit textures of the wrong size? If not, than
+        // this should be done *after* searching in the texture cache.
+        // TODO: Are there games getting a EFB texture smaller than its actual size?
+        // TODO: Should we check texture_info.GetRawWidth() % entry->BlockAlignedWidth() == 0?
+        // (Maybe only when upscaling?)
+
+        // If the texture is bigger than the EFB entry, the expectation is that the excess bytes are
+        // unused. If it's smaller than the EFB entry, then it's gross to hash more than necessary,
+        // but there's no other way for the hashes to match.
+        testing_base_hash = Common::GetHash64(texture_info.GetData(), entry->size_in_bytes,
+                                              textureCacheSafetyColorSampleSize);
+      }
+
       // EFB copies have slightly different rules as EFB copy formats have different meanings from
       // texture formats.
-      if ((base_hash == entry->hash &&
+      if ((testing_base_hash == entry->hash &&
            (!texture_info.GetPaletteSize() || g_backend_info.bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
@@ -1571,11 +1674,12 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         if (texture_info.GetPaletteSize() && g_backend_info.bSupportsPaletteConversion)
           needs_conversion = true;
 
-        if (!needs_conversion && !needs_reintepretation)
+        if (!is_incorrect_size && !needs_conversion && !needs_reintepretation)
           return entry;
 
         // TODO: Not all conversions/reinterpretations are equal.
-        const u32 negative_score = needs_conversion + 2 * needs_reintepretation;
+        const u32 negative_score =
+            needs_conversion + 2 * needs_reintepretation + 4 * is_incorrect_size;
         if (!unprocessed_copy.has_value() || negative_score < unprocessed_copy->negative_score)
         {
           // Annotate that we found an unprocessed EFB copy, then continue. It'll be processed
@@ -1585,6 +1689,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
               .iter = iter,
               .needs_conversion = needs_conversion,
               .needs_reinterpretation = needs_reintepretation,
+              .needs_resizing = is_incorrect_size,
               .negative_score = negative_score,
           };
         }
@@ -1651,6 +1756,15 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
           CreatePaletteEntryWithOffset(old_entry, texture_info.GetTlutAddress());
       RenderPaletteEntry(texel_buffer_offset, decoded_entry, old_entry->texture.get(),
                          texture_info.GetTlutFormat());
+      old_entry = decoded_entry;
+    }
+
+    if (unprocessed_copy->needs_resizing && old_entry)
+    {
+      auto decoded_entry = CreateResizeEntry(old_entry, texture_info.GetRawWidth(),
+                                             texture_info.GetRawHeight(), base_hash, full_hash);
+      RenderResizeEntry(decoded_entry, old_entry->texture.get(), old_entry->GetWidth(),
+                        old_entry->GetHeight());
       old_entry = decoded_entry;
     }
 
@@ -3068,23 +3182,34 @@ u32 TCacheEntry::BytesPerRow() const
   return NumBlocksX() * bytes_per_block;
 }
 
-u32 TCacheEntry::NumBlocksX() const
+u32 TCacheEntry::BlockAlignedWidth() const
 {
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
-  const u32 actualWidth = Common::AlignUp(native_width, blockW);
+  return Common::AlignUp(native_width, blockW);
+}
 
-  return actualWidth / blockW;
+u32 TCacheEntry::NumBlocksX() const
+{
+  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
+
+  return BlockAlignedWidth() / blockW;
+}
+
+u32 TCacheEntry::BlockAlignedHeight() const
+{
+  const u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
+
+  // Round up source height to multiple of block size
+  return Common::AlignUp(native_height, blockH);
 }
 
 u32 TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
-  // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(native_height, blockH);
+  const u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
 
-  return actualHeight / blockH;
+  return BlockAlignedHeight() / blockH;
 }
 
 void TCacheEntry::SetXfbCopy(u32 stride)
