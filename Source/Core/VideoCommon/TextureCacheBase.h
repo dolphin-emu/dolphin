@@ -364,6 +364,9 @@ private:
 
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
 
+  RcTcacheEntry ResizeEntry(const RcTcacheEntry& existing_entry, unsigned int new_native_width,
+                            unsigned int new_native_height, u64 base_hash, u64 full_hash);
+
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
                                         TLUTFormat tlutfmt);
   void StitchXFBCopy(RcTcacheEntry& entry_to_update);

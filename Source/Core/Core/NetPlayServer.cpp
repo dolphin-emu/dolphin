@@ -1449,6 +1449,8 @@ bool NetPlayServer::SetupNetSettings()
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
   settings.enable_gpu_texture_decoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
   settings.defer_efb_copies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  settings.allow_incorrect_efb_size_vram =
+      Config::Get(Config::GFX_HACK_ALLOW_INCORRECT_EFB_SIZE_VRAM);
   settings.efb_access_tile_size = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   settings.efb_access_defer_invalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
 
