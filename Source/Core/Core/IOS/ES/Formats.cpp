@@ -322,7 +322,7 @@ u16 TMDReader::GetNumContents() const
 
 bool TMDReader::GetContent(u16 index, Content* content) const
 {
-  if (index >= GetNumContents())
+  if (!IsValid() || index >= GetNumContents())
   {
     return false;
   }
@@ -339,7 +339,7 @@ bool TMDReader::GetContent(u16 index, Content* content) const
 
 std::vector<Content> TMDReader::GetContents() const
 {
-  std::vector<Content> contents(GetNumContents());
+  std::vector<Content> contents(IsValid() ? GetNumContents() : 0);
   for (size_t i = 0; i < contents.size(); ++i)
     GetContent(static_cast<u16>(i), &contents[i]);
   return contents;
