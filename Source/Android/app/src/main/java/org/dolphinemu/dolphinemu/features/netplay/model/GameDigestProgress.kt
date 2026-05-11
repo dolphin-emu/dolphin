@@ -5,8 +5,14 @@ package org.dolphinemu.dolphinemu.features.netplay.model
 data class GameDigestProgress(
     val title: String,
     val playerProgresses: List<PlayerProgress>,
-    val matches: Boolean?,
+    val finished: Boolean,
 ) {
+    val matches: Boolean?
+        get() {
+            val results = playerProgresses.mapNotNull { it.result }
+            return if (results.size >= 2) results.distinct().size == 1 else null
+        }
+
     data class PlayerProgress(
         val playerId: Int,
         val name: String,

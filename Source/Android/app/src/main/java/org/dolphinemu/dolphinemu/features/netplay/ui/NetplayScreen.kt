@@ -39,11 +39,13 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -141,6 +143,9 @@ fun NetplayScreen(
     saveTransferProgress: SaveTransferProgress?,
     gameDigestProgress: GameDigestProgress?,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
+    onComputeGameDigest: () -> Unit,
+    onComputeSDCardDigest: () -> Unit,
+    onAbortGameDigest: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -154,6 +159,42 @@ fun NetplayScreen(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                 )
+            }
+        },
+        actions = {
+            if (isHosting) {
+                var menuExpanded by remember { mutableStateOf(false) }
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    Text(
+                        text = stringResource(R.string.netplay_checksum),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.netplay_checksum_current_game)) },
+                        onClick = {
+                            menuExpanded = false
+                            onComputeGameDigest()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.netplay_checksum_sd_card)) },
+                        onClick = {
+                            menuExpanded = false
+                            onComputeSDCardDigest()
+                        },
+                    )
+                }
             }
         },
         floatingActionButton = {
@@ -299,7 +340,10 @@ fun NetplayScreen(
             gameDigestProgress != null && !dismissGameDigestDialog -> {
                 GameDigestProgressDialog(
                     gameDigestProgress = gameDigestProgress,
-                    onDismiss = { dismissGameDigestDialog = true },
+                    onDismiss = {
+                        dismissGameDigestDialog = true
+                        if (isHosting) onAbortGameDigest()
+                    },
                 )
             }
 
@@ -1215,11 +1259,12 @@ private fun GameDigestProgressDialog(
                         HorizontalDivider()
                     }
                 }
-                if (gameDigestProgress.matches != null) {
+                val matches = gameDigestProgress.matches
+                if (matches != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(
-                            if (gameDigestProgress.matches) {
+                            if (matches) {
                                 R.string.netplay_game_digest_match
                             } else {
                                 R.string.netplay_game_digest_mismatch
@@ -1232,7 +1277,7 @@ private fun GameDigestProgressDialog(
             }
         },
         confirmButton = {
-            if (gameDigestProgress.matches != null) {
+            if (gameDigestProgress.finished) {
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.netplay_game_digest_close))
                 }
@@ -1391,5 +1436,8 @@ private fun PreviewNetplayScreen() {
 //                ),
 //            ),
 //        ),
+        onAbortGameDigest = {},
+        onComputeGameDigest = {},
+        onComputeSDCardDigest = {},
     )
 }
