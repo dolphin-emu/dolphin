@@ -225,6 +225,34 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReconnectTr
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeComputeGameDigest(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  auto* server = GetServerPointer(env, obj);
+  auto* ui = GetUICallbacksPointer(env, obj);
+  if (!server || !ui)
+    return;
+
+  server->ComputeGameDigest(ui->GetCurrentGameIdentifier());
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeComputeSDCardDigest(
+    JNIEnv* env, jobject obj)
+{
+  if (auto* server = GetServerPointer(env, obj))
+    server->ComputeGameDigest(NetPlay::NetPlayClient::GetSDCardIdentifier());
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeAbortGameDigest(JNIEnv* env,
+                                                                                     jobject obj)
+{
+  if (auto* server = GetServerPointer(env, obj))
+    server->AbortGameDigest();
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReleaseUICallbacks(
     JNIEnv*, jobject, jlong pointer)
 {
