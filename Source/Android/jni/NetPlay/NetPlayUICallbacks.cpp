@@ -78,6 +78,8 @@ void NetPlayUICallbacks::StopGame()
   env->DeleteLocalRef(netplay_session);
 }
 
+// Only used by Qt UI code, never by the C++ core. On Android, hosting state
+// is tracked in Kotlin (NetplaySession.isHosting).
 bool NetPlayUICallbacks::IsHosting() const { return false; }
 
 void NetPlayUICallbacks::Update()

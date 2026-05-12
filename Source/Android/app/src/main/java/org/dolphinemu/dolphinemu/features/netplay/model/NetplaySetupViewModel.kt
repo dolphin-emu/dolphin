@@ -119,11 +119,9 @@ class NetplaySetupViewModel(
         BooleanSetting.NETPLAY_USE_UPNP.setBoolean(NativeConfig.LAYER_BASE, useUpnp)
     }
 
-    fun host() {
+    fun host() = connect(host = true)
 
-    }
-
-    fun connect() {
+    fun connect(host: Boolean = false) {
         if (_connecting.value) return
 
         _connecting.value = true
@@ -139,7 +137,12 @@ class NetplaySetupViewModel(
                     .onEach { _errors.emit(it) }
                     .launchIn(this)
 
-                if (session.join()) {
+                val success = if (host) {
+                    session.host()
+                } else {
+                    session.join()
+                }
+                if (success) {
                     _showNetplayScreen.trySend(Unit)
                 }
             } finally {

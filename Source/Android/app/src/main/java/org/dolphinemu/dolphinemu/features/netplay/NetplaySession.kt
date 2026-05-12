@@ -37,6 +37,8 @@ class NetplaySession(
 
     private var netPlayClientPointer: Long = 0
 
+    private var netPlayServerPointer: Long = 0
+
     private var bootSessionDataPointer: Long = 0
 
     private val sessionScope = CoroutineScope(SupervisorJob())
@@ -44,6 +46,9 @@ class NetplaySession(
     @Volatile
     var isClosed = false
         private set
+        
+    val isHosting: Boolean
+        get() = netPlayServerPointer != 0L
 
     val isLaunching: Boolean
         get() = bootSessionDataPointer != 0L
@@ -126,9 +131,23 @@ class NetplaySession(
         true
     }
 
+    suspend fun host(): Boolean = withContext(Dispatchers.IO) {
+        if (isClosed) throw IllegalStateException("Cannot host a closed session")
+
+        netPlayServerPointer = nativeHost()
+        if (netPlayServerPointer == 0L || !isActive) {
+            closeBlocking()
+            return@withContext false
+        }
+
+        join()
+    }
+
     fun sendMessage(message: String) = nativeSendMessage(message)
 
     fun adjustPadBufferSize(buffer: Int) = nativeAdjustPadBufferSize(buffer)
+
+    fun startGame() = nativeStartGame()
 
     fun consumeBootSessionData(): Long {
         return bootSessionDataPointer.also {
@@ -174,6 +193,12 @@ class NetplaySession(
             nativeReleaseClient(currentNetPlayClientPointer)
         }
 
+        val currentNetPlayServerPointer = netPlayServerPointer
+        if (currentNetPlayServerPointer != 0L) {
+            netPlayServerPointer = 0
+            nativeReleaseServer(currentNetPlayServerPointer)
+        }
+
         val currentNetPlayUICallbacksPointer = netPlayUICallbacksPointer
         if (currentNetPlayUICallbacksPointer != 0L) {
             netPlayUICallbacksPointer = 0
@@ -187,6 +212,8 @@ class NetplaySession(
 
     private external fun nativeJoin(): Long
 
+    private external fun nativeHost(): Long
+
     private external fun nativeSendMessage(message: String)
 
     private external fun nativeAdjustPadBufferSize(buffer: Int)
@@ -195,7 +222,11 @@ class NetplaySession(
 
     private external fun nativeReleaseClient(pointer: Long)
 
+    private external fun nativeReleaseServer(pointer: Long)
+
     private external fun nativeReleaseBootSessionData(pointer: Long)
+
+    private external fun nativeStartGame()
 
     // NetPlayUI callbacks
 

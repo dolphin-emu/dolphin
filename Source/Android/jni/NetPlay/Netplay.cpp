@@ -11,6 +11,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/GameFileCache.h"
 
@@ -20,14 +21,20 @@
 
 static NetPlay::NetPlayUICallbacks* GetUICallbacksPointer(JNIEnv* env, jobject obj)
 {
-  return reinterpret_cast<NetPlay::NetPlayUICallbacks*>(
-      env->GetLongField(obj, IDCache::GetNetPlayUICallbacksPointer()));
+    return reinterpret_cast<NetPlay::NetPlayUICallbacks*>(
+            env->GetLongField(obj, IDCache::GetNetPlayUICallbacksPointer()));
 }
 
 static NetPlay::NetPlayClient* GetClientPointer(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<NetPlay::NetPlayClient*>(
       env->GetLongField(obj, IDCache::GetNetPlayClientPointer()));
+}
+
+static NetPlay::NetPlayServer* GetServerPointer(JNIEnv* env, jobject obj)
+{
+  return reinterpret_cast<NetPlay::NetPlayServer*>(
+      env->GetLongField(obj, IDCache::GetNetPlayServerPointer()));
 }
 
 extern "C" {
@@ -74,11 +81,25 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeJoin(JNIEnv
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
   const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
-  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  const bool is_traversal = traversal_choice == "traversal";
-  const std::string host_ip = is_traversal ? Config::Get(Config::NETPLAY_HOST_CODE) :
-                                             Config::Get(Config::NETPLAY_ADDRESS);
-  const u16 host_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
+  std::string host_ip;
+  u16 host_port;
+  bool is_traversal;
+
+  // When hosting, join our own server on localhost
+  if (auto* server = GetServerPointer(env, obj))
+  {
+    host_ip = "127.0.0.1";
+    host_port = server->GetPort();
+    is_traversal = false;
+  }
+  else
+  {
+    const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+    is_traversal = traversal_choice == "traversal";
+    host_ip = is_traversal ? Config::Get(Config::NETPLAY_HOST_CODE) :
+              Config::Get(Config::NETPLAY_ADDRESS);
+    host_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
+  }
 
   auto* client = new NetPlay::NetPlayClient(
       host_ip, host_port, ui, nickname,
@@ -91,6 +112,51 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeJoin(JNIEnv
   }
 
   return reinterpret_cast<jlong>(client);
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeHost(JNIEnv* env, jobject obj)
+{
+  auto* ui = GetUICallbacksPointer(env, obj);
+
+  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const bool is_traversal = traversal_choice == "traversal";
+  const bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
+  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const u16 traversal_port_alt = Config::Get(Config::NETPLAY_TRAVERSAL_PORT_ALT);
+
+  const u16 host_port = is_traversal ? Config::Get(Config::NETPLAY_LISTEN_PORT)
+                                     : Config::Get(Config::NETPLAY_HOST_PORT);
+
+  auto* server = new NetPlay::NetPlayServer(
+      host_port, use_upnp, ui,
+      NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port, traversal_port_alt});
+
+  if (!server->is_connected)
+  {
+    delete server;
+    return 0;
+  }
+
+  const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
+  const bool host_input_authority =
+      network_mode == "hostinputauthority" || network_mode == "golf";
+  server->SetHostInputAuthority(host_input_authority);
+  server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+
+  return reinterpret_cast<jlong>(server);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeStartGame(JNIEnv* env,
+                                                                          jobject obj)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return;
+
+  server->RequestStartGame();
 }
 
 JNIEXPORT void JNICALL
@@ -114,6 +180,13 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReleaseClie
                                                                              jlong pointer)
 {
   delete reinterpret_cast<NetPlay::NetPlayClient*>(pointer);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReleaseServer(JNIEnv*, jobject,
+                                                                              jlong pointer)
+{
+  delete reinterpret_cast<NetPlay::NetPlayServer*>(pointer);
 }
 
 }  // extern "C"

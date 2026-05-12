@@ -22,6 +22,8 @@ class NetplayViewModel(
 
     val launchGame = netplaySession.launchGame
 
+    val isHosting = netplaySession.isHosting
+
     val connectionLost = netplaySession.connectionLost
 
     val players = netplaySession.players
@@ -42,6 +44,10 @@ class NetplayViewModel(
     val saveTransferProgress = netplaySession.saveTransferProgress
 
     val gameDigestProgress = netplaySession.gameDigestProgress
+
+    fun startGame() {
+        netplaySession.startGame()
+    }
 
     fun sendMessage(message: String) {
         val trimmedMessage = message.trim()

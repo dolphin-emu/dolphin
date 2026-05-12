@@ -31,6 +31,7 @@ static jfieldID s_game_file_cache_manager_instance;
 static jclass s_netplay_class;
 static jfieldID s_net_play_ui_callbacks_pointer;
 static jfieldID s_net_play_client_pointer;
+static jfieldID s_net_play_server_pointer;
 static jmethodID s_netplay_on_boot_game;
 static jmethodID s_netplay_on_stop_game;
 static jmethodID s_netplay_on_connection_lost;
@@ -270,6 +271,11 @@ jfieldID GetNetPlayUICallbacksPointer()
 jfieldID GetNetPlayClientPointer()
 {
   return s_net_play_client_pointer;
+}
+
+jfieldID GetNetPlayServerPointer()
+{
+  return s_net_play_server_pointer;
 }
 
 jmethodID GetNetplayOnBootGame()
@@ -777,6 +783,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_net_play_ui_callbacks_pointer =
       env->GetFieldID(netplay_class, "netPlayUICallbacksPointer", "J");
   s_net_play_client_pointer = env->GetFieldID(netplay_class, "netPlayClientPointer", "J");
+  s_net_play_server_pointer = env->GetFieldID(netplay_class, "netPlayServerPointer", "J");
   s_netplay_on_boot_game = env->GetMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
   s_netplay_on_stop_game = env->GetMethodID(netplay_class, "onStopGame", "()V");
   s_netplay_on_connection_lost = env->GetMethodID(netplay_class, "onConnectionLost", "()V");
