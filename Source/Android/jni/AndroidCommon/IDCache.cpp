@@ -829,10 +829,11 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
 
-  const jclass gba_library_class = env->FindClass("org/dolphinemu/dolphinemu/features/gba/GbaLibrary");
+  const jclass gba_library_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/gba/GbaLibrary");
   s_gba_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(gba_library_class));
-  s_on_gba_frame_with_buffer = env->GetStaticMethodID(
-      gba_library_class, "onGbaFrameWithBuffer", "(ILjava/nio/ByteBuffer;)V");
+  s_on_gba_frame_with_buffer = env->GetStaticMethodID(gba_library_class, "onGbaFrameWithBuffer",
+                                                      "(ILjava/nio/ByteBuffer;)V");
   env->DeleteLocalRef(gba_library_class);
 
   return JNI_VERSION;
