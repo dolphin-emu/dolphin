@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.netplay.ui
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Share
@@ -59,6 +61,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -72,7 +75,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -87,7 +93,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass
 import coil.compose.AsyncImage
@@ -129,6 +134,9 @@ fun NetplayScreen(
     onGameSelected: (GameFile) -> Unit,
     gameFiles: List<GameFile>,
     notAllPlayersHaveGame: Flow<Unit>,
+    dualCoreWarning: Flow<Unit>,
+    onSetDualCoreEnabled: (Boolean) -> Unit,
+    onSkipDualCoreWarning: () -> Unit,
     onConfirmStartGame: () -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
@@ -252,6 +260,11 @@ fun NetplayScreen(
             notAllPlayersHaveGame.collect { showNotAllPlayersHaveGame = true }
         }
 
+        var showDualCoreWarning by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            dualCoreWarning.collect { showDualCoreWarning = true }
+        }
+
         var dismissSaveTransferProgressDialog by rememberSaveable { mutableStateOf(false) }
         if (saveTransferProgress == null) {
             dismissSaveTransferProgressDialog = false
@@ -321,6 +334,21 @@ fun NetplayScreen(
                         }
                     },
                     onDismissRequest = { showNotAllPlayersHaveGame = false },
+                )
+            }
+
+            showDualCoreWarning -> {
+                DualCoreWarningDialog(
+                    onSetDualCoreEnabled = onSetDualCoreEnabled,
+                    onStartGame = {
+                        showDualCoreWarning = false
+                        onConfirmStartGame()
+                    },
+                    onSkipWarning = {
+                        showDualCoreWarning = false
+                        onSkipDualCoreWarning()
+                    },
+                    onDismiss = { showDualCoreWarning = false },
                 )
             }
         }
@@ -1274,6 +1302,73 @@ private fun GameDigestPlayerRow(
 }
 
 @Composable
+private fun DualCoreWarningDialog(
+    onSetDualCoreEnabled: (Boolean) -> Unit,
+    onStartGame: () -> Unit,
+    onSkipWarning: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var dualCoreEnabled by rememberSaveable { mutableStateOf(true) }
+    AlertDialog(
+        title = { Text(stringResource(R.string.netplay_dual_core_warning_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.netplay_dual_core_warning_message),
+                )
+                val ripplePadding = 12.dp
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .layout { measurable, constraints ->
+                            // Enlarge the ripple area beyond the dialog's padding
+                            val hPx = ripplePadding.roundToPx()
+                            val placeable = measurable.measure(
+                                constraints.copy(
+                                    minWidth = constraints.maxWidth + hPx * 2,
+                                    maxWidth = constraints.maxWidth + hPx * 2
+                                )
+                            )
+                            layout(constraints.maxWidth, placeable.height) {
+                                placeable.place(-hPx, 0)
+                            }
+                        }
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable {
+                            dualCoreEnabled = !dualCoreEnabled
+                            onSetDualCoreEnabled(dualCoreEnabled)
+                        }
+                        .padding(ripplePadding),
+                ) {
+                    Text(
+                        text = stringResource(R.string.dual_core),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = dualCoreEnabled,
+                        onCheckedChange = null,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onStartGame) {
+                Text(stringResource(R.string.netplay_start))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onSkipWarning) {
+                Text(stringResource(R.string.netplay_dont_warn_again))
+            }
+        },
+        onDismissRequest = onDismiss,
+    )
+}
+
+@Composable
 private fun NetplayMessage.color(): Color {
     val isDark = isSystemInDarkTheme()
     return when (this) {
@@ -1361,6 +1456,9 @@ private fun PreviewNetplayScreen() {
         onGameSelected = {},
         gameFiles = emptyList(),
         notAllPlayersHaveGame = emptyFlow(),
+        dualCoreWarning = emptyFlow(),
+        onSetDualCoreEnabled = {},
+        onSkipDualCoreWarning = {},
         onConfirmStartGame = {},
         hostInputAuthorityEnabled = true,
         networkMode = NetworkMode.HOST_INPUT_AUTHORITY,
