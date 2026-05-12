@@ -111,6 +111,11 @@
                 android:text="@string/emulate_infinity_base"
                 style="@style/InGameMenuOption" />
 
+            <Button
+                android:id="@+id/menu_gba_controls"
+                android:text="@string/emulation_gba_controls"
+                style="@style/InGameMenuOption"/>
+
         </LinearLayout>
 
     </ScrollView>
