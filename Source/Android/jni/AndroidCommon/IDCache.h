@@ -154,4 +154,8 @@ jclass GetTitleDatabaseClass();
 jfieldID GetTitleDatabasePointer();
 jmethodID GetTitleDatabaseConstructor();
 
+jclass GetGbaRendererClass();
+jmethodID GetOnGbaFrameBuffer();
+jmethodID GetOnTvSizeChanged();
+
 }  // namespace IDCache
