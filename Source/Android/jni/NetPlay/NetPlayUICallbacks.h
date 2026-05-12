@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <jni.h>
+
 #include "Common/HookableEvent.h"
 #include "Core/NetPlayClient.h"
 #include "UICommon/GameFile.h"
@@ -13,7 +15,8 @@ namespace NetPlay {
 
 class NetPlayUICallbacks : public NetPlay::NetPlayUI {
 public:
-  NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommon::GameFile>> games);
+  NetPlayUICallbacks(jobject netplay_session,
+                     std::vector<std::shared_ptr<const UICommon::GameFile>> games);
   ~NetPlayUICallbacks() override;
 
   void BootGame(const std::string& filename,
@@ -59,6 +62,9 @@ public:
   void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
 
 private:
+  jobject GetNetplaySessionLocalRef(JNIEnv* env) const;
+
+  jweak m_netplay_session;
   std::vector<std::shared_ptr<const UICommon::GameFile>> m_games;
   NetPlay::SyncIdentifier m_current_game_identifier;
   std::string m_current_game_name;

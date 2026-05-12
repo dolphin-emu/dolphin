@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
-import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
@@ -211,7 +211,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 // Don't load temporary saves when launching Netplay, this path can trigger
                 // when a game starts due to orientation changes caused by a mismatch in menu
                 // vs emulation activity orientations.
-                if (loadPreviousTemporaryState && !Netplay.isLaunching) {
+                val netplaySession = NetplayManager.activeSession
+                if (loadPreviousTemporaryState && netplaySession?.isLaunching != true) {
                     Log.debug("[EmulationFragment] Starting emulation thread from previous state.")
                     val paths = requireNotNull(gamePaths) {
                         "Cannot start emulation without any game paths"
@@ -221,16 +222,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (launchSystemMenu) {
                     Log.debug("[EmulationFragment] Starting emulation thread for the Wii Menu.")
                     NativeLibrary.RunSystemMenu()
-                } else if (Netplay.isLaunching) {
+                } else if (netplaySession?.isLaunching == true) {
                     Log.debug("[EmulationFragment] Starting emulation thread for Netplay.")
                     val paths = requireNotNull(gamePaths) {
                         "Cannot start emulation without any game paths"
                     }
                     lifecycleScope.launch {
-                        Netplay.stopGame.first()
+                        netplaySession.stopGame.first()
                         stopEmulation()
                     }
-                    NativeLibrary.RunNetPlay(paths, riivolution)
+                    NativeLibrary.RunNetPlay(
+                        paths,
+                        riivolution,
+                        netplaySession.consumeBootSessionData()
+                    )
                 } else {
                     Log.debug("[EmulationFragment] Starting emulation thread.")
                     val paths = requireNotNull(gamePaths) {

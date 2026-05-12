@@ -6,7 +6,6 @@ package org.dolphinemu.dolphinemu.features.netplay
 import androidx.annotation.Keep
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -29,14 +28,21 @@ import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 
-object Netplay {
-    @Keep
+class NetplaySession(
+    private val onClosed: (NetplaySession) -> Unit,
+) {
+
+    private var netPlayUICallbacksPointer: Long = nativeCreateUICallbacks()
+
     private var netPlayClientPointer: Long = 0
 
-    @Keep
     private var bootSessionDataPointer: Long = 0
 
-    private var sessionScope: CoroutineScope? = null
+    private val sessionScope = CoroutineScope(SupervisorJob())
+
+    @Volatile
+    var isClosed = false
+        private set
 
     val isLaunching: Boolean
         get() = bootSessionDataPointer != 0L
@@ -93,85 +99,49 @@ object Netplay {
     val saveTransferProgress = _saveTransferProgress.asStateFlow()
 
     suspend fun join(): Boolean = withContext(Dispatchers.IO) {
-        val scope = createSessionScope()
+        if (isClosed) throw IllegalStateException("Cannot join a closed session")
 
-        // Gather all messages that should appear in the chat window.
         mergeMessages()
             .runningFold(emptyList<NetplayMessage>()) { acc, msg -> listOf(msg) + acc }
             .onEach { _messages.tryEmit(it) }
-            .launchIn(scope)
+            .launchIn(sessionScope)
 
-        netPlayClientPointer = Join()
-        val isConnected = netPlayClientPointer != 0L && isClientConnected()
+        netPlayClientPointer = nativeJoin()
 
-        if (!isActive) {
-            releaseNetplayClient()
+        if (netPlayClientPointer == 0L || !isActive) {
+            closeBlocking()
             return@withContext false
         }
 
-        if (isConnected) {
-            return@withContext true
-        }
-
-        releaseNetplayClient()
-        false
+        true
     }
 
-    suspend fun quit() = withContext(Dispatchers.IO) {
-        releaseNetplayClient()
-    }
+    fun sendMessage(message: String) = nativeSendMessage(message)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun releaseNetplayClient() {
-        sessionScope?.cancel()
-        sessionScope = null
+    fun adjustPadBufferSize(buffer: Int) = nativeAdjustPadBufferSize(buffer)
 
-        if (bootSessionDataPointer != 0L) {
-            ReleaseBootSessionData()
+    fun consumeBootSessionData(): Long {
+        return bootSessionDataPointer.also {
             bootSessionDataPointer = 0
         }
-
-        if (netPlayClientPointer != 0L) {
-            ReleaseNetplayClient()
-            netPlayClientPointer = 0
-        }
-
-        _launchGame.flush()
-        _stopGame.flush()
-        _connectionErrors.flush()
-        _players.resetReplayCache()
-        _messages.resetReplayCache()
-        _chatMessages.resetReplayCache()
-        _game.resetReplayCache()
-        _hostInputAuthorityEnabled.resetReplayCache()
-        _padBuffer.resetReplayCache()
-        _saveTransferProgress.value = null
     }
 
-    private fun createSessionScope(): CoroutineScope {
-        sessionScope?.cancel()
-        return CoroutineScope(SupervisorJob() + Dispatchers.IO).also {
-            sessionScope = it
-        }
+    suspend fun close() = withContext(Dispatchers.IO) {
+        closeBlocking()
     }
 
-    @JvmStatic
-    private external fun Join(): Long
+    @Synchronized
+    fun closeBlocking() {
+        if (isClosed) return
+        isClosed = true
+        sessionScope.cancel()
+        releaseNativeResources()
+        onClosed(this)
+    }
 
-    @JvmStatic
-    external fun isClientConnected(): Boolean
-
-    @JvmStatic
-    external fun sendMessage(message: String)
-
-    @JvmStatic
-    external fun adjustPadBufferSize(buffer: Int)
-
-    @JvmStatic
-    private external fun ReleaseBootSessionData()
-
-    @JvmStatic
-    private external fun ReleaseNetplayClient()
+    protected fun finalize() {
+        releaseNativeResources()
+    }
 
     private fun mergeMessages(): Flow<NetplayMessage> = merge(
         chatMessages.map { NetplayMessage.Chat(it) },
@@ -180,10 +150,45 @@ object Netplay {
         padBuffer.map { NetplayMessage.BufferChanged(it) },
     )
 
+    private fun releaseNativeResources() {
+        val currentBootSessionDataPointer = bootSessionDataPointer
+        if (currentBootSessionDataPointer != 0L) {
+            bootSessionDataPointer = 0
+            nativeReleaseBootSessionData(currentBootSessionDataPointer)
+        }
+
+        val currentNetPlayClientPointer = netPlayClientPointer
+        if (currentNetPlayClientPointer != 0L) {
+            netPlayClientPointer = 0
+            nativeReleaseClient(currentNetPlayClientPointer)
+        }
+
+        val currentNetPlayUICallbacksPointer = netPlayUICallbacksPointer
+        if (currentNetPlayUICallbacksPointer != 0L) {
+            netPlayUICallbacksPointer = 0
+            nativeReleaseUICallbacks(currentNetPlayUICallbacksPointer)
+        }
+    }
+
+    // JNI methods
+
+    private external fun nativeCreateUICallbacks(): Long
+
+    private external fun nativeJoin(): Long
+
+    private external fun nativeSendMessage(message: String)
+
+    private external fun nativeAdjustPadBufferSize(buffer: Int)
+
+    private external fun nativeReleaseUICallbacks(pointer: Long)
+
+    private external fun nativeReleaseClient(pointer: Long)
+
+    private external fun nativeReleaseBootSessionData(pointer: Long)
+
     // NetPlayUI callbacks
 
     @Keep
-    @JvmStatic
     fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
         this.bootSessionDataPointer = bootSessionDataPointer
         _stopGame.flush()
@@ -191,57 +196,47 @@ object Netplay {
     }
 
     @Keep
-    @JvmStatic
     fun onStopGame() {
         _stopGame.trySend(Unit)
     }
 
     @Keep
-    @JvmStatic
     fun onConnectionLost() {
         _connectionLost.trySend(Unit)
     }
 
     @Keep
-    @JvmStatic
     fun onConnectionError(message: String) {
         _connectionErrors.trySend(message)
     }
 
     @Keep
-    @JvmStatic
     fun onUpdate(players: Array<Player>) {
         _players.tryEmit(players.toList())
     }
 
     @Keep
-    @JvmStatic
     fun onChatMessageReceived(message: String) {
         _chatMessages.tryEmit(message)
     }
 
     @Keep
-    @JvmStatic
     fun onHostInputAuthorityChanged(enabled: Boolean) {
         _hostInputAuthorityEnabled.tryEmit(enabled)
     }
 
     @Keep
-    @JvmStatic
     fun onGameChanged(game: String) {
         _game.tryEmit(game)
     }
 
     @Keep
-    @JvmStatic
     fun onPadBufferChanged(buffer: Int) {
-        // Only for remote pad buffer settings. Ignore local max buffer changes.
         if (_hostInputAuthorityEnabled.replayCache.firstOrNull() == true) return
         _padBuffer.tryEmit(buffer)
     }
 
     @Keep
-    @JvmStatic
     fun onShowChunkedProgressDialog(title: String, dataSize: Long, playerIds: IntArray) {
         val players = _players.replayCache.firstOrNull()
         _saveTransferProgress.value = SaveTransferProgress(
@@ -258,7 +253,6 @@ object Netplay {
     }
 
     @Keep
-    @JvmStatic
     fun onSetChunkedProgress(playerId: Int, progress: Long) {
         val current = _saveTransferProgress.value
         _saveTransferProgress.value = current?.copy(
@@ -273,11 +267,9 @@ object Netplay {
     }
 
     @Keep
-    @JvmStatic
     fun onHideChunkedProgressDialog() {
         _saveTransferProgress.value = null
     }
-
 }
 
 private fun <T> Channel<T>.flush() {

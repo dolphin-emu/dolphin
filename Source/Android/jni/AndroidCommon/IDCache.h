@@ -32,8 +32,8 @@ jclass GetGameFileCacheManagerClass();
 jfieldID GetGameFileCacheManagerInstance();
 
 jclass GetNetplayClass();
+jfieldID GetNetPlayUICallbacksPointer();
 jfieldID GetNetPlayClientPointer();
-jfieldID GetNetplayBootSessionDataPointer();
 jmethodID GetNetplayOnBootGame();
 jmethodID GetNetplayOnStopGame();
 jmethodID GetNetplayOnConnectionLost();

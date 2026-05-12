@@ -29,8 +29,8 @@ static jclass s_game_file_cache_manager_class;
 static jfieldID s_game_file_cache_manager_instance;
 
 static jclass s_netplay_class;
+static jfieldID s_net_play_ui_callbacks_pointer;
 static jfieldID s_net_play_client_pointer;
-static jfieldID s_netplay_boot_session_data_pointer;
 static jmethodID s_netplay_on_boot_game;
 static jmethodID s_netplay_on_stop_game;
 static jmethodID s_netplay_on_connection_lost;
@@ -257,14 +257,14 @@ jclass GetNetplayClass()
   return s_netplay_class;
 }
 
+jfieldID GetNetPlayUICallbacksPointer()
+{
+  return s_net_play_ui_callbacks_pointer;
+}
+
 jfieldID GetNetPlayClientPointer()
 {
   return s_net_play_client_pointer;
-}
-
-jfieldID GetNetplayBootSessionDataPointer()
-{
-  return s_netplay_boot_session_data_pointer;
 }
 
 jmethodID GetNetplayOnBootGame()
@@ -742,29 +742,30 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   env->DeleteLocalRef(game_file_cache_manager_class);
 
   const jclass netplay_class =
-      env->FindClass("org/dolphinemu/dolphinemu/features/netplay/Netplay");
+      env->FindClass("org/dolphinemu/dolphinemu/features/netplay/NetplaySession");
   s_netplay_class = reinterpret_cast<jclass>(env->NewGlobalRef(netplay_class));
-  s_net_play_client_pointer = env->GetStaticFieldID(netplay_class, "netPlayClientPointer", "J");
-  s_netplay_boot_session_data_pointer = env->GetStaticFieldID(netplay_class, "bootSessionDataPointer", "J");
-  s_netplay_on_boot_game = env->GetStaticMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
-  s_netplay_on_stop_game = env->GetStaticMethodID(netplay_class, "onStopGame", "()V");
-  s_netplay_on_connection_lost = env->GetStaticMethodID(netplay_class, "onConnectionLost", "()V");
-  s_netplay_on_connection_error = env->GetStaticMethodID(netplay_class, "onConnectionError", "(Ljava/lang/String;)V");
+  s_net_play_ui_callbacks_pointer =
+      env->GetFieldID(netplay_class, "netPlayUICallbacksPointer", "J");
+  s_net_play_client_pointer = env->GetFieldID(netplay_class, "netPlayClientPointer", "J");
+  s_netplay_on_boot_game = env->GetMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
+  s_netplay_on_stop_game = env->GetMethodID(netplay_class, "onStopGame", "()V");
+  s_netplay_on_connection_lost = env->GetMethodID(netplay_class, "onConnectionLost", "()V");
+  s_netplay_on_connection_error = env->GetMethodID(netplay_class, "onConnectionError", "(Ljava/lang/String;)V");
   s_netplay_on_game_changed =
-      env->GetStaticMethodID(netplay_class, "onGameChanged", "(Ljava/lang/String;)V");
+      env->GetMethodID(netplay_class, "onGameChanged", "(Ljava/lang/String;)V");
   s_netplay_on_host_input_authority_changed =
-      env->GetStaticMethodID(netplay_class, "onHostInputAuthorityChanged", "(Z)V");
+      env->GetMethodID(netplay_class, "onHostInputAuthorityChanged", "(Z)V");
   s_netplay_on_pad_buffer_changed =
-      env->GetStaticMethodID(netplay_class, "onPadBufferChanged", "(I)V");
+      env->GetMethodID(netplay_class, "onPadBufferChanged", "(I)V");
   s_netplay_on_chat_message_received =
-      env->GetStaticMethodID(netplay_class, "onChatMessageReceived", "(Ljava/lang/String;)V");
-  s_netplay_update = env->GetStaticMethodID(netplay_class, "onUpdate", "([Lorg/dolphinemu/dolphinemu/features/netplay/model/Player;)V");
+      env->GetMethodID(netplay_class, "onChatMessageReceived", "(Ljava/lang/String;)V");
+  s_netplay_update = env->GetMethodID(netplay_class, "onUpdate", "([Lorg/dolphinemu/dolphinemu/features/netplay/model/Player;)V");
   s_netplay_on_show_chunked_progress_dialog =
-      env->GetStaticMethodID(netplay_class, "onShowChunkedProgressDialog", "(Ljava/lang/String;J[I)V");
+      env->GetMethodID(netplay_class, "onShowChunkedProgressDialog", "(Ljava/lang/String;J[I)V");
   s_netplay_on_set_chunked_progress =
-      env->GetStaticMethodID(netplay_class, "onSetChunkedProgress", "(IJ)V");
+      env->GetMethodID(netplay_class, "onSetChunkedProgress", "(IJ)V");
   s_netplay_on_hide_chunked_progress_dialog =
-      env->GetStaticMethodID(netplay_class, "onHideChunkedProgressDialog", "()V");
+      env->GetMethodID(netplay_class, "onHideChunkedProgressDialog", "()V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass netplay_player_class =

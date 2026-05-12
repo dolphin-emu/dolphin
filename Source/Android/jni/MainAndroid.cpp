@@ -616,10 +616,10 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2ZLjava_la
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunNetPlay(
-    JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution)
+    JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution, jlong jBootSessionData)
 {
-  auto boot_session_data = std::unique_ptr<BootSessionData>(reinterpret_cast<BootSessionData*>(
-      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetplayBootSessionDataPointer())));
+  auto boot_session_data = std::unique_ptr<BootSessionData>(
+      reinterpret_cast<BootSessionData*>(jBootSessionData));
   if (!boot_session_data)
   {
     env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDisplayToastMsg(),
@@ -627,7 +627,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunNetPlay(
     env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetFinishEmulationActivity());
     return;
   }
-  env->SetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetplayBootSessionDataPointer(), 0);
   Run(env, JStringArrayToVector(env, jPaths), jRiivolution, std::move(*boot_session_data));
 }
 

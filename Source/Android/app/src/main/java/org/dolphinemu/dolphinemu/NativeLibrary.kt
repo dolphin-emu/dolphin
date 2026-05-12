@@ -346,7 +346,7 @@ object NativeLibrary {
      * Begins emulation for a netplay session, using the BootSessionData provided by the host.
      */
     @JvmStatic
-    external fun RunNetPlay(paths: Array<String>, riivolution: Boolean)
+    external fun RunNetPlay(paths: Array<String>, riivolution: Boolean, bootSessionDataPointer: Long)
 
     @JvmStatic
     external fun ChangeDisc(path: String)

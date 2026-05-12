@@ -3,22 +3,31 @@
 package org.dolphinemu.dolphinemu.features.netplay.model
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import org.dolphinemu.dolphinemu.features.netplay.Netplay
+import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 
-class NetplaySetupViewModel : ViewModel() {
+class NetplaySetupViewModel(
+    private val netplayManager: NetplayManager,
+) : ViewModel() {
+
     private val _connectionRole = MutableStateFlow<ConnectionRole>(ConnectionRole.Connect)
     val connectionRole = _connectionRole.asStateFlow()
 
@@ -45,7 +54,8 @@ class NetplaySetupViewModel : ViewModel() {
     private val _connecting = MutableStateFlow(false)
     val connecting = _connecting.asStateFlow()
 
-    val errors = Netplay.connectionErrors
+    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    val errors = _errors.asSharedFlow()
 
     init {
         GameFileCacheManager.startLoad()
@@ -89,16 +99,42 @@ class NetplaySetupViewModel : ViewModel() {
     }
 
     fun connect() {
+        if (_connecting.value) return
+
         _connecting.value = true
 
         viewModelScope.launch {
-            GameFileCacheManager.isLoading().asFlow().first { it == false }
+            var errorForwarding: Job? = null
 
-            if (Netplay.join()) {
-                _showNetplayScreen.trySend(Unit)
+            try {
+                GameFileCacheManager.isLoading().asFlow().first { it == false }
+
+                val session = netplayManager.createSession()
+                errorForwarding = session.connectionErrors
+                    .onEach { _errors.emit(it) }
+                    .launchIn(this)
+
+                if (session.join()) {
+                    _showNetplayScreen.trySend(Unit)
+                }
+            } finally {
+                errorForwarding?.cancel()
+                _connecting.value = false
             }
+        }
+    }
 
-            _connecting.value = false
+    override fun onCleared() {
+        super.onCleared()
+        // There should not be an active session at this point but in case one was created
+        // but launching the Netplay screen failed, close it.
+        netplayManager.activeSession?.closeBlocking()
+    }
+
+    class Factory(private val netplayManager: NetplayManager) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return NetplaySetupViewModel(netplayManager) as T
         }
     }
 }

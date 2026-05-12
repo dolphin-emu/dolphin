@@ -10,29 +10,54 @@
 
 namespace NetPlay {
 
-NetPlayUICallbacks::NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommon::GameFile>> games)
-    : m_games(std::move(games))
+NetPlayUICallbacks::NetPlayUICallbacks(jobject netplay_session,
+                                       std::vector<std::shared_ptr<const UICommon::GameFile>> games)
+    : m_netplay_session(IDCache::GetEnvForThread()->NewWeakGlobalRef(netplay_session)),
+      m_games(std::move(games))
 {
   m_state_changed_hook = Core::AddOnStateChangedCallback([this](Core::State state) {
     if ((state == Core::State::Uninitialized || state == Core::State::Stopping) &&
         !m_got_stop_request)
     {
       JNIEnv* env = IDCache::GetEnvForThread();
+      jobject netplay_session = GetNetplaySessionLocalRef(env);
+      if (!netplay_session)
+        return;
+
       auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
-          env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+          env->GetLongField(netplay_session, IDCache::GetNetPlayClientPointer()));
       if (client)
         client->RequestStopGame();
+
+      env->DeleteLocalRef(netplay_session);
     }
   });
 }
 
-NetPlayUICallbacks::~NetPlayUICallbacks() = default;
+NetPlayUICallbacks::~NetPlayUICallbacks()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->DeleteWeakGlobalRef(m_netplay_session);
+}
 
-void NetPlayUICallbacks::BootGame(const std::string& filename, std::unique_ptr<BootSessionData> boot_session_data) {
-    m_got_stop_request = false;
-    JNIEnv* env = IDCache::GetEnvForThread();
-    env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnBootGame(),
-                              ToJString(env, filename), reinterpret_cast<jlong>(boot_session_data.release()));
+jobject NetPlayUICallbacks::GetNetplaySessionLocalRef(JNIEnv* env) const
+{
+  return env->NewLocalRef(m_netplay_session);
+}
+
+void NetPlayUICallbacks::BootGame(const std::string& filename,
+                                  std::unique_ptr<BootSessionData> boot_session_data)
+{
+  m_got_stop_request = false;
+
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnBootGame(), ToJString(env, filename),
+                      reinterpret_cast<jlong>(boot_session_data.release()));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::StopGame()
@@ -41,8 +66,14 @@ void NetPlayUICallbacks::StopGame()
     return;
 
   m_got_stop_request = true;
+
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnStopGame());
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnStopGame());
+  env->DeleteLocalRef(netplay_session);
 }
 
 bool NetPlayUICallbacks::IsHosting() const { return false; }
@@ -50,10 +81,17 @@ bool NetPlayUICallbacks::IsHosting() const { return false; }
 void NetPlayUICallbacks::Update()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
-      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
-  if (!client)
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
     return;
+
+  auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
+      env->GetLongField(netplay_session, IDCache::GetNetPlayClientPointer()));
+  if (!client)
+  {
+    env->DeleteLocalRef(netplay_session);
+    return;
+  }
 
   const std::vector<const NetPlay::Player*> players = client->GetPlayers();
 
@@ -77,16 +115,21 @@ void NetPlayUICallbacks::Update()
     env->DeleteLocalRef(player_obj);
   }
 
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayUpdate(), player_array);
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayUpdate(), player_array);
   env->DeleteLocalRef(player_array);
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::AppendChat(const std::string& message)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
-                            IDCache::GetNetplayOnChatMessageReceived(),
-                            ToJString(env, message));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnChatMessageReceived(),
+                      ToJString(env, message));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
@@ -96,8 +139,13 @@ void NetPlayUICallbacks::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_ide
   m_current_game_name = netplay_name;
 
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnGameChanged(),
-                            ToJString(env, netplay_name));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnGameChanged(),
+                      ToJString(env, netplay_name));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnMsgChangeGBARom(int, const NetPlay::GBAConfig&) {}
@@ -105,13 +153,19 @@ void NetPlayUICallbacks::OnMsgChangeGBARom(int, const NetPlay::GBAConfig&) {}
 void NetPlayUICallbacks::OnMsgStartGame()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
   auto* client = reinterpret_cast<NetPlay::NetPlayClient*>(
-      env->GetStaticLongField(IDCache::GetNetplayClass(), IDCache::GetNetPlayClientPointer()));
+      env->GetLongField(netplay_session, IDCache::GetNetPlayClientPointer()));
   if (client)
   {
     if (const auto game = FindGameFile(m_current_game_identifier))
       client->StartGame(game->GetFilePath());
   }
+
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnMsgStopGame() {}
@@ -122,16 +176,25 @@ void NetPlayUICallbacks::OnPlayerDisconnect(const std::string&) {}
 void NetPlayUICallbacks::OnPadBufferChanged(u32 buffer)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnPadBufferChanged(),
-                            static_cast<jint>(buffer));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnPadBufferChanged(),
+                      static_cast<jint>(buffer));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnHostInputAuthorityChanged(bool enabled)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
-                            IDCache::GetNetplayOnHostInputAuthorityChanged(),
-                            static_cast<jboolean>(enabled));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnHostInputAuthorityChanged(),
+                      static_cast<jboolean>(enabled));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
@@ -139,14 +202,24 @@ void NetPlayUICallbacks::OnDesync(u32, const std::string&) {}
 void NetPlayUICallbacks::OnConnectionLost()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnConnectionLost());
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnConnectionLost());
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnConnectionError(const std::string& message)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnConnectionError(),
-                            ToJString(env, message));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnConnectionError(),
+                      ToJString(env, message));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::OnTraversalError(Common::TraversalClient::FailureReason) {}
@@ -191,29 +264,40 @@ void NetPlayUICallbacks::ShowChunkedProgressDialog(const std::string& title, u64
                                                     std::span<const int> players)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
 
   jintArray j_players = env->NewIntArray(static_cast<jsize>(players.size()));
   env->SetIntArrayRegion(j_players, 0, static_cast<jsize>(players.size()), players.data());
 
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
-                            IDCache::GetNetplayOnShowChunkedProgressDialog(),
-                            ToJString(env, title), static_cast<jlong>(data_size), j_players);
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnShowChunkedProgressDialog(),
+                      ToJString(env, title), static_cast<jlong>(data_size), j_players);
   env->DeleteLocalRef(j_players);
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::HideChunkedProgressDialog()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
-                            IDCache::GetNetplayOnHideChunkedProgressDialog());
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnHideChunkedProgressDialog());
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::SetChunkedProgress(int pid, u64 progress)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNetplayClass(),
-                            IDCache::GetNetplayOnSetChunkedProgress(),
-                            static_cast<jint>(pid), static_cast<jlong>(progress));
+  jobject netplay_session = GetNetplaySessionLocalRef(env);
+  if (!netplay_session)
+    return;
+
+  env->CallVoidMethod(netplay_session, IDCache::GetNetplayOnSetChunkedProgress(),
+                      static_cast<jint>(pid), static_cast<jlong>(progress));
+  env->DeleteLocalRef(netplay_session);
 }
 
 void NetPlayUICallbacks::SetHostWiiSyncData(std::vector<u64>, std::string) {}
