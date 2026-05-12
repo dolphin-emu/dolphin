@@ -207,13 +207,12 @@ void Host_TitleChanged()
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
 #ifdef HAS_LIBMGBA
-    auto core_ptr = core.lock();
-    if (!core_ptr)
-        return nullptr;
-    return std::make_unique<AndroidGBAHost>(
-            std::move(core), core_ptr->GetCoreInfo().device_number);
-#else
+  auto core_ptr = core.lock();
+  if (!core_ptr)
     return nullptr;
+  return std::make_unique<AndroidGBAHost>(std::move(core), core_ptr->GetCoreInfo().device_number);
+#else
+  return nullptr;
 #endif
 }
 

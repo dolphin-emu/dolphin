@@ -752,7 +752,7 @@ void Presenter::UpdateDrawRectangle()
     int_draw_height = m_xfb_rect.GetHeight();
   }
 
-// Move the Gamecube view over if we're using Gba's. return default if Gba's are not in use.
+  // Move the Gamecube view over if we're using Gba's. return default if Gba's are not in use.
   if (m_gc_sidebar_width > 0)
   {
     int left = static_cast<int>(win_width) - int_draw_width;

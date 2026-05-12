@@ -38,7 +38,10 @@
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
-namespace HW::GBA::Android { std::string GetAndroidSavePath(std::string_view, int); }
+namespace HW::GBA::Android
+{
+std::string GetAndroidSavePath(std::string_view, int);
+}
 #endif
 
 namespace HW::GBA

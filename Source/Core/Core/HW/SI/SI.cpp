@@ -603,15 +603,16 @@ u32 SerialInterfaceManager::GetPollXLines()
   return m_poll.X;
 }
 
-std::shared_ptr<HW::GBA::Core> SerialInterfaceManager::GetGBACore(int channel) const {
+std::shared_ptr<HW::GBA::Core> SerialInterfaceManager::GetGBACore(int channel) const
+{
 #ifdef HAS_LIBMGBA
-    if (channel < 0 || channel >= MAX_SI_CHANNELS)
-        return nullptr;
-      auto* dev = m_channel[channel].device.get();
-      if (dev && dev->GetDeviceType() == SIDEVICE_GC_GBA_EMULATED)
-        return static_cast<CSIDevice_GBAEmu*>(dev)->GetCore();
-#endif
+  if (channel < 0 || channel >= MAX_SI_CHANNELS)
     return nullptr;
+  auto* dev = m_channel[channel].device.get();
+  if (dev && dev->GetDeviceType() == SIDEVICE_GC_GBA_EMULATED)
+    return static_cast<CSIDevice_GBAEmu*>(dev)->GetCore();
+#endif
+  return nullptr;
 }
 
 }  // namespace SerialInterface
