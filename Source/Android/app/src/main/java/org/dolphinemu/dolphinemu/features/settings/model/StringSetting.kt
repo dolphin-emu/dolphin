@@ -72,6 +72,10 @@ enum class StringSetting(
     MAIN_GBA_BIOS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "BIOS", ""),
     MAIN_GB_PLAYER_ROM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "GBPlayerRom", ""),
     MAIN_GBA_SAVES_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "SavesPath", ""),
+    MAIN_GBA_ROM_PATH_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom1", ""),
+    MAIN_GBA_ROM_PATH_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom2", ""),
+    MAIN_GBA_ROM_PATH_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom3", ""),
+    MAIN_GBA_ROM_PATH_4(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom4", ""),
     MAIN_TRIFORCE_IP_REDIRECTIONS(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
@@ -136,6 +140,14 @@ enum class StringSetting(
             MAIN_CUSTOM_RTC_VALUE,
             MAIN_GFX_BACKEND
         )
+
+        fun getGBARomPath(slot: Int): StringSetting = when (slot) {
+            0 -> MAIN_GBA_ROM_PATH_1
+            1 -> MAIN_GBA_ROM_PATH_2
+            2 -> MAIN_GBA_ROM_PATH_3
+            3 -> MAIN_GBA_ROM_PATH_4
+            else -> MAIN_GBA_ROM_PATH_1
+        }
 
         private val NOT_RUNTIME_EDITABLE: Set<StringSetting> =
             HashSet(listOf(*NOT_RUNTIME_EDITABLE_ARRAY))

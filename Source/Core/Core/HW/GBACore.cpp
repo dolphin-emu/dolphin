@@ -38,6 +38,7 @@
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
+namespace HW::GBA::Android { std::string GetAndroidSavePath(std::string_view, int); }
 #endif
 
 namespace HW::GBA
@@ -758,6 +759,12 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
 
 std::string Core::GetSavePath(std::string_view rom_path, int device_number)
 {
+#ifdef ANDROID
+  std::string android_path = Android::GetAndroidSavePath(rom_path, device_number);
+  if (!android_path.empty())
+    return android_path;
+#endif
+
   std::string save_path =
       fmt::format("{}-{}.sav", rom_path.substr(0, rom_path.find_last_of('.')), device_number + 1);
 

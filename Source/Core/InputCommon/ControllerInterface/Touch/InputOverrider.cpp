@@ -13,6 +13,8 @@
 
 #include "Common/Assert.h"
 
+#include "Core/HW/GBAPad.h"
+#include "Core/HW/GBAPadEmu.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
@@ -145,6 +147,19 @@ const ControlsMap s_classic_controls_map = {{
      ControlID::CLASSIC_RIGHT_STICK_Y},
 }};
 
+static const ControlsMap s_gbapad_controls_map = {{
+    {{GBAPad::BUTTONS_GROUP, GBAPad::A_BUTTON}, ControlID::GCPAD_A_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::B_BUTTON}, ControlID::GCPAD_B_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::L_BUTTON}, ControlID::GCPAD_L_DIGITAL},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::R_BUTTON}, ControlID::GCPAD_R_DIGITAL},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::START_BUTTON}, ControlID::GCPAD_START_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::SELECT_BUTTON}, ControlID::GCPAD_Z_BUTTON},
+    {{GBAPad::DPAD_GROUP, DIRECTION_UP}, ControlID::GCPAD_DPAD_UP},
+    {{GBAPad::DPAD_GROUP, DIRECTION_DOWN}, ControlID::GCPAD_DPAD_DOWN},
+    {{GBAPad::DPAD_GROUP, DIRECTION_LEFT}, ControlID::GCPAD_DPAD_LEFT},
+    {{GBAPad::DPAD_GROUP, DIRECTION_RIGHT}, ControlID::GCPAD_DPAD_RIGHT},
+}};
+
 ControllerEmu::InputOverrideFunction GetInputOverrideFunction(const ControlsMap& controls_map,
                                                               size_t i)
 {
@@ -218,6 +233,20 @@ void UnregisterWiiInputOverrider(int controller_index)
   attachments[WiimoteEmu::ExtensionNumber::CLASSIC]->ClearInputOverrideFunction();
 
   for (size_t i = ControlID::FIRST_WII_CONTROL; i <= ControlID::LAST_WII_CONTROL; ++i)
+    s_state_arrays[controller_index][i].overriding = false;
+}
+
+void RegisterGbaInputOverrider(int controller_index)
+{
+  Pad::GetGBAConfig()
+      ->GetController(controller_index)
+      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gbapad_controls_map, controller_index));
+}
+
+void UnregisterGbaInputOverrider(int controller_index)
+{
+  Pad::GetGBAConfig()->GetController(controller_index)->ClearInputOverrideFunction();
+  for (size_t i = ControlID::FIRST_GC_CONTROL; i <= ControlID::LAST_GC_CONTROL; ++i)
     s_state_arrays[controller_index][i].overriding = false;
 }
 

@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
+
+    <item
+        android:id="@+id/menu_emulation_gba_snap"
+        android:checkable="true"
+        android:title="@string/emulation_snap_gba_layout" />
+
+    <item
+        android:id="@+id/menu_emulation_gba_reset"
+        android:title="@string/emulation_gba_reset_layout" />
+
+    <item
+        android:id="@+id/menu_emulation_gba_reset_core"
+        android:title="@string/emulation_reset_gba" />
+
+</menu>

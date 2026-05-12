@@ -24,6 +24,10 @@ namespace MMIO
 {
 class Mapping;
 }
+namespace HW::GBA
+{
+class Core;
+}
 
 namespace SerialInterface
 {
@@ -67,6 +71,8 @@ public:
   SIDevices GetDeviceType(int channel) const;
 
   u32 GetPollXLines();
+
+  std::shared_ptr<HW::GBA::Core> GetGBACore(int channel) const;
 
   static constexpr u32 BUFFER_SIZE = 128;
 

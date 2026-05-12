@@ -70,6 +70,11 @@ class MenuFragment : Fragment(), View.OnClickListener {
             binding.menuInfinityBase.visibility = View.GONE
         }
 
+        val emulationActivity = requireActivity() as EmulationActivity
+        if(!emulationActivity.hasActiveGbaScreens()){
+            binding.menuGbaControls.visibility = View.GONE
+        }
+
         val options = binding.layoutOptions
         for (childIndex in 0 until options.childCount) {
             val button = options.getChildAt(childIndex) as Button
@@ -147,6 +152,8 @@ class MenuFragment : Fragment(), View.OnClickListener {
             // We could use the button parameter as the anchor here, but this often results in a tiny menu
             // (because the button often is in the middle of the screen), so let's use mTitleText instead
             activity.showOverlayControlsMenu(binding.textGameTitle)
+        } else if (action == EmulationActivity.MENU_ACTION_GBA_CONTROLS) {
+            activity.showGbaControlsMenu(binding.textGameTitle)
         } else if (action >= 0) {
             activity.handleMenuAction(action)
         }
@@ -189,6 +196,10 @@ class MenuFragment : Fragment(), View.OnClickListener {
             buttonsActionsMap.append(
                 R.id.menu_overlay_controls,
                 EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS
+            )
+            buttonsActionsMap.append(
+                R.id.menu_gba_controls,
+                EmulationActivity.MENU_ACTION_GBA_CONTROLS
             )
             buttonsActionsMap.append(
                 R.id.menu_refresh_wiimotes,

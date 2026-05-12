@@ -37,6 +37,20 @@ Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_unregisterWii
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerGba(JNIEnv*, jclass,
+                                                                               int controller_index)
+{
+  ciface::Touch::RegisterGbaInputOverrider(controller_index);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_unregisterGba(
+    JNIEnv*, jclass, int controller_index)
+{
+  ciface::Touch::UnregisterGbaInputOverrider(controller_index);
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_setControlState(
     JNIEnv*, jclass, int controller_index, int control, double state)
 {
