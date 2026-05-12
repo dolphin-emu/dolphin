@@ -9,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
@@ -49,15 +48,17 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
             DolphinTheme {
                 NetplayScreen(
                     onBackClicked = { finish() },
+                    isHosting = viewModel.isHosting,
                     connectionLost = viewModel.connectionLost,
                     fatalTraversalError = viewModel.fatalTraversalError,
                     messages = viewModel.messages.collectAsState().value,
                     onSendMessage = viewModel::sendMessage,
                     game = viewModel.game.collectAsState().value,
-                    isHosting = viewModel.isHosting,
                     onStartGame = viewModel::startGame,
                     onGameSelected = viewModel::changeGame,
                     gameFiles = viewModel.gameFiles.collectAsState().value,
+                    notAllPlayersHaveGame = viewModel.notAllPlayersHaveGame,
+                    onConfirmStartGame = viewModel::confirmStartGame,
                     players = viewModel.players.collectAsState().value,
                     hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
                     networkMode = viewModel.networkMode.collectAsState().value,

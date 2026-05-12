@@ -9,7 +9,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -99,7 +101,18 @@ class NetplayViewModel(
         }
     }
 
+    private val _notAllPlayersHaveGame = Channel<Unit>(Channel.CONFLATED)
+    val notAllPlayersHaveGame = _notAllPlayersHaveGame.receiveAsFlow()
+
     fun startGame() {
+        if (netplaySession.doAllPlayersHaveGame()) {
+            netplaySession.startGame()
+        } else {
+            _notAllPlayersHaveGame.trySend(Unit)
+        }
+    }
+
+    fun confirmStartGame() {
         netplaySession.startGame()
     }
 

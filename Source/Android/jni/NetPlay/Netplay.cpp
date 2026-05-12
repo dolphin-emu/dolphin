@@ -181,6 +181,15 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeChangeGame(
   server->ChangeGame(game_file->GetSyncIdentifier(), game_file->GetLongName());
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeDoAllPlayersHaveGame(
+    JNIEnv* env, jobject obj)
+{
+  if (auto* client = GetClientPointer(env, obj))
+    return static_cast<jboolean>(client->DoAllPlayersHaveGame());
+  return JNI_TRUE;
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeStartGame(JNIEnv* env,
                                                                           jobject obj)

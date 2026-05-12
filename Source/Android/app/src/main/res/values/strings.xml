@@ -997,6 +997,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_port_label">Port</string>
     <string name="netplay_title">Netplay</string>
     <string name="netplay_start">Start</string>
+    <string name="netplay_start_warning_title">Warning</string>
+    <string name="netplay_start_warning_not_all_players_have_game">Not all players have the game. Do you really want to start?</string>
     <string name="netplay_chat_label">Chat</string>
     <string name="netplay_chat_send">Send</string>
     <string name="netplay_message_game_changed">Game changed to %1$s</string>

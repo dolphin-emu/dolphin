@@ -170,6 +170,8 @@ class NetplaySession(
 
     fun changeGame(gameFile: GameFile) = nativeChangeGame(gameFile)
 
+    fun doAllPlayersHaveGame(): Boolean = nativeDoAllPlayersHaveGame()
+
     fun startGame() = nativeStartGame()
 
     fun getPort(): Int = nativeGetPort()
@@ -260,6 +262,8 @@ class NetplaySession(
     private external fun nativeReleaseBootSessionData(pointer: Long)
 
     private external fun nativeChangeGame(gameFile: GameFile)
+
+    private external fun nativeDoAllPlayersHaveGame(): Boolean
 
     private external fun nativeStartGame()
 
