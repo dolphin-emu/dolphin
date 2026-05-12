@@ -68,18 +68,33 @@ enum ControlID
   CLASSIC_RIGHT_STICK_X = 54,
   CLASSIC_RIGHT_STICK_Y = 55,
 
+  GBA_A_BUTTON = 56,
+  GBA_B_BUTTON = 57,
+  GBA_L_BUTTON = 58,
+  GBA_R_BUTTON = 59,
+  GBA_START_BUTTON = 60,
+  GBA_SELECT_BUTTON = 61,
+  GBA_DPAD_UP = 62,
+  GBA_DPAD_DOWN = 63,
+  GBA_DPAD_LEFT = 64,
+  GBA_DPAD_RIGHT = 65,
+
   NUMBER_OF_CONTROLS,
 
   FIRST_GC_CONTROL = GCPAD_A_BUTTON,
   LAST_GC_CONTROL = GCPAD_C_STICK_Y,
   FIRST_WII_CONTROL = WIIMOTE_A_BUTTON,
   LAST_WII_CONTROL = CLASSIC_RIGHT_STICK_Y,
+  FIRST_GBA_CONTROL = GBA_A_BUTTON,
+  LAST_GBA_CONTROL = GBA_DPAD_RIGHT,
 
 };
 void RegisterGameCubeInputOverrider(int controller_index);
 void RegisterWiiInputOverrider(int controller_index);
 void UnregisterGameCubeInputOverrider(int controller_index);
 void UnregisterWiiInputOverrider(int controller_index);
+void RegisterGBAInputOverrider(int controller_index);
+void UnregisterGBAInputOverrider(int controller_index);
 
 void SetControlState(int controller_index, ControlID control, double state);
 void ClearControlState(int controller_index, ControlID control);

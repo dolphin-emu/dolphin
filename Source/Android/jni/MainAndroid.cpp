@@ -67,6 +67,11 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#include "jni/AndroidGBAHost.h"
+#endif
+
 namespace
 {
 constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
@@ -74,6 +79,7 @@ constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
 ANativeWindow* s_surf;
 
 Common::Event s_update_main_frame_event;
+Common::EventHook s_on_tv_size_changed_hook;
 
 // This exists to prevent surfaces from being destroyed during the boot process,
 // as that can lead to the boot process dereferencing nullptr.
@@ -198,7 +204,14 @@ void Host_TitleChanged()
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
+#ifdef HAS_LIBMGBA
+  auto core_ptr = core.lock();
+  if (!core_ptr)
+    return nullptr;
+  return std::make_unique<AndroidGBAHost>(std::move(core), core_ptr->GetCoreInfo().device_number);
+#else
   return nullptr;
+#endif
 }
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
@@ -448,7 +461,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
   if (g_presenter)
+  {
     g_presenter->ChangeSurface(s_surf);
+    s_on_tv_size_changed_hook = g_presenter->RegisterOnTVSizeChanged([] {
+      JNIEnv* env = IDCache::GetEnvForThread();
+      env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTvSizeChanged());
+    });
+  }
 
   s_surface_cv.notify_all();
 }
@@ -472,6 +491,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
 
   if (g_presenter)
     g_presenter->ChangeSurface(nullptr);
+
+  s_on_tv_size_changed_hook.reset();
 
   if (s_surf)
   {
