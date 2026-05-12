@@ -156,11 +156,15 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
 
     m_xfb_entry->AcquireContentLock();
   }
+  const bool size_changed = m_last_xfb_width != fb_width || m_last_xfb_height != fb_height;
   m_last_xfb_addr = xfb_addr;
   m_last_xfb_ticks = ticks;
   m_last_xfb_width = fb_width;
   m_last_xfb_stride = fb_stride;
   m_last_xfb_height = fb_height;
+
+  if (size_changed)
+    m_on_tv_size_changed.Trigger();
 
   return old_xfb_id == m_last_xfb_id;
 }
@@ -707,6 +711,16 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
 
 void Presenter::UpdateDrawRectangle()
 {
+  if (m_backbuffer_width <= 0 || m_backbuffer_height <= 0)
+    return;
+
+  const float win_width = std::max(0.0f, static_cast<float>(m_backbuffer_width) -
+                                             static_cast<float>(m_tv_left_sidebar_width) -
+                                             static_cast<float>(m_tv_right_sidebar_width));
+  const float win_height = std::max(0.0f, static_cast<float>(m_backbuffer_height) -
+                                              static_cast<float>(m_tv_top_sidebar_height) -
+                                              static_cast<float>(m_tv_bottom_sidebar_height));
+
   const float draw_aspect_ratio = CalculateDrawAspectRatio();
 
   // Update aspect ratio hack values
@@ -743,9 +757,7 @@ void Presenter::UpdateDrawRectangle()
   }
 
   // The rendering window size
-  const float win_width = static_cast<float>(m_backbuffer_width);
-  const float win_height = static_cast<float>(m_backbuffer_height);
-  const float win_aspect_ratio = win_width / win_height;
+  const float win_aspect_ratio = win_width / std::max(1.0f, win_height);
 
   // FIXME: this breaks at very low widget sizes
   // Make ControllerInterface aware of the render window region actually being used
@@ -809,8 +821,13 @@ void Presenter::UpdateDrawRectangle()
     int_draw_height = rect.GetHeight();
   }
 
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - int_draw_height / 2.0));
+  m_target_rectangle.left =
+      m_tv_left_sidebar_width +
+      static_cast<int>(std::round((win_width - static_cast<float>(int_draw_width)) / 2.0f));
+
+  m_target_rectangle.top =
+      m_tv_top_sidebar_height +
+      static_cast<int>(std::round((win_height - static_cast<float>(int_draw_height)) / 2.0f));
   m_target_rectangle.right = m_target_rectangle.left + int_draw_width;
   m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
 }

@@ -116,6 +116,11 @@
                 style="@style/InGameMenuOption"
                 android:text="@string/emulation_reset" />
 
+            <Button
+                android:id="@+id/menu_gba_controls"
+                android:text="@string/emulation_gba_controls"
+                style="@style/InGameMenuOption"/>
+
         </LinearLayout>
 
     </ScrollView>
