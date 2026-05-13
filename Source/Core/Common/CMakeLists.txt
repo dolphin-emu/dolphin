@@ -308,7 +308,7 @@ if(ENABLE_EGL AND EGL_FOUND)
   target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
 endif()
 
-if(ENABLE_WAYLAND)
+if(ENABLE_WAYLAND AND ENABLE_EGL AND EGL_FOUND)
   target_sources(common PRIVATE
     GL/GLInterface/EGLWayland.cpp
     GL/GLInterface/EGLWayland.h
