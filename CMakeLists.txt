@@ -67,6 +67,7 @@ set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update tra
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)
+  option(ENABLE_WAYLAND "Enables Wayland support" ON)
 endif()
 if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
   option(ENABLE_EGL "Enables EGL OpenGL Interface" ON)
@@ -512,6 +513,11 @@ if(ENABLE_X11)
   else()
     message(WARNING "X11 support enabled but not found. This build will not support X11.")
   endif()
+endif()
+
+if(ENABLE_WAYLAND)
+  find_package(Wayland REQUIRED)
+  add_definitions(-DHAVE_WAYLAND=1)
 endif()
 
 if(ENABLE_EGL)

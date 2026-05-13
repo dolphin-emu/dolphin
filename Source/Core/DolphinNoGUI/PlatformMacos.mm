@@ -21,6 +21,39 @@
 #include <cstring>
 #include <thread>
 
+@class AppDelegate;
+
+class PlatformMacOS : public Platform
+{
+public:
+  ~PlatformMacOS() override;
+
+  bool Init() override;
+  void SetTitle(const std::string& title) override;
+  void MainLoop() override;
+
+  WindowSystemInfo GetWindowSystemInfo() const override;
+
+  NSWindow* Window() const { return m_window; }
+
+private:
+  void ProcessEvents();
+  void UpdateWindowPosition();
+  void HandleSaveStates(NSUInteger key, NSUInteger flags);
+  void SetupMenu();
+
+  NSRect m_window_rect;
+  NSWindow* m_window;
+  NSMenu* menuBar;
+  AppDelegate* m_app_delegate;
+
+  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
+  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
+  unsigned int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
+  unsigned int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
+  bool m_window_fullscreen = Config::Get(Config::MAIN_FULLSCREEN);
+};
+
 @interface Application : NSApplication
 @property Platform* platform;
 - (void)shutdown;
@@ -80,12 +113,13 @@
 }
 @end
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
-@property(readonly) Platform* platform;
+@property(readonly) PlatformMacOS* platform;
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender;
 - (id)initWithPlatform:(Platform*)platform;
+- (void)windowDidResize:(NSNotification*)notification;
 @end
 
 @implementation AppDelegate
@@ -94,7 +128,7 @@
   return YES;
 }
 
-- (id)initWithPlatform:(Platform*)platform
+- (id)initWithPlatform:(PlatformMacOS*)platform
 {
   self = [super init];
   if (self)
@@ -103,53 +137,24 @@
   }
   return self;
 }
-@end
-
-@interface WindowDelegate : NSObject <NSWindowDelegate>
-
-- (void)windowDidResize:(NSNotification*)notification;
-@end
-
-@implementation WindowDelegate
 
 - (void)windowDidResize:(NSNotification*)notification
 {
+  WindowSystemInfo info = _platform->GetWindowSystemInfo();
   if (g_presenter)
-    g_presenter->ResizeSurface();
+    g_presenter->ResizeSurface(info.render_surface_width, info.render_surface_height,
+                               info.render_surface_scale);
 }
+
+- (void)windowDidChangeScreen:(NSNotification *)notification
+{
+  if (NSWindow* window = _platform->Window())
+    if (CALayer* layer = [[window contentView] layer])
+      [layer setContentsScale:[window backingScaleFactor]];
+  [self windowDidResize:notification];
+}
+
 @end
-
-namespace
-{
-class PlatformMacOS : public Platform
-{
-public:
-  ~PlatformMacOS() override;
-
-  bool Init() override;
-  void SetTitle(const std::string& title) override;
-  void MainLoop() override;
-
-  WindowSystemInfo GetWindowSystemInfo() const override;
-
-private:
-  void ProcessEvents();
-  void UpdateWindowPosition();
-  void HandleSaveStates(NSUInteger key, NSUInteger flags);
-  void SetupMenu();
-
-  NSRect m_window_rect;
-  NSWindow* m_window;
-  NSMenu* menuBar;
-  AppDelegate* m_app_delegate;
-  WindowDelegate* m_window_delegate;
-
-  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
-  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
-  unsigned int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
-  unsigned int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
-  bool m_window_fullscreen = Config::Get(Config::MAIN_FULLSCREEN);
-};
 
 PlatformMacOS::~PlatformMacOS()
 {
@@ -176,8 +181,7 @@ bool PlatformMacOS::Init()
                                  styleMask:styleMask
                                    backing:NSBackingStoreBuffered
                                      defer:NO];
-  m_window_delegate = [[WindowDelegate alloc] init];
-  [m_window setDelegate:m_window_delegate];
+  [m_window setDelegate:m_app_delegate];
 
   NSNotificationCenter* c = [NSNotificationCenter defaultCenter];
   [c addObserver:NSApp
@@ -237,10 +241,15 @@ WindowSystemInfo PlatformMacOS::GetWindowSystemInfo() const
 {
   @autoreleasepool
   {
+    NSRect frame = [m_window contentRectForFrameRect:[m_window frame]];
+    CGFloat scale = [m_window backingScaleFactor];
     WindowSystemInfo wsi;
     wsi.type = WindowSystemType::MacOS;
-    wsi.render_window = (void*)CFBridgingRetain([m_window contentView]);
+    wsi.render_window = (__bridge void*)[m_window contentView];
     wsi.render_surface = wsi.render_window;
+    wsi.render_surface_width = frame.size.width * scale;
+    wsi.render_surface_height = frame.size.height * scale;
+    wsi.render_surface_scale = scale;
     return wsi;
   }
 }
@@ -420,8 +429,6 @@ void PlatformMacOS::SetupMenu()
     [NSApp setMainMenu:menuBar];
   }
 }
-
-}  // namespace
 
 std::unique_ptr<Platform> Platform::CreateMacOSPlatform()
 {

@@ -5,27 +5,7 @@
 
 #include "Common/Logging/Log.h"
 
-// UpdateCachedDimensions and AttachContextToView contain calls to UI APIs, so they must only be
-// called from the main thread or they risk crashing!
-
-static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
-{
-  NSWindow* window = [view window];
-  NSSize size = [view frame].size;
-
-  const CGFloat scale = [window backingScaleFactor];
-  u32 new_width = static_cast<u32>(size.width * scale);
-  u32 new_height = static_cast<u32>(size.height * scale);
-
-  if (*width == new_width && *height == new_height)
-    return false;
-
-  *width = new_width;
-  *height = new_height;
-  return true;
-}
-
-static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* width, u32* height)
+static bool AttachContextToView(NSOpenGLContext* context, NSView* view)
 {
   // Enable high-resolution display support.
   [view setWantsBestResolutionOpenGLSurface:YES];
@@ -36,8 +16,6 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
     ERROR_LOG_FMT(VIDEO, "failed to get NSWindow");
     return false;
   }
-
-  (void)UpdateCachedDimensions(view, width, height);
 
   [context setView:view];
 
@@ -98,16 +76,18 @@ bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
 
   m_view = static_cast<NSView*>(wsi.render_surface);
   m_opengl_mode = Mode::OpenGL;
+  m_backbuffer_width = wsi.render_surface_width;
+  m_backbuffer_height = wsi.render_surface_height;
 
   __block bool success;
   if ([NSThread isMainThread])
   {
-    success = AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
+    success = AttachContextToView(m_context, m_view);
   }
   else
   {
     dispatch_sync(dispatch_get_main_queue(), ^{
-      success = AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
+      success = AttachContextToView(m_context, m_view);
     });
   }
 
@@ -150,17 +130,10 @@ bool GLContextAGL::ClearCurrent()
   return true;
 }
 
-void GLContextAGL::Update()
+void GLContextAGL::Update(u32 width, u32 height)
 {
-  if (!m_view)
-    return;
-
-  dispatch_sync(dispatch_get_main_queue(), ^{
-    if (UpdateCachedDimensions(m_view, &m_backbuffer_width, &m_backbuffer_height))
-    {
-      [m_context update];
-    }
-  });
+  GLContext::Update(width, height);
+  dispatch_sync(dispatch_get_main_queue(), ^{ [m_context update]; });
 }
 
 void GLContextAGL::SwapInterval(int interval)

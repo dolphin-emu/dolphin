@@ -13,7 +13,7 @@ class GLContextEGLX11 final : public GLContextEGL
 public:
   ~GLContextEGLX11() override;
 
-  void Update() override;
+  void Update(u32, u32) override;
 
 protected:
   EGLDisplay OpenEGLDisplay() override;
