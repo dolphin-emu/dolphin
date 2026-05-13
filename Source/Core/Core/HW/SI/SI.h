@@ -68,11 +68,11 @@ public:
 
   void ChangeDevice(SIDevices device, int channel);
 
+  void ResetGBACore(int channel);
+
   SIDevices GetDeviceType(int channel) const;
 
   u32 GetPollXLines();
-
-  std::shared_ptr<HW::GBA::Core> GetGBACore(int channel) const;
 
   static constexpr u32 BUFFER_SIZE = 128;
 

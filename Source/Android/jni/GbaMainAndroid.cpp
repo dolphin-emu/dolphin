@@ -13,9 +13,7 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_gba_GbaLibrary_resetGbaCore(JNIEnv*, jclass, jint slot)
 {
 #ifdef HAS_LIBMGBA
-  auto core = Core::System::GetInstance().GetSerialInterface().GetGBACore(slot);
-  if (core)
-    core->Reset();
+  Core::System::GetInstance().GetSerialInterface().ResetGBACore(slot);
 #endif
 }
 
