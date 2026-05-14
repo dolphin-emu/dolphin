@@ -385,6 +385,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-efb-copy-ram", !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   builder.AddData("cfg-gfx-xfb-copy-ram", !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
   builder.AddData("cfg-gfx-defer-efb-copies", Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES));
+  builder.AddData("cfg-gfx-allow-incorrect-efb-size-vram",
+                  Config::Get(Config::GFX_HACK_ALLOW_INCORRECT_EFB_SIZE_VRAM));
   // Note: Incorrectly inverted. Keeping as-is to not break analytics history.
   builder.AddData("cfg-gfx-immediate-xfb", !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
   builder.AddData("cfg-gfx-efb-copy-scaled", Config::Get(Config::GFX_HACK_COPY_EFB_SCALED));

@@ -167,6 +167,7 @@ extern const Info<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM;
 extern const Info<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
 extern const Info<bool> GFX_HACK_DISABLE_COPY_TO_VRAM;
 extern const Info<bool> GFX_HACK_DEFER_EFB_COPIES;
+extern const Info<bool> GFX_HACK_ALLOW_INCORRECT_EFB_SIZE_VRAM;
 extern const Info<bool> GFX_HACK_IMMEDIATE_XFB;
 extern const Info<bool> GFX_HACK_CAP_IMMEDIATE_XFB;
 extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;

@@ -176,6 +176,7 @@ void VideoConfig::Refresh()
   bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   bDisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
   bDeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  bAllowIncorrectEFBSizeVRAM = Config::Get(Config::GFX_HACK_ALLOW_INCORRECT_EFB_SIZE_VRAM);
   bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
   bVISkip = Config::Get(Config::GFX_HACK_VI_SKIP);
   bSkipPresentingDuplicateXFBs = bVISkip || Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);

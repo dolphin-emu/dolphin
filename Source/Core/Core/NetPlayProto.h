@@ -94,6 +94,7 @@ struct NetSettings
   bool arbitrary_mipmap_detection = false;
   float arbitrary_mipmap_detection_threshold = 0;
   bool enable_gpu_texture_decoding = false;
+  bool allow_incorrect_efb_size_vram = false;
   bool defer_efb_copies = false;
   int efb_access_tile_size = 0;
   bool efb_access_defer_invalidation = false;
