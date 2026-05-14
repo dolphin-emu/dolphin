@@ -1075,6 +1075,14 @@ class SettingsFragmentPresenter(
                     0
                 )
             )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_SOUND_ENABLED,
+                    R.string.achievements_sound_enabled,
+                    0
+                )
+            )
         }
     }
 

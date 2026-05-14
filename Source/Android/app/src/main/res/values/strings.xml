@@ -974,6 +974,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_leaderboard_tracker_enabled">Show Leaderboard Tracker</string>
     <string name="achievements_challenge_indicators_enabled">Show Challenge Indicators</string>
     <string name="achievements_progress_enabled">Enable Progress Notifications</string>
+    <string name="achievements_sound_enabled">Play Sounds for Notifications</string>
     <string name="achievements_username">Username</string>
     <string name="achievements_password">Password</string>
     <string name="achievements_login">Log In</string>

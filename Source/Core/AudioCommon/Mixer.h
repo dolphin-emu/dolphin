@@ -35,6 +35,9 @@ public:
   void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
+  // RetroAchievements Audio
+  void PushAchievementSamples(const s16* samples, std::size_t num_samples);
+
   u32 GetSampleRate() const { return m_output_sample_rate; }
   void SetSampleRate(u32 output_sample_rate) { m_output_sample_rate = output_sample_rate; }
 
@@ -44,6 +47,7 @@ public:
   void SetDMAInputSampleRateDivisor(u32 rate_divisor);
   void SetStreamInputSampleRateDivisor(u32 rate_divisor);
   void SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate);
+  void SetAchievementSampleRate(u32 sample_rate);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
   void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
@@ -174,6 +178,7 @@ private:
       MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000},
   };
   MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000};
+  MixerFifo m_achievement_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 44100};
 
   // GBAs generally use a 65536 sample rate which is not a factor of our FIXED_SAMPLE_RATE_DIVIDEND.
   static constexpr u32 GBA_SAMPLE_RATE_DIVIDEND = 0x1000000;

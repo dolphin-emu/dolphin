@@ -15,6 +15,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -55,3 +56,10 @@ private:
 
   bool m_skip_silence = false;
 };
+
+namespace AudioCommon
+{
+// Lightweight WAV parser for short notification sounds
+bool LoadWavFile(const std::string& filename, std::vector<s16>* out_data, u32* out_sample_rate,
+                 u16* out_channels);
+}  // namespace AudioCommon
