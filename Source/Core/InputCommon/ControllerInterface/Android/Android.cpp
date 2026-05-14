@@ -43,6 +43,7 @@ jmethodID s_input_device_get_device;
 jmethodID s_input_device_get_controller_number;
 jmethodID s_input_device_get_motion_ranges;
 jmethodID s_input_device_get_name;
+jmethodID s_input_device_get_descriptor;
 jmethodID s_input_device_get_sources;
 jmethodID s_input_device_has_keys;
 
@@ -624,6 +625,11 @@ public:
     m_name = GetJString(env, j_name);
     env->DeleteLocalRef(j_name);
 
+    jstring j_descriptor = reinterpret_cast<jstring>(
+        env->CallObjectMethod(input_device, s_input_device_get_descriptor));
+    m_descriptor = GetJString(env, j_descriptor);
+    env->DeleteLocalRef(j_descriptor);
+
     DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Sources for {}: {:08x}", GetQualifiedName(), m_source);
 
     AddKeys(env, input_device);
@@ -670,6 +676,8 @@ public:
   }
 
   std::optional<jint> GetDeviceID() const { return m_device_id; }
+
+  std::string GetDescriptor() const { return m_descriptor; }
 
   jobject GetSensorEventListener() { return m_sensor_event_listener; }
 
@@ -808,6 +816,7 @@ private:
   const int m_controller_number;
   const std::optional<jint> m_device_id;
   std::string m_name;
+  std::string m_descriptor;
 };
 
 // Creates an array that contains every possible keycode
@@ -846,6 +855,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       env->GetMethodID(s_input_device_class, "getMotionRanges", "()Ljava/util/List;");
   s_input_device_get_name =
       env->GetMethodID(s_input_device_class, "getName", "()Ljava/lang/String;");
+  s_input_device_get_descriptor =
+      env->GetMethodID(s_input_device_class, "getDescriptor", "()Ljava/lang/String;");
   s_input_device_get_sources = env->GetMethodID(s_input_device_class, "getSources", "()I");
   s_input_device_has_keys = env->GetMethodID(s_input_device_class, "hasKeys", "([I)[Z");
   env->DeleteLocalRef(input_device_class);
@@ -1218,5 +1229,19 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getDevic
   ciface::Core::DeviceQualifier qualifier;
   qualifier.FromString(GetJString(env, j_device_string));
   return CoreDeviceToJava(env, g_controller_interface.FindDevice(qualifier));
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getDescriptorForDevice(
+    JNIEnv* env, jclass, jstring j_device_string)
+{
+  ciface::Core::DeviceQualifier qualifier;
+  qualifier.FromString(GetJString(env, j_device_string));
+  auto device = g_controller_interface.FindDevice(qualifier);
+  if (!device || device->GetSource() != SOURCE)
+    return ToJString(env, "");
+
+  return ToJString(env,
+                   static_cast<ciface::Android::AndroidDevice*>(device.get())->GetDescriptor());
 }
 }

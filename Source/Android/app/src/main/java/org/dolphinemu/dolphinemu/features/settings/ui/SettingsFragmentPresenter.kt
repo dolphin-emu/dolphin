@@ -25,6 +25,7 @@ import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroupContainer
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
@@ -32,6 +33,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.utils.*
 import kotlin.collections.ArrayList
@@ -2583,6 +2585,50 @@ class SettingsFragmentPresenter(
                 R.string.input_device,
                 0,
                 controller
+            )
+        )
+
+        sl.add(
+            InputStringSetting(
+                context,
+                object : AbstractStringSetting {
+                    override val isOverridden: Boolean = false
+                    override val isRuntimeEditable: Boolean = true
+
+                    override fun delete(settings: Settings): Boolean {
+                        val descriptor = ControllerInterface.getDescriptorForDevice(
+                            controller.getDefaultDevice()
+                        )
+                        val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                        NativeConfig.deleteKey(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key)
+                        NativeConfig.save(NativeConfig.LAYER_BASE)
+                        return true
+                    }
+
+                    override val string: String
+                        get() {
+                            val descriptor = ControllerInterface.getDescriptorForDevice(
+                                controller.getDefaultDevice()
+                            )
+                            val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                            return NativeConfig.getString(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key, "")
+                        }
+
+                    override fun setString(settings: Settings, newValue: String) {
+                        val descriptor = ControllerInterface.getDescriptorForDevice(
+                            controller.getDefaultDevice()
+                        )
+                        val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                        if (newValue.isEmpty()) {
+                            NativeConfig.deleteKey(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key)
+                        } else {
+                            NativeConfig.setString(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key, newValue)
+                        }
+                        NativeConfig.save(NativeConfig.LAYER_BASE)
+                    }
+                },
+                R.string.input_controller_label,
+                R.string.input_controller_label_description
             )
         )
 
