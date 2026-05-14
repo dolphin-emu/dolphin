@@ -81,7 +81,8 @@ public:
 
   bool IsAddressInFastmemArea(const u8* address) const;
   u8* GetPhysicalBase() const { return m_physical_base; }
-  u8* GetLogicalBase() const { return m_logical_base; }
+  u8* GetLogicalBaseWithoutPageTable() const { return m_logical_base_without_page_table; }
+  u8* GetLogicalBaseWithPageTable() const { return m_logical_base_with_page_table; }
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
   u8* GetLogicalPageMappingsBase() const { return m_logical_page_mappings_base; }
 
@@ -181,10 +182,11 @@ private:
   u8* m_fastmem_arena = nullptr;
   size_t m_fastmem_arena_size = 0;
   u8* m_physical_base = nullptr;
-  u8* m_logical_base = nullptr;
+  u8* m_logical_base_without_page_table = nullptr;
+  u8* m_logical_base_with_page_table = nullptr;
 
-  // This page table is used for a "soft MMU" implementation when
-  // setting up the full memory map in process memory isn't possible.
+  // This page table is used for a "soft MMU" implementation when setting up the full
+  // memory map in process memory isn't possible. Only BAT mappings are included.
   u8* m_physical_page_mappings_base = nullptr;
   u8* m_logical_page_mappings_base = nullptr;
 
@@ -252,9 +254,13 @@ private:
   // [0x7E000000, 0x80000000) - FakeVMEM
   // [0xE0000000, 0xE0040000) - 256KB locked L1
   //
-  // The 4GB starting at m_logical_base represents access from the CPU
-  // with address translation turned on.  This mapping is computed based
-  // on the BAT registers.
+  // The 4GB starting at m_logical_base_without_page_table represents access
+  // from the CPU with address translation turned on.  This mapping is computed
+  // based on the BAT registers.
+  //
+  // The 4GB starting at m_logical_base_with_page_table is the same as
+  // m_logical_base_without_page_table, except mappings are computed based on
+  // the page table in addition to the BAT registers.
   //
   // Each of these 4GB regions is surrounded by 2GB of empty space so overflows
   // in address computation in the JIT don't access unrelated memory.
@@ -270,7 +276,8 @@ private:
   std::array<PhysicalMemoryRegion, 4> m_physical_regions{};
 
   // The key is the logical address
-  std::map<u32, LogicalMemoryView> m_dbat_mapped_entries;
+  std::map<u32, LogicalMemoryView> m_dbat_mapped_entries_without_page_table;
+  std::map<u32, LogicalMemoryView> m_dbat_mapped_entries_with_page_table;
   std::map<u32, LogicalMemoryView> m_page_table_mapped_entries;
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};

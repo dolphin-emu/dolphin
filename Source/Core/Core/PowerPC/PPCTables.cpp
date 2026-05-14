@@ -385,7 +385,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {310, "eciwx", OpType::System, 1, FL_IN_A0B | FL_OUT_D | FL_LOADSTORE},
     {438, "ecowx", OpType::System, 1, FL_IN_A0B | FL_IN_S | FL_LOADSTORE},
     {854, "eieio", OpType::System, 1, 0},
-    {306, "tlbie", OpType::System, 1, FL_IN_B | FL_PROGRAMEXCEPTION},
+    {306, "tlbie", OpType::System, 1, FL_IN_B | FL_PROGRAMEXCEPTION | FL_TLBIE},
     {566, "tlbsync", OpType::System, 1, FL_PROGRAMEXCEPTION},
 }};
 
