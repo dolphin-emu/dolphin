@@ -176,6 +176,8 @@ public:
   bool IsAssemblerVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(const QFont& font);
+  void SetShowDemangledNames(bool enabled);
+  bool IsShowDemangledNames() const;
 
   // Auto-Update
   QString GetAutoUpdateTrack() const;
@@ -223,6 +225,7 @@ signals:
   void AssemblerVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(const QFont& font);
+  void ShowDemangledNamesChanged(bool enabled);
   void AutoUpdateTrackChanged(const QString& mode);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
