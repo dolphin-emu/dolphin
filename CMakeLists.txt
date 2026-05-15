@@ -1,13 +1,9 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.20...4.2.1)
+cmake_minimum_required(VERSION 3.25...4.2.1)
 
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
-
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW) # MSVC debug information format flags are selected by an abstraction.
-endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
@@ -23,9 +19,8 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
-if (CMAKE_VERSION VERSION_LESS "3.25" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(LINUX TRUE)
-endif()
+# When using the Visual Studio generator, only show our targets and not the ones from Externals.
+set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
 if (MSVC)
   set(CMAKE_C_STANDARD 99)
@@ -146,12 +141,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
-if(UNIX)
-  # Builds a relocatable binary on Linux.
-  # The Sys folder will need to be copied to the Binaries folder.
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-endif()
-
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/CMake
 )
@@ -179,20 +168,15 @@ if(CMAKE_SYSROOT)
   set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
 endif()
 
-# Set where the binary files will be built.  The program will not execute from
-# here.  You must run "make install" to install these to the proper location
-# as defined above.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+# Output directory for the Dolphin binary
+# We need to use a generator expression here to ensure that multi-config generators
+# (like Visual Studio) put the binaries in the right place.
+# See https://cmake.org/cmake/help/v4.2/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/Binaries>)
 
-if (WIN32)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
-
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)
-  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
-  endif()
-endif()
+# Output directory for PDB files. PDBs are only generated on Windows with MSVC.
+# We set a common directory for all PDBs to avoid littering the Binaries/ directory.
+set(CMAKE_PDB_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/pdb>)
 
 # setup CCache
 include(CCache)
@@ -213,6 +197,9 @@ else()
 endif()
 
 if(ENABLE_GENERIC)
+  if(WIN32)
+    message(FATAL_ERROR "Generic builds are not supported on Windows!")
+  endif()
   message(STATUS "Warning! Building generic build!")
   set(_M_GENERIC 1)
   add_definitions(-D_M_GENERIC=1)
@@ -384,12 +371,6 @@ if(ENABLE_LTO)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   else()
     message(STATUS "IPO / LTO not supported: <${error}>")
-  endif()
-endif()
-
-if(UNIX)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
   endif()
 endif()
 
@@ -837,7 +818,7 @@ add_subdirectory(Source)
 # Install shared data files
 #
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
-  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/Sys PATTERN)
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES COPYING DESTINATION ${datadir})

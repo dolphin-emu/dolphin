@@ -1,0 +1,432 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "ninja-generator",
+      "generator": "Ninja",
+      "hidden": true
+    },
+    {
+      "name": "visualstudio-generator",
+      "generator": "Visual Studio 18 2026",
+      "toolset": {
+        "value": "v145",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release"
+      },
+      "hidden": true
+    },
+    {
+      "name": "debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "generic",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "generic"
+      },
+      "hidden": true
+    },
+    {
+      "name": "x64",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "x86_64"
+      },
+      "hidden": true
+    },
+    {
+      "name": "arm64",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "arm64"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "release-generic",
+      "inherits": ["release", "generic"],
+      "binaryDir": "${sourceDir}/build/release/generic",
+      "hidden": true
+    },
+    {
+      "name": "release-x64",
+      "inherits": ["release", "x64"],
+      "binaryDir": "${sourceDir}/build/release/x64",
+      "hidden": true
+    },
+    {
+      "name": "release-arm64",
+      "inherits": ["release", "arm64"],
+      "binaryDir": "${sourceDir}/build/release/arm64",
+      "hidden": true
+    },
+    {
+      "name": "debug-generic",
+      "inherits": ["debug", "generic"],
+      "binaryDir": "${sourceDir}/build/debug/generic",
+      "hidden": true
+    },
+    {
+      "name": "debug-x64",
+      "inherits": ["debug", "x64"],
+      "binaryDir": "${sourceDir}/build/debug/x64",
+      "hidden": true
+    },
+    {
+      "name": "debug-arm64",
+      "inherits": ["debug", "arm64"],
+      "binaryDir": "${sourceDir}/build/debug/arm64",
+      "hidden": true
+    },
+
+    {
+      "name": "visualstudio-generic",
+      "inherits": ["generic", "visualstudio-generator"],
+      "hidden": true
+    },
+    {
+      "name": "visualstudio-x64",
+      "inherits": ["x64", "visualstudio-generator"],
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+    {
+      "name": "visualstudio-arm64",
+      "inherits": ["arm64", "visualstudio-generator"],
+      "architecture": {
+        "value": "arm64",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+    {
+      "name": "ninja-generic",
+      "inherits": ["generic", "ninja-generator"],
+      "hidden": true
+    },
+    {
+      "name": "ninja-x64",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "inherits": ["x64", "ninja-generator"],
+      "hidden": true
+    },
+    {
+      "name": "ninja-arm64",
+      "architecture": {
+        "value": "arm64",
+        "strategy": "external"
+      },
+      "inherits": ["arm64", "ninja-generator"],
+      "hidden": true
+    },
+
+    {
+      "name": "visualstudio-release-generic",
+      "displayName": "Configure: Release - Visual Studio - Generic",
+      "inherits": ["release-generic", "visualstudio-generic"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-release-x64",
+      "displayName": "Configure: Release - Visual Studio - x64",
+      "inherits": ["release-x64", "visualstudio-x64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-release-arm64",
+      "displayName": "Configure: Release - Visual Studio - ARM64",
+      "inherits": ["release-arm64", "visualstudio-arm64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-debug-generic",
+      "displayName": "Configure: Debug - Visual Studio - Generic",
+      "inherits": ["debug-generic", "visualstudio-generic"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-debug-x64",
+      "displayName": "Configure: Debug - Visual Studio - x64",
+      "inherits": ["debug-x64", "visualstudio-x64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-debug-arm64",
+      "displayName": "Configure: Debug - Visual Studio - ARM64",
+      "inherits": ["debug-arm64", "visualstudio-arm64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "ninja-release-generic",
+      "displayName": "Configure: Release - Ninja - Generic",
+      "inherits": ["release-generic", "ninja-generic"]
+    },
+    {
+      "name": "ninja-release-x64",
+      "displayName": "Configure: Release - Ninja - x64",
+      "inherits": ["release-x64", "ninja-x64"]
+    },
+    {
+      "name": "ninja-release-arm64",
+      "displayName": "Configure: Release - Ninja - ARM64",
+      "inherits": ["release-arm64", "ninja-arm64"]
+    },
+    {
+      "name": "ninja-debug-generic",
+      "displayName": "Configure: Debug - Ninja - Generic",
+      "inherits": ["debug-generic", "ninja-generic"]
+    },
+    {
+      "name": "ninja-debug-x64",
+      "displayName": "Configure: Debug - Ninja - x64",
+      "inherits": ["debug-x64", "ninja-x64"]
+    },
+    {
+      "name": "ninja-debug-arm64",
+      "displayName": "Configure: Debug - Ninja - ARM64",
+      "inherits": ["debug-arm64", "ninja-arm64"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "visualstudio-build-release-generic",
+      "displayName": "Build: Release - Visual Studio - Generic",
+      "configurePreset": "visualstudio-release-generic",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-build-release-x64",
+      "displayName": "Build: Release - Visual Studio - x64",
+      "configurePreset": "visualstudio-release-x64",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-build-release-arm64",
+      "displayName": "Build: Release - Visual Studio - ARM64",
+      "configurePreset": "visualstudio-release-arm64",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-build-debug-generic",
+      "displayName": "Build: Debug - Visual Studio - Generic",
+      "configurePreset": "visualstudio-debug-generic",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-build-debug-x64",
+      "displayName": "Build: Debug - Visual Studio - x64",
+      "configurePreset": "visualstudio-debug-x64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "visualstudio-build-debug-arm64",
+      "displayName": "Build: Debug - Visual Studio - ARM64",
+      "configurePreset": "visualstudio-debug-arm64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "ninja-build-release-generic",
+      "displayName": "Build: Release - Ninja - Generic",
+      "configurePreset": "ninja-release-generic"
+    },
+    {
+      "name": "ninja-build-release-x64",
+      "displayName": "Build: Release - Ninja - x64",
+      "configurePreset": "ninja-release-x64"
+    },
+    {
+      "name": "ninja-build-release-arm64",
+      "displayName": "Build: Release - Ninja - ARM64",
+      "configurePreset": "ninja-release-arm64"
+    },
+    {
+      "name": "ninja-build-debug-generic",
+      "displayName": "Build: Debug - Ninja - Generic",
+      "configurePreset": "ninja-debug-generic"
+    },
+    {
+      "name": "ninja-build-debug-x64",
+      "displayName": "Build: Debug - Ninja - x64",
+      "configurePreset": "ninja-debug-x64"
+    },
+    {
+      "name": "ninja-build-debug-arm64",
+      "displayName": "Build: Debug - Ninja - ARM64",
+      "configurePreset": "ninja-debug-arm64"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "visualstudio-release-generic",
+      "displayName": "Release - Visual Studio - Generic",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-release-generic" },
+        { "type": "build", "name": "visualstudio-build-release-generic" }
+      ]
+    },
+    {
+      "name": "visualstudio-release-x64",
+      "displayName": "Release - Visual Studio - x64",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-release-x64" },
+        { "type": "build", "name": "visualstudio-build-release-x64" }
+      ]
+    },
+    {
+      "name": "visualstudio-release-arm64",
+      "displayName": "Release - Visual Studio - ARM64",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-release-arm64" },
+        { "type": "build", "name": "visualstudio-build-release-arm64" }
+      ]
+    },
+    {
+      "name": "visualstudio-debug-generic",
+      "displayName": "Debug - Visual Studio - Generic",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-debug-generic" },
+        { "type": "build", "name": "visualstudio-build-debug-generic" }
+      ]
+    },
+    {
+      "name": "visualstudio-debug-x64",
+      "displayName": "Debug - Visual Studio - x64",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-debug-x64" },
+        { "type": "build", "name": "visualstudio-build-debug-x64" }
+      ]
+    },
+    {
+      "name": "visualstudio-debug-arm64",
+      "displayName": "Debug - Visual Studio - ARM64",
+      "steps": [
+        { "type": "configure", "name": "visualstudio-debug-arm64" },
+        { "type": "build", "name": "visualstudio-build-debug-arm64" }
+      ]
+    },
+    {
+      "name": "ninja-release-generic",
+      "displayName": "Release - Ninja - Generic",
+      "steps": [
+        { "type": "configure", "name": "ninja-release-generic" },
+        { "type": "build", "name": "ninja-build-release-generic" }
+      ]
+    },
+    {
+      "name": "ninja-release-x64",
+      "displayName": "Release - Ninja - x64",
+      "steps": [
+        { "type": "configure", "name": "ninja-release-x64" },
+        { "type": "build", "name": "ninja-build-release-x64" }
+      ]
+    },
+    {
+      "name": "ninja-release-arm64",
+      "displayName": "Release - Ninja - ARM64",
+      "steps": [
+        { "type": "configure", "name": "ninja-release-arm64" },
+        { "type": "build", "name": "ninja-build-release-arm64" }
+      ]
+    },
+    {
+      "name": "ninja-debug-generic",
+      "displayName": "Debug - Ninja - Generic",
+      "steps": [
+        { "type": "configure", "name": "ninja-debug-generic" },
+        { "type": "build", "name": "ninja-build-debug-generic" }
+      ]
+    },
+    {
+      "name": "ninja-debug-x64",
+      "displayName": "Debug - Ninja - x64",
+      "steps": [
+        { "type": "configure", "name": "ninja-debug-x64" },
+        { "type": "build", "name": "ninja-build-debug-x64" }
+      ]
+    },
+    {
+      "name": "ninja-debug-arm64",
+      "displayName": "Debug - Ninja - ARM64",
+      "steps": [
+        { "type": "configure", "name": "ninja-debug-arm64" },
+        { "type": "build", "name": "ninja-build-debug-arm64" }
+      ]
+    }
+  ]
+}
