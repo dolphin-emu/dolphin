@@ -53,6 +53,14 @@ bool DolReader::Initialize(std::span<const u8> buffer)
   {
     if (m_dolheader.textSize[i] != 0)
     {
+      if ((m_dolheader.textAddress[i] & 31) != 0 || (m_dolheader.textSize[i] & 31) != 0)
+      {
+        ERROR_LOG_FMT(BOOT, 
+                      "Text section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
+                      i, m_dolheader.textAddress[i], m_dolheader.textSize[i]);
+        return false;
+      }
+
       if (buffer.size() < m_dolheader.textOffset[i] + m_dolheader.textSize[i])
         return false;
 
@@ -80,6 +88,14 @@ bool DolReader::Initialize(std::span<const u8> buffer)
     {
       u32 section_size = m_dolheader.dataSize[i];
       u32 section_offset = m_dolheader.dataOffset[i];
+      if ((m_dolheader.dataAddress[i] & 31) != 0 || (section_size & 31) != 0)
+      {
+        ERROR_LOG_FMT(BOOT, 
+                      "Data section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
+                      i, m_dolheader.dataAddress[i], section_size);
+        return false;
+      }
+
       if (buffer.size() < section_offset)
         return false;
 
