@@ -153,12 +153,47 @@ void AdvancedWidget::CreateWidgets()
   m_png_compression_level->SetTitle(tr("PNG Compression Level"));
   dump_layout->addWidget(m_png_compression_level, 3, 1);
 
+  // Crop.
+  auto* crop_box = new QGroupBox(tr("Crop"));
+  auto* crop_box_layout = new QVBoxLayout();
+  crop_box->setLayout(crop_box_layout);
+
+  m_crop_to_aspect_ratio =
+      new ConfigBool(tr("To Aspect Ratio"), Config::GFX_CROP_TO_ASPECT_RATIO, m_game_layer);
+  m_crop_custom = new ConfigBool(tr("Custom"), Config::GFX_CROP_CUSTOM, m_game_layer);
+
+  m_crop_custom_box = new QGroupBox(tr("Custom"));
+  auto* misc_crop_custom_layout = new QGridLayout();
+  m_crop_custom_box->setLayout(misc_crop_custom_layout);
+  m_crop_custom_box->setDisabled(!m_crop_custom->isChecked());
+
+  m_crop_custom_left = new ConfigInteger(0, 640, Config::GFX_CROP_CUSTOM_LEFT, m_game_layer, 1);
+  auto crop_custom_left_label = new ConfigIntegerLabel(tr("Left"), m_crop_custom_left);
+  m_crop_custom_top = new ConfigInteger(0, 528, Config::GFX_CROP_CUSTOM_TOP, m_game_layer, 1);
+  auto crop_custom_top_label = new ConfigIntegerLabel(tr("Top"), m_crop_custom_top);
+  m_crop_custom_right = new ConfigInteger(0, 640, Config::GFX_CROP_CUSTOM_RIGHT, m_game_layer, 1);
+  auto crop_custom_right_label = new ConfigIntegerLabel(tr("Right"), m_crop_custom_right);
+  m_crop_custom_bottom = new ConfigInteger(0, 528, Config::GFX_CROP_CUSTOM_BOTTOM, m_game_layer, 1);
+  auto crop_custom_bottom_label = new ConfigIntegerLabel(tr("Bottom"), m_crop_custom_bottom);
+
+  misc_crop_custom_layout->addWidget(crop_custom_left_label, 0, 0);
+  misc_crop_custom_layout->addWidget(m_crop_custom_left, 0, 1);
+  misc_crop_custom_layout->addWidget(crop_custom_top_label, 0, 2);
+  misc_crop_custom_layout->addWidget(m_crop_custom_top, 0, 3);
+  misc_crop_custom_layout->addWidget(crop_custom_right_label, 1, 0);
+  misc_crop_custom_layout->addWidget(m_crop_custom_right, 1, 1);
+  misc_crop_custom_layout->addWidget(crop_custom_bottom_label, 1, 2);
+  misc_crop_custom_layout->addWidget(m_crop_custom_bottom, 1, 3);
+
+  crop_box_layout->addWidget(m_crop_to_aspect_ratio);
+  crop_box_layout->addWidget(m_crop_custom);
+  crop_box_layout->addWidget(m_crop_custom_box);
+
   // Misc.
   auto* misc_box = new QGroupBox(tr("Misc"));
   auto* misc_layout = new QGridLayout();
   misc_box->setLayout(misc_layout);
 
-  m_enable_cropping = new ConfigBool(tr("Crop"), Config::GFX_CROP, m_game_layer);
   m_enable_prog_scan =
       new ConfigBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN, m_game_layer);
   m_backend_multithreading = new ConfigBool(tr("Backend Multithreading"),
@@ -169,11 +204,11 @@ void AdvancedWidget::CreateWidgets()
       m_game_layer);
   m_cpu_cull = new ConfigBool(tr("Cull Vertices on the CPU"), Config::GFX_CPU_CULL, m_game_layer);
 
-  misc_layout->addWidget(m_enable_cropping, 0, 0);
+  misc_layout->addWidget(m_backend_multithreading, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
-  misc_layout->addWidget(m_backend_multithreading, 1, 0);
+  misc_layout->addWidget(m_cpu_cull, 1, 0);
   misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 1, 1);
-  misc_layout->addWidget(m_cpu_cull, 2, 0);
+
 #ifdef _WIN32
   m_borderless_fullscreen =
       new ConfigBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN, m_game_layer);
@@ -198,6 +233,7 @@ void AdvancedWidget::CreateWidgets()
   main_layout->addWidget(utility_box);
   main_layout->addWidget(texture_dump_box);
   main_layout->addWidget(dump_box);
+  main_layout->addWidget(crop_box);
   main_layout->addWidget(misc_box);
   main_layout->addWidget(experimental_box);
   main_layout->addStretch();
@@ -215,6 +251,8 @@ void AdvancedWidget::ConnectWidgets()
   });
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
           [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
+  connect(m_crop_custom, &QCheckBox::toggled, this,
+          [this](bool checked) { m_crop_custom_box->setDisabled(!checked); });
 #if defined(HAVE_FFMPEG)
   connect(m_dump_use_lossless, &QCheckBox::toggled, this,
           [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
@@ -318,10 +356,6 @@ void AdvancedWidget::AddDescriptions()
                  "However, for PNG files, levels between 3 and 6 are generally about as good as "
                  "level 9 but finish in significantly less time.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
-  static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
-      " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
-      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software. Most games don't have "
       "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -367,6 +401,35 @@ void AdvancedWidget::AddDescriptions()
       "unchecked.</dolphin_emphasis>");
 #endif
 
+  // Crop.
+  static const char TR_CROP_TO_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
+      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9, "
+      "because it often includes overscan) to the specific user target aspect ratio (e.g. 4:3 or "
+      "16:9)."
+      "<br><br>This option was previously known as Graphics/Advanced/Misc/Crop."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_CROP_CUSTOM_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables options to crop the picture by discrete native pixels (independent of the internal "
+      "resolution setting) in order to attain a specific "
+      "user target aspect ratio. Useful to resolve letterboxing issues."
+      " <br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_CROP_CUSTOM_LEFT[] = QT_TR_NOOP(
+      "Crops the picture left side by discrete native pixels (independent of the internal "
+      "resolution setting) in order to attain a specific user target aspect ratio. "
+      " <br><br><dolphin_emphasis>If unsure, leave this value to 0.</dolphin_emphasis>");
+  static const char TR_CROP_CUSTOM_TOP[] = QT_TR_NOOP(
+      "Crops the picture top side by discrete native pixels (independent of the internal "
+      "resolution setting) in order to attain a specific user target aspect ratio. "
+      " <br><br><dolphin_emphasis>If unsure, leave this value to 0.</dolphin_emphasis>");
+  static const char TR_CROP_CUSTOM_RIGHT[] = QT_TR_NOOP(
+      "Crops the picture right side by discrete native pixels (independent of the internal "
+      "resolution setting) in order to attain a specific user target aspect ratio. "
+      " <br><br><dolphin_emphasis>If unsure, leave this value to 0.</dolphin_emphasis>");
+  static const char TR_CROP_CUSTOM_BOTTOM[] = QT_TR_NOOP(
+      "Crops the picture bottom side by discrete native pixels (independent of the internal "
+      "resolution setting) in order to attain a specific user target aspect ratio. "
+      " <br><br><dolphin_emphasis>If unsure, leave this value to 0.</dolphin_emphasis>");
+
   static const char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
@@ -388,7 +451,6 @@ void AdvancedWidget::AddDescriptions()
   m_dump_use_lossless->SetDescription(tr(TR_USE_LOSSLESS_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
-  m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
   QString vsexpand_extra;
@@ -406,6 +468,12 @@ void AdvancedWidget::AddDescriptions()
 #ifdef _WIN32
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
+  m_crop_to_aspect_ratio->SetDescription(tr(TR_CROP_TO_ASPECT_RATIO_DESCRIPTION));
+  m_crop_custom->SetDescription(tr(TR_CROP_CUSTOM_DESCRIPTION));
+  m_crop_custom_left->SetDescription(tr(TR_CROP_CUSTOM_LEFT));
+  m_crop_custom_top->SetDescription(tr(TR_CROP_CUSTOM_TOP));
+  m_crop_custom_right->SetDescription(tr(TR_CROP_CUSTOM_RIGHT));
+  m_crop_custom_bottom->SetDescription(tr(TR_CROP_CUSTOM_BOTTOM));
   m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
   m_manual_texture_sampling->SetDescription(tr(TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION));
 }

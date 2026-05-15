@@ -104,7 +104,8 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Next Game Profile"),
     _trans("Previous Game Profile"),
 
-    _trans("Toggle Crop"),
+    _trans("Toggle Aspect Ratio Crop"),
+    _trans("Toggle Custom Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle Skip EFB Access"),
     _trans("Toggle EFB Copies"),
@@ -190,7 +191,6 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Volume Down"),
     _trans("Volume Up"),
     _trans("Volume Toggle Mute"),
-      
     _trans("1x"),
     _trans("2x"),
     _trans("3x"),
@@ -310,7 +310,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Controller Profile 2"), HK_NEXT_WIIMOTE_PROFILE_2, HK_PREV_GAME_WIIMOTE_PROFILE_2},
      {_trans("Controller Profile 3"), HK_NEXT_WIIMOTE_PROFILE_3, HK_PREV_GAME_WIIMOTE_PROFILE_3},
      {_trans("Controller Profile 4"), HK_NEXT_WIIMOTE_PROFILE_4, HK_PREV_GAME_WIIMOTE_PROFILE_4},
-     {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
+     {_trans("Graphics Toggles"), HK_TOGGLE_CROP_TO_ASPECT_RATIO, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_TOGGLE, HK_FREELOOK_TOGGLE},
      // i18n: Stereoscopic 3D
