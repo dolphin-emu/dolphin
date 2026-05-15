@@ -68,13 +68,17 @@ enum class RegType
   DuplicatedSingle,  // PS0 and PS1 are identical, host register only stores one lane (32-bit)
 };
 
-enum class FlushMode : bool
+enum class FlushMode
 {
-  // Flushes all registers, no exceptions
-  All,
-  // Flushes registers in a conditional branch
-  // Doesn't wipe the state of the registers from the cache
+  // All dirty registers get written back, and all registers get removed from the cache.
+  Full,
+  // All dirty registers get written back, but the state of the cache is untouched.
+  // The host registers may get clobbered. This is intended for use when doing a block exit
+  // after a conditional branch.
   MaintainState,
+  // Most dirty registers get written back and get set as no longer dirty.
+  // No registers are removed from the cache.
+  Undirty,
 };
 
 enum class IgnoreDiscardedRegisters
@@ -160,7 +164,7 @@ public:
 
   void Init(JitArm64* jit);
 
-  virtual void Start(PPCAnalyst::BlockRegStats& stats) {}
+  virtual void Start(const PPCAnalyst::BlockRegStats& stats) {}
   void DiscardRegisters(BitSet32 regs);
   void ResetRegisters(BitSet32 regs);
   // Flushes the register cache in different ways depending on the mode.
@@ -300,7 +304,7 @@ protected:
   std::vector<OpArg> m_guest_registers;
 
   // Register stats for the current block
-  PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
+  const PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
 };
 
 class Arm64GPRCache : public Arm64RegCache
@@ -308,7 +312,7 @@ class Arm64GPRCache : public Arm64RegCache
 public:
   Arm64GPRCache();
 
-  void Start(PPCAnalyst::BlockRegStats& stats) override;
+  void Start(const PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode.
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
@@ -379,17 +383,15 @@ public:
 
   BitSet32 GetDirtyGPRs() const;
 
-  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                      FlushMode flush_mode = FlushMode::All)
-  {
-    FlushRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
-  }
+  void FlushRegisters(
+      BitSet32 regs, FlushMode flush_mode = FlushMode::Full,
+      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
 
-  void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                        FlushMode flush_mode = FlushMode::All)
-  {
-    FlushCRRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
-  }
+  void FlushCRRegisters(
+      BitSet8 regs, FlushMode flush_mode = FlushMode::Full,
+      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
+      IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
 
   void DiscardCRRegisters(BitSet8 regs);
   void ResetCRRegisters(BitSet8 regs);
@@ -436,11 +438,6 @@ private:
   void SetImmediateInternal(size_t index, u32 imm, bool dirty);
   void BindForWrite(size_t index, bool will_read, bool will_write = true);
 
-  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
-                      IgnoreDiscardedRegisters ignore_discarded_registers);
-  void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
-                        IgnoreDiscardedRegisters ignore_discarded_registers);
-
   static constexpr size_t GUEST_GPR_COUNT = 32;
   static constexpr size_t GUEST_CR_COUNT = 8;
   static constexpr size_t GUEST_GPR_OFFSET = 0;
@@ -451,6 +448,8 @@ class Arm64FPRCache : public Arm64RegCache
 {
 public:
   Arm64FPRCache();
+
+  void Start(const PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode.
   // The temporary register can be set to ARM64Reg::INVALID_REG when convenient for the caller.
@@ -470,11 +469,8 @@ public:
 
   void FixSinglePrecision(size_t preg);
 
-  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                      FlushMode flush_mode = FlushMode::All)
-  {
-    FlushRegisters(regs, flush_mode, tmp_reg);
-  }
+  void FlushRegisters(BitSet32 regs, FlushMode flush_mode = FlushMode::Full,
+                      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
 protected:
   // Get the order of the host registers
@@ -489,6 +485,4 @@ protected:
 private:
   bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
   bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
-
-  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
 };
