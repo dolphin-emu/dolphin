@@ -9,6 +9,7 @@
 #include <lzo/lzo1x.h>
 
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -297,4 +298,18 @@ std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)
 
   return out_buffer;
 }
+
+std::string GetExternalIPAddress()
+{
+  Common::HttpRequest request;
+  // ENet does not support IPv6, so IPv4 has to be used
+  request.UseIPv4();
+  Common::HttpRequest::Response response =
+      request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+  if (response.has_value())
+    return std::string(response->begin(), response->end());
+  return "";
+}
+
 }  // namespace NetPlay

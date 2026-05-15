@@ -933,7 +933,8 @@ enum class BooleanSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ProgressEnabled",
         false
-    );
+    ),
+    NETPLAY_USE_UPNP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "UseUPNP", false);
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)

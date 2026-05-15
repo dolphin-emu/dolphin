@@ -35,6 +35,7 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
+#include "jni/NetPlay/NetPlayUICallbacks.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
@@ -614,6 +615,21 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2ZLjava_la
       jDeleteSavestate ? DeleteSavestateAfterBoot::Yes : DeleteSavestateAfterBoot::No;
   Run(env, JStringArrayToVector(env, jPaths), jRiivolution,
       BootSessionData(GetJString(env, jSavestate), delete_state));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunNetPlay(
+    JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution, jlong jBootSessionData)
+{
+  auto boot_session_data = std::unique_ptr<BootSessionData>(
+      reinterpret_cast<BootSessionData*>(jBootSessionData));
+  if (!boot_session_data)
+  {
+    env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDisplayToastMsg(),
+                              ToJString(env, "Netplay: no boot session data"), JNI_TRUE);
+    env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetFinishEmulationActivity());
+    return;
+  }
+  Run(env, JStringArrayToVector(env, jPaths), jRiivolution, std::move(*boot_session_data));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunSystemMenu(JNIEnv* env,

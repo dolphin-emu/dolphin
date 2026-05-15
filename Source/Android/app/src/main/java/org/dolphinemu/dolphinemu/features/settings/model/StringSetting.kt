@@ -101,7 +101,23 @@ enum class StringSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ApiToken",
         ""
-    );
+    ),
+    NETPLAY_TRAVERSAL_CHOICE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "TraversalChoice",
+        "direct"
+    ),
+    NETPLAY_HOST_CODE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "HostCode",
+        ""
+    ),
+    NETPLAY_ADDRESS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Address", "127.0.0.1"),
+    NETPLAY_NICKNAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Nickname", "Player"),
+    NETPLAY_GAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Game", ""),
+    NETPLAY_NETWORK_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "NetworkMode", "fixeddelay");
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)
