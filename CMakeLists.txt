@@ -516,7 +516,7 @@ if(ENABLE_X11)
 endif()
 
 if(ENABLE_WAYLAND)
-  find_package(Wayland REQUIRED)
+  find_package(Wayland)
   if (WAYLAND_FOUND)
     add_definitions(-DHAVE_WAYLAND=1)
     message(STATUS "X11 support enabled")
