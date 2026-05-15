@@ -717,6 +717,16 @@ class SettingsFragmentPresenter(
         sl.add(
             FilePicker(
                 context,
+                StringSetting.MAIN_GBA_CGB_BOOT_ROM_PATH,
+                R.string.gba_cgb_boot_rom_path,
+                0,
+                fragmentView.activityResultLaunchers.requestBinFile,
+                "/GBA/cgb_agb_boot.bin"
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
                 StringSetting.MAIN_GB_PLAYER_ROM,
                 R.string.gb_player_rom,
                 0,

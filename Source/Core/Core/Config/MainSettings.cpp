@@ -398,6 +398,7 @@ void SetIsoPaths(std::span<const std::string> paths)
 
 #ifdef HAS_LIBMGBA
 const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
+const Info<std::string> MAIN_GBA_CGB_BOOT_ROM_PATH{{System::Main, "GBA", "CGBBootROM"}, ""};
 const std::array<Info<std::string>, 5> MAIN_GBA_ROM_PATHS{
     Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
     Info<std::string>{{System::Main, "GBA", "Rom2"}, ""},

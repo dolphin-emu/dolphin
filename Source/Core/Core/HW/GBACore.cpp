@@ -218,18 +218,31 @@ bool Core::Start(u64 gc_ticks)
   mCoreConfigSetIntValue(&m_core->config, "useBios", 0);
   mCoreConfigSetIntValue(&m_core->config, "skipBios", 0);
 
-  // If we eventually load GBC BIOS, then these should potentially all be "CGB".
+  // The official GBC/GBA bootstrap ROM will detect a non-"GBC compatible" ROM, load palettes as
+  // desired, and switch into GB mode. If forced into GBC/GBA mode without a bootstrap ROM, mGBA
+  // will not perform this step. Instead, we set gb.colors to inform it to load the palette and set
+  // it directly to DMG mode in advance. However, if a GBC or GBA bootstrap ROM is loaded, we want
+  // to stay in GBC/GBA mode as appropriate so the bootstrap ROM can take care of it itself and we
+  // show the right boot splash.
+  // Note that even when using a GBC bootstrap ROM and not the one from
+  // an actual GBA, the system will appear as GBA to games because mGBA fixes the B register when it
+  // unloads the bootstrap ROM, so features such as Oracle's "Advance Shop" will be available.
+  // See `GBUnmapBIOS` in mGBA’s `src/gb/gb.c`.
   mCoreConfigSetValue(&m_core->config, "gb.model", "DMG");
   mCoreConfigSetValue(&m_core->config, "sgb.model", "DMG");
-  mCoreConfigSetValue(&m_core->config, "cgb.model", "CGB");
-  mCoreConfigSetValue(&m_core->config, "cgb.hybridModel", "CGB");
-  mCoreConfigSetValue(&m_core->config, "cgb.sgbModel", "CGB");
+  mCoreConfigSetValue(&m_core->config, "cgb.model", "AGB");
+  mCoreConfigSetValue(&m_core->config, "cgb.hybridModel", "AGB");
+  mCoreConfigSetValue(&m_core->config, "cgb.sgbModel", "AGB");
 
   mCoreConfigSetIntValue(&m_core->config, "gb.colors", GB_COLORS_CGB);
 
   if (m_core->platform(m_core) == mPLATFORM_GBA)
   {
     LoadBIOS(File::GetUserPath(F_GBABIOS_IDX).c_str());
+  }
+  else if (m_core->platform(m_core) == mPLATFORM_GB)
+  {
+    LoadCGBBootROM(File::GetUserPath(F_GBACGBBOOTROM_IDX).c_str());
   }
 
   if (rom)
@@ -365,6 +378,45 @@ bool Core::LoadBIOS(const char* bios_path)
   {
     ERROR_LOG_FMT(CORE, "GBA{0} failed to load the BIOS in {1}", m_device_number + 1, bios_path);
     vf->close(vf);
+    return false;
+  }
+
+  return true;
+}
+
+bool Core::LoadCGBBootROM(const char* boot_rom_path)
+{
+  VFile* vf = OpenReadOnlyFile(boot_rom_path);
+  if (!vf)
+  {
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to open the Game Boy Color boot ROM in {1}",
+                  m_device_number + 1, boot_rom_path);
+    return false;
+  }
+
+  if (!GBIsCompatibleBIOS(vf, GB_MODEL_AGB))
+  {
+    ERROR_LOG_FMT(CORE, "The provided Game Boy Color boot ROM in {1} is not compatible with GBA{0}",
+                  m_device_number + 1, boot_rom_path);
+    vf->close(vf);
+    return false;
+  }
+
+  // When a compatible boot ROM is provided, nothing should break if mGBA is set to run as GBA
+  // for non-CGB games
+  mCoreConfigSetValue(&m_core->config, "gb.model", "AGB");
+  mCoreConfigSetValue(&m_core->config, "sgb.model", "AGB");
+
+  if (!m_core->loadBIOS(m_core, vf, 0))
+  {
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to load the GBC Boot ROM in {1}", m_device_number + 1,
+                  boot_rom_path);
+    vf->close(vf);
+
+    // Reset the pre-CGB model config to be safe
+    mCoreConfigSetValue(&m_core->config, "gb.model", "DMG");
+    mCoreConfigSetValue(&m_core->config, "sgb.model", "DMG");
+
     return false;
   }
 

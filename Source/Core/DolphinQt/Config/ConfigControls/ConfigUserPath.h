@@ -15,7 +15,10 @@ class ConfigUserPath final : public ConfigText
 public:
   ConfigUserPath(const unsigned int dir_index, const Config::Info<std::string>& setting);
   ConfigUserPath(const unsigned int dir_index, const Config::Info<std::string>& setting,
-                 Config::Layer* layer);
+                 std::string default_value);
+  ConfigUserPath(const unsigned int dir_index, const Config::Info<std::string>& setting,
+                 std::string default_value, Config::Layer* layer);
+  void Reset();
 
 protected:
   void OnConfigChanged() override;
@@ -25,4 +28,5 @@ private:
   void Update();
 
   const unsigned int m_dir_index;
+  const std::string m_default_value;
 };
