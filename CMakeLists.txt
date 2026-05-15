@@ -517,7 +517,12 @@ endif()
 
 if(ENABLE_WAYLAND)
   find_package(Wayland REQUIRED)
-  add_definitions(-DHAVE_WAYLAND=1)
+  if (WAYLAND_FOUND)
+    add_definitions(-DHAVE_WAYLAND=1)
+    message(STATUS "X11 support enabled")
+  else()
+    message(WARNING "Wayland support enabled but not found. This build will not support Wayland.")
+  endif()
 endif()
 
 if(ENABLE_EGL)
