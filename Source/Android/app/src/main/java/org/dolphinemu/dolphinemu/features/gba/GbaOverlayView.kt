@@ -15,6 +15,9 @@ class GbaOverlayView(context: Context) : SurfaceView(context),
     var isScreenVisible = true
     var needsBorderRedraw = false
     var surfaceReady = false
+    var nativeWidth: Int = 0
+    var nativeHeight: Int = 0
+    var onDimensionsChanged: (() -> Unit)? = null
 
     private val paint = Paint().apply { isFilterBitmap = true }
     private val destRect = Rect()
@@ -35,6 +38,15 @@ class GbaOverlayView(context: Context) : SurfaceView(context),
         holder.setFormat(PixelFormat.TRANSLUCENT)
         setZOrderMediaOverlay(true)
         holder.addCallback(this)
+    }
+
+    fun updateNativeDimensions(w: Int, h: Int) {
+        if (nativeWidth != w || nativeHeight != h) {
+            nativeWidth = w
+            nativeHeight = h
+            // Post to main thread to ensure the UI can react safely
+            post { onDimensionsChanged?.invoke() }
+        }
     }
 
     fun drawFrame(bitmap: Bitmap) {

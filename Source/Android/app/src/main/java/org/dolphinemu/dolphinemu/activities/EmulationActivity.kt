@@ -551,6 +551,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
             MENU_ACTION_GBA_SNAP -> gba.toggleGBASnap()
+            MENU_ACTION_GBA_VOLUME -> gba.adjustGbaVolume()
             MENU_ACTION_GBA_RESET -> {
                 gba.resetGBAScreens();
                 binding.root.post { gba.applyGbaLayout() }
@@ -1125,6 +1126,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_GBA_RESET = 40
         const val MENU_ACTION_GBA_RESET_CORE = 41
         const val MENU_ACTION_GBA_CONTROLS = 42
+        const val MENU_ACTION_GBA_VOLUME = 43
+        private const val MENU_ID_GBA_VOLUME = 0x10000001
 
         init {
             buttonsActionsMap.apply {
@@ -1142,6 +1145,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_gba_snap, MENU_ACTION_GBA_SNAP)
                 append(R.id.menu_emulation_gba_reset, MENU_ACTION_GBA_RESET)
                 append(R.id.menu_emulation_gba_reset_core, MENU_ACTION_GBA_RESET_CORE)
+                append(R.id.menu_emulation_gba_volume, MENU_ACTION_GBA_VOLUME)
             }
         }
 

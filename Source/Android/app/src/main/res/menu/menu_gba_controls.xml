@@ -15,4 +15,8 @@
         android:id="@+id/menu_emulation_gba_reset_core"
         android:title="@string/emulation_reset_gba" />
 
+    <item
+        android:id="@+id/menu_emulation_gba_volume"
+        android:title="@string/emulation_gba_volume" />
+
 </menu>

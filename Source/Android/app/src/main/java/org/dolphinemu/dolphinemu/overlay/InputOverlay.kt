@@ -167,285 +167,160 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         canvas.drawText("GBA", r.left + 18f, r.top + 14f, tp)
     }
 
-    override fun onTouch(v: View, event: MotionEvent): Boolean {
-        if (editMode) {
-            return onTouchWhileEditing(event)
-        }
+    private fun processOverlayTouch(
+        event: MotionEvent,
+        targetIndex: Int,
+        buttons: Set<InputOverlayDrawableButton>,
+        dpads: Set<InputOverlayDrawableDpad>,
+        pointerId: Int,
+        action: Int,
+        pointerIndex: Int
+    ): Boolean {
+        var handled = false
 
-        val action = event.actionMasked
-        val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
-                action != MotionEvent.ACTION_POINTER_UP
-        val pointerIndex = if (firstPointer) 0 else event.actionIndex
-        // Tracks if any button/joystick is pressed down
-        var pressed = false
-
-        if (gbaControllerIndex >= 0) {
-            for (button in gbaOverlayButtons) {
-                when (action) {
-                    MotionEvent.ACTION_DOWN,
-                    MotionEvent.ACTION_POINTER_DOWN -> {
-                        if (button.bounds.contains(
-                                event.getX(pointerIndex).toInt(),
-                                event.getY(pointerIndex).toInt()
-                            )
-                        ) {
-                            button.setPressedState(if (button.latching) !button.getPressedState() else true)
-                            button.trackId = event.getPointerId(pointerIndex)
-                            pressed = true
-                            InputOverrider.setControlState(
-                                gbaControllerIndex,
-                                button.control,
-                                if (button.getPressedState()) 1.0 else 0.0
-                            )
-                            val analogControl = getAnalogControlForTrigger(button.control)
-                            if (analogControl >= 0)
-                                InputOverrider.setControlState(
-                                    gbaControllerIndex,
-                                    analogControl,
-                                    1.0
-                                )
-                        }
-                    }
-
-                    MotionEvent.ACTION_UP,
-                    MotionEvent.ACTION_POINTER_UP -> {
-                        if (button.trackId == event.getPointerId(pointerIndex)) {
-                            if (!button.latching)
-                                button.setPressedState(false)
-                            InputOverrider.setControlState(
-                                gbaControllerIndex,
-                                button.control,
-                                if (button.getPressedState()) 1.0 else 0.0
-                            )
-                            val analogControl = getAnalogControlForTrigger(button.control)
-                            if (analogControl >= 0)
-                                InputOverrider.setControlState(
-                                    gbaControllerIndex,
-                                    analogControl,
-                                    0.0
-                                )
-                            button.trackId = -1
-                        }
-                    }
-                }
-            }
-        }
-
-if (!pressed) {
-    for (button in overlayButtons) {
-        // Determine the button state to apply based on the MotionEvent action flag.
-        when (action) {
-            MotionEvent.ACTION_DOWN,
-            MotionEvent.ACTION_POINTER_DOWN -> {
-                // If a pointer enters the bounds of a button, press that button.
-                if (button.bounds.contains(
-                        event.getX(pointerIndex).toInt(),
-                        event.getY(pointerIndex).toInt()
-                    )
-                ) {
-                    button.setPressedState(if (button.latching) !button.getPressedState() else true)
-                    button.trackId = event.getPointerId(pointerIndex)
-                    pressed = true
-                    InputOverrider.setControlState(
-                        controllerIndex,
-                        button.control,
-                        if (button.getPressedState()) 1.0 else 0.0
-                    )
-
-                    val analogControl = getAnalogControlForTrigger(button.control)
-                    if (analogControl >= 0)
-                        InputOverrider.setControlState(
-                            controllerIndex,
-                            analogControl,
-                            1.0
-                        )
-                }
-            }
-
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_POINTER_UP -> {
-                // If a pointer ends, release the button it was pressing.
-                if (button.trackId == event.getPointerId(pointerIndex)) {
-                    if (!button.latching)
-                        button.setPressedState(false)
-                    InputOverrider.setControlState(
-                        controllerIndex,
-                        button.control,
-                        if (button.getPressedState()) 1.0 else 0.0
-                    )
-
-                    val analogControl = getAnalogControlForTrigger(button.control)
-                    if (analogControl >= 0)
-                        InputOverrider.setControlState(
-                            controllerIndex,
-                            analogControl,
-                            0.0
-                        )
-
-                    button.trackId = -1
-                }
-            }
-        }
-    }
-}
-
-        if (gbaControllerIndex >= 0) {
-            for (dpad in gbaOverlayDpads) {
-                when (event.action and MotionEvent.ACTION_MASK) {
-                    MotionEvent.ACTION_DOWN,
-                    MotionEvent.ACTION_POINTER_DOWN -> {
-                        if (dpad.bounds.contains(
-                                event.getX(pointerIndex).toInt(),
-                                event.getY(pointerIndex).toInt()
-                            )
-                        ) {
-                            dpad.trackId = event.getPointerId(pointerIndex)
-                            pressed = true
-                        }
-                    }
-                }
-                when (event.action and MotionEvent.ACTION_MASK) {
-                    MotionEvent.ACTION_DOWN,
-                    MotionEvent.ACTION_POINTER_DOWN,
-                    MotionEvent.ACTION_MOVE -> {
-                        if (dpad.trackId == event.getPointerId(pointerIndex)) {
-                            val dpadPressed = booleanArrayOf(false, false, false, false)
-                            if (dpad.bounds.top + dpad.height / 3 > event.getY(pointerIndex)
-                                    .toInt()
-                            )
-                                dpadPressed[0] = true
-                            if (dpad.bounds.bottom - dpad.height / 3 < event.getY(pointerIndex)
-                                    .toInt()
-                            )
-                                dpadPressed[1] = true
-                            if (dpad.bounds.left + dpad.width / 3 > event.getX(pointerIndex)
-                                    .toInt()
-                            )
-                                dpadPressed[2] = true
-                            if (dpad.bounds.right - dpad.width / 3 < event.getX(pointerIndex)
-                                    .toInt()
-                            )
-                                dpadPressed[3] = true
-                            for (i in dpadPressed.indices) {
-                                InputOverrider.setControlState(
-                                    gbaControllerIndex,
-                                    dpad.getControl(i),
-                                    if (dpadPressed[i]) 1.0 else 0.0
-                                )
-                            }
-                            setDpadState(
-                                dpad,
-                                dpadPressed[0],
-                                dpadPressed[1],
-                                dpadPressed[2],
-                                dpadPressed[3]
-                            )
-                        }
-                    }
-
-                    MotionEvent.ACTION_UP,
-                    MotionEvent.ACTION_POINTER_UP -> {
-                        if (dpad.trackId == event.getPointerId(pointerIndex)) {
-                            for (i in 0 until 4) {
-                                dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
-                                InputOverrider.setControlState(
-                                    gbaControllerIndex,
-                                    dpad.getControl(i),
-                                    0.0
-                                )
-                            }
-                            dpad.trackId = -1
-                        }
-                    }
-                }
-            }
-        }
-
-if (!pressed) {
-    for (dpad in overlayDpads) {
-        // Determine the button state to apply based on the MotionEvent action flag.
-        when (event.action and MotionEvent.ACTION_MASK) {
-            MotionEvent.ACTION_DOWN,
-            MotionEvent.ACTION_POINTER_DOWN -> {
-                // If a pointer enters the bounds of a button, press that button.
-                if (dpad.bounds
-                        .contains(
+        // Process Buttons
+        for (button in buttons) {
+            when (action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    if (button.bounds.contains(
                             event.getX(pointerIndex).toInt(),
                             event.getY(pointerIndex).toInt()
                         )
-                ) {
-                    dpad.trackId = event.getPointerId(pointerIndex)
-                    pressed = true
+                    ) {
+                        button.setPressedState(if (button.latching) !button.getPressedState() else true)
+                        button.trackId = pointerId
+                        InputOverrider.setControlState(
+                            targetIndex,
+                            button.control,
+                            if (button.getPressedState()) 1.0 else 0.0
+                        )
+
+                        getAnalogControlForTrigger(button.control).takeIf { it >= 0 }?.let {
+                            InputOverrider.setControlState(targetIndex, it, 1.0)
+                        }
+                        handled = true
+                    }
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    if (button.trackId == pointerId) {
+                        if (!button.latching) button.setPressedState(false)
+                        InputOverrider.setControlState(
+                            targetIndex,
+                            button.control,
+                            if (button.getPressedState()) 1.0 else 0.0
+                        )
+
+                        getAnalogControlForTrigger(button.control).takeIf { it >= 0 }?.let {
+                            InputOverrider.setControlState(targetIndex, it, 0.0)
+                        }
+                        button.trackId = -1
+                        handled = true
+                    }
                 }
             }
         }
-        when (event.action and MotionEvent.ACTION_MASK) {
-            MotionEvent.ACTION_DOWN,
-            MotionEvent.ACTION_POINTER_DOWN,
-            MotionEvent.ACTION_MOVE -> {
-                if (dpad.trackId == event.getPointerId(pointerIndex)) {
-                    val dpadPressed = booleanArrayOf(false, false, false, false)
 
-                    if (dpad.bounds.top + dpad.height / 3 > event.getY(pointerIndex).toInt())
-                        dpadPressed[0] = true
-                    if (dpad.bounds.bottom - dpad.height / 3 < event.getY(pointerIndex).toInt())
-                        dpadPressed[1] = true
-                    if (dpad.bounds.left + dpad.width / 3 > event.getX(pointerIndex).toInt())
-                        dpadPressed[2] = true
-                    if (dpad.bounds.right - dpad.width / 3 < event.getX(pointerIndex).toInt())
-                        dpadPressed[3] = true
+        // Process Dpads
+        for (dpad in dpads) {
+            when (action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    if (dpad.bounds.contains(
+                            event.getX(pointerIndex).toInt(),
+                            event.getY(pointerIndex).toInt()
+                        )
+                    ) {
+                        dpad.trackId = pointerId
+                        handled = true
+                    }
+                }
+            }
 
-                    // Release the buttons first, then press
-                    for (i in dpadPressed.indices) {
-                        if (!dpadPressed[i]) {
+            if (dpad.trackId == pointerId) {
+                when (action) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_MOVE -> {
+                        val dpadPressed = booleanArrayOf(
+                            dpad.bounds.top + dpad.height / 3 > event.getY(pointerIndex).toInt(),
+                            dpad.bounds.bottom - dpad.height / 3 < event.getY(pointerIndex).toInt(),
+                            dpad.bounds.left + dpad.width / 3 > event.getX(pointerIndex).toInt(),
+                            dpad.bounds.right - dpad.width / 3 < event.getX(pointerIndex).toInt()
+                        )
+                        for (i in 0 until 4) {
                             InputOverrider.setControlState(
-                                controllerIndex,
+                                targetIndex,
                                 dpad.getControl(i),
-                                0.0
-                            )
-                        } else {
-                            InputOverrider.setControlState(
-                                controllerIndex,
-                                dpad.getControl(i),
-                                1.0
+                                if (dpadPressed[i]) 1.0 else 0.0
                             )
                         }
-                    }
-                    setDpadState(
-                        dpad,
-                        dpadPressed[0],
-                        dpadPressed[1],
-                        dpadPressed[2],
-                        dpadPressed[3]
-                    )
-                }
-            }
-
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_POINTER_UP -> {
-                // If a pointer ends, release the buttons.
-                if (dpad.trackId == event.getPointerId(pointerIndex)) {
-                    for (i in 0 until 4) {
-                        dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
-                        InputOverrider.setControlState(
-                            controllerIndex,
-                            dpad.getControl(i),
-                            0.0
+                        setDpadState(
+                            dpad,
+                            dpadPressed[0],
+                            dpadPressed[1],
+                            dpadPressed[2],
+                            dpadPressed[3]
                         )
+                        handled = true
                     }
-                    dpad.trackId = -1
+
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                        for (i in 0 until 4) {
+                            dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
+                            InputOverrider.setControlState(targetIndex, dpad.getControl(i), 0.0)
+                        }
+                        dpad.trackId = -1
+                        handled = true
+                    }
                 }
             }
         }
+        return handled
     }
-}
 
+    override fun onTouch(v: View, event: MotionEvent): Boolean {
+        if (editMode) return onTouchWhileEditing(event)
+
+        val action = event.actionMasked
+        val pointerIndex =
+            if (action != MotionEvent.ACTION_POINTER_DOWN && action != MotionEvent.ACTION_POINTER_UP) 0 else event.actionIndex
+        val pointerId = event.getPointerId(pointerIndex)
+// Tracks if any button/joystick is pressed down
+        var pressed = false
+
+        // Check Gba Overlay
+        if (gbaControllerIndex >= 0) {
+            if (processOverlayTouch(
+                    event,
+                    gbaControllerIndex,
+                    gbaOverlayButtons,
+                    gbaOverlayDpads,
+                    pointerId,
+                    action,
+                    pointerIndex
+                )
+            ) {
+                pressed = true
+            }
+        }
+
+        // Check Primary Overlay (GC/Wii)
+        if (processOverlayTouch(
+                event,
+                controllerIndex,
+                overlayButtons,
+                overlayDpads,
+                pointerId,
+                action,
+                pointerIndex
+            )
+        ) {
+            pressed = true
+        }
+
+        // Process Joysticks
         for (joystick in overlayJoysticks) {
             if (joystick.trackEvent(event)) {
-                if (joystick.trackId != -1)
-                    pressed = true
+                if (joystick.trackId != -1) pressed = true
             }
-
             InputOverrider.setControlState(
                 controllerIndex,
                 joystick.xControl,
@@ -458,7 +333,7 @@ if (!pressed) {
             )
         }
 
-        // No button/joystick pressed, safe to move pointer
+        //Process IR Pointer if no other inputs active
         if (!pressed && overlayPointer != null) {
             overlayPointer!!.onTouch(event)
             InputOverrider.setControlState(
@@ -474,7 +349,6 @@ if (!pressed) {
         }
 
         invalidate()
-
         return true
     }
 

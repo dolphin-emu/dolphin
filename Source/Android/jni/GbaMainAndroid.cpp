@@ -1,6 +1,10 @@
 #include <jni.h>
 
 #ifdef HAS_LIBMGBA
+#include <algorithm>
+
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 #include "Core/HW/GBACore.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/System.h"
@@ -14,6 +18,23 @@ Java_org_dolphinemu_dolphinemu_features_gba_GbaLibrary_resetGbaCore(JNIEnv*, jcl
 {
 #ifdef HAS_LIBMGBA
   Core::System::GetInstance().GetSerialInterface().ResetGBACore(slot);
+#endif
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_gba_GbaLibrary_setGbaVolume(
+    JNIEnv*, jclass, jint slot, jint volume)
+{
+#ifdef HAS_LIBMGBA
+  if (slot < 0 || slot >= 4)
+    return;
+
+  const int clamped_volume = std::clamp(static_cast<int>(volume), 0, 0xff);
+  if (SoundStream* sound_stream = Core::System::GetInstance().GetSoundStream())
+  {
+    sound_stream->GetMixer()->SetGBAVolume(static_cast<std::size_t>(slot),
+                                           static_cast<u32>(clamped_volume),
+                                           static_cast<u32>(clamped_volume));
+  }
 #endif
 }
 

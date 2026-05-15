@@ -90,6 +90,8 @@
     <string name="gb_player_rom">Game Boy Player ROM</string>
     <string name="gba_saves_path">Saves</string>
     <string name="gba_rom_path">GBA ROM Path</string>
+    <string name="emulation_gba_volume">GBA Volume</string>
+    <string name="emulation_gba_volume_slot">Slot %1$d: %2$d%%</string>
     <string name="gba_rom_path_description"></string>
     <string name="wii_submenu">Wii</string>
     <string name="wii_misc_settings">Misc Settings</string>
