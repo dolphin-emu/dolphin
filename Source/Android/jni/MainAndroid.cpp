@@ -66,6 +66,14 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/SI/SI_DeviceGBAEmu.h"
+#include "jni/AndroidGBAHost.h"
+#endif
+
 namespace
 {
 constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
@@ -197,7 +205,14 @@ void Host_TitleChanged()
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
+#ifdef HAS_LIBMGBA
+  auto core_ptr = core.lock();
+  if (!core_ptr)
+    return nullptr;
+  return std::make_unique<AndroidGBAHost>(std::move(core), core_ptr->GetCoreInfo().device_number);
+#else
   return nullptr;
+#endif
 }
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)

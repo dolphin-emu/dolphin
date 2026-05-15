@@ -2444,6 +2444,20 @@ class SettingsFragmentPresenter(
                     )
                 )
             }
+            13 -> {
+                // GBA(integrated)
+                sl.add(HeaderSetting(context, R.string.gba_settings, 0))
+                sl.add(
+                    FilePicker(
+                        context,
+                        StringSetting.getGBARomPath(gcPadNumber),
+                        R.string.gba_rom_path,
+                        R.string.gba_rom_path_description,
+                        fragmentView.activityResultLaunchers.requestGbaRomFile,
+                        null
+                    )
+                )
+            }
         }
     }
 

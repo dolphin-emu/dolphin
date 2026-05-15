@@ -89,6 +89,10 @@
     <string name="gba_bios_path">BIOS</string>
     <string name="gb_player_rom">Game Boy Player ROM</string>
     <string name="gba_saves_path">Saves</string>
+    <string name="gba_rom_path">GBA ROM Path</string>
+    <string name="emulation_gba_volume">GBA Volume</string>
+    <string name="emulation_gba_volume_slot">Slot %1$d: %2$d%%</string>
+    <string name="gba_rom_path_description"></string>
     <string name="wii_submenu">Wii</string>
     <string name="wii_misc_settings">Misc Settings</string>
     <string name="wii_sd_card_settings">SD Card Settings</string>
@@ -637,6 +641,10 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
+    <string name="emulation_gba_controls">GBA Controls</string>
+    <string name="emulation_snap_gba_layout">Snap GBA Layout</string>
+    <string name="emulation_gba_reset_layout">Reset GBA Screens Position</string>
+    <string name="emulation_reset_gba">Reset GBA</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -820,6 +828,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="gcpad_taru_konga">DK Bongos</string>
     <string name="gcpad_am_baseboard">Triforce Baseboard</string>
     <string name="gcpad_gc_adapter">GameCube Adapter</string>
+    <string name="gba_adapter">GBA (Integrated)</string>
 
     <!-- Wiimote Types -->
     <string name="wiimote_disabled">None</string>

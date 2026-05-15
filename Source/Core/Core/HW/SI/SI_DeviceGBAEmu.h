@@ -32,6 +32,8 @@ public:
   void DoState(PointerWrap& p) override;
   void OnEvent(u64 userdata, s64 cycles_late) override;
 
+  std::shared_ptr<HW::GBA::Core> GetCore() const { return m_core; }
+
 private:
   enum class NextAction
   {

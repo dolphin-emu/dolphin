@@ -379,6 +379,7 @@
         <item>@string/gcpad_taru_konga</item>
         <item>@string/gcpad_am_baseboard</item>
         <item>@string/gcpad_gc_adapter</item>
+        <item>@string/gba_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
@@ -389,6 +390,7 @@
         <item>10</item>
         <item>11</item>
         <item>12</item>
+        <item>13</item>
     </integer-array>
 
     <string-array name="wiimoteTypeEntries">

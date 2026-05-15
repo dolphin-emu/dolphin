@@ -24,6 +24,10 @@ namespace MMIO
 {
 class Mapping;
 }
+namespace HW::GBA
+{
+class Core;
+}
 
 namespace SerialInterface
 {
@@ -63,6 +67,8 @@ public:
   void AddDevice(std::unique_ptr<ISIDevice> device);
 
   void ChangeDevice(SIDevices device, int channel);
+
+  void ResetGBACore(int channel);
 
   SIDevices GetDeviceType(int channel) const;
 

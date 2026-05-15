@@ -31,6 +31,11 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#include "Core/HW/SI/SI_DeviceGBAEmu.h"
+#endif
+
 namespace SerialInterface
 {
 // SI Internal Hardware Addresses
@@ -596,6 +601,17 @@ SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
 u32 SerialInterfaceManager::GetPollXLines()
 {
   return m_poll.X;
+}
+
+void SerialInterfaceManager::ResetGBACore(int channel)
+{
+#ifdef HAS_LIBMGBA
+  if (channel < 0 || channel >= MAX_SI_CHANNELS)
+    return;
+  auto* dev = m_channel[channel].device.get();
+  if (dev && dev->GetDeviceType() == SIDEVICE_GC_GBA_EMULATED)
+    static_cast<CSIDevice_GBAEmu*>(dev)->GetCore()->Reset();
+#endif
 }
 
 }  // namespace SerialInterface

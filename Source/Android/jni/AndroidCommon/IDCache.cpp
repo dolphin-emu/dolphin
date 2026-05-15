@@ -125,6 +125,9 @@ static jclass s_audio_utils_class;
 static jmethodID s_audio_utils_get_sample_rate;
 static jmethodID s_audio_utils_get_frames_per_buffer;
 
+static jclass s_gba_library_class;
+static jmethodID s_on_gba_frame_with_buffer;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -575,6 +578,16 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jmethodID GetOnGbaFrameWithBuffer()
+{
+  return s_on_gba_frame_with_buffer;
+}
+
+jclass GetGbaLibraryClass()
+{
+  return s_gba_library_class;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -816,6 +829,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
 
+  const jclass gba_library_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/gba/GbaLibrary");
+  s_gba_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(gba_library_class));
+  s_on_gba_frame_with_buffer = env->GetStaticMethodID(gba_library_class, "onGbaFrameWithBuffer",
+                                                      "(ILjava/nio/ByteBuffer;)V");
+  env->DeleteLocalRef(gba_library_class);
+
   return JNI_VERSION;
 }
 
@@ -853,5 +873,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_input_detector_class);
   env->DeleteGlobalRef(s_permission_handler_class);
   env->DeleteGlobalRef(s_audio_utils_class);
+  env->DeleteGlobalRef(s_gba_library_class);
 }
 }

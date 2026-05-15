@@ -36,6 +36,8 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
+import org.dolphinemu.dolphinemu.features.gba.GbaEmulationActivity
+import org.dolphinemu.dolphinemu.features.gba.GbaLibrary
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
 import org.dolphinemu.dolphinemu.features.infinitybase.model.Figure
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
@@ -71,6 +73,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var emulationFragment: EmulationFragment? = null
 
     private lateinit var settings: Settings
+
+    private lateinit var gba: GbaEmulationActivity
 
     override var themeId = 0
 
@@ -211,6 +215,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         binding = ActivityEmulationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        gba = GbaEmulationActivity(this, binding)
+        gba.initViews()
+
         setInsets()
 
         // Find or create the EmulationFragment
@@ -332,6 +339,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             emulationFragment?.refreshInputOverlay()
 
             updateDisplaySettings()
+
+            gba.onTitleChanged()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
@@ -340,7 +349,14 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     override fun onDestroy() {
         super.onDestroy()
+        gba.onDestroy()
+        GbaLibrary.setGCLeftOffset(0)
         settings.close()
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        gba.onConfigurationChanged()
     }
 
     override fun onBackPressed() {
@@ -443,6 +459,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             menu.findItem(R.id.menu_emulation_ir_recenter).isChecked =
                 BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean
         }
+        popup.menu.findItem(R.id.menu_emulation_gba_snap)?.isChecked = gba.isGbaLocked
+        popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
+        popup.show()
+    }
+
+    fun hasActiveGbaScreens(): Boolean = gba.gbaViews.isNotEmpty()
+
+    fun showGbaControlsMenu(anchor: View) {
+        val popup = PopupMenu(this, anchor)
+        popup.menuInflater.inflate(R.menu.menu_gba_controls, popup.menu)
+        popup.menu.findItem(R.id.menu_emulation_gba_snap)?.isChecked = gba.isGbaLocked
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
         popup.show()
     }
@@ -470,6 +497,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_SET_IR_RECENTER -> {
                 item.isChecked = !item.isChecked
                 toggleRecenter(item.isChecked)
+            }
+
+            MENU_ACTION_GBA_SNAP -> {
+                item.isChecked = !item.isChecked
+                gba.toggleGBASnap()
             }
         }
     }
@@ -518,6 +550,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
+            MENU_ACTION_GBA_SNAP -> gba.toggleGBASnap()
+            MENU_ACTION_GBA_VOLUME -> gba.adjustGbaVolume()
+            MENU_ACTION_GBA_RESET -> {
+                gba.resetGBAScreens();
+                binding.root.post { gba.applyGbaLayout() }
+            }
+            MENU_ACTION_GBA_RESET_CORE -> gba.resetGbaCore()
         }
     }
 
@@ -533,9 +572,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private fun editControlsPlacement() {
         if (emulationFragment!!.isConfiguringControls) {
             emulationFragment?.stopConfiguringControls()
+            gba.setGbaViewsTouchable(true)
+            gba.reattachTouchListeners()
         } else {
             closeSubmenu()
             closeMenu()
+            gba.setGbaViewsTouchable(false)
             emulationFragment?.startConfiguringControls()
         }
     }
@@ -975,6 +1017,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             if (anyMenuClosed)
                 return true
         }
+        if (gba.handleTouch(event))
+            return true
+
         return super.dispatchTouchEvent(event)
     }
 
@@ -1077,6 +1122,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_GBA_SNAP = 39
+        const val MENU_ACTION_GBA_RESET = 40
+        const val MENU_ACTION_GBA_RESET_CORE = 41
+        const val MENU_ACTION_GBA_CONTROLS = 42
+        const val MENU_ACTION_GBA_VOLUME = 43
+        private const val MENU_ID_GBA_VOLUME = 0x10000001
 
         init {
             buttonsActionsMap.apply {
@@ -1090,6 +1141,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_ir_recenter, MENU_SET_IR_RECENTER)
                 append(R.id.menu_emulation_set_ir_mode, MENU_SET_IR_MODE)
                 append(R.id.menu_emulation_choose_doubletap, MENU_ACTION_CHOOSE_DOUBLETAP)
+                append(R.id.menu_gba_controls, MENU_ACTION_GBA_CONTROLS)
+                append(R.id.menu_emulation_gba_snap, MENU_ACTION_GBA_SNAP)
+                append(R.id.menu_emulation_gba_reset, MENU_ACTION_GBA_RESET)
+                append(R.id.menu_emulation_gba_reset_core, MENU_ACTION_GBA_RESET_CORE)
+                append(R.id.menu_emulation_gba_volume, MENU_ACTION_GBA_VOLUME)
             }
         }
 

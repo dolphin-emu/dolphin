@@ -752,10 +752,26 @@ void Presenter::UpdateDrawRectangle()
     int_draw_height = m_xfb_rect.GetHeight();
   }
 
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - int_draw_height / 2.0));
-  m_target_rectangle.right = m_target_rectangle.left + int_draw_width;
-  m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
+  // Move the Gamecube view over if we're using Gba's. return default if Gba's are not in use.
+  if (m_gc_sidebar_width > 0)
+  {
+    int left = static_cast<int>(win_width) - int_draw_width;
+
+    if (left < m_gc_sidebar_width)
+      left = m_gc_sidebar_width;
+
+    m_target_rectangle.left = left;
+    m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - int_draw_height / 2.0));
+    m_target_rectangle.right = m_target_rectangle.left + int_draw_width;
+    m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
+  }
+  else
+  {
+    m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
+    m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - int_draw_height / 2.0));
+    m_target_rectangle.right = m_target_rectangle.left + int_draw_width;
+    m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
+  }
 }
 
 std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, const int height,

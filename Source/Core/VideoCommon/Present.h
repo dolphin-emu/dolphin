@@ -100,6 +100,10 @@ public:
 
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
 
+  void SetGCLeftOffset(int sidebar_width) { m_gc_sidebar_width = sidebar_width; }
+
+  int GetGCDrawWidth() const { return m_target_rectangle.GetWidth(); }
+
 private:
   // Fetches the XFB texture from the texture cache.
   // Returns true the contents have changed since last time
@@ -128,6 +132,7 @@ private:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
+  int m_gc_sidebar_width = 0;
   float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
