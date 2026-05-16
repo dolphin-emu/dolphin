@@ -168,7 +168,7 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::MacOS;
   else if (platform_name == QStringLiteral("xcb"))
     return WindowSystemType::X11;
-  else if (platform_name.startsWith(QStringLiteral("wayland")))
+  else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
   else if (platform_name == QStringLiteral("haiku"))
     return WindowSystemType::Haiku;
