@@ -381,7 +381,7 @@ void EnhancementsWidget::ShaderChanged()
 {
   auto shader = Get(m_game_layer, Config::GFX_ENHANCE_POST_SHADER);
 
-  if (shader == "(off)" || shader == "")
+  if (shader == tr("(off)").toStdString() || shader == "")
   {
     shader = "";
 
