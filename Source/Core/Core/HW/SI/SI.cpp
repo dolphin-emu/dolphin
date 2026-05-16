@@ -593,6 +593,14 @@ SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
   return m_channel[channel].device->GetDeviceType();
 }
 
+ISIDevice* SerialInterfaceManager::GetDevice(int channel) const
+{
+  if (channel < 0 || channel >= MAX_SI_CHANNELS)
+    return nullptr;
+
+  return m_channel[channel].device.get();
+}
+
 u32 SerialInterfaceManager::GetPollXLines()
 {
   return m_poll.X;

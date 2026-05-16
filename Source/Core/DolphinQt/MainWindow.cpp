@@ -124,6 +124,7 @@
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 #include "DolphinQt/ToolBar.h"
+#include "DolphinQt/Triforce/TriforceCardManagerWindow.h"
 #include "DolphinQt/WiiUpdate.h"
 
 #include "UICommon/DiscordPresence.h"
@@ -419,6 +420,9 @@ void MainWindow::InitCoreCallbacks()
     if (state == Core::State::Uninitialized)
       OnStopComplete();
 
+    if (state == Core::State::Running || state == Core::State::Paused)
+      TriforceCardManagerWindow::RestoreStoredCardsForRunningGame();
+
     if (state == Core::State::Running && m_fullscreen_requested)
     {
       FullScreen();
@@ -567,6 +571,8 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::ShowTriforceCardManager, this,
+          &MainWindow::ShowTriforceCardManager);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ShowWiiSpeakWindow, this, &MainWindow::ShowWiiSpeakWindow);
@@ -1467,6 +1473,16 @@ void MainWindow::ShowSkylanderPortal()
   m_skylander_window->show();
   m_skylander_window->raise();
   m_skylander_window->activateWindow();
+}
+
+void MainWindow::ShowTriforceCardManager()
+{
+  if (!m_triforce_card_window)
+    m_triforce_card_window = new TriforceCardManagerWindow();
+
+  m_triforce_card_window->show();
+  m_triforce_card_window->raise();
+  m_triforce_card_window->activateWindow();
 }
 
 void MainWindow::ShowInfinityBase()
