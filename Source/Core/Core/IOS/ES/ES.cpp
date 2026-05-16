@@ -19,9 +19,11 @@
 #include "Common/StringUtil.h"
 #include "Core/AchievementManager.h"
 #include "Core/CommonTitles.h"
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Host.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -30,6 +32,7 @@
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
 #include "Core/System.h"
+#include "Core/WiiForwarder.h"
 #include "DiscIO/Enums.h"
 
 namespace IOS::HLE
@@ -409,6 +412,11 @@ s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
 
 bool ESDevice::LaunchPPCTitle(u64 title_id)
 {
+  // Check if this is a virtual forwarder channel (disc image mapped to Wii Menu channel).
+  // If so, intercept the launch and boot the disc image instead.
+  if (WiiForwarder::IsForwarderTitle(title_id))
+    return LaunchForwarderTitle(title_id);
+
   u64 ticks = 0;
 
   const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id, &ticks);
@@ -490,6 +498,38 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
   core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
+  return true;
+}
+
+bool ESDevice::LaunchForwarderTitle(u64 title_id)
+{
+  const auto disc_path = WiiForwarder::GetDiscImagePath(title_id);
+  if (!disc_path)
+  {
+    PanicAlertFmtT("Cannot launch forwarder: disc image path not found for title {0:016x}.",
+                   title_id);
+    return false;
+  }
+
+  if (!File::Exists(*disc_path))
+  {
+    PanicAlertFmtT(
+        "Cannot launch forwarder: the disc image file no longer exists.\n"
+        "Path: {0}\n\n"
+        "The game may have been moved or deleted. Please remove it from the Wii Menu "
+        "and re-add it.",
+        *disc_path);
+    return false;
+  }
+
+  INFO_LOG_FMT(IOS_ES, "LaunchForwarderTitle: Launching disc image '{}' for forwarder {:016x}",
+               *disc_path, title_id);
+
+  // Set the pending forwarder boot path in Core and request a stop.
+  // The host (DolphinQt MainWindow) will detect this after stopping and reboot
+  // with the disc image.
+  WiiForwarder::SetPendingForwarderBoot(*disc_path);
+  Host_Message(HostMessageID::WMUserStop);
   return true;
 }
 
