@@ -223,10 +223,14 @@ private:
 
   WiiSockMan& m_socket_manager;
 
+  // Prevent the system to arbitrary change the network interface
+  void BindToNetworkInterface(sockaddr_in* dest);
+
   s32 fd = -1;
   s32 wii_fd = -1;
   bool nonBlock = false;
   ConnectingState connecting_state = ConnectingState::None;
+  bool is_bound = false;
   std::list<sockop> pending_sockops;
 
   std::optional<Timeout> timeout;
