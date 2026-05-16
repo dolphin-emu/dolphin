@@ -381,7 +381,7 @@ void Jit64::DoMergedBranch()
   const UGeckoInstruction& next = js.op[1].inst;
   const u32 nextPC = js.op[1].address;
 
-  if (js.op[1].branchIsIdleLoop)
+  if (js.op[1].branchKind == PPCAnalyst::BranchKind::IdleLoop)
   {
     if (next.LK)
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));

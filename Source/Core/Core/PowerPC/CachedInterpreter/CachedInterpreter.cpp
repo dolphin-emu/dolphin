@@ -406,7 +406,7 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
               operands);
       }
 
-      if (op.branchIsIdleLoop)
+      if (js.op->branchKind == PPCAnalyst::BranchKind::IdleLoop)
         Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
       if (op.canEndBlock)
         WriteEndBlock();
