@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/CoroutineUtil.h"
 
 namespace Core
 {
@@ -92,16 +93,16 @@ u64 GetUnixTimeOfSlot(int slot);
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main CPU thread.
 //    If we're in the main CPU thread then they run immediately instead.
-void Save(Core::System& system, int slot);
-void Load(Core::System& system, int slot);
+Common::Detached Save(Core::System& system, int slot);
+Common::Detached Load(Core::System& system, int slot);
 
-void SaveAs(Core::System& system, std::string filename);
-void LoadAs(Core::System& system, std::string filename);
+Common::Detached SaveAs(Core::System& system, std::string filename);
+Common::Detached LoadAs(Core::System& system, std::string filename);
 
-void LoadLastSaved(Core::System& system, int i = 1);
-void SaveFirstSaved(Core::System& system);
-void UndoSaveState(Core::System& system);
-void UndoLoadState(Core::System& system);
+Common::Detached LoadLastSaved(Core::System& system, int i = 1);
+Common::Detached SaveFirstSaved(Core::System& system);
+Common::Detached UndoSaveState(Core::System& system);
+Common::Detached UndoLoadState(Core::System& system);
 
 // for calling back into UI code without introducing a dependency on it in core
 using AfterLoadCallbackFunc = std::function<void()>;
