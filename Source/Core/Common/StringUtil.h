@@ -231,17 +231,19 @@ std::string PathToFileName(std::string_view path);
 void StringPopBackIf(std::string* s, char c);
 size_t StringUTF8CodePointCount(std::string_view str);
 
+constexpr char32_t UNICODE_REPLACEMENT_CHARACTER = 0xfffd;
+constexpr char32_t UNICODE_LAST_CODE_POINT = 0x10ffff;
+
 std::string CP1252ToUTF8(std::string_view input);
 std::string SHIFTJISToUTF8(std::string_view input);
 std::string UTF8ToSHIFTJIS(std::string_view input);
 std::string WStringToUTF8(std::wstring_view input);
+std::wstring UTF8ToWString(std::string_view input);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
 std::string UTF16ToUTF8(std::u16string_view input);
 std::u16string UTF8ToUTF16(std::string_view input);
 
 #ifdef _WIN32
-
-std::wstring UTF8ToWString(std::string_view str);
 
 #ifdef _UNICODE
 inline std::string TStrToUTF8(std::wstring_view str)

@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cwchar>
 #include <iomanip>
 #include <iterator>
 #include <sstream>
@@ -20,22 +21,18 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
+#if defined(_WIN32)
+#include <shellapi.h>
+
 #include "Common/CommonFuncs.h"
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/ShiftJIS.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <shellapi.h>
-constexpr u32 CODEPAGE_SHIFT_JIS = 932;
-constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
-
-#include "Common/Swap.h"
-#else
-#include <cerrno>
-#include <iconv.h>
-#include <locale.h>
-#endif
+template <typename T, int ByteSize>
+concept SizedIntegral = std::integral<T> && sizeof(T) == ByteSize;
 
 #if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \
     !defined(__NetBSD__)
@@ -390,9 +387,6 @@ size_t StringUTF8CodePointCount(std::string_view str)
   return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
-constexpr char32_t UNICODE_REPLACEMENT_CHARACTER = 0xfffd;
-constexpr char32_t UNICODE_LAST_CODE_POINT = 0x10ffff;
-
 constexpr u16 UNICODE_HIGH_SURROGATE = 0xd800;
 constexpr u16 UNICODE_LOW_SURROGATE = 0xdc00;
 
@@ -403,24 +397,147 @@ static constexpr bool IsSurrogateCodePoint(char32_t code_point)
   return (code_point & 0xf800u) == UNICODE_HIGH_SURROGATE;
 }
 
-template <std::integral CharType>
-requires(sizeof(CharType) == 1)
-class UTF8Decoder
+template <typename CharType, auto TransformFunction = std::identity{}>
+class CodeUnitReader
 {
 public:
-  constexpr explicit UTF8Decoder(std::span<const CharType> chars)
+  constexpr explicit CodeUnitReader(std::span<const CharType> chars)
       : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
   {
   }
 
-  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+  constexpr auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+
+protected:
+  constexpr auto ReadCodeUnit()
+  {
+    const auto result = PeekCodeUnit();
+    AdvanceReader();
+    return result;
+  }
+
+  constexpr auto PeekCodeUnit() const
+  {
+    assert(RemainingCodeUnits() > 0);
+    return TransformFunction(*m_ptr);
+  }
+
+  constexpr void AdvanceReader() { ++m_ptr; }
+
+private:
+  const CharType* m_ptr;
+  const CharType* const m_end_ptr;
+};
+
+template <SizedIntegral<4> CharType>
+class UTF32Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()() { return this->ReadCodeUnit(); }
+};
+
+class UTF32Encoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 1; }
+
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<4> auto* ptr)
+  {
+    *ptr = code_point;
+    return 1;
+  }
+};
+
+template <SizedIntegral<1> CharType>
+class CP1252Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
 
   constexpr char32_t operator()()
   {
-    assert(RemainingCodeUnits() > 0);
+    const u8 code_unit = this->ReadCodeUnit();
 
-    const u8 first_code_unit = *m_ptr;
-    ++m_ptr;
+    // ISO/IEC 8859-1 "extended ASCII" equivalent values.
+    if (code_unit < 0x80u || code_unit > 0x9fu)
+      return code_unit;
+
+    static constexpr auto unused = UNICODE_REPLACEMENT_CHARACTER;
+
+    static constexpr std::array<u16, 0x20> values_from_80_to_9f = {
+        0x20ac, unused, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160,
+        0x2039, 0x0152, unused, 0x017d, unused, unused, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+        0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, unused, 0x017e, 0x0178};
+
+    return values_from_80_to_9f[code_unit - 0x80u];
+  }
+};
+
+template <SizedIntegral<1> CharType>
+class ShiftJISDecoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()()
+  {
+    const u8 first_code_unit = this->ReadCodeUnit();
+    char32_t code_point = Common::DecodeSingleByteShiftJIS(first_code_unit);
+
+    if (code_point != UNICODE_REPLACEMENT_CHARACTER)
+      return code_point;
+
+    if (this->RemainingCodeUnits() == 0)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    code_point = Common::DecodeDoubleByteShiftJIS(first_code_unit, this->PeekCodeUnit());
+
+    if (code_point != UNICODE_REPLACEMENT_CHARACTER)
+      this->AdvanceReader();
+
+    return code_point;
+  }
+};
+
+class ShiftJISEncoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 2; }
+
+  // `ptr` should point to at least 2 bytes.
+  // Returns the number of written code units (bytes).
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<1> auto* ptr)
+  {
+    const u16 shift_jis_code = Common::EncodeShiftJIS(code_point);
+
+    if (shift_jis_code < 0x100u)
+    {
+      *ptr = u8(shift_jis_code);
+      return 1;
+    }
+
+    // Encode a '?' symbol for unsupported code points.
+    // FYI: Shift JIS does not support Unicode "Specials".
+    if (shift_jis_code == u16(-1))
+      return (*this)('?', ptr);
+
+    ptr[0] = u8(shift_jis_code >> 8u);
+    ptr[1] = u8(shift_jis_code);
+    return 2;
+  }
+};
+
+template <SizedIntegral<1> CharType>
+class UTF8Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()()
+  {
+    const u8 first_code_unit = this->ReadCodeUnit();
 
     switch (std::countl_one(first_code_unit))
     {
@@ -458,15 +575,15 @@ private:
 
     for (u32 byte_count = ByteCount - 1; byte_count != 0; --byte_count)
     {
-      if (RemainingCodeUnits() == 0)
+      if (this->RemainingCodeUnits() == 0)
         return UNICODE_REPLACEMENT_CHARACTER;
 
-      const auto code_unit = u8(*m_ptr);
+      const u8 code_unit = this->PeekCodeUnit();
 
       if (!IsContinuationByte(code_unit))
         return UNICODE_REPLACEMENT_CHARACTER;
 
-      ++m_ptr;
+      this->AdvanceReader();
 
       code_point = (code_point << 6u) | (code_unit & 0x3fu);
     }
@@ -479,9 +596,6 @@ private:
   }
 
   static constexpr bool IsContinuationByte(u8 code_unit) { return std::countl_one(code_unit) == 1; }
-
-  const CharType* m_ptr;
-  const CharType* const m_end_ptr;
 };
 
 class UTF8Encoder
@@ -491,9 +605,7 @@ public:
 
   // `ptr` should point to at least 4 bytes.
   // Returns the number of written code units (bytes).
-  template <std::integral CharType>
-  requires(sizeof(CharType) == 1)
-  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<1> auto* ptr)
   {
     // ASCII.
     if (code_point < 0x80u)
@@ -530,24 +642,15 @@ private:
   }
 };
 
-template <std::integral CharType>
-requires(sizeof(CharType) == 2)
-class UTF16Decoder
+template <SizedIntegral<2> CharType, auto TransformFunction = std::identity{}>
+class UTF16Decoder : public CodeUnitReader<CharType, TransformFunction>
 {
 public:
-  constexpr explicit UTF16Decoder(std::span<const CharType> chars)
-      : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
-  {
-  }
-
-  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+  using CodeUnitReader<CharType, TransformFunction>::CodeUnitReader;
 
   constexpr char32_t operator()()
   {
-    assert(RemainingCodeUnits() > 0);
-
-    const u16 first_code_unit = *m_ptr;
-    ++m_ptr;
+    const u16 first_code_unit = this->ReadCodeUnit();
 
     // Single code unit.
     if (!IsSurrogateCodePoint(first_code_unit))
@@ -558,26 +661,25 @@ public:
       return UNICODE_REPLACEMENT_CHARACTER;
 
     // High surrogate at end of data.
-    if (RemainingCodeUnits() == 0)
+    if (this->RemainingCodeUnits() == 0)
       return UNICODE_REPLACEMENT_CHARACTER;
 
-    const u16 second_code_unit = *m_ptr;
+    const u16 second_code_unit = this->PeekCodeUnit();
 
     // High surrogate not followed by low surrogate.
     if ((second_code_unit & u16(~SURROGATE_VALUE_MASK)) != UNICODE_LOW_SURROGATE)
       return UNICODE_REPLACEMENT_CHARACTER;
 
-    ++m_ptr;
+    this->AdvanceReader();
 
     // We have a surrogate pair.
     return (u32(first_code_unit & SURROGATE_VALUE_MASK) << 10u) +
            u32(second_code_unit & SURROGATE_VALUE_MASK) + 0x10000u;
   }
-
-private:
-  const CharType* m_ptr;
-  const CharType* const m_end_ptr;
 };
+
+template <typename CharType>
+using UTF16BEDecoder = UTF16Decoder<CharType, std::byteswap<CharType>>;
 
 class UTF16Encoder
 {
@@ -586,9 +688,7 @@ public:
 
   // `ptr` should point to at least 2 code units.
   // Returns the number of written code units.
-  template <std::integral CharType>
-  requires(sizeof(CharType) == 2)
-  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<2> auto* ptr)
   {
     if (code_point < 0x10000u)
     {
@@ -606,6 +706,14 @@ public:
     return 2;
   }
 };
+
+#if WCHAR_MAX == 0xffff || WCHAR_MAX == 0x7fff
+using WCharDecoder = UTF16Decoder<wchar_t>;
+using WCharEncoder = UTF16Encoder;
+#else
+using WCharDecoder = UTF32Decoder<wchar_t>;
+using WCharEncoder = UTF32Encoder;
+#endif
 
 template <typename Decoder, typename Encoder, typename ResultCharType, typename InputCharType>
 static constexpr std::basic_string<ResultCharType>
@@ -633,179 +741,37 @@ ReEncodeString(std::basic_string_view<InputCharType> input)
   return result;
 }
 
-#ifdef _WIN32
-
-static std::wstring CPToUTF16(u32 code_page, std::string_view input)
+std::string CP1252ToUTF8(std::string_view input)
 {
-  auto const size =
-      MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
-
-  std::wstring output;
-  output.resize(size);
-
-  if (size == 0 ||
-      size != MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size())))
-  {
-    output.clear();
-  }
-
-  return output;
+  return ReEncodeString<CP1252Decoder<char>, UTF8Encoder, char>(input);
 }
 
-static std::string UTF16ToCP(u32 code_page, std::wstring_view input)
+std::string SHIFTJISToUTF8(std::string_view input)
 {
-  if (input.empty())
-    return {};
+  return ReEncodeString<ShiftJISDecoder<char>, UTF8Encoder, char>(input);
+}
 
-  // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
-  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, nullptr);
+std::string UTF8ToSHIFTJIS(std::string_view input)
+{
+  return ReEncodeString<UTF8Decoder<char>, ShiftJISEncoder, char>(input);
+}
 
-  std::string output(size, '\0');
-
-  if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  output.data(), static_cast<int>(output.size()), nullptr, nullptr))
-  {
-    const DWORD error_code = GetLastError();
-    ERROR_LOG_FMT(COMMON, "WideCharToMultiByte Error in String '{}': {}", WStringToUTF8(input),
-                  error_code);
-    return {};
-  }
-
-  return output;
+std::string WStringToUTF8(std::wstring_view input)
+{
+  return ReEncodeString<WCharDecoder, UTF8Encoder, char>(input);
 }
 
 std::wstring UTF8ToWString(std::string_view input)
 {
-  return CPToUTF16(CP_UTF8, input);
-}
-
-std::string WStringToUTF8(std::wstring_view input)
-{
-  return UTF16ToCP(CP_UTF8, input);
-}
-
-std::string SHIFTJISToUTF8(std::string_view input)
-{
-  return WStringToUTF8(CPToUTF16(CODEPAGE_SHIFT_JIS, input));
-}
-
-std::string UTF8ToSHIFTJIS(std::string_view input)
-{
-  return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToWString(input));
-}
-
-std::string CP1252ToUTF8(std::string_view input)
-{
-  return WStringToUTF8(CPToUTF16(CODEPAGE_WINDOWS_1252, input));
+  return ReEncodeString<UTF8Decoder<char>, WCharEncoder, wchar_t>(input);
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 {
   const char16_t* str_end = std::find(str, str + max_size, '\0');
-  std::wstring result(static_cast<size_t>(str_end - str), '\0');
-  std::transform(str, str_end, result.begin(), static_cast<u16 (&)(u16)>(Common::swap16));
-  return WStringToUTF8(result);
+  return ReEncodeString<UTF16BEDecoder<char16_t>, UTF8Encoder, char>(
+      std::basic_string_view{str, str_end});
 }
-
-#else
-
-template <typename T>
-static std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
-{
-  std::string result;
-
-  auto* const conv_desc = iconv_open(tocode, fromcode);
-  if ((iconv_t)-1 == conv_desc)
-  {
-    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode,
-                  Common::LastStrerrorString());
-  }
-  else
-  {
-    size_t const in_bytes = sizeof(T) * input.size();
-    size_t const out_buffer_size = 4 * in_bytes;
-
-    std::string out_buffer;
-    out_buffer.resize(out_buffer_size);
-
-    auto* src_buffer = input.data();
-    size_t src_bytes = in_bytes;
-    auto* dst_buffer = out_buffer.data();
-    size_t dst_bytes = out_buffer.size();
-
-    while (src_bytes != 0)
-    {
-      size_t const iconv_result =
-          iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
-                &src_bytes, &dst_buffer, &dst_bytes);
-      if ((size_t)-1 == iconv_result)
-      {
-        if (EILSEQ == errno || EINVAL == errno)
-        {
-          // Try to skip the bad character
-          if (src_bytes != 0)
-          {
-            --src_bytes;
-            ++src_buffer;
-          }
-        }
-        else
-        {
-          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, Common::LastStrerrorString());
-          break;
-        }
-      }
-    }
-
-    out_buffer.resize(out_buffer_size - dst_bytes);
-    out_buffer.swap(result);
-
-    iconv_close(conv_desc);
-  }
-
-  return result;
-}
-
-template <typename T>
-static std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
-{
-  return CodeTo("UTF-8", fromcode, input);
-}
-
-std::string CP1252ToUTF8(std::string_view input)
-{
-  // return CodeToUTF8("CP1252//TRANSLIT", input);
-  // return CodeToUTF8("CP1252//IGNORE", input);
-  return CodeToUTF8("CP1252", input);
-}
-
-std::string SHIFTJISToUTF8(std::string_view input)
-{
-  // return CodeToUTF8("CP932", input);
-  return CodeToUTF8("SJIS", input);
-}
-
-std::string UTF8ToSHIFTJIS(std::string_view input)
-{
-  return CodeTo("SJIS", "UTF-8", input);
-}
-
-std::string WStringToUTF8(std::wstring_view input)
-{
-  // Note: Without LE iconv expects a BOM.
-  // The "WCHAR_T" code would be appropriate, but it's apparently not in every iconv implementation.
-  return CodeToUTF8((sizeof(wchar_t) == 2) ? "UTF-16LE" : "UTF-32LE", input);
-}
-
-std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
-{
-  const char16_t* str_end = std::find(str, str + max_size, '\0');
-  return CodeToUTF8("UTF-16BE", std::u16string_view(str, static_cast<size_t>(str_end - str)));
-}
-
-#endif
 
 std::string UTF16ToUTF8(std::u16string_view input)
 {

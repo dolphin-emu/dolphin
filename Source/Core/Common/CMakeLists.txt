@@ -137,6 +137,8 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
+  ShiftJIS.cpp
+  ShiftJIS.h
   SmallVector.h
   SocketContext.cpp
   SocketContext.h
@@ -340,8 +342,6 @@ endif()
 
 if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
-else()
-  target_link_libraries(common PRIVATE Iconv::Iconv)
 endif()
 
 if(USE_UPNP)
