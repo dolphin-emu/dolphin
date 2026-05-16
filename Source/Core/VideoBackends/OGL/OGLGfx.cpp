@@ -410,7 +410,6 @@ void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEn
 bool OGLGfx::BindBackbuffer(const ClearColor& clear_color)
 {
   CheckForSurfaceChange();
-  CheckForSurfaceResize();
   SetAndClearFramebuffer(m_system_framebuffer.get(), clear_color);
   return true;
 }
@@ -459,29 +458,21 @@ void OGLGfx::WaitForGPUIdle()
 
 void OGLGfx::CheckForSurfaceChange()
 {
-  if (!g_presenter->SurfaceChangedTestAndClear())
-    return;
+  if (auto change_info = g_presenter->SurfaceChangedTestAndClear())
+  {
+    if (void* handle = change_info->new_handle)
+      m_main_gl_context->UpdateSurface(handle, change_info->new_width, change_info->new_height);
+    else
+      m_main_gl_context->Update(change_info->new_width, change_info->new_height);
 
-  m_main_gl_context->UpdateSurface(g_presenter->GetNewSurfaceHandle());
+    u32 width = m_main_gl_context->GetBackBufferWidth();
+    u32 height = m_main_gl_context->GetBackBufferHeight();
+    m_backbuffer_scale = change_info->new_scale;
 
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
-
-  // With a surface change, the window likely has new dimensions.
-  g_presenter->SetBackbuffer(width, height);
-  m_system_framebuffer->UpdateDimensions(width, height);
-}
-
-void OGLGfx::CheckForSurfaceResize()
-{
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
-
-  m_main_gl_context->Update();
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
-  g_presenter->SetBackbuffer(width, height);
-  m_system_framebuffer->UpdateDimensions(width, height);
+    // With a surface change, the window likely has new dimensions.
+    g_presenter->SetBackbuffer(GetSurfaceInfo());
+    m_system_framebuffer->UpdateDimensions(width, height);
+  }
 }
 
 void OGLGfx::BeginUtilityDrawing()

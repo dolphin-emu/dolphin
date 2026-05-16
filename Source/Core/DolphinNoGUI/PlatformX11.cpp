@@ -167,6 +167,10 @@ WindowSystemInfo PlatformX11::GetWindowSystemInfo() const
   wsi.display_connection = static_cast<void*>(m_display);
   wsi.render_window = reinterpret_cast<void*>(m_window);
   wsi.render_surface = reinterpret_cast<void*>(m_window);
+  // TODO: Actually get these (currently both the X11 Vulkan and OGL backends ignore this)
+  wsi.render_surface_width = 0;
+  wsi.render_surface_height = 0;
+  wsi.render_surface_scale = 1.f;
   return wsi;
 }
 
@@ -267,7 +271,7 @@ void PlatformX11::ProcessEvents()
     case ConfigureNotify:
     {
       if (g_presenter)
-        g_presenter->ResizeSurface();
+        g_presenter->ResizeSurface(0, 0, 1.f);
     }
     break;
     }

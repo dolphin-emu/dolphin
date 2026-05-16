@@ -58,12 +58,12 @@ SWGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* dep
 bool SWGfx::BindBackbuffer(const ClearColor& clear_color)
 {
   // Look for framebuffer resizes
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return true;
-
-  GLContext* context = m_window->GetContext();
-  context->Update();
-  g_presenter->SetBackbuffer(context->GetBackBufferWidth(), context->GetBackBufferHeight());
+  if (auto change_info = g_presenter->SurfaceChangedTestAndClear())
+  {
+    GLContext* context = m_window->GetContext();
+    context->Update(change_info->new_width, change_info->new_height);
+    g_presenter->SetBackbuffer(GetSurfaceInfo());
+  }
   return true;
 }
 

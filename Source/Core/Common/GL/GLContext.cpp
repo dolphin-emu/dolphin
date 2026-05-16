@@ -19,6 +19,9 @@
 #if HAVE_X11
 #include "Common/GL/GLInterface/EGLX11.h"
 #endif
+#if HAVE_EGL && HAVE_WAYLAND
+#include "Common/GL/GLInterface/EGLWayland.h"
+#endif
 #if defined(ANDROID)
 #include "Common/GL/GLInterface/EGLAndroid.h"
 #endif
@@ -54,12 +57,15 @@ bool GLContext::ClearCurrent()
   return false;
 }
 
-void GLContext::Update()
+void GLContext::Update(u32 width, u32 height)
 {
+  m_backbuffer_width = width;
+  m_backbuffer_height = height;
 }
 
-void GLContext::UpdateSurface(void* window_handle)
+void GLContext::UpdateSurface(void* window_handle, u32 width, u32 height)
 {
+  Update(width, height);
 }
 
 void GLContext::Swap()
@@ -100,6 +106,13 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   if (wsi.type == WindowSystemType::X11)
     context = std::make_unique<GLContextEGLX11>();
 #endif
+
+#endif
+#if HAVE_EGL && HAVE_WAYLAND
+  if (wsi.type == WindowSystemType::Wayland)
+    context = std::make_unique<GLContextEGLWayland>();
+#endif
+#if HAVE_EGL
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();
 #endif

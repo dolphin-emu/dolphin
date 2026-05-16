@@ -18,12 +18,13 @@
 
 #include <fstream>
 
-Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer) : m_layer(std::move(layer))
+Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer, const WindowSystemInfo& wsi)
+  : m_layer(std::move(layer))
 {
   UpdateActiveConfig();
   [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
 
-  SetupSurface();
+  SetupSurface(wsi.render_surface_width, wsi.render_surface_height, wsi.render_surface_scale);
   g_state_tracker->FlushEncoders();
 }
 
@@ -453,7 +454,6 @@ bool Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
   @autoreleasepool
   {
     CheckForSurfaceChange();
-    CheckForSurfaceResize();
     m_drawable = MRCRetain([m_layer nextDrawable]);
     m_backbuffer->UpdateBackbufferTexture([m_drawable texture]);
     SetAndClearFramebuffer(m_backbuffer.get(), clear_color);
@@ -488,33 +488,28 @@ void Metal::Gfx::PresentBackbuffer()
 
 void Metal::Gfx::CheckForSurfaceChange()
 {
-  if (!g_presenter->SurfaceChangedTestAndClear())
-    return;
-  m_layer = MRCRetain(static_cast<CAMetalLayer*>(g_presenter->GetNewSurfaceHandle()));
-  SetupSurface();
+  if (auto change_info = g_presenter->SurfaceChangedTestAndClear())
+  {
+    if (void* handle = change_info->new_handle)
+      m_layer = MRCRetain(static_cast<CAMetalLayer*>(handle));
+    SetupSurface(change_info->new_width, change_info->new_height, change_info->new_scale);
+  }
 }
 
-void Metal::Gfx::CheckForSurfaceResize()
+void Metal::Gfx::SetupSurface(u32 width, u32 height, float scale)
 {
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
-  SetupSurface();
-}
+  AbstractTextureFormat format = Util::ToAbstract([m_layer pixelFormat]);
+  [m_layer setContentsScale:scale];
+  [m_layer setDrawableSize:{static_cast<double>(width), static_cast<double>(height)}];
 
-void Metal::Gfx::SetupSurface()
-{
-  auto info = GetSurfaceInfo();
-
-  [m_layer setDrawableSize:{static_cast<double>(info.width), static_cast<double>(info.height)}];
-
-  TextureConfig cfg(info.width, info.height, 1, 1, 1, info.format, AbstractTextureFlag_RenderTarget,
+  TextureConfig cfg(width, height, 1, 1, 1, format, AbstractTextureFlag_RenderTarget,
                     AbstractTextureType::Texture_2DArray);
   m_bb_texture = std::make_unique<Texture>(nullptr, cfg);
   m_backbuffer = std::make_unique<Framebuffer>(
-      m_bb_texture.get(), nullptr, std::vector<AbstractTexture*>{}, info.width, info.height, 1, 1);
+      m_bb_texture.get(), nullptr, std::vector<AbstractTexture*>{}, width, height, 1, 1);
 
   if (g_presenter)
-    g_presenter->SetBackbuffer(info);
+    g_presenter->SetBackbuffer({ width, height, scale, format });
 }
 
 SurfaceInfo Metal::Gfx::GetSurfaceInfo() const
@@ -522,9 +517,9 @@ SurfaceInfo Metal::Gfx::GetSurfaceInfo() const
   if (!m_layer)  // Headless
     return {};
 
-  CGSize size = [m_layer bounds].size;
+  CGSize size = [m_layer drawableSize];
   const float scale = [m_layer contentsScale];
 
-  return {static_cast<u32>(size.width * scale), static_cast<u32>(size.height * scale), scale,
+  return {static_cast<u32>(size.width), static_cast<u32>(size.height), scale,
           Util::ToAbstract([m_layer pixelFormat])};
 }
