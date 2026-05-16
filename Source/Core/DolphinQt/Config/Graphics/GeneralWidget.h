@@ -44,6 +44,7 @@ private:
   // Video
   ConfigStringChoice* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
+  ToolTipComboBox* m_monitor_combo;
   ConfigChoice* m_aspect_combo;
   QLabel* m_custom_aspect_label;
   ConfigInteger* m_custom_aspect_width;

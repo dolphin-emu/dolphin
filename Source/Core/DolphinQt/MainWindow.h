@@ -164,7 +164,7 @@ private:
   void StartGame(const std::vector<std::string>& paths,
                  std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
-  void ShowRenderWidget();
+  void ShowRenderWidget(bool from_fullscreen = false);
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
   void ShowSettingsWindow();
@@ -293,4 +293,5 @@ private:
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager{};
   QByteArray m_render_widget_geometry;
+  QByteArray m_pre_game_main_window_geometry;
 };
