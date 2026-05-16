@@ -759,7 +759,9 @@ std::string GetExeDirectory()
 
 static std::string CreateSysDirectoryPath()
 {
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#ifdef APPIMAGE
+#define SYSDATA_DIR "../share/dolphin-emu/sys"
+#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
 #define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 #define SYSDATA_DIR "Contents/Resources/Sys"
@@ -773,7 +775,7 @@ static std::string CreateSysDirectoryPath()
 
 #if defined(__APPLE__)
   const std::string sys_directory = GetBundleDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
-#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV) || defined(APPIMAGE)
   const std::string sys_directory = GetExeDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
 #elif defined ANDROID
   const std::string sys_directory = s_android_sys_directory + DIR_SEP;
