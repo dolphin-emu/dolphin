@@ -82,6 +82,12 @@
                 android:visibility="gone" />
 
             <Button
+                android:id="@+id/menu_achievements"
+                style="@style/InGameMenuOption"
+                android:text="@string/emulation_achievements"
+                android:visibility="gone" />
+
+            <Button
                 android:id="@+id/menu_settings"
                 style="@style/InGameMenuOption"
                 android:text="@string/grid_menu_settings" />

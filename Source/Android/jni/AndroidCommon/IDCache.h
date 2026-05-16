@@ -124,4 +124,31 @@ jclass GetAudioUtilsClass();
 jmethodID GetAudioUtilsGetSampleRate();
 jmethodID GetAudioUtilsGetFramesPerBuffer();
 
+jclass GetAchievementBucketClass();
+jfieldID GetAchievementBucketLabel();
+jfieldID GetAchievementBucketSubsetId();
+jfieldID GetAchievementBucketBucketType();
+jfieldID GetAchievementBucketAchievements();
+jmethodID GetAchievementBucketConstructor();
+
+jclass GetAchievementClass();
+jfieldID GetAchievementTitle();
+jfieldID GetAchievementDescription();
+jfieldID GetAchievementBadgeName();
+jfieldID GetAchievementMeasuredProgress();
+jfieldID GetAchievementMeasuredPercent();
+jfieldID GetAchievementId();
+jfieldID GetAchievementPoints();
+jfieldID GetAchievementUnlockTime();
+jfieldID GetAchievementState();
+jfieldID GetAchievementCategory();
+jfieldID GetAchievementBucket();
+jfieldID GetAchievementUnlocked();
+jfieldID GetAchievementRarity();
+jfieldID GetAchievementRarityHardcore();
+jfieldID GetAchievementType();
+jfieldID GetAchievementBadgeUrl();
+jfieldID GetAchievementBadgeLockedUrl();
+jmethodID GetAchievementConstructor();
+
 }  // namespace IDCache
