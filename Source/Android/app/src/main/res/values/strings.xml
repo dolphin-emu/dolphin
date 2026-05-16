@@ -181,7 +181,6 @@
     <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
     <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
     <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
-    <string name="update_cancelling">Please wait for the update to cancel.</string>
     <string name="update_success_title">Update completed</string>
     <string name="update_failed_title">Update failed</string>
     <string name="update_cancelled_title">Update cancelled</string>
@@ -510,6 +509,8 @@
     <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
+    <string name="nand_import_loading">Loading NAND…</string>
+    <string name="nand_import_extracting">Extracting NAND…</string>
     <string name="system_menu_not_installed_title">Not installed</string>
     <string name="system_menu_not_installed_message">The Wii Menu isn\'t installed. Would you like to install it now?\n\nRoughly 110 MiB of data will be downloaded from the internet. A Wi-Fi connection is recommended.</string>
 

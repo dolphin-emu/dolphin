@@ -80,6 +80,9 @@ static jfieldID s_riivolution_patches_pointer;
 static jclass s_wii_update_cb_class;
 static jmethodID s_wii_update_cb_run;
 
+static jclass s_nand_import_callback_class;
+static jmethodID s_nand_import_callback_run;
+
 static jclass s_control_class;
 static jfieldID s_control_pointer;
 static jmethodID s_control_constructor;
@@ -410,6 +413,16 @@ jmethodID GetWiiUpdateCallbackFunction()
   return s_wii_update_cb_run;
 }
 
+jclass GetNandImportCallbackClass()
+{
+  return s_nand_import_callback_class;
+}
+
+jmethodID GetNandImportCallbackFunction()
+{
+  return s_nand_import_callback_run;
+}
+
 jclass GetControlClass()
 {
   return s_control_class;
@@ -725,6 +738,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_wii_update_cb_class = reinterpret_cast<jclass>(env->NewGlobalRef(wii_update_cb_class));
   s_wii_update_cb_run = env->GetMethodID(s_wii_update_cb_class, "run", "(IIJ)Z");
   env->DeleteLocalRef(wii_update_cb_class);
+
+  const jclass nand_import_callback_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/NandImportCallback");
+  s_nand_import_callback_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(nand_import_callback_class));
+  s_nand_import_callback_run = env->GetMethodID(s_nand_import_callback_class, "run", "(ZII)Z");
+  env->DeleteLocalRef(nand_import_callback_class);
 
   const jclass control_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/Control");

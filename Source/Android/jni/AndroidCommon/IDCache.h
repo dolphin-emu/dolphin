@@ -79,6 +79,9 @@ jfieldID GetRiivolutionPatchesPointer();
 jclass GetWiiUpdateCallbackClass();
 jmethodID GetWiiUpdateCallbackFunction();
 
+jclass GetNandImportCallbackClass();
+jmethodID GetNandImportCallbackFunction();
+
 jclass GetControlClass();
 jfieldID GetControlPointer();
 jmethodID GetControlConstructor();

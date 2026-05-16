@@ -94,26 +94,25 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSa
   return ConvertCopyResult(WiiSave::Import(path, can_overwrite));
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDBin(JNIEnv* env,
-                                                                                   jclass,
-                                                                                   jstring jFile)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDBin(
+    JNIEnv* env, jclass, jstring jFile, jobject jCallback)
 {
   const std::string path = GetJString(env, jFile);
 
-  return DiscIO::NANDImporter().ImportNANDBin(
-      path,
-      [](DiscIO::NANDImporter::Step, int, int) {
-        // This callback gets called every now and then in case we want to update the GUI.
-        // TODO
-        return false;
-      },
-      [] {
-        // This callback gets called if the NAND file does not have decryption keys appended to it.
-        // We're supposed to ask the user for a separate file containing keys, but this is probably
-        // more work to implement on Android than it's worth, as this case almost never comes up.
-        PanicAlertFmtT("The decryption keys need to be appended to the NAND backup file.");
-        return "";
-      });
+  const auto update_callback = [env, jCallback](DiscIO::NANDImporter::Step step, int processed,
+                                                int total) {
+    const bool extracting = step == DiscIO::NANDImporter::Step::Extracting;
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallback, IDCache::GetNandImportCallbackFunction(), extracting, processed, total));
+  };
+
+  return DiscIO::NANDImporter().ImportNANDBin(path, update_callback, [] {
+    // This callback runs if the NAND file doesn't have decryption keys appended to it.
+    // The most common tool for dumping vWii NANDs, Dump Mii Nand, doesn't append keys.
+    // TODO: Ask the user for a separate file containing keys.
+    PanicAlertFmtT("The decryption keys need to be appended to the NAND backup file.");
+    return "";
+  });
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpdate(
