@@ -31,7 +31,7 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgTy
   if (style == MsgType::Warning)
     window_style = MB_ICONWARNING;
 
-  return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(),
+  return IDYES == MessageBox(0, UTF8ToWString(text).c_str(), UTF8ToWString(caption).c_str(),
                              window_style | (yes_no ? MB_YESNO : MB_OK));
 #else
   fmt::print(stderr, "{}\n", text);

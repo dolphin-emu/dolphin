@@ -70,7 +70,7 @@ static bool InitLibrary()
   if (s_openal_dll)
     return true;
 
-  s_openal_dll = ::LoadLibrary(TEXT("openal32.dll"));
+  s_openal_dll = ::LoadLibrary(L"openal32.dll");
   if (!s_openal_dll)
     return false;
 
