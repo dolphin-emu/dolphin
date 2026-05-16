@@ -9,6 +9,7 @@
 #include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
 
 #include <algorithm>
+#include <ranges>
 
 #include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
@@ -32,6 +33,10 @@ constexpr u16 RTL_ROM_LMP_8922A = 0x8922;
 constexpr std::string_view RTL_EPATCH_SIGNATURE = "Realtech";
 constexpr std::string_view RTL_EPATCH_SIGNATURE_V2 = "RTBTCore";
 
+constexpr u32 RTL_PATCH_SNIPPETS = 0x01;
+constexpr u32 RTL_PATCH_DUMMY_HEADER = 0x02;
+constexpr u32 RTL_PATCH_SECURITY_HEADER = 0x03;
+
 #pragma pack(push, 1)
 struct rtl_vendor_cmd
 {
@@ -45,6 +50,35 @@ struct rtl_epatch_header
   u16 num_patches;
 };
 static_assert(sizeof(rtl_epatch_header) == 8 + 4 + 2);
+struct rtl_epatch_header_v2
+{
+  std::array<u8, 8> signature;
+  std::array<u32, 2> fw_version;
+  u32 num_sections;
+};
+static_assert(sizeof(rtl_epatch_header_v2) == 8 + 8 + 4);
+struct rtl_section
+{
+  u32 opcode;
+  u32 len;
+};
+static_assert(sizeof(rtl_section) == 8);
+struct rtl_section_hdr
+{
+  u16 num_subsecs;
+  u16 reserved;
+};
+static_assert(sizeof(rtl_section_hdr) == 4);
+struct rtl_subsec_hdr
+{
+  u8 eco;
+  u8 prio;
+  // Only used with RTL_PATCH_SECURITY_HEADER opcode.
+  u8 key_id;
+  u8 reserved;
+  u32 len;
+};
+static_assert(sizeof(rtl_subsec_hdr) == 8);
 struct rtl_download_cmd
 {
   static constexpr int DATA_LEN = 252;
@@ -179,11 +213,10 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
   return std::ranges::find(realtek_ids, std::pair(vid, pid)) != std::end(realtek_ids);
 }
 
-// Returns the data to be loaded, or an empty buffer on error.
-static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
-                                                std::span<const char> cfg_data,
-                                                const hci_read_local_ver_rp& local_ver,
-                                                u8 rom_version)
+static Common::UniqueBuffer<char> ParseFirmwareV1(std::span<const char> fw_data,
+                                                  std::span<const char> cfg_data,
+                                                  const hci_read_local_ver_rp& local_ver,
+                                                  u8 rom_version)
 {
   if (fw_data.size() < sizeof(rtl_epatch_header))
   {
@@ -192,20 +225,6 @@ static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
   }
 
   const rtl_epatch_header epatch_info = Common::BitCastPtr<rtl_epatch_header>(fw_data.data());
-  if (std::memcmp(epatch_info.signature.data(), RTL_EPATCH_SIGNATURE.data(),
-                  epatch_info.signature.size()) != 0)
-  {
-    if (std::memcmp(epatch_info.signature.data(), RTL_EPATCH_SIGNATURE_V2.data(),
-                    epatch_info.signature.size()) == 0)
-    {
-      ERROR_LOG_FMT(IOS_WIIMOTE, "EPATCH v2 not implemented. Please report device to developers.");
-    }
-    else
-    {
-      ERROR_LOG_FMT(IOS_WIIMOTE, "Bad EPATCH signature");
-    }
-    return {};
-  }
 
   const auto fw_version = epatch_info.fw_version;
   const auto num_patches = epatch_info.num_patches;
@@ -312,6 +331,203 @@ static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
   }
 
   ERROR_LOG_FMT(IOS_WIIMOTE, "Patch not found");
+  return {};
+}
+
+// Sorted subspans.
+// Linux's btrtl.c seems to sort by ascending priority with duplicates in reverse-insertion order.
+// I don't know if that's intentional or necessary, but it's replicated with std::greater sorting
+//  and reverse iteration when concatenating.
+using SubsectionData = std::multimap<u8, std::span<const char>, std::greater<>>;
+
+static bool ParseSection(SubsectionData* subsection_data, u32 opcode, std::span<const char> data,
+                         u8 rom_version, u8 key_id)
+{
+  if (data.size() < sizeof(rtl_section_hdr))
+    return false;
+
+  const rtl_section_hdr header = Common::BitCastPtr<rtl_section_hdr>(data.data());
+  auto const* ptr = data.data() + sizeof(header);
+  auto const* const end_ptr = data.data() + data.size();
+
+  const auto subsec_count = header.num_subsecs;
+  for (u32 i = 0; i != subsec_count; ++i)
+  {
+    if (end_ptr - ptr < unsigned(sizeof(rtl_subsec_hdr)))
+      return false;
+
+    const rtl_subsec_hdr subsec = Common::BitCastPtr<rtl_subsec_hdr>(ptr);
+    ptr += sizeof(subsec);
+
+    DEBUG_LOG_FMT(IOS_WIIMOTE, "subsec: eco=0x{:02x}, prio=0x{:02x}, len=0x{:08x}", subsec.eco,
+                  subsec.prio, subsec.len);
+
+    if (end_ptr - ptr < subsec.len)
+      return false;
+
+    const auto subsec_span = std::span{ptr, ptr + subsec.len};
+    ptr += subsec.len;
+
+    if (subsec.eco != rom_version + 1)
+      continue;
+
+    if (opcode == RTL_PATCH_SECURITY_HEADER && subsec.key_id != key_id)
+      continue;
+
+    subsection_data->emplace(subsec.prio, subsec_span);
+  }
+
+  return true;
+}
+
+static Common::UniqueBuffer<char> ParseFirmwareV2(std::span<const char> fw_data,
+                                                  std::span<const char> cfg_data, u8 rom_version,
+                                                  u8 key_id)
+{
+  auto const log_undersized_error = [] { ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized firmware file"); };
+
+  // Linux's btrtl.c cuts off the last 7 bytes.
+  // Presumably there is some signature at the end of the file.
+  fw_data = fw_data.first(fw_data.size() - 7);
+
+  if (fw_data.size() < sizeof(rtl_epatch_header_v2))
+  {
+    log_undersized_error();
+    return {};
+  }
+
+  const rtl_epatch_header_v2 header = Common::BitCastPtr<rtl_epatch_header_v2>(fw_data.data());
+
+  const auto section_count = header.num_sections;
+
+  INFO_LOG_FMT(IOS_WIIMOTE, "fw_version={:08x}-{:08x} num_sections={}", header.fw_version[0],
+               header.fw_version[1], section_count);
+
+  const auto* ptr = fw_data.data() + sizeof(rtl_epatch_header_v2);
+  const auto* const end_ptr = fw_data.data() + fw_data.size();
+
+  SubsectionData subsection_data;
+
+  for (u32 i = 0; i != section_count; ++i)
+  {
+    if (end_ptr - ptr < unsigned(sizeof(rtl_section)))
+    {
+      log_undersized_error();
+      return {};
+    }
+
+    const rtl_section section = Common::BitCastPtr<rtl_section>(ptr);
+    ptr += sizeof(rtl_section);
+
+    if (end_ptr - ptr < section.len)
+    {
+      log_undersized_error();
+      return {};
+    }
+
+    const auto section_span = std::span{ptr, ptr + section.len};
+    ptr += section_span.size();
+
+    const auto opcode = section.opcode;
+    DEBUG_LOG_FMT(IOS_WIIMOTE, "opcode 0x{:04x}", opcode);
+
+    switch (opcode)
+    {
+    case RTL_PATCH_SECURITY_HEADER:
+      // If key_id from chip is zero, ignore all security headers.
+      if (key_id == 0x00)
+        break;
+      [[fallthrough]];
+    case RTL_PATCH_SNIPPETS:
+    case RTL_PATCH_DUMMY_HEADER:
+    {
+      if (!ParseSection(&subsection_data, opcode, section_span, rom_version, key_id))
+      {
+        log_undersized_error();
+        return {};
+      }
+      break;
+    }
+    default:
+      break;
+    }
+  }
+
+  std::size_t total_length = 0;
+  for (const auto& span : subsection_data | std::ranges::views::values)
+    total_length += span.size();
+
+  if (total_length == 0)
+    return {};
+
+  // Concatenate the subsection and config data.
+  Common::UniqueBuffer<char> result{total_length + cfg_data.size()};
+  std::ranges::copy(subsection_data | std::ranges::views::values | std::views::reverse |
+                        std::views::join,
+                    result.begin());
+  std::ranges::copy(cfg_data, result.end() - cfg_data.size());
+  return result;
+}
+
+static std::optional<std::array<u8, 2>> ReadReg16(LibUSBBluetoothAdapter& adapter,
+                                                  const rtl_vendor_cmd& cmd)
+{
+  std::array<u8, 3> read_result{};
+  if (!adapter.SendBlockingCommand(
+          Common::AsU8Span(HCICommandPayload<0xfc61, rtl_vendor_cmd>{.command = cmd}),
+          Common::AsWritableU8Span(read_result)))
+  {
+    return std::nullopt;
+  }
+
+  if (read_result[0] != 0x00)
+  {
+    ERROR_LOG_FMT(IOS_WIIMOTE, "ReadReg16 status: 0x{:02x}", read_result[0]);
+    return std::nullopt;
+  }
+
+  return std::array{read_result[1], read_result[2]};
+}
+
+// Returns the data to be loaded, or an empty buffer on error.
+static Common::UniqueBuffer<char> ParseFirmware(std::string_view fw_data,
+                                                std::span<const char> cfg_data,
+                                                const hci_read_local_ver_rp& local_ver,
+                                                LibUSBBluetoothAdapter& adapter)
+{
+  // Read ROM version.
+  rtl_rom_version_evt read_rom_ver{};
+  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}),
+                                   Common::AsWritableU8Span(read_rom_ver)))
+  {
+    return {};
+  }
+  if (read_rom_ver.status != 0x00)
+  {
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Bad ROM version status: 0x{:02x}", read_rom_ver.status);
+    return {};
+  }
+
+  const u8 rom_version = read_rom_ver.version;
+  INFO_LOG_FMT(IOS_WIIMOTE, "ROM version: 0x{:02x}", rom_version);
+
+  // EPATCH V1:
+  if (fw_data.starts_with(RTL_EPATCH_SIGNATURE))
+    return ParseFirmwareV1(fw_data, cfg_data, local_ver, rom_version);
+
+  // Read Key ID.
+  static constexpr rtl_vendor_cmd RTL_SEC_PROJ = {{0x10, 0xa4, 0x0d, 0x00, 0xb0}};
+  const auto read_key_id = ReadReg16(adapter, RTL_SEC_PROJ);
+  if (!read_key_id.has_value())
+    return {};
+  const u8 key_id = (*read_key_id)[0];
+  INFO_LOG_FMT(IOS_WIIMOTE, "Key ID: 0x{:02x}", key_id);
+
+  // EPATCH V2:
+  if (fw_data.starts_with(RTL_EPATCH_SIGNATURE_V2))
+    return ParseFirmwareV2(fw_data, cfg_data, rom_version, key_id);
+
+  ERROR_LOG_FMT(IOS_WIIMOTE, "Bad EPATCH signature");
   return {};
 }
 
@@ -505,6 +721,14 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
     return false;
   }
 
+  // FYI: Linux's btrtl.c does additional poorly documented ReadReg16 for RTL_ROM_LMP_8822B
+  // If someone comes across one of these devices they may need to implement this additional logic.
+
+  // FYI: Linux tries to first load a "_v2.bin" file for RTL8852C.
+  // Both "rtl8852cu_fw.bin" and "rtl8852cu_fw_v2.bin" exist in the linux-firmware repository.
+  // I don't know why they don't just put EPATCH v2 in the normal _fw.bin like every other device.
+  // Additional logic could be added to better support this uncommon device if wanted.
+
   const auto firmware_name = GetFirmwareName(local_ver);
   // If firmware has already been loaded then the subversion changes and we won't find a match.
   if (firmware_name.empty())
@@ -556,26 +780,10 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
     return LoadFirmware(adapter, fw_data);
   }
 
-  // Read ROM version.
-  rtl_rom_version_evt read_rom_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}),
-                                   Common::AsWritableU8Span(read_rom_ver)))
-  {
-    return false;
-  }
-  if (read_rom_ver.status != 0x00)
-  {
-    ERROR_LOG_FMT(IOS_WIIMOTE, "Bad ROM version status: 0x{:02x}", read_rom_ver.status);
-    return false;
-  }
-
-  const u8 rom_version = read_rom_ver.version;
-  INFO_LOG_FMT(IOS_WIIMOTE, "ROM version: 0x{:02x}", rom_version);
-
   // Apparently only certain devices require the config binary. We load it whenever present.
   std::string config_data;
   File::ReadFileToString(config_path, config_data);
 
-  const auto firmware = ParseFirmware(fw_data, config_data, local_ver, rom_version);
+  const auto firmware = ParseFirmware(fw_data, config_data, local_ver, adapter);
   return LoadFirmware(adapter, firmware);
 }
