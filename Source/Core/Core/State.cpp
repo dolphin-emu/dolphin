@@ -297,8 +297,14 @@ static std::string SystemTimeAsDoubleToString(double time)
   if (!local_time)
     return "";
 
-  // fmt is locale agnostic by default, so explicitly use current locale.
+#if FMT_VERSION < 120000  // fmt < 12 still supports locale overload
   return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
+#else
+  std::ostringstream oss;
+  oss.imbue(std::locale(""));
+  oss << std::put_time(&*local_time, "%x %X");
+  return oss.str();
+#endif
 }
 
 static std::string MakeStateFilename(int number)
