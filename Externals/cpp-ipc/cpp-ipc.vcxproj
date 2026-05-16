@@ -26,6 +26,11 @@
     <ClInclude Include="cpp-ipc\include\libipc\def.h" />
     <ClInclude Include="cpp-ipc\include\libipc\export.h" />
     <ClInclude Include="cpp-ipc\include\libipc\ipc.h" />
+    <ClCompile Include="cpp-ipc\include\libipc\mem\bytes_allocator.h" />
+    <ClCompile Include="cpp-ipc\include\libipc\mem\central_cache_pool.h" />
+    <ClCompile Include="cpp-ipc\include\libipc\mem\block_pool.h" />
+    <ClCompile Include="cpp-ipc\include\libipc\mem\memory_resource.h" />
+    <ClCompile Include="cpp-ipc\include\libipc\mem\new.h" />
     <ClInclude Include="cpp-ipc\include\libipc\mutex.h" />
     <ClInclude Include="cpp-ipc\include\libipc\pool_alloc.h" />
     <ClInclude Include="cpp-ipc\include\libipc\rw_lock.h" />
@@ -33,10 +38,14 @@
     <ClInclude Include="cpp-ipc\include\libipc\shm.h" />
     <ClInclude Include="cpp-ipc\src\libipc\circ\elem_array.h" />
     <ClInclude Include="cpp-ipc\src\libipc\circ\elem_def.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\imp\codecvt.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\imp\fmt.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\imp\result.h" />
     <ClInclude Include="cpp-ipc\src\libipc\memory\alloc.h" />
     <ClInclude Include="cpp-ipc\src\libipc\memory\allocator_wrapper.h" />
     <ClInclude Include="cpp-ipc\src\libipc\memory\resource.h" />
     <ClInclude Include="cpp-ipc\src\libipc\memory\wrapper.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\codecvt.h" />
     <ClInclude Include="cpp-ipc\src\libipc\platform\win\condition.h" />
     <ClInclude Include="cpp-ipc\src\libipc\platform\win\get_sa.h" />
     <ClInclude Include="cpp-ipc\src\libipc\platform\win\mutex.h" />
@@ -55,6 +64,13 @@
     <ClInclude Include="cpp-ipc\src\libipc\waiter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cpp-ipc\src\libipc\imp\codecvt.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\imp\fmt.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\mem\bytes_allocator.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\mem\central_cache_allocator.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\mem\monotonic_buffer_resource.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\mem\new.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\mem\new_delete_resource.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\platform\platform.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\sync\condition.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\sync\mutex.cpp" />
@@ -62,7 +78,6 @@
     <ClCompile Include="cpp-ipc\src\libipc\sync\waiter.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\buffer.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\ipc.cpp" />
-    <ClCompile Include="cpp-ipc\src\libipc\pool_alloc.cpp" />
     <ClCompile Include="cpp-ipc\src\libipc\shm.cpp" />
   </ItemGroup>
   <ItemGroup>
