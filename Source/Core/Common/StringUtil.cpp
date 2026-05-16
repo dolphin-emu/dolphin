@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iterator>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -291,24 +292,74 @@ std::string ValueToString(bool value)
   return value ? "True" : "False";
 }
 
+static std::optional<char> TryDecodePercentEncodedChar(char hi, char lo)
+{
+  constexpr auto hex_value = [](char c) -> int {
+    if (c >= '0' && c <= '9')
+      return c - '0';
+    if (c >= 'a' && c <= 'f')
+      return 10 + (c - 'a');
+    if (c >= 'A' && c <= 'F')
+      return 10 + (c - 'A');
+    return -1;
+  };
+
+  const int high = hex_value(hi);
+  const int low = hex_value(lo);
+  if (high < 0 || low < 0)
+    return std::nullopt;
+
+  return static_cast<char>((high << 4) | low);
+}
+
+static size_t FindLastPathSeparatorIndex(std::string_view full_path)
+{
+  // Find the final decoded separator. This allows generic handling of paths
+  // that include percent-encoded separators (e.g. "%2F"), such as Android
+  // Storage Access Framework (SAF) URIs:
+  // https://developer.android.com/guide/topics/providers/document-provider
+  constexpr bool include_colon_separator =
+#ifdef _WIN32
+      true;
+#else
+      false;
+#endif
+
+  std::string_view::size_type last_separator_end = std::string_view::npos;
+  for (std::string_view::size_type i = 0; i < full_path.size();)
+  {
+    char decoded = full_path[i];
+    std::string_view::size_type consumed = 1;
+
+    if (decoded == '%' && i + 2 < full_path.size())
+    {
+      const std::optional<char> decoded_byte =
+          TryDecodePercentEncodedChar(full_path[i + 1], full_path[i + 2]);
+      if (decoded_byte.has_value())
+      {
+        decoded = *decoded_byte;
+        consumed = 3;
+      }
+    }
+
+    if (decoded == '/' || (include_colon_separator && decoded == ':'))
+      last_separator_end = i + consumed;
+
+    i += consumed;
+  }
+
+  return last_separator_end;
+}
+
 bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
                std::string* extension)
 {
   if (full_path.empty())
     return false;
 
-  size_t dir_end = full_path.find_last_of(
-// Windows needs the : included for something like just "C:" to be considered a directory
-#ifdef _WIN32
-      "/:"
-#else
-      '/'
-#endif
-  );
+  size_t dir_end = FindLastPathSeparatorIndex(full_path);
   if (std::string::npos == dir_end)
     dir_end = 0;
-  else
-    dir_end += 1;
 
   size_t fname_end = full_path.rfind('.');
   if (fname_end < dir_end || std::string::npos == fname_end)

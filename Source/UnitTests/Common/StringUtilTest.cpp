@@ -194,6 +194,38 @@ TEST(StringUtil, SplitPathBackslashesNotRecognizedAsSeparators)
   EXPECT_EQ(extension, ".txt");
 }
 
+TEST(StringUtil, SplitPathAndroidSafDocumentUriKeepsEncodedParentPath)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  constexpr std::string_view uri =
+      "content://com.android.externalstorage.documents/tree/69E5-4E7B%3AROMs/document/"
+      "69E5-4E7B%3AROMs%2Fgc%2FAurora%20Protocol%20(USA)%20(Disc%201).m3u";
+
+  EXPECT_TRUE(SplitPath(uri, &path, &filename, &extension));
+  EXPECT_EQ(path, "content://com.android.externalstorage.documents/tree/69E5-4E7B%3AROMs/document/"
+                  "69E5-4E7B%3AROMs%2Fgc%2F");
+  EXPECT_EQ(filename, "Aurora%20Protocol%20(USA)%20(Disc%201)");
+  EXPECT_EQ(extension, ".m3u");
+}
+
+TEST(StringUtil, SplitPathAndroidSafDocumentUriWithoutEncodedSeparatorFallsBack)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  constexpr std::string_view uri =
+      "content://com.android.externalstorage.documents/tree/69E5-4E7B%3AROMs/document/"
+      "69E5-4E7B%3AAurora%20Protocol%20(USA)%20(Disc%201).m3u";
+
+  EXPECT_TRUE(SplitPath(uri, &path, &filename, &extension));
+  EXPECT_EQ(path,
+            "content://com.android.externalstorage.documents/tree/69E5-4E7B%3AROMs/document/");
+  EXPECT_EQ(filename, "69E5-4E7B%3AAurora%20Protocol%20(USA)%20(Disc%201)");
+  EXPECT_EQ(extension, ".m3u");
+}
+
 #ifdef _WIN32
 TEST(StringUtil, SplitPathWindowsPathWithDriveLetter)
 {
