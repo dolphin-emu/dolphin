@@ -16,8 +16,14 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/HW/EXI/EXI.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/NetPlayProto.h"
+
+#include "InputCommon/GCAdapter.h"
 
 namespace ConfigLoaders
 {
@@ -125,6 +131,54 @@ public:
       // Disable AA as it isn't deterministic across GPUs
       layer->Set(Config::GFX_MSAA, 1);
       layer->Set(Config::GFX_SSAA, false);
+    }
+
+    u8 local_pad = 0;
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    {
+      const NetPlay::PlayerId player_id = m_settings.pad_map[i];
+      const SerialInterface::SIDevices si_device =
+          Config::Get(Config::GetInfoForSIDevice(local_pad));
+      const auto config_info = Config::GetInfoForSIDevice(i);
+
+      if (m_settings.gba_config[i].enabled && player_id > 0)
+      {
+        layer->Set(config_info, SerialInterface::SIDEVICE_GC_GBA_EMULATED);
+      }
+      else if (player_id == m_settings.local_player_id)
+      {
+        // Use local controller types for local controllers if they are compatible
+        if (SerialInterface::SIDevice_IsGCController(si_device))
+        {
+          layer->Set(config_info, si_device);
+
+          if (si_device == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+          {
+            GCAdapter::ResetDeviceType(local_pad);
+          }
+        }
+        else
+        {
+          layer->Set(config_info, SerialInterface::SIDEVICE_GC_CONTROLLER);
+        }
+        local_pad++;
+      }
+      else if (player_id > 0)
+      {
+        if (si_device != SerialInterface::SIDEVICE_AM_BASEBOARD)
+          layer->Set(config_info, SerialInterface::SIDEVICE_GC_CONTROLLER);
+      }
+      else
+      {
+        layer->Set(config_info, SerialInterface::SIDEVICE_NONE);
+      }
+    }
+
+    for (int i = 0; i < MAX_WIIMOTES; ++i)
+    {
+      NetPlay::PlayerId player_id = m_settings.wiimote_map[i];
+      layer->Set(Config::GetInfoForWiimoteSource(i),
+                 player_id > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
     }
 
     if (m_settings.savedata_load)

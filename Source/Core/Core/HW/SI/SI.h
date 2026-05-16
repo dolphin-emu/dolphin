@@ -62,8 +62,6 @@ public:
   void AddDevice(SIDevices device, int device_number);
   void AddDevice(std::unique_ptr<ISIDevice> device);
 
-  void ChangeDevice(SIDevices device, int channel);
-
   SIDevices GetDeviceType(int channel) const;
 
   u32 GetPollXLines();
@@ -232,9 +230,6 @@ private:
   CoreTiming::EventType* m_event_type_change_device = nullptr;
   CoreTiming::EventType* m_event_type_tranfer_pending = nullptr;
   std::array<CoreTiming::EventType*, MAX_SI_CHANNELS> m_event_types_device{};
-
-  // User-configured device type. possibly overridden by TAS/Netplay
-  std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> m_desired_device_types{};
 
   std::array<SSIChannel, MAX_SI_CHANNELS> m_channel;
   USIPoll m_poll;

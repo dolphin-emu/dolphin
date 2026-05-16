@@ -427,59 +427,16 @@ void MovieManager::ChangePads()
     else
       controllers[i] = ControllerType::None;
   }
-
-  if (m_controllers == controllers)
-    return;
-
-  auto& si = m_system.GetSerialInterface();
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
-    if (IsUsingGBA(i))
-    {
-      device = SerialInterface::SIDEVICE_GC_GBA_EMULATED;
-    }
-    else if (IsUsingPad(i))
-    {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-      if (SerialInterface::SIDevice_IsGCController(si_device))
-      {
-        device = si_device;
-      }
-      else
-      {
-        device = IsUsingBongo(i) ? SerialInterface::SIDEVICE_GC_TARUKONGA :
-                                   SerialInterface::SIDEVICE_GC_CONTROLLER;
-      }
-    }
-
-    si.ChangeDevice(device, i);
-  }
 }
 
 // NOTE: Host / Emu Threads
-void MovieManager::ChangeWiiPads(bool instantly)
+void MovieManager::ChangeWiiPads()
 {
   WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
-  }
-
-  // This is important for Wiimotes, because they can desync easily if they get re-activated
-  if (instantly && m_wiimotes == wiimotes)
-    return;
-
-  const auto bt = WiiUtils::GetBluetoothEmuDevice();
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    const bool is_using_wiimote = IsUsingWiimote(i);
-
-    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
-                       is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
-    if (bt != nullptr)
-      bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 
@@ -1011,7 +968,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
 
   ChangePads();
   if (m_system.IsWii())
-    ChangeWiiPads(true);
+    ChangeWiiPads();
 
   u64 totalSavedBytes = t_record.GetSize() - 256;
 
