@@ -61,6 +61,7 @@ struct SConfig
 
   const std::string GetGameID() const;
   const std::string GetGameTDBID() const;
+  const std::string GetGameIDElfDol() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
   u64 GetTitleID() const;
@@ -69,6 +70,8 @@ struct SConfig
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
   void SetRunningGameMetadata(const std::string& game_id);
+
+  void SetElfDolID(const std::string& game_id);
 
   // Triggered when Dolphin loads a title directly
   // Reloads title-specific map files, patches, etc.
@@ -125,6 +128,7 @@ private:
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
+  std::string m_game_id_elf_dol;
   std::string m_gametdb_id;
   std::string m_title_name;
   std::string m_title_description;

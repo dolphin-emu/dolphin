@@ -25,8 +25,9 @@ void DynamicInputTextureManager::Load()
   m_configuration.clear();
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> dynamic_input_directories =
-      GetTextureDirectoriesWithGameId(File::GetUserPath(D_DYNAMICINPUT_IDX), game_id);
+  const std::string& game_id_elf_dol = SConfig::GetInstance().GetGameIDElfDol();
+  const std::set<std::string> dynamic_input_directories = GetTextureDirectoriesWithGameId(
+      File::GetUserPath(D_DYNAMICINPUT_IDX), game_id_elf_dol.empty() ? game_id : game_id_elf_dol);
 
   for (const auto& dynamic_input_directory : dynamic_input_directories)
   {
