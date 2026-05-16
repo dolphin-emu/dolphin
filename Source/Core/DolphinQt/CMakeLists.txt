@@ -662,21 +662,36 @@ if(APPLE)
   include(DolphinInjectVersionInfo)
   dolphin_inject_version_info(dolphin-emu)
 
-  # Copy MoltenVK into the bundle
+  # Copy the Vulkan dylibs into the bundle
   if(ENABLE_VULKAN)
-    if(USE_BUNDLED_MOLTENVK)
-      add_dependencies(dolphin-emu MoltenVK)
-      ExternalProject_Get_Property(MoltenVK SOURCE_DIR)
-      target_sources(dolphin-emu PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib")
-      set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
-    else()
-      find_file(MOLTENVK_DYLIB NAMES libMoltenVK.dylib PATH_SUFFIXES lib)
-      if(NOT MOLTENVK_DYLIB)
-        message(FATAL_ERROR "Couldn't find libMoltenVK.dylib.  Enable USE_BUNDLED_MOLTENVK?")
-      endif()
-      target_sources(dolphin-emu PRIVATE ${MOLTENVK_DYLIB})
-      set_source_files_properties(${MOLTENVK_DYLIB} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
+    set(vulkan_dylibs "${Vulkan_LIBRARY}" "${MOLTENVK_LIBRARY}")
+    set(vulkan_icds "MoltenVK")
+
+    if(KOSMICKRISP_LIBRARY)
+      list(APPEND vulkan_dylibs "${KOSMICKRISP_LIBRARY}")
+      list(APPEND vulkan_icds "libkosmickrisp")
     endif()
+
+    foreach(dylib ${vulkan_dylibs})
+      target_sources(dolphin-emu PRIVATE "${dylib}")
+      set_source_files_properties("${dylib}" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
+    endforeach()
+
+    foreach(icd ${vulkan_icds})
+      set(icd_path "${CMAKE_CURRENT_BINARY_DIR}/${icd}_icd.json")
+
+      # Patch the ICD to use the correct directory for dylibs in the bundle
+      file(READ "${VULKAN_ROOT_DIR}/share/vulkan/icd.d/${icd}_icd.json" icd_content)
+      string(REPLACE "../../../lib/" "../../../Frameworks/" icd_content_fixed "${icd_content}")
+      file(WRITE "${icd_path}" "${icd_content_fixed}")
+
+      target_sources(dolphin-emu PRIVATE "${icd_path}")
+      set_source_files_properties("${icd_path}" PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d"
+        GENERATED ON
+      )
+      source_group("Resources" FILES "${icd_path}")
+    endforeach()
   endif()
 
   if(POSTPROCESS_BUNDLE)
