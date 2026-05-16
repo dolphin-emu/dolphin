@@ -12,6 +12,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
+#include "Core/PowerPC/Expression.h"
 
 namespace Gecko
 {
@@ -138,10 +139,6 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
     {
       std::istringstream ss(line);
 
-      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-      // Use the C locale to workaround this behavior
-      ss.imbue(std::locale::classic());
-
       switch ((line)[0])
       {
       // enabled or disabled code
@@ -167,16 +164,11 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
         gcode.notes.push_back(std::string(++line.begin(), line.end()));
         break;
 
-      // either part of the code, or an option choice
+      // the code lines or expression
       default:
       {
-        GeckoCode::Code new_code;
-        // TODO: support options
-        if (std::optional<GeckoCode::Code> code = DeserializeLine(line))
-          new_code = *code;
-        else
-          new_code.original_line = line;
-        gcode.codes.push_back(new_code);
+        // Place code in raw_code and process each line later.
+        gcode.raw_code.append(line).append("\n");
       }
       break;
       }
@@ -194,6 +186,31 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
     {
       for (GeckoCode& code : gcodes)
         code.default_enabled = code.enabled;
+    }
+  }
+
+  // Process the raw codes.
+  for (GeckoCode& gcode : gcodes)
+  {
+    // Do replacements
+    MathExpression expression;
+    const std::optional<std::string> code = expression.ModifyBracedBlocks(gcode.raw_code);
+    if (!code.has_value())
+      continue;
+
+    // Process code lines
+    std::istringstream ss(code.value());
+    std::string line;
+
+    while (std::getline(ss, line))
+    {
+      Gecko::GeckoCode::Code new_code_line;
+      if (std::optional<Gecko::GeckoCode::Code> c = Gecko::DeserializeLine(line))
+        new_code_line = *c;
+      else
+        new_code_line.original_line = line;
+
+      gcode.codes.push_back(new_code_line);
     }
   }
 
@@ -219,12 +236,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
     return;
 
   lines.push_back(MakeGeckoCodeTitle(gcode));
-
-  // save all the code lines
-  for (const GeckoCode::Code& code : gcode.codes)
-  {
-    lines.push_back(code.original_line);
-  }
+  lines.push_back(gcode.raw_code);
 
   // save the notes
   for (const std::string& note : gcode.notes)
