@@ -172,6 +172,8 @@ add_executable(dolphin-emu
   Config/Mapping/MappingWidget.h
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/MappingWindow.h
+  Config/Mapping/SkateboardWidget.cpp
+  Config/Mapping/SkateboardWidget.h
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuExtension.h
   Config/Mapping/WiimoteEmuExtensionMotionInput.cpp

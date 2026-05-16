@@ -458,6 +458,8 @@ add_library(core
   IOS/USB/Emulated/Infinity.h
   IOS/USB/Emulated/Microphone.cpp
   IOS/USB/Emulated/Microphone.h
+  IOS/USB/Emulated/Skateboard.cpp
+  IOS/USB/Emulated/Skateboard.h
   IOS/USB/Emulated/Skylanders/Skylander.cpp
   IOS/USB/Emulated/Skylanders/Skylander.h
   IOS/USB/Emulated/Skylanders/SkylanderCrypto.cpp

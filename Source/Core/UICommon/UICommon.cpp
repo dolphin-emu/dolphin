@@ -37,6 +37,7 @@
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/IOS/USB/Emulated/Skateboard.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
@@ -190,6 +191,7 @@ void InitControllers(const WindowSystemInfo& wsi)
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   HotkeyManagerEmu::Initialize();
   FreeLook::Initialize();
+  Skateboard::Initialize();
 }
 
 void ShutdownControllers()
@@ -200,6 +202,7 @@ void ShutdownControllers()
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
   FreeLook::Shutdown();
+  Skateboard::Shutdown();
 
   g_controller_interface.Shutdown();
 }
