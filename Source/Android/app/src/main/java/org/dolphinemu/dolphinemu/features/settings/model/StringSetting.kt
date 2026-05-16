@@ -101,6 +101,12 @@ enum class StringSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ApiToken",
         ""
+    ),
+    DSUCLIENT_SERVERS(
+        Settings.FILE_DSUCLIENT,
+        Settings.SECTION_DSUCLIENT_SERVER,
+        "Entries",
+        ""
     );
 
     override val isOverridden: Boolean

@@ -123,6 +123,8 @@ class Settings : Closeable {
         const val SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices"
         const val SECTION_STEREOSCOPY = "Stereoscopy"
         const val SECTION_ANALYTICS = "Analytics"
+        const val FILE_DSUCLIENT = "DualShockUDPClient"
+        const val SECTION_DSUCLIENT_SERVER = "Server"
         const val SECTION_ACHIEVEMENTS = "Achievements"
     }
 }

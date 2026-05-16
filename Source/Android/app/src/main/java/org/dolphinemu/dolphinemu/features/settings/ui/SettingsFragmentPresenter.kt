@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.UserDataActivity
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.ControlGroupEnabledSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting
@@ -34,6 +35,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.utils.*
+import java.io.File
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -112,6 +114,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
             MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
+            MenuTag.CONFIG_DSU_CLIENT -> addDSUClientSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
             MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
@@ -202,6 +205,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.wii_submenu, MenuTag.CONFIG_WII))
         sl.add(SubmenuSetting(context, R.string.achievements_submenu, MenuTag.CONFIG_ACHIEVEMENTS))
         sl.add(SubmenuSetting(context, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED))
+        sl.add(SubmenuSetting(context, R.string.dsu_client_submenu, MenuTag.CONFIG_DSU_CLIENT))
         sl.add(SubmenuSetting(context, R.string.log_submenu, MenuTag.CONFIG_LOG))
         sl.add(SubmenuSetting(context, R.string.debug_submenu, MenuTag.DEBUG))
         sl.add(
@@ -292,6 +296,106 @@ class SettingsFragmentPresenter(
                 R.string.enable_save_states_description
             )
         )
+    }
+
+    private fun addDSUClientSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.DSUCLIENT_SERVERS_ENABLED,
+                R.string.dsu_client_enable,
+                R.string.dsu_client_enable_description
+            )
+        )
+
+        sl.add(HeaderSetting(context, R.string.dsu_client_servers_header, 0))
+
+        val serverEntries =
+            DsuClientServerEntries.parseConfigEntries(StringSetting.DSUCLIENT_SERVERS.string)
+
+        if (serverEntries.isEmpty()) {
+            sl.add(
+                HeaderSetting(
+                    context.getString(R.string.dsu_client_no_servers),
+                    ""
+                )
+            )
+        } else {
+            for ((index, serverEntry) in serverEntries.withIndex()) {
+                val displayName = if (serverEntry.description.isBlank()) {
+                    "${serverEntry.address}:${serverEntry.port}"
+                } else {
+                    "${serverEntry.description} (${serverEntry.address}:${serverEntry.port})"
+                }
+                sl.add(HeaderSetting(displayName, ""))
+
+                val serverIndex = index
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.dsu_client_edit_server,
+                        0,
+                        0,
+                        0,
+                        true
+                    ) {
+                        DsuClientAddServerDialog.show(context, serverEntry) { editedServer ->
+                            val servers = getDsuClientServers()
+                            if (serverIndex in servers.indices) {
+                                servers[serverIndex] = editedServer
+                                saveDsuClientServers(servers)
+                                loadSettingsList()
+                            }
+                        }
+                    }
+                )
+
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.dsu_client_remove_server,
+                        0,
+                        R.string.dsu_client_remove_server,
+                        0,
+                        true
+                    ) {
+                        val servers = getDsuClientServers()
+                        if (serverIndex in servers.indices) {
+                            servers.removeAt(serverIndex)
+                            saveDsuClientServers(servers)
+                            loadSettingsList()
+                        }
+                    }
+                )
+            }
+        }
+
+        sl.add(
+            RunRunnable(context, R.string.dsu_client_add_server, 0, 0, 0, true) {
+                DsuClientAddServerDialog.show(context) { newServer ->
+                    val servers = getDsuClientServers()
+                    servers.add(newServer)
+                    saveDsuClientServers(servers)
+                    loadSettingsList()
+                }
+            }
+        )
+    }
+
+    private fun getDsuClientServers(): MutableList<DsuClientServerEntry> {
+        return DsuClientServerEntries.parseConfigEntries(StringSetting.DSUCLIENT_SERVERS.string)
+            .toMutableList()
+    }
+
+    private fun saveDsuClientServers(serverEntries: List<DsuClientServerEntry>) {
+        NativeConfig.setString(
+            NativeConfig.LAYER_BASE,
+            Settings.FILE_DSUCLIENT,
+            Settings.SECTION_DSUCLIENT_SERVER,
+            "Entries",
+            DsuClientServerEntries.formatConfigEntries(serverEntries)
+        )
+        NativeConfig.save(NativeConfig.LAYER_BASE)
     }
 
     private fun addInterfaceSettings(sl: ArrayList<SettingsItem>) {
@@ -2632,6 +2736,19 @@ class SettingsFragmentPresenter(
                 true
             ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) })
 
+        if (menuTag.isWiimoteMenu) {
+            sl.add(
+                RunRunnable(
+                    context,
+                    R.string.input_dsu_apply_profile,
+                    R.string.input_dsu_apply_profile_description,
+                    0,
+                    0,
+                    true
+                ) { applyDsuWiimoteProfile(controller) }
+            )
+        }
+
         updateOldControllerSettingsWarningVisibility(controller)
     }
 
@@ -2757,6 +2874,61 @@ class SettingsFragmentPresenter(
         fragmentView.onControllerSettingsChanged()
     }
 
+    private fun applyDsuWiimoteProfile(controller: EmulatedController) {
+        val dsuDevice = ControllerInterface.getAllDeviceStrings().firstOrNull {
+            it.startsWith(DSU_DEVICE_PREFIX)
+        }
+
+        if (dsuDevice == null) {
+            fragmentView.showToastMessage(context.getString(R.string.input_dsu_apply_profile_no_device))
+            return
+        }
+
+        val profilePath = ensureDsuWiimoteProfile(controller)
+        if (profilePath == null) {
+            fragmentView.showToastMessage(context.getString(R.string.input_dsu_apply_profile_missing))
+            return
+        }
+
+        controller.setDefaultDevice(dsuDevice)
+        controller.loadProfile(profilePath)
+        enableWiimotePointInput(controller)
+        fragmentView.onControllerSettingsChanged()
+        fragmentView.showToastMessage(context.getString(R.string.input_dsu_apply_profile_success))
+    }
+
+    private fun ensureDsuWiimoteProfile(controller: EmulatedController): String? {
+        val sysProfilePath = controller.getSysProfileDirectoryPath() + DSU_WIIMOTE_PROFILE_FILE_NAME
+        if (File(sysProfilePath).exists()) {
+            return sysProfilePath
+        }
+
+        val userProfileFile = File(controller.getUserProfileDirectoryPath(), DSU_WIIMOTE_PROFILE_FILE_NAME)
+        userProfileFile.parentFile?.mkdirs()
+
+        return try {
+            context.resources.openRawResource(R.raw.dsu_wiimote_profile).use { input ->
+                userProfileFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            userProfileFile.path
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun enableWiimotePointInput(controller: EmulatedController) {
+        val groupCount = controller.getGroupCount()
+        for (i in 0 until groupCount) {
+            val group = controller.getGroup(i)
+            if (group.getGroupType() == ControlGroup.TYPE_IMU_CURSOR) {
+                group.setEnabled(true)
+                return
+            }
+        }
+    }
+
     fun setAllLogTypes(value: Boolean) {
         val settings = fragmentView.settings
 
@@ -2823,6 +2995,8 @@ class SettingsFragmentPresenter(
     companion object {
         const val ARG_CONTROLLER_TYPE = "controller_type"
         const val ARG_SERIALPORT1_TYPE = "serialport1_type"
+        private const val DSU_DEVICE_PREFIX = "DSUClient/"
+        private const val DSU_WIIMOTE_PROFILE_FILE_NAME = "DSU Controller.ini"
 
         // Value obtained from LogLevel in Common/Logging/Log.h
         private fun getLogVerbosityEntries(): Int {

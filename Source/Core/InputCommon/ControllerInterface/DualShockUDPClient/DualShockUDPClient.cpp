@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <optional>
+#include <string_view>
 #include <tuple>
 
 #include <SFML/Network/SocketSelector.hpp>
@@ -195,6 +197,13 @@ struct Server
   SteadyClock::time_point m_disconnect_time = SteadyClock::now();
 };
 
+struct ParsedServerEntry
+{
+  std::string description;
+  std::string address;
+  u16 port;
+};
+
 class InputBackend final : public ciface::InputBackend
 {
 public:
@@ -230,6 +239,39 @@ static bool IsSameController(const Proto::MessageType::PortInfo& a,
   // compare everything but battery_status
   return std::tie(a.pad_id, a.pad_state, a.model, a.connection_type, a.pad_mac_address) ==
          std::tie(b.pad_id, b.pad_state, b.model, b.connection_type, b.pad_mac_address);
+}
+
+static std::optional<ParsedServerEntry> ParseServerEntry(std::string_view entry)
+{
+  if (entry.empty())
+    return std::nullopt;
+
+  const size_t first_colon = entry.find(':');
+  if (first_colon == std::string_view::npos)
+    return std::nullopt;
+
+  const size_t second_colon = entry.find(':', first_colon + 1);
+
+  // We use "description:address:port". Reject entries that don't match exactly.
+  if (second_colon == std::string_view::npos ||
+      entry.find(':', second_colon + 1) != std::string_view::npos)
+  {
+    return std::nullopt;
+  }
+
+  const std::string description{StripSpaces(entry.substr(0, first_colon))};
+  const std::string address{
+      StripSpaces(entry.substr(first_colon + 1, second_colon - first_colon - 1))};
+  const std::string port_str{StripSpaces(entry.substr(second_colon + 1))};
+
+  u16 port = 0;
+  if (!TryParse(port_str, &port) || port == 0)
+    return std::nullopt;
+
+  if (address.empty())
+    return std::nullopt;
+
+  return ParsedServerEntry{description, address, port};
 }
 
 void InputBackend::HotplugThreadFunc()
@@ -440,20 +482,19 @@ void InputBackend::ConfigChanged()
     const auto server_details = SplitString(servers_setting, ';');
     for (const auto& server_detail : server_details)
     {
-      const auto server_info = SplitString(server_detail, ':');
-      if (server_info.size() < 3)
-        continue;
-
-      const std::string description = server_info[0];
-      const std::string server_address = server_info[1];
-      const auto port = std::stoi(server_info[2]);
-      if (port >= std::numeric_limits<u16>::max())
+      const auto parsed_server = ParseServerEntry(server_detail);
+      if (!parsed_server.has_value())
       {
+        if (!server_detail.empty())
+        {
+          WARN_LOG_FMT(CONTROLLERINTERFACE, "Ignoring invalid DSU server entry in config: \"{}\"",
+                       server_detail);
+        }
         continue;
       }
-      u16 server_port = static_cast<u16>(port);
 
-      m_servers.emplace_back(description, server_address, server_port);
+      m_servers.emplace_back(parsed_server->description, parsed_server->address,
+                             parsed_server->port);
     }
     Restart();
   }
