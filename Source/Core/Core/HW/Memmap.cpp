@@ -18,6 +18,7 @@
 #include <span>
 #include <tuple>
 
+#include "Common/Align.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -36,6 +37,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -137,8 +139,6 @@ void MemoryManager::Init()
   }
   m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
-  m_physical_page_mappings.fill(nullptr);
-
   // Create an anonymous view of the physical memory
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -153,12 +153,6 @@ void MemoryManager::Init()
           "Memory::Init(): Failed to create view for physical region at 0x{:08X} (size 0x{:08X}).",
           region.physical_address, region.size);
       exit(0);
-    }
-
-    for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
-    {
-      const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
-      m_physical_page_mappings[index] = *region.out_pointer + i;
     }
   }
 
@@ -223,25 +217,85 @@ bool MemoryManager::InitFastmemArena()
   m_physical_base = m_fastmem_arena + guard_size;
   m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
-  {
-    if (!region.active)
-      continue;
-
-    void* base = m_physical_base + region.physical_address;
-    void* view = m_arena.MapInMemoryRegion(region.shm_position, region.size, base, true);
-
-    if (base != view)
-    {
-      PanicAlertFmt("Memory::InitFastmemArena(): Failed to map memory region at 0x{:08X} "
-                    "(size 0x{:08X}) into physical fastmem region.",
-                    region.physical_address, region.size);
-      return false;
-    }
-  }
+  if (!UpdatePhysicalMappings())
+    return false;
 
   m_is_fastmem_arena_initialized = true;
   m_fastmem_arena_size = memory_size;
+  return true;
+}
+
+bool MemoryManager::UpdatePhysicalMappings()
+{
+  if (!m_is_initialized)
+    return true;
+
+  for (const auto& entry : m_physical_mapped_entries)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_physical_mapped_entries.clear();
+
+  m_physical_page_mappings.fill(nullptr);
+
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  {
+    if (!AddPhysicalMapping(region))
+      return false;
+  }
+
+  return true;
+}
+
+bool MemoryManager::AddPhysicalMapping(const PhysicalMemoryRegion& region)
+{
+  if (!region.active || region.size == 0)
+    return true;
+
+  // If the region overlaps with a memcheck, split the region in two,
+  // one on each side of the memcheck.
+  const auto& memchecks = m_system.GetPowerPC().GetMemChecks().GetMemChecks();
+  for (const TMemCheck& memcheck : memchecks)
+  {
+    DEBUG_ASSERT(memcheck.start_address < memcheck.end_address);
+    if (memcheck.start_address <= region.physical_address + region.size &&
+        memcheck.end_address >= region.physical_address)
+    {
+      PhysicalMemoryRegion split_region_1 = region;
+      split_region_1.size = Common::AlignDown(memcheck.start_address - region.physical_address,
+                                              PowerPC::BAT_PAGE_SIZE);
+      if (!AddPhysicalMapping(split_region_1))
+        return false;
+
+      PhysicalMemoryRegion split_region_2 = region;
+      const u32 offset =
+          Common::AlignUp(memcheck.end_address - region.physical_address, PowerPC::BAT_PAGE_SIZE);
+      split_region_2.out_pointer += offset;
+      split_region_2.physical_address += offset;
+      split_region_2.shm_position += offset;
+      split_region_2.size -= offset;
+      return AddPhysicalMapping(split_region_2);
+    }
+  }
+
+  void* base = m_physical_base + region.physical_address;
+  void* view = m_arena.MapInMemoryRegion(region.shm_position, region.size, base, true);
+
+  if (base != view)
+  {
+    PanicAlertFmt("Memory::AddPhysicalMapping(): Failed to map memory region at 0x{:08X} "
+                  "(size 0x{:08X}) into physical fastmem region.",
+                  region.physical_address, region.size);
+    return false;
+  }
+  m_physical_mapped_entries.emplace_back(view, region.size);
+
+  for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
+  {
+    const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
+    m_physical_page_mappings[index] = *region.out_pointer + i;
+  }
+
   return true;
 }
 
@@ -564,14 +618,11 @@ void MemoryManager::ShutdownFastmemArena()
   if (!m_is_fastmem_arena_initialized)
     return;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& entry : m_physical_mapped_entries)
   {
-    if (!region.active)
-      continue;
-
-    u8* base = m_physical_base + region.physical_address;
-    m_arena.UnmapFromMemoryRegion(base, region.size);
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
+  m_physical_mapped_entries.clear();
 
   for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
   {
