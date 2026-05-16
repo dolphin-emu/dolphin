@@ -440,7 +440,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   if (netplay_version != Common::GetScmRevGitStr())
     return ConnectionError::VersionMismatch;
 
-  if (m_is_running || m_start_pending)
+  if (m_start_pending)
     return ConnectionError::GameRunning;
 
   if (m_players.size() >= 255)
@@ -463,7 +463,8 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   // force a ping on first netplay loop
   m_update_pings = true;
 
-  AssignNewUserAPad(new_player);
+  if (!m_is_running)
+    AssignNewUserAPad(new_player);
 
   // tell other players a new player joined
   SendResponseToAllPlayers(MessageID::PlayerJoin, new_player.pid, new_player.name,
