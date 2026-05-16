@@ -207,6 +207,8 @@ Summary:
 - The preferred form of the increment and decrement operator in for-loops is prefix-form (e.g. `++var`).
 
 ## <a name="cpp-code-headers"></a>Headers
+- When including Windows‑specific headers (e.g., windows.h, winnt.h, shlwapi.h), the #include directive must be lower case as some cross-compilers (e.g. MingW) may be used on case-sensitive filesystems such as Linux, where the files are typically lower case.
+  - `#include <windows.h>`
 - If a header is not necessary in a certain source file, remove them.
 - If you find duplicate includes of a certain header, remove it.
 - When declaring includes in a source file, make sure they follow the given pattern:

@@ -11,7 +11,7 @@
 #include "SFML/Network/IpAddress.hpp"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <SFML/Network.hpp>

@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #else
-#include <WinSock2.h>
+#include <winsock2.h>
 #endif
 
 #include <fmt/format.h>
