@@ -19,11 +19,15 @@
     <PropertyGroup Label="UserMacros" />
     <ItemDefinitionGroup>
         <ClCompile>
-            <AdditionalIncludeDirectories>SFML\include;SFML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>SFML\extlibs;SFML\include;SFML\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>SFML_STATIC;MINIAUDIO_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemGroup>
+        <ClCompile Include="SFML\src\SFML\Audio\AudioDevice.cpp" />
+        <ClCompile Include="SFML\src\SFML\Audio\InputSoundFile.cpp" />
+        <ClCompile Include="SFML\src\SFML\Audio\Sound.cpp" />
+        <ClCompile Include="SFML\src\SFML\Audio\SoundFileReaderWav.cpp" />
         <ClCompile Include="SFML\src\SFML\Network\Http.cpp" />
         <ClCompile Include="SFML\src\SFML\Network\IpAddress.cpp" />
         <ClCompile Include="SFML\src\SFML\Network\Packet.cpp" />
@@ -38,6 +42,8 @@
         <ClCompile Include="SFML\src\SFML\System\Utils.cpp" />
     </ItemGroup>
     <ItemGroup>
+        <ClInclude Include="SFML\extlibs\headers\miniaudio\miniaudio.h" />
+        <ClInclude Include="SFML\include\SFML\Audio.hpp" />
         <ClInclude Include="SFML\include\SFML\Config.hpp" />
         <ClInclude Include="SFML\include\SFML\Network.hpp" />
         <ClInclude Include="SFML\include\SFML\Network\Export.hpp" />
