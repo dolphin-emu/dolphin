@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <bit>
+#include <optional>
 #include <random>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include <fmt/format.h>
@@ -17,6 +19,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -237,6 +240,45 @@ static const std::unordered_map<u16, GameType> s_game_map = {
     {0x454C, VirtuaStriker3},
     {0x3030, FirmwareUpdate},
 };
+
+// Media-board routing uses boot.id bytes 1-2, not the outer disc ID.
+static std::optional<u16> TryGetTriforceID()
+{
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
+
+  if (game_id.length() == 6)
+    return static_cast<u16>((u8(game_id[1]) << 8) | u8(game_id[2]));
+
+  return std::nullopt;
+}
+
+struct MediaBoardVersionOverrides
+{
+  std::optional<u8> segaboot_ver_maj;
+  std::optional<u8> segaboot_ver_min;
+  std::optional<u16> network_ver;
+};
+
+// Upstream replies with different stock SegaBoot versions on the two command paths.
+static constexpr u8 STOCK_EXEC1_SEGABOOT_VER_MAJ = 0x03;
+static constexpr u8 STOCK_EXEC1_SEGABOOT_VER_MIN = 0x09;
+static constexpr u8 STOCK_EXEC2_SEGABOOT_VER_MAJ = 0x03;
+static constexpr u8 STOCK_EXEC2_SEGABOOT_VER_MIN = 0x11;
+static constexpr u16 STOCK_NETWORK_VER = 0x1305;
+
+// Only the VS4 family rejects Dolphin's stock BOOT/FIRM replies.
+static MediaBoardVersionOverrides GetMediaBoardVersionOverrides()
+{
+  switch (static_cast<GameType>(GetGameType()))
+  {
+  case VirtuaStriker4:
+    return {.segaboot_ver_maj = 0x06, .segaboot_ver_min = 0x28, .network_ver = 0x1211};
+  case VirtuaStriker4_2006:
+    return {.segaboot_ver_maj = 0x06, .segaboot_ver_min = 0x21, .network_ver = 0x1305};
+  default:
+    return {};
+  }
+}
 
 // Sockets FDs are required to go from 0 to 63.
 // Games use the FD as indexes so we have to workaround it.
@@ -1604,9 +1646,12 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         s_media_buffer_32[1] = 1;
         break;
       case AMMBCommand::GetNetworkFirmVersion:
-        s_media_buffer_32[1] = 0x1305;  // Version: 13.05
-        s_media_buffer[6] = 1;          // Type: VxWorks
+      {
+        const u16 version = GetMediaBoardVersionOverrides().network_ver.value_or(STOCK_NETWORK_VER);
+        s_media_buffer_32[1] = version;
+        s_media_buffer[6] = 1;  // Type: VxWorks
         break;
+      }
       case AMMBCommand::GetSystemFlags:
         s_media_buffer[4] = 1;
         s_media_buffer[6] = NANDMaskBoardNAND;
@@ -1964,14 +2009,19 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           break;
           // SegaBoot version: 3.09
         case AMMBCommand::GetSegaBootVersion:
+        {
+          const auto overrides = GetMediaBoardVersionOverrides();
+          const u8 major = overrides.segaboot_ver_maj.value_or(STOCK_EXEC1_SEGABOOT_VER_MAJ);
+          const u8 minor = overrides.segaboot_ver_min.value_or(STOCK_EXEC1_SEGABOOT_VER_MIN);
           // Version
-          s_media_buffer[4] = 0x03;
-          s_media_buffer[5] = 0x09;
+          s_media_buffer[4] = major;
+          s_media_buffer[5] = minor;
           // Unknown
           s_media_buffer[6] = 1;
           s_media_buffer_32[2] = 1;
           s_media_buffer_32[4] = 0xFF;
           break;
+        }
         case AMMBCommand::GetSystemFlags:
           s_media_buffer[4] = 1;
           s_media_buffer[5] = GDROM;
@@ -2107,14 +2157,19 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       break;
       // SegaBoot version: 3.11
       case AMMBCommand::GetSegaBootVersion:
+      {
+        const auto overrides = GetMediaBoardVersionOverrides();
+        const u8 major = overrides.segaboot_ver_maj.value_or(STOCK_EXEC2_SEGABOOT_VER_MAJ);
+        const u8 minor = overrides.segaboot_ver_min.value_or(STOCK_EXEC2_SEGABOOT_VER_MIN);
         // Version
-        s_media_buffer[4] = 0x03;
-        s_media_buffer[5] = 0x11;
+        s_media_buffer[4] = major;
+        s_media_buffer[5] = minor;
         // Unknown
         s_media_buffer[6] = 1;
         s_media_buffer_32[2] = 1;
         s_media_buffer_32[4] = 0xFF;
         break;
+      }
       case AMMBCommand::GetSystemFlags:
         s_media_buffer[4] = 1;
         s_media_buffer[5] = GDROM;
@@ -2294,28 +2349,23 @@ u32 GetMediaType()
   }
 }
 
-// This is checking for the real game IDs (See boot.id within the game)
 u32 GetGameType()
 {
-  u16 triforce_id = 0;
-  const std::string& game_id = SConfig::GetInstance().GetGameID();
-
-  if (game_id.length() == 6)
+  const auto triforce_id = TryGetTriforceID();
+  if (!triforce_id)
   {
-    triforce_id = game_id[1] << 8 | game_id[2];
-  }
-  else
-  {
-    triforce_id = 0x454A;  // Fallback (VirtuaStriker3)
+    PanicAlertFmtT("Invalid game ID:{0}, using default controls.",
+                   SConfig::GetInstance().GetGameID());
+    return VirtuaStriker3;  // Fallback
   }
 
-  auto it = s_game_map.find(triforce_id);
+  auto it = s_game_map.find(*triforce_id);
   if (it != s_game_map.end())
   {
     return it->second;
   }
 
-  PanicAlertFmtT("Unknown game ID:{0:08x}, using default controls.", triforce_id);
+  PanicAlertFmtT("Unknown game ID:{0:08x}, using default controls.", *triforce_id);
   return VirtuaStriker3;  // Fallback
 }
 
