@@ -8,11 +8,16 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
+import android.view.View
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
+import org.dolphinemu.dolphinemu.model.HapticEffect
+import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.sin
 
 /**
@@ -28,6 +33,7 @@ import kotlin.math.sin
  * @param legacyId           Legacy identifier (ButtonType) for which joystick this is.
  * @param xControl           The control which the x value of the joystick will be written to.
  * @param yControl           The control which the y value of the joystick will be written to.
+ * @param hapticsProvider    An instance of [HapticsProvider] for providing haptic feedback.
  */
 class InputOverlayDrawableJoystick(
     res: Resources,
@@ -39,7 +45,8 @@ class InputOverlayDrawableJoystick(
     val legacyId: Int,
     val xControl: Int,
     val yControl: Int,
-    private val controllerIndex: Int
+    private val controllerIndex: Int,
+    private val hapticsProvider: HapticsProvider
 ) {
     var x = 0.0f
         private set
@@ -47,6 +54,9 @@ class InputOverlayDrawableJoystick(
         private set
     var trackId = -1
         private set
+    private var maxRadius = 0.0
+    private var hapticsPreviousX = 0.0f
+    private var hapticsPreviousY = 0.0f
     private var controlPositionX = 0
     private var controlPositionY = 0
     private var previousTouchX = 0
@@ -94,12 +104,15 @@ class InputOverlayDrawableJoystick(
         boundsBoxBitmap.draw(canvas)
     }
 
-    fun trackEvent(event: MotionEvent): Boolean {
+    fun trackEvent(v: View, event: MotionEvent): Boolean {
         val reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.boolean
         val action = event.actionMasked
         val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
                 action != MotionEvent.ACTION_POINTER_UP
         val pointerIndex = if (firstPointer) 0 else event.actionIndex
+        val hapticsScale = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float
+        val hapticsView =
+            if (BooleanSetting.MAIN_OVERLAY_HAPTICS_USE_VIBRATOR_DIRECTLY.boolean) null else v
         var pressed = false
 
         when (action) {
@@ -112,6 +125,13 @@ class InputOverlayDrawableJoystick(
                 ) {
                     pressed = true
                     pressedState = true
+                    if (BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_PRESS.boolean) {
+                        hapticsProvider.provideFeedback(
+                            HapticEffect.PRESS,
+                            hapticsView,
+                            hapticsScale
+                        )
+                    }
                     outerBitmap.alpha = 0
                     boundsBoxBitmap.alpha = opacity
                     if (reCenter) {
@@ -130,8 +150,17 @@ class InputOverlayDrawableJoystick(
                 if (trackId == event.getPointerId(pointerIndex)) {
                     pressed = true
                     pressedState = false
+                    if (BooleanSetting.MAIN_OVERLAY_HAPTICS_ON_RELEASE.boolean) {
+                        hapticsProvider.provideFeedback(
+                            HapticEffect.RELEASE,
+                            hapticsView,
+                            hapticsScale
+                        )
+                    }
                     y = 0f
                     x = y
+                    hapticsPreviousX = x
+                    hapticsPreviousY = y
                     outerBitmap.alpha = opacity
                     boundsBoxBitmap.alpha = 0
                     virtBounds =
@@ -161,6 +190,20 @@ class InputOverlayDrawableJoystick(
                 y = touchY / maxY
 
                 setInnerBounds()
+                if (BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean) {
+                    val radiusThreshold = maxRadius * 0.1
+                    val deltaX = x - hapticsPreviousX
+                    val deltaY = y - hapticsPreviousY
+                    if (deltaX.pow(2) + deltaY.pow(2) > radiusThreshold.pow(2)) {
+                        hapticsProvider.provideFeedback(
+                            HapticEffect.JOYSTICK,
+                            hapticsView,
+                            hapticsScale
+                        )
+                        hapticsPreviousX = x
+                        hapticsPreviousY = y
+                    }
+                }
             }
         }
         return pressed
@@ -211,7 +254,7 @@ class InputOverlayDrawableJoystick(
 
         val angle = atan2(y, x) + Math.PI + Math.PI
         val radius = hypot(y, x)
-        val maxRadius = InputOverrider.getGateRadiusAtAngle(controllerIndex, xControl, angle)
+        maxRadius = InputOverrider.getGateRadiusAtAngle(controllerIndex, xControl, angle)
         if (radius > maxRadius) {
             x = maxRadius * cos(angle)
             y = maxRadius * sin(angle)

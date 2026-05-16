@@ -637,6 +637,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
+    <string name="emulation_touch_haptics">Touch Haptics</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -840,6 +841,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="ir_disabled">Disabled</string>
     <string name="ir_follow">Follow</string>
     <string name="ir_drag">Drag</string>
+
+    <!-- Overlay Haptics -->
+    <string name="overlay_haptics_on_press">On Press</string>
+    <string name="overlay_haptics_on_release">On Release</string>
+    <string name="overlay_haptics_joystick">Joystick</string>
+    <string name="overlay_haptics_use_vibrator_directly">Use vibrator directly</string>
+    <string name="overlay_haptics_intensity">Intensity</string>
 
     <!-- Double Tap Buttons -->
     <string name="double_tap_a">Button A</string>
