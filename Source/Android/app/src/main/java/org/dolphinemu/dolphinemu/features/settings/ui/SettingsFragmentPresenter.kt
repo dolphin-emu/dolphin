@@ -1691,7 +1691,7 @@ class SettingsFragmentPresenter(
         // If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
         val helper = EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT)
 
-        if (helper.supportsOpenGL() && helper.GetVersion() >= 320 || helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension(
+        if (helper.supportsOpenGL() && helper.getVersion() >= 320 || helper.supportsGLES3() && helper.getVersion() >= 310 && helper.supportsExtension(
                 "GL_ANDROID_extension_pack_es31a"
             )
         ) {
