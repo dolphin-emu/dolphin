@@ -283,12 +283,14 @@ void RegisterWidget::ShowContextMenu()
                          view_double_column})
     {
       connect(action, &QAction::triggered, [this, action] {
+        m_updating = true;
         auto col = m_table->currentItem()->column();
         for (int i = 0; i < 32; i++)
         {
           auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
           update_item->SetDisplay(static_cast<RegisterDisplay>(action->data().toInt()));
         }
+        m_updating = false;
       });
     }
 
