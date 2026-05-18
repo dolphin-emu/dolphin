@@ -78,6 +78,12 @@ enum class StringSetting(
         "TriforceIPRedirections",
         "0.0.0.0/0=127.0.0.1"
     ),
+    MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "TriforceIntegratedCameraDevice",
+        ""
+    ),
     GFX_ENHANCE_POST_SHADER(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_ENHANCEMENTS,

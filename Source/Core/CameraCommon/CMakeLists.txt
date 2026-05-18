@@ -25,3 +25,18 @@ if(ENABLE_SDL)
   )
   target_link_libraries(cameracommon PRIVATE SDL3::SDL3)
 endif()
+
+if(ANDROID)
+  find_library(CAMERA2NDK_LIBRARY camera2ndk)
+  find_library(MEDIANDK_LIBRARY mediandk)
+  target_sources(cameracommon PRIVATE
+    CameraBackend/NDKCameraBackend.cpp
+    CameraBackend/NDKCameraBackend.h
+    CameraInterface/NDKCameraInterface.cpp
+    CameraInterface/NDKCameraInterface.h
+  )
+  target_link_libraries(cameracommon PRIVATE
+    ${CAMERA2NDK_LIBRARY}
+    ${MEDIANDK_LIBRARY}
+  )
+endif()

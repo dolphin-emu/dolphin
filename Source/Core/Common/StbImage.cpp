@@ -71,6 +71,52 @@ void StbImage::Resize(int target_width, int target_height)
   m_height = target_height;
 }
 
+void StbImage::Rotate90(bool clockwise)
+{
+  if (m_pixel_data.empty())
+    return;
+
+  std::vector<u8> rotated_pixel_data(m_pixel_data.size());
+
+  const u8* src = m_pixel_data.data();
+  u8* dst = rotated_pixel_data.data();
+
+  for (int row = 0; row < m_height; ++row)
+  {
+    const u8* src_row = src + row * m_width * m_channels;
+    const int dst_col = clockwise ? m_height - 1 - row : row;
+    u8* dst_column = dst + dst_col * m_channels;
+
+    for (int col = 0; col < m_width; ++col)
+    {
+      const int dst_row = clockwise ? col : (m_width - 1 - col);
+      std::memcpy(dst_column + dst_row * m_height * m_channels, src_row + col * m_channels,
+                  m_channels);
+    }
+  }
+
+  m_pixel_data = std::move(rotated_pixel_data);
+  std::swap(m_width, m_height);
+}
+
+void StbImage::Rotate180()
+{
+  if (m_pixel_data.empty())
+    return;
+
+  const size_t total_pixels = static_cast<size_t>(m_width) * m_height;
+  for (size_t front_pixel = 0; front_pixel < total_pixels / 2; ++front_pixel)
+  {
+    const size_t back_pixel = total_pixels - 1 - front_pixel;
+
+    u8* front = m_pixel_data.data() + front_pixel * m_channels;
+    u8* back = m_pixel_data.data() + back_pixel * m_channels;
+
+    for (int channel = 0; channel < m_channels; ++channel)
+      std::swap(front[channel], back[channel]);
+  }
+}
+
 std::optional<std::vector<u8>> StbImage::EncodeToBaselineJPEG(int quality) const
 {
   std::vector<u8> output;

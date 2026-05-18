@@ -27,6 +27,8 @@ public:
   int GetChannels() const { return m_channels; }
 
   void Resize(int target_width, int target_height);
+  void Rotate90(bool clockwise);
+  void Rotate180();
   std::optional<std::vector<u8>> EncodeToBaselineJPEG(int quality) const;
 
 private:

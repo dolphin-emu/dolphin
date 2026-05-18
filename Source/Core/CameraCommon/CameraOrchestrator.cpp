@@ -7,11 +7,17 @@
 #ifdef HAVE_SDL3
 #include "CameraCommon/CameraBackend/SDLCameraBackend.h"
 #endif
+#ifdef ANDROID
+#include "CameraCommon/CameraBackend/NDKCameraBackend.h"
+#endif
 
 CameraOrchestrator::CameraOrchestrator()
 {
 #ifdef HAVE_SDL3
   m_backends.push_back(std::make_unique<SDLCameraBackend>());
+#endif
+#ifdef ANDROID
+  m_backends.push_back(std::make_unique<NDKCameraBackend>());
 #endif
   m_backends.push_back(std::make_unique<NullCameraBackend>());
 }

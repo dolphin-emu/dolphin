@@ -110,6 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_PATHS -> addPathsSettings(sl)
             MenuTag.CONFIG_GAME_CUBE -> addGameCubeSettings(sl)
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
+            MenuTag.CONFIG_TRIFORCE -> addTriforceSettings(sl)
             MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
@@ -200,6 +201,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.paths_submenu, MenuTag.CONFIG_PATHS))
         sl.add(SubmenuSetting(context, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE))
         sl.add(SubmenuSetting(context, R.string.wii_submenu, MenuTag.CONFIG_WII))
+        sl.add(SubmenuSetting(context, R.string.triforce_submenu, MenuTag.CONFIG_TRIFORCE))
         sl.add(SubmenuSetting(context, R.string.achievements_submenu, MenuTag.CONFIG_ACHIEVEMENTS))
         sl.add(SubmenuSetting(context, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED))
         sl.add(SubmenuSetting(context, R.string.log_submenu, MenuTag.CONFIG_LOG))
@@ -952,6 +954,21 @@ class SettingsFragmentPresenter(
                 R.string.mute_wii_speak,
                 0
             )
+        )
+    }
+
+    private fun addTriforceSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(HeaderSetting(context, R.string.triforce_camera, 0))
+        sl.add(
+            object : CameraChoiceSetting(
+                context,
+                StringSetting.MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE
+            ) {
+                override fun setSelectedValue(settings: Settings, selection: String) {
+                    super.setSelectedValue(settings, selection)
+                    NativeLibrary.recreateTriforceCamera()
+                }
+            }
         )
     }
 

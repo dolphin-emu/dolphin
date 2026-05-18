@@ -18,6 +18,9 @@
 #include <fmt/format.h>
 #include <jni.h>
 
+#include "CameraCommon/CameraOrchestrator.h"
+#include "CameraCommon/CameraQualifier.h"
+
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -42,6 +45,7 @@
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/Triforce/Camera.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
@@ -787,5 +791,25 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked
     description = SConfig::GetInstance().GetTitleDescription();
 
   return ToJString(env, description);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getCameras(JNIEnv* env,
+                                                                                       jclass)
+{
+  const auto& cameras = CameraOrchestrator::GetInstance().EnumerateCameras();
+
+  std::vector<std::string> qualifiers;
+  qualifiers.reserve(cameras.size());
+
+  for (const auto& camera : cameras)
+    qualifiers.emplace_back(CameraQualifier(camera.get()).ToString());
+
+  return SpanToJStringArray(env, std::span<const std::string>(qualifiers));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_recreateTriforceCamera(JNIEnv*,
+                                                                                           jclass)
+{
+  Triforce::Camera::GetInstance().Recreate();
 }
 }
