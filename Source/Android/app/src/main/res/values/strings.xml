@@ -697,6 +697,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="camera_device">Camera Device</string>
     <string name="camera_device_description">Camera Device Description</string>
     <string name="camera_automatic">Automatic</string>
+    <string name="camera_preview">Camera Preview</string>
+    <string name="camera_preview_description">Show a live preview of the camera feed</string>
 
     <!-- UI CPU Core selection -->
     <string name="jit_recompiler_x86">JIT Recompiler for x86–64 (recommended)</string>

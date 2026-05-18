@@ -301,6 +301,9 @@ object NativeLibrary {
     external fun recreateTriforceCamera()
 
     @JvmStatic
+    external fun getTriforceCameraIP(): String
+
+    @JvmStatic
     external fun ReloadConfig()
 
     @JvmStatic

@@ -970,6 +970,22 @@ class SettingsFragmentPresenter(
                 }
             }
         )
+        sl.add(
+            RunRunnable(
+                context,
+                R.string.camera_preview,
+                R.string.camera_preview_description,
+                0,
+                0,
+                true
+            ) {
+                CameraPreviewDialogFragment()
+                    .show(
+                        fragmentView.fragmentActivity.supportFragmentManager,
+                        CameraPreviewDialogFragment.TAG
+                    )
+            }
+        )
     }
 
     private fun addAchievementSettings(sl: ArrayList<SettingsItem>) {

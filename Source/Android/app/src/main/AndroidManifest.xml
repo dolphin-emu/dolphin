@@ -51,7 +51,8 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv"
-        android:hasFragileUserData="true">
+        android:hasFragileUserData="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
