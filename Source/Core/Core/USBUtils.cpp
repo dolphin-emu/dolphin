@@ -45,6 +45,7 @@ static const std::map<USBUtils::DeviceInfo, std::string> s_known_devices{{
     {{0x057e, 0x0308}, "Wii Speak"},
     {{0x057e, 0x0309}, "Nintendo USB Microphone"},
     {{0x057e, 0x030a}, "Ubisoft Motion Tracking Camera"},
+    {{0x057e, 0x030d}, "Duel Scanner"},
     {{0x0e6f, 0x0129}, "Disney Infinity Reader (Portal Device)"},
     {{0x12ba, 0x0200}, "Harmonix Guitar for PlayStation 3"},
     {{0x12ba, 0x0210}, "Harmonix Drum Kit for PlayStation 3"},

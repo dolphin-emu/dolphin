@@ -625,6 +625,12 @@ void SetUSBDeviceWhitelist(const std::set<USBUtils::DeviceInfo>& devices)
 
 // Main.EmulatedUSBDevices
 
+const Info<int> MAIN_EMULATED_CAMERA{
+    {System::Main, "EmulatedUSBDevices", "EmulatedCamera"}, 0};
+
+const Info<std::string> MAIN_SELECTED_CAMERA{
+    {System::Main, "EmulatedUSBDevices", "SelectedCamera"}, ""};
+
 const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
     {System::Main, "EmulatedUSBDevices", "EmulateSkylanderPortal"}, false};
 

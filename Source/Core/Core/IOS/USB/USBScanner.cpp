@@ -23,6 +23,8 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/IOS/USB/Emulated/LogitechMic.h"
+#include "Core/IOS/USB/Emulated/DuelScanner.h"
+#include "Core/IOS/USB/Emulated/MotionCamera.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
 #include "Core/IOS/USB/Host.h"
@@ -175,6 +177,16 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
 
 void USBScanner::AddEmulatedDevices(DeviceMap* new_devices)
 {
+  if (Config::Get(Config::MAIN_EMULATED_CAMERA) == 1 && !NetPlay::IsNetPlayRunning())
+  {
+    auto duel_scanner = std::make_unique<USB::DuelScanner>();
+    AddDevice(std::move(duel_scanner), new_devices);
+  }
+  if (Config::Get(Config::MAIN_EMULATED_CAMERA) == 2 && !NetPlay::IsNetPlayRunning())
+  {
+    auto motion_camera = std::make_unique<USB::MotionCamera>();
+    AddDevice(std::move(motion_camera), new_devices);
+  }
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
     auto skylanderportal = std::make_unique<USB::SkylanderUSB>();

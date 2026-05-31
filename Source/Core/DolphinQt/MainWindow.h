@@ -26,6 +26,7 @@ class AchievementsWindow;
 class AssemblerWidget;
 class BreakpointWidget;
 struct BootParameters;
+class CameraWindow;
 class CheatsManager;
 class CodeWidget;
 class DiscordHandler;
@@ -178,6 +179,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
+  void ShowCameraWindow();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
@@ -257,6 +259,7 @@ private:
   // m_fifo_window doesn't set MainWindow as its parent so that the fifo can be focused without
   // raising the main window, so use a unique_ptr to make sure it gets destroyed.
   std::unique_ptr<FIFOPlayerWindow> m_fifo_window = nullptr;
+  CameraWindow* m_camera_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
   WiiSpeakWindow* m_wii_speak_window = nullptr;
