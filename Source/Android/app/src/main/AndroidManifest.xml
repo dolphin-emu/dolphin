@@ -148,6 +148,15 @@
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main" />
 
+        <receiver
+            android:name=".features.retroachievements.RetroAchievementsHostOverrideReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE" />
+                <action android:name="${applicationId}.action.CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".services.SyncChannelJobService"
             android:exported="false"
