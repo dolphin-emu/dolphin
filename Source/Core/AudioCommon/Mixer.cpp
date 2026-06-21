@@ -6,13 +6,20 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <ctime>
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 
 #include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
+#include "Common/TimeUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/System.h"
@@ -319,6 +326,24 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
     return;
 
   m_gba_mixers[device_number].PushSamples(samples, num_samples);
+
+  if (m_config_gba_dump_audio)
+  {
+    if (!m_log_gba_audio[device_number])
+      StartLogGBAAudio(device_number);
+
+    if (m_log_gba_audio[device_number])
+    {
+      const u32 sample_rate_divisor = m_gba_mixers[device_number].GetInputSampleRateDivisor();
+      const auto volume = m_gba_mixers[device_number].GetVolume();
+      m_wave_writer_gba[device_number].AddStereoSamplesLE(
+          samples, static_cast<u32>(num_samples), sample_rate_divisor, volume.first, volume.second);
+    }
+  }
+  else if (m_log_gba_audio[device_number])
+  {
+    StopLogGBAAudio(device_number);
+  }
 }
 
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
@@ -427,11 +452,56 @@ void Mixer::StopLogDSPAudio()
   }
 }
 
+void Mixer::StartLogGBAAudio(std::size_t device_number)
+{
+  if (m_log_gba_audio[device_number])
+  {
+    WARN_LOG_FMT(AUDIO, "GBA Audio logging has already been started {}", device_number + 1);
+    return;
+  }
+
+  const std::time_t start_time = std::time(nullptr);
+  const auto local_time = Common::LocalTime(start_time);
+  if (!local_time)
+    return;
+
+  const std::string dump_dir = File::GetUserPath(D_DUMPAUDIO_IDX) + "GBA" DIR_SEP;
+  File::CreateFullPath(dump_dir);
+
+  const std::string filename = fmt::format("{}gba{}_{:%Y-%m-%d_%H-%M-%S}_gbadump.wav", dump_dir,
+                                           device_number + 1, *local_time);
+
+  const bool success = m_wave_writer_gba[device_number].Start(
+      filename, m_gba_mixers[device_number].GetInputSampleRateDivisor());
+  if (success)
+  {
+    m_log_gba_audio[device_number] = true;
+    m_wave_writer_gba[device_number].SetSkipSilence(false);
+    NOTICE_LOG_FMT(AUDIO, "Starting GBA Audio logging {}", device_number + 1);
+  }
+  else
+  {
+    m_wave_writer_gba[device_number].Stop();
+    NOTICE_LOG_FMT(AUDIO, "Unable to start GBA Audio logging {}", device_number + 1);
+  }
+}
+
+void Mixer::StopLogGBAAudio(std::size_t device_number)
+{
+  if (m_log_gba_audio[device_number])
+  {
+    m_log_gba_audio[device_number] = false;
+    m_wave_writer_gba[device_number].Stop();
+    NOTICE_LOG_FMT(AUDIO, "Stopping GBA Audio logging {}", device_number + 1);
+  }
+}
+
 void Mixer::RefreshConfig()
 {
   m_config_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
   m_config_fill_audio_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
   m_config_audio_buffer_ms = Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE);
+  m_config_gba_dump_audio = Config::Get(Config::MAIN_GBA_DUMP_AUDIO);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

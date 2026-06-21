@@ -228,6 +228,9 @@ extern const Info<std::string> MAIN_GBA_SAVES_PATH;
 extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
 extern const Info<bool> MAIN_GBA_THREADS;
 #endif
+extern const Info<bool> MAIN_GBA_DUMP_FRAMES;
+extern const Info<bool> MAIN_GBA_DUMP_AUDIO;
+extern const Info<int> MAIN_GBA_DUMP_FRAME_SCALE;
 
 // Main.Network
 

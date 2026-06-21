@@ -5,6 +5,8 @@
 
 #include "Core/HW/GBACore.h"
 
+#include <algorithm>
+
 #define PYCPARSE  // Remove static functions from the header
 #include <mgba/core/interface.h>
 #undef PYCPARSE
@@ -24,6 +26,7 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
@@ -278,6 +281,12 @@ void Core::Stop()
     m_thread->join();
     m_thread.reset();
   }
+#if defined(HAVE_FFMPEG)
+  // Finalize the video file now that the GBA thread has stopped delivering frames.
+  if (m_frame_dump.IsStarted())
+    m_frame_dump.Stop();
+  m_frame_dump_count = 0;
+#endif
   if (m_core)
   {
     mCoreConfigDeinit(&m_core->config);
@@ -441,8 +450,69 @@ void Core::AddCallbacks()
     auto core = static_cast<Core*>(context);
     if (auto host = core->m_host.lock())
       host->FrameEnded(core->m_video_buffer);
+    core->DumpFrame();
   };
   m_core->addCoreCallbacks(m_core, &callbacks);
+}
+
+void Core::DumpFrame()
+{
+#if defined(HAVE_FFMPEG)
+  if (!Config::Get(Config::MAIN_GBA_DUMP_FRAMES))
+  {
+    if (m_frame_dump.IsStarted())
+      m_frame_dump.Stop();
+    m_frame_dump_count = 0;
+    return;
+  }
+
+  u32 width = 0;
+  u32 height = 0;
+  m_core->currentVideoSize(m_core, &width, &height);
+  if (width == 0 || height == 0 || m_video_buffer.size() != static_cast<size_t>(width) * height)
+    return;
+
+  // mGBA only renders at native resolution, so integer-upscale with nearest-neighbor to keep the
+  // pixels crisp when the dump is later scaled for display.
+  const u32 scale = std::max(1, Config::Get(Config::MAIN_GBA_DUMP_FRAME_SCALE));
+  const u32 out_width = width * scale;
+  const u32 out_height = height * scale;
+
+  const u32* pixels = m_video_buffer.data();
+  if (scale > 1)
+  {
+    m_frame_dump_scaled.resize(static_cast<size_t>(out_width) * out_height);
+    for (u32 oy = 0; oy < out_height; ++oy)
+    {
+      const u32* src_row = &m_video_buffer[(oy / scale) * width];
+      u32* dst_row = &m_frame_dump_scaled[static_cast<size_t>(oy) * out_width];
+      for (u32 ox = 0; ox < out_width; ++ox)
+        dst_row[ox] = src_row[ox / scale];
+    }
+    pixels = m_frame_dump_scaled.data();
+  }
+
+  FrameData frame;
+  frame.data = reinterpret_cast<const u8*>(pixels);
+  frame.width = static_cast<int>(out_width);
+  frame.height = static_cast<int>(out_height);
+  frame.stride = static_cast<int>(out_width * sizeof(u32));
+  frame.state = m_frame_dump.FetchState(m_last_gc_ticks, static_cast<int>(m_frame_dump_count));
+
+  if (!m_frame_dump.IsStarted())
+  {
+    // Anchor timestamps to the first dumped frame so the first PTS is zero.
+    if (!m_frame_dump.Start(frame.width, frame.height, m_last_gc_ticks,
+                            fmt::format("GBA" DIR_SEP "gba{}", m_device_number + 1)))
+    {
+      Config::SetCurrent(Config::MAIN_GBA_DUMP_FRAMES, false);
+      return;
+    }
+  }
+
+  m_frame_dump.AddFrame(frame);
+  ++m_frame_dump_count;
+#endif
 }
 
 void Core::SetAVStream()
@@ -693,6 +763,11 @@ void Core::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
+
+#if defined(HAVE_FFMPEG)
+  // Restart the video file on load so the dumped timeline stays monotonic.
+  m_frame_dump.DoState(p);
+#endif
 
   p.Do(m_video_buffer);
   p.Do(m_last_gc_ticks);
