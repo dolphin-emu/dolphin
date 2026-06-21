@@ -1,0 +1,6 @@
+# Type stub for the embedded dolio_stdout/dolio_stderr modules.
+# Internal: redirects script stdout/stderr into Dolphin's log. Not meant to be
+# imported directly; print() routes through here. Documented for completeness.
+
+def write(text: str) -> None: ...
+def flush() -> None: ...

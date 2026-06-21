@@ -1,0 +1,13 @@
+# Type stub for the embedded `dolphin.debug` module.
+# Manage PowerPC code/memory breakpoints; hits surface via the event module.
+
+from typing import Any, Dict
+
+def set_breakpoint(addr: int) -> None: ...
+def remove_breakpoint(addr: int) -> None: ...
+
+# Memory breakpoint config dict: either "At" (single addr) or "Start"+"End" (range);
+# optional "BreakOnRead" (default True), "BreakOnWrite" (default False),
+# "LogOnHit" (default True), "BreakOnHit" (default True), "Condition" (expr str).
+def set_memory_breakpoint(config: Dict[str, Any]) -> None: ...
+def remove_memory_breakpoint(addr: int) -> None: ...
