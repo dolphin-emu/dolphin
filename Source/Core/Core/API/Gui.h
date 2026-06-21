@@ -80,7 +80,40 @@ public:
     std::optional<u32> text_color;   // ARGB
     std::optional<u32> bg_color;     // ARGB
     std::string style;               // QSS, detached only
+    bool canvas = false;             // Window only: freeform QPainter canvas
+    int canvas_w = 0, canvas_h = 0;  // Window only
   };
+
+  // Freeform canvas: a window backed by a replayable primitive list instead of widgets.
+  // Scripts push primitives, call CanvasCommit, and Qt replays them via QPainter.
+  struct CanvasPrimitive
+  {
+    enum class Type : u8
+    {
+      Line,
+      Rect,
+      RectFilled,
+      Circle,
+      CircleFilled,
+      Triangle,
+      TriangleFilled,
+      Text,
+    };
+    Type type;
+    Vec2f p0, p1, p2;
+    float radius = 0.0f;
+    float thickness = 1.0f;
+    float rounding = 0.0f;
+    u32 color = 0;  // ARGB
+    std::string text;
+  };
+
+  WidgetId GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
+                             bool embedded = false);
+  void CanvasClear(WidgetId id);
+  void CanvasAdd(WidgetId id, const CanvasPrimitive& prim);
+  void CanvasCommit(WidgetId id);
+  std::vector<CanvasPrimitive> SnapshotCanvas(WidgetId id);
 
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
   WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
@@ -120,6 +153,8 @@ public:
     std::optional<u32> text_color;
     std::optional<u32> bg_color;
     std::string style;
+    bool canvas = false;
+    int canvas_w = 0, canvas_h = 0;
   };
   std::vector<WindowInfo> SnapshotDetachedWindows();
 
@@ -128,6 +163,7 @@ public:
 
 private:
   void RenderWidgets();
+  void RenderEmbeddedCanvas(WidgetId id, const std::string& title);
 
 private:
   // Pushing all draw calls onto a vector of functions is probably not
@@ -140,6 +176,9 @@ private:
   std::mutex m_widget_mutex;
   std::map<WidgetId, Widget> m_widgets;
   std::vector<WidgetId> m_windows;  // top-level, in creation order
+  // Canvas primitive lists keyed by window id; building is script-side, committed is Qt-visible.
+  std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_building;
+  std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_committed;
   WidgetId m_next_widget_id = 1;
   std::atomic<bool> m_script_window_focused{false};  // set by video thread in RenderWidgets
 };

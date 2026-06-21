@@ -11,6 +11,7 @@
 #include <QWidget>
 
 #include "Core/API/Gui.h"
+#include "DolphinQt/Scripting/ScriptCanvasWidget.h"
 
 // Manages free-floating OS windows for non-embedded script GUI windows.
 // Polls API::Gui's widget tree on a timer; Qt signals write results back.
@@ -29,6 +30,7 @@ private:
     API::Gui::WidgetId id;
     QWidget* window;
     std::map<API::Gui::WidgetId, QWidget*> children;
+    ScriptCanvasWidget* canvas = nullptr;  // non-null for freeform canvas windows
   };
 
   std::map<API::Gui::WidgetId, ManagedWindow> m_windows;

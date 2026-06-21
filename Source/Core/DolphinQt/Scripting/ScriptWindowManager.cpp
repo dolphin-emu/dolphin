@@ -65,6 +65,20 @@ void ScriptWindowManager::Sync()
   for (const auto& snap : snapshots)
   {
     auto it = m_windows.find(snap.id);
+    if (snap.canvas)
+    {
+      if (it == m_windows.end())
+      {
+        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h);
+        cw->setWindowTitle(QString::fromStdString(snap.title));
+        cw->show();
+        m_windows[snap.id] = ManagedWindow{snap.id, cw, {}, cw};
+        it = m_windows.find(snap.id);
+      }
+      it->second.canvas->SetPrimitives(gui.SnapshotCanvas(snap.id));
+      continue;
+    }
+
     if (it == m_windows.end())
     {
       // New window — create the QWidget.

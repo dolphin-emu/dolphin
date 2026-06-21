@@ -50,6 +50,54 @@ void Gui::Render()
   RenderWidgets();
 }
 
+// Replays a committed canvas list into the ImGui overlay; caller holds m_widget_mutex.
+void Gui::RenderEmbeddedCanvas(WidgetId id, const std::string& title)
+{
+  auto it = m_canvas_committed.find(id);
+  if (it == m_canvas_committed.end())
+    return;
+  if (!ImGui::Begin(title.c_str()))
+  {
+    ImGui::End();
+    return;
+  }
+  const ImVec2 o = ImGui::GetCursorScreenPos();
+  ImDrawList* dl = ImGui::GetWindowDrawList();
+  auto off = [&](const Vec2f& p) { return ImVec2{o.x + p.x, o.y + p.y}; };
+  for (const CanvasPrimitive& p : it->second)
+  {
+    const u32 c = ARGBToABGR(p.color);
+    switch (p.type)
+    {
+    case CanvasPrimitive::Type::Line:
+      dl->AddLine(off(p.p0), off(p.p1), c, p.thickness);
+      break;
+    case CanvasPrimitive::Type::Rect:
+      dl->AddRect(off(p.p0), off(p.p1), c, p.rounding, ImDrawFlags_RoundCornersAll, p.thickness);
+      break;
+    case CanvasPrimitive::Type::RectFilled:
+      dl->AddRectFilled(off(p.p0), off(p.p1), c, p.rounding, ImDrawFlags_RoundCornersAll);
+      break;
+    case CanvasPrimitive::Type::Circle:
+      dl->AddCircle(off(p.p0), p.radius, c, 0, p.thickness);
+      break;
+    case CanvasPrimitive::Type::CircleFilled:
+      dl->AddCircleFilled(off(p.p0), p.radius, c, 0);
+      break;
+    case CanvasPrimitive::Type::Triangle:
+      dl->AddTriangle(off(p.p0), off(p.p1), off(p.p2), c, p.thickness);
+      break;
+    case CanvasPrimitive::Type::TriangleFilled:
+      dl->AddTriangleFilled(off(p.p0), off(p.p1), off(p.p2), c);
+      break;
+    case CanvasPrimitive::Type::Text:
+      dl->AddText(off(p.p0), c, p.text.c_str());
+      break;
+    }
+  }
+  ImGui::End();
+}
+
 void Gui::RenderWidgets()
 {
   std::lock_guard lock(m_widget_mutex);
@@ -60,6 +108,12 @@ void Gui::RenderWidgets()
     if (window_it == m_widgets.end())
       continue;
     Widget& window = window_it->second;
+    if (window.canvas)
+    {
+      if (window.embedded)
+        RenderEmbeddedCanvas(window_id, window.label);
+      continue;
+    }
     if (!window.embedded)
       continue;
     if (window.bg_color)
@@ -129,6 +183,52 @@ void Gui::RenderWidgets()
     ImGui::End();
   }
   m_script_window_focused.store(any_focused);
+}
+
+Gui::WidgetId Gui::GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
+                                     bool embedded)
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (WidgetId id : m_windows)
+  {
+    auto it = m_widgets.find(id);
+    if (it != m_widgets.end() && it->second.owner == owner && it->second.label == title)
+      return id;
+  }
+  const WidgetId id = m_next_widget_id++;
+  Widget w{WidgetKind::Window, owner, title};
+  w.embedded = embedded;
+  w.canvas = true;
+  w.canvas_w = width;
+  w.canvas_h = height;
+  m_widgets[id] = std::move(w);
+  m_windows.push_back(id);
+  return id;
+}
+
+void Gui::CanvasClear(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  m_canvas_building[id].clear();
+}
+
+void Gui::CanvasAdd(WidgetId id, const CanvasPrimitive& prim)
+{
+  std::lock_guard lock(m_widget_mutex);
+  m_canvas_building[id].push_back(prim);
+}
+
+void Gui::CanvasCommit(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  m_canvas_committed[id] = m_canvas_building[id];
+}
+
+std::vector<Gui::CanvasPrimitive> Gui::SnapshotCanvas(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_canvas_committed.find(id);
+  return it == m_canvas_committed.end() ? std::vector<CanvasPrimitive>{} : it->second;
 }
 
 Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool embedded)
@@ -281,6 +381,9 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
     info.text_color = wit->second.text_color;
     info.bg_color = wit->second.bg_color;
     info.style = wit->second.style;
+    info.canvas = wit->second.canvas;
+    info.canvas_w = wit->second.canvas_w;
+    info.canvas_h = wit->second.canvas_h;
     for (WidgetId cid : wit->second.children)
     {
       auto cit = m_widgets.find(cid);
@@ -306,6 +409,8 @@ void Gui::RemoveWidgetsForOwner(void* owner)
       ++it;
   }
   std::erase_if(m_windows, [&](WidgetId id) { return !m_widgets.contains(id); });
+  std::erase_if(m_canvas_building, [&](auto& kv) { return !m_widgets.contains(kv.first); });
+  std::erase_if(m_canvas_committed, [&](auto& kv) { return !m_widgets.contains(kv.first); });
 }
 
 Vec2f Gui::GetDisplaySize()

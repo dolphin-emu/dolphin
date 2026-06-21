@@ -272,6 +272,69 @@ static void widget_set_style(PyObject* self, u64 id, const char* qss)
   state->gui->SetStyle(id, std::string(qss));
 }
 
+static u64 canvas_window(PyObject* self, const char* title, int width, int height, int embedded)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetOrCreateCanvas(CurrentOwner(), std::string(title), width, height,
+                                       embedded != 0);
+}
+
+static void canvas_clear(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasClear(id);
+}
+
+static void canvas_commit(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasCommit(id);
+}
+
+static void canvas_line(PyObject* self, u64 id, float ax, float ay, float bx, float by, u32 color,
+                        float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Line, {ax, ay}, {bx, by}, {}, 0.0f, thickness, 0.0f, color});
+}
+
+static void canvas_rect(PyObject* self, u64 id, float ax, float ay, float bx, float by, u32 color,
+                        int filled, float rounding, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::RectFilled : P::Type::Rect;
+  state->gui->CanvasAdd(id, P{type, {ax, ay}, {bx, by}, {}, 0.0f, thickness, rounding, color});
+}
+
+static void canvas_circle(PyObject* self, u64 id, float cx, float cy, float radius, u32 color,
+                          int filled, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::CircleFilled : P::Type::Circle;
+  state->gui->CanvasAdd(id, P{type, {cx, cy}, {}, {}, radius, thickness, 0.0f, color});
+}
+
+static void canvas_triangle(PyObject* self, u64 id, float ax, float ay, float bx, float by,
+                            float cx, float cy, u32 color, int filled, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::TriangleFilled : P::Type::Triangle;
+  state->gui->CanvasAdd(id,
+                        P{type, {ax, ay}, {bx, by}, {cx, cy}, 0.0f, thickness, 0.0f, color});
+}
+
+static void canvas_text(PyObject* self, u64 id, float x, float y, u32 color, const char* text)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Text, {x, y}, {}, {}, 0.0f, 1.0f, 0.0f, color,
+                              std::string(text)});
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -403,6 +466,35 @@ class Window(_BaseWindow):
         return InputText(self._child(_widget_input_text(self._id, label, initial),
                                      style, text_color, bg_color))
 
+class Canvas:
+    def __init__(self, id, width, height):
+        self._id = id
+        self.width = width
+        self.height = height
+    def clear(self):
+        _canvas_clear(self._id)
+    def commit(self):
+        _canvas_commit(self._id)
+    def line(self, a, b, color, thickness = 1):
+        _canvas_line(self._id, a[0], a[1], b[0], b[1], color, thickness)
+    def rect(self, a, b, color, rounding = 0, thickness = 1):
+        _canvas_rect(self._id, a[0], a[1], b[0], b[1], color, 0, rounding, thickness)
+    def rect_filled(self, a, b, color, rounding = 0):
+        _canvas_rect(self._id, a[0], a[1], b[0], b[1], color, 1, rounding, 1)
+    def circle(self, center, radius, color, thickness = 1):
+        _canvas_circle(self._id, center[0], center[1], radius, color, 0, thickness)
+    def circle_filled(self, center, radius, color):
+        _canvas_circle(self._id, center[0], center[1], radius, color, 1, 1)
+    def triangle(self, a, b, c, color, thickness = 1):
+        _canvas_triangle(self._id, a[0], a[1], b[0], b[1], c[0], c[1], color, 0, thickness)
+    def triangle_filled(self, a, b, c, color):
+        _canvas_triangle(self._id, a[0], a[1], b[0], b[1], c[0], c[1], color, 1, 1)
+    def text(self, pos, color, text):
+        _canvas_text(self._id, pos[0], pos[1], color, text)
+
+def canvas(title, width, height, *, embedded=False):
+    return Canvas(_canvas_window(title, width, height, int(embedded)), width, height)
+
 def overlay(title, *, bg_color=None, text_color=None):
     w = Overlay(_widget_window(title, 1))
     if bg_color is not None:
@@ -465,6 +557,14 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_set_text_color", Py::as_py_func<widget_set_text_color>, METH_VARARGS, ""},
       {"_widget_set_bg_color", Py::as_py_func<widget_set_bg_color>, METH_VARARGS, ""},
       {"_widget_set_style", Py::as_py_func<widget_set_style>, METH_VARARGS, ""},
+      {"_canvas_window", Py::as_py_func<canvas_window>, METH_VARARGS, ""},
+      {"_canvas_clear", Py::as_py_func<canvas_clear>, METH_VARARGS, ""},
+      {"_canvas_commit", Py::as_py_func<canvas_commit>, METH_VARARGS, ""},
+      {"_canvas_line", Py::as_py_func<canvas_line>, METH_VARARGS, ""},
+      {"_canvas_rect", Py::as_py_func<canvas_rect>, METH_VARARGS, ""},
+      {"_canvas_circle", Py::as_py_func<canvas_circle>, METH_VARARGS, ""},
+      {"_canvas_triangle", Py::as_py_func<canvas_triangle>, METH_VARARGS, ""},
+      {"_canvas_text", Py::as_py_func<canvas_text>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
