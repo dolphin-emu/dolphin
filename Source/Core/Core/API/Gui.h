@@ -6,6 +6,8 @@
 
 #include <functional>
 #include <imgui.h>
+#include <map>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -48,6 +50,40 @@ public:
   void DrawPolyline(const std::vector<Vec2f> points, u32 color, bool closed, float thickness);
   void DrawConvexPolyFilled(const std::vector<Vec2f> points, u32 color);
 
+  // Retained-mode widgets: scripts mutate this tree, the video thread renders it
+  // in RenderWidgets() and writes results back, so reads lag input by one frame.
+  using WidgetId = u64;
+  enum class WidgetKind
+  {
+    Window,
+    Button,
+    SliderFloat,
+    Text,
+  };
+  struct Widget
+  {
+    WidgetKind kind;
+    void* owner;
+    std::string label;
+    std::vector<WidgetId> children;  // Window only
+    bool clicked = false;            // Button: latched until read
+    float value = 0.0f;              // SliderFloat
+    float min = 0.0f;
+    float max = 1.0f;
+  };
+
+  WidgetId GetOrCreateWindow(void* owner, const std::string& title);
+  WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
+  bool TakeClicked(WidgetId id);
+  float GetValue(WidgetId id);
+  void SetValue(WidgetId id, float value);
+  void SetSliderRange(WidgetId id, float min, float max);
+  void SetText(WidgetId id, const std::string& text);
+  void RemoveWidgetsForOwner(void* owner);
+
+private:
+  void RenderWidgets();
+
 private:
   // Pushing all draw calls onto a vector of functions is probably not
   // the most efficient thing in the world, but it seems to be negligible.
@@ -55,6 +91,11 @@ private:
   // without having to worry about when exactly to draw, just deferring the
   // execution of draw calls like this is an easy solution.
   std::vector<std::function<void(ImDrawList*)>> m_draw_calls;
+
+  std::mutex m_widget_mutex;
+  std::map<WidgetId, Widget> m_widgets;
+  std::vector<WidgetId> m_windows;  // top-level, in creation order
+  WidgetId m_next_widget_id = 1;
 };
 
 // global instance

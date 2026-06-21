@@ -42,6 +42,134 @@ void Gui::Render()
   for (auto call : draw_calls)
     call(draw_list);
   ImGui::End();
+
+  RenderWidgets();
+}
+
+void Gui::RenderWidgets()
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (WidgetId window_id : m_windows)
+  {
+    auto window_it = m_widgets.find(window_id);
+    if (window_it == m_widgets.end())
+      continue;
+    Widget& window = window_it->second;
+    if (!ImGui::Begin(window.label.c_str()))
+    {
+      ImGui::End();
+      continue;
+    }
+    for (WidgetId child_id : window.children)
+    {
+      auto child_it = m_widgets.find(child_id);
+      if (child_it == m_widgets.end())
+        continue;
+      Widget& w = child_it->second;
+      // Suffix the ImGui id so identical labels stay distinct widgets.
+      const std::string id_label = w.label + "##" + std::to_string(child_id);
+      switch (w.kind)
+      {
+      case WidgetKind::Button:
+        if (ImGui::Button(id_label.c_str()))
+          w.clicked = true;
+        break;
+      case WidgetKind::SliderFloat:
+        ImGui::SliderFloat(id_label.c_str(), &w.value, w.min, w.max);
+        break;
+      case WidgetKind::Text:
+        ImGui::TextUnformatted(w.label.c_str());
+        break;
+      default:
+        break;
+      }
+    }
+    ImGui::End();
+  }
+}
+
+Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title)
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (WidgetId id : m_windows)
+  {
+    auto it = m_widgets.find(id);
+    if (it != m_widgets.end() && it->second.owner == owner && it->second.label == title)
+      return id;
+  }
+  const WidgetId id = m_next_widget_id++;
+  m_widgets[id] = Widget{WidgetKind::Window, owner, title};
+  m_windows.push_back(id);
+  return id;
+}
+
+Gui::WidgetId Gui::AddChild(WidgetId parent, WidgetKind kind, const std::string& label)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto parent_it = m_widgets.find(parent);
+  if (parent_it == m_widgets.end())
+    return 0;
+  const WidgetId id = m_next_widget_id++;
+  m_widgets[id] = Widget{kind, parent_it->second.owner, label};
+  parent_it->second.children.push_back(id);
+  return id;
+}
+
+bool Gui::TakeClicked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it == m_widgets.end() || !it->second.clicked)
+    return false;
+  it->second.clicked = false;
+  return true;
+}
+
+float Gui::GetValue(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it == m_widgets.end() ? 0.0f : it->second.value;
+}
+
+void Gui::SetValue(WidgetId id, float value)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.value = value;
+}
+
+void Gui::SetSliderRange(WidgetId id, float min, float max)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+  {
+    it->second.min = min;
+    it->second.max = max;
+  }
+}
+
+void Gui::SetText(WidgetId id, const std::string& text)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.label = text;
+}
+
+void Gui::RemoveWidgetsForOwner(void* owner)
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (auto it = m_widgets.begin(); it != m_widgets.end();)
+  {
+    if (it->second.owner == owner)
+      it = m_widgets.erase(it);
+    else
+      ++it;
+  }
+  std::erase_if(m_windows, [&](WidgetId id) { return !m_widgets.contains(id); });
 }
 
 Vec2f Gui::GetDisplaySize()

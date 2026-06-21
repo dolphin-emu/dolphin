@@ -154,6 +154,63 @@ static PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
+// Retained-mode widgets. The owner is the current backend so a script's windows
+// are pruned together when it stops; ids are opaque handles into the Gui tree.
+static void* CurrentOwner()
+{
+  return PyScripting::PyScriptingBackend::GetCurrent();
+}
+
+static u64 widget_window(PyObject* self, const char* title)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title));
+}
+
+static u64 widget_button(PyObject* self, u64 parent, const char* label)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->AddChild(parent, API::Gui::WidgetKind::Button, std::string(label));
+}
+
+static u64 widget_slider_float(PyObject* self, u64 parent, const char* label, float min, float max)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::SliderFloat, std::string(label));
+  state->gui->SetSliderRange(id, min, max);
+  return id;
+}
+
+static u64 widget_text(PyObject* self, u64 parent, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->AddChild(parent, API::Gui::WidgetKind::Text, std::string(text));
+}
+
+static bool widget_take_clicked(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->TakeClicked(id);
+}
+
+static float widget_get_value(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetValue(id);
+}
+
+static void widget_set_value(PyObject* self, u64 id, float value)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetValue(id, value);
+}
+
+static void widget_set_text(PyObject* self, u64 id, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetText(id, std::string(text));
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -199,6 +256,42 @@ def draw_polyline(points, color, closed = False, thickness = 1):
 
 def draw_convex_poly_filled(points, color):
     _draw_convex_poly_filled(points, color)
+
+class Button:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def clicked(self):
+        return _widget_take_clicked(self._id)
+
+class SliderFloat:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def value(self):
+        return _widget_get_value(self._id)
+    @value.setter
+    def value(self, v):
+        _widget_set_value(self._id, v)
+
+class Text:
+    def __init__(self, id):
+        self._id = id
+    def set(self, text):
+        _widget_set_text(self._id, text)
+
+class Window:
+    def __init__(self, title):
+        self._id = _widget_window(title)
+    def button(self, label):
+        return Button(_widget_button(self._id, label))
+    def slider_float(self, label, min = 0.0, max = 1.0):
+        return SliderFloat(_widget_slider_float(self._id, label, min, max))
+    def text(self, text = ""):
+        return Text(_widget_text(self._id, text))
+
+def window(title):
+    return Window(title)
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
@@ -227,6 +320,14 @@ PyMODINIT_FUNC PyInit_gui()
       {"_draw_text", Py::as_py_func<draw_text>, METH_VARARGS, ""},
       {"_draw_polyline", draw_polyline, METH_VARARGS, ""},
       {"_draw_convex_poly_filled", draw_convex_poly_filled, METH_VARARGS, ""},
+      {"_widget_window", Py::as_py_func<widget_window>, METH_VARARGS, ""},
+      {"_widget_button", Py::as_py_func<widget_button>, METH_VARARGS, ""},
+      {"_widget_slider_float", Py::as_py_func<widget_slider_float>, METH_VARARGS, ""},
+      {"_widget_text", Py::as_py_func<widget_text>, METH_VARARGS, ""},
+      {"_widget_take_clicked", Py::as_py_func<widget_take_clicked>, METH_VARARGS, ""},
+      {"_widget_get_value", Py::as_py_func<widget_get_value>, METH_VARARGS, ""},
+      {"_widget_set_value", Py::as_py_func<widget_set_value>, METH_VARARGS, ""},
+      {"_widget_set_text", Py::as_py_func<widget_set_text>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
