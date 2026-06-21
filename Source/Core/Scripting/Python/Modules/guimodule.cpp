@@ -272,11 +272,12 @@ static void widget_set_style(PyObject* self, u64 id, const char* qss)
   state->gui->SetStyle(id, std::string(qss));
 }
 
-static u64 canvas_window(PyObject* self, const char* title, int width, int height, int embedded)
+static u64 canvas_window(PyObject* self, const char* title, int width, int height, int embedded,
+                         int overlay)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   return state->gui->GetOrCreateCanvas(CurrentOwner(), std::string(title), width, height,
-                                       embedded != 0);
+                                       embedded != 0, overlay != 0);
 }
 
 static void canvas_clear(PyObject* self, u64 id)
@@ -492,8 +493,8 @@ class Canvas:
     def text(self, pos, color, text):
         _canvas_text(self._id, pos[0], pos[1], color, text)
 
-def canvas(title, width, height, *, embedded=False):
-    return Canvas(_canvas_window(title, width, height, int(embedded)), width, height)
+def canvas(title, width, height, *, embedded=False, overlay=False):
+    return Canvas(_canvas_window(title, width, height, int(embedded), int(overlay)), width, height)
 
 def overlay(title, *, bg_color=None, text_color=None):
     w = Overlay(_widget_window(title, 1))

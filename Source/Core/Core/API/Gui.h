@@ -82,6 +82,7 @@ public:
     std::string style;               // QSS, detached only
     bool canvas = false;             // Window only: freeform QPainter canvas
     int canvas_w = 0, canvas_h = 0;  // Window only
+    bool overlay = false;            // Window only: frameless, stays-on-top, not user-closable
   };
 
   // Freeform canvas: a window backed by a replayable primitive list instead of widgets.
@@ -109,7 +110,7 @@ public:
   };
 
   WidgetId GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
-                             bool embedded = false);
+                             bool embedded = false, bool overlay = false);
   void CanvasClear(WidgetId id);
   void CanvasAdd(WidgetId id, const CanvasPrimitive& prim);
   void CanvasCommit(WidgetId id);
@@ -155,6 +156,7 @@ public:
     std::string style;
     bool canvas = false;
     int canvas_w = 0, canvas_h = 0;
+    bool overlay = false;
   };
   std::vector<WindowInfo> SnapshotDetachedWindows();
 

@@ -22,6 +22,10 @@ public:
   explicit ScriptWindowManager(QObject* parent = nullptr);
   ~ScriptWindowManager();
 
+signals:
+  // A user closed an overlay canvas window (X / Alt+F4); its menu toggle should follow.
+  void OverlayClosed();
+
 private:
   void Sync();
 

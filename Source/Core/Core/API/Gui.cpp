@@ -186,7 +186,7 @@ void Gui::RenderWidgets()
 }
 
 Gui::WidgetId Gui::GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
-                                     bool embedded)
+                                     bool embedded, bool overlay)
 {
   std::lock_guard lock(m_widget_mutex);
   for (WidgetId id : m_windows)
@@ -201,6 +201,7 @@ Gui::WidgetId Gui::GetOrCreateCanvas(void* owner, const std::string& title, int 
   w.canvas = true;
   w.canvas_w = width;
   w.canvas_h = height;
+  w.overlay = overlay;
   m_widgets[id] = std::move(w);
   m_windows.push_back(id);
   return id;
@@ -384,6 +385,7 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
     info.canvas = wit->second.canvas;
     info.canvas_w = wit->second.canvas_w;
     info.canvas_h = wit->second.canvas_h;
+    info.overlay = wit->second.overlay;
     for (WidgetId cid : wit->second.children)
     {
       auto cit = m_widgets.find(cid);

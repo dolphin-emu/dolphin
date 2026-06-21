@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Scripting/ScriptCanvasWidget.h"
 
+#include <QCloseEvent>
 #include <QPainter>
 #include <QPolygonF>
 
@@ -17,10 +18,19 @@ static QPointF Pt(const Vec2f& p)
   return QPointF(p.x, p.y);
 }
 
-ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, QWidget* parent)
-    : QWidget(parent, Qt::Window)
+ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, QWidget* parent)
+    : QWidget(parent, overlay ? (Qt::Window | Qt::WindowStaysOnTopHint) : Qt::Window),
+      m_overlay(overlay)
 {
   setFixedSize(width, height);
+}
+
+void ScriptCanvasWidget::closeEvent(QCloseEvent* event)
+{
+  // Let the menu toggle drive teardown so the two stay in sync.
+  if (m_overlay)
+    emit closed();
+  QWidget::closeEvent(event);
 }
 
 void ScriptCanvasWidget::SetPrimitives(std::vector<API::Gui::CanvasPrimitive> prims)
