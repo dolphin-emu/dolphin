@@ -161,10 +161,10 @@ static void* CurrentOwner()
   return PyScripting::PyScriptingBackend::GetCurrent();
 }
 
-static u64 widget_window(PyObject* self, const char* title)
+static u64 widget_window(PyObject* self, const char* title, int embedded)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
-  return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title));
+  return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title), embedded != 0);
 }
 
 static u64 widget_button(PyObject* self, u64 parent, const char* label)
@@ -281,8 +281,8 @@ class Text:
         _widget_set_text(self._id, text)
 
 class Window:
-    def __init__(self, title):
-        self._id = _widget_window(title)
+    def __init__(self, title, embedded=True):
+        self._id = _widget_window(title, int(embedded))
     def button(self, label):
         return Button(_widget_button(self._id, label))
     def slider_float(self, label, min = 0.0, max = 1.0):
@@ -290,8 +290,8 @@ class Window:
     def text(self, text = ""):
         return Text(_widget_text(self._id, text))
 
-def window(title):
-    return Window(title)
+def window(title, embedded=True):
+    return Window(title, embedded)
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())

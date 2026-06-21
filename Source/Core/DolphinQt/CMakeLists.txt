@@ -424,9 +424,11 @@ target_sources(dolphin-emu PRIVATE
   Scripting/ScriptingWidget.cpp
   Scripting/ScriptFavoritesManager.cpp
   Scripting/ScriptFavoritesWidget.cpp
+  Scripting/ScriptWindowManager.cpp
   Scripting/ScriptingWidget.h
   Scripting/ScriptFavoritesManager.h
   Scripting/ScriptFavoritesWidget.h
+  Scripting/ScriptWindowManager.h
   Scripting/ScriptsListModel.cpp
   Scripting/ScriptsListModel.h
 )

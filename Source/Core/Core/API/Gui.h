@@ -66,20 +66,27 @@ public:
     void* owner;
     std::string label;
     std::vector<WidgetId> children;  // Window only
+    bool embedded = true;            // Window only: false = detached Qt window
     bool clicked = false;            // Button: latched until read
     float value = 0.0f;              // SliderFloat
     float min = 0.0f;
     float max = 1.0f;
   };
 
-  WidgetId GetOrCreateWindow(void* owner, const std::string& title);
+  WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
   WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
   bool TakeClicked(WidgetId id);
   float GetValue(WidgetId id);
   void SetValue(WidgetId id, float value);
   void SetSliderRange(WidgetId id, float min, float max);
   void SetText(WidgetId id, const std::string& text);
+  void SetClicked(WidgetId id);
   void RemoveWidgetsForOwner(void* owner);
+
+  // Snapshot for the Qt detached-window manager; called from the Qt main thread.
+  struct ChildInfo { WidgetId id; WidgetKind kind; std::string label; float min, max; };
+  struct WindowInfo { WidgetId id; std::string title; std::vector<ChildInfo> children; };
+  std::vector<WindowInfo> SnapshotDetachedWindows();
 
 private:
   void RenderWidgets();

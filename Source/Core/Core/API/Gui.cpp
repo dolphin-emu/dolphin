@@ -55,6 +55,8 @@ void Gui::RenderWidgets()
     if (window_it == m_widgets.end())
       continue;
     Widget& window = window_it->second;
+    if (!window.embedded)
+      continue;
     if (!ImGui::Begin(window.label.c_str()))
     {
       ImGui::End();
@@ -88,7 +90,7 @@ void Gui::RenderWidgets()
   }
 }
 
-Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title)
+Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool embedded)
 {
   std::lock_guard lock(m_widget_mutex);
   for (WidgetId id : m_windows)
@@ -98,7 +100,9 @@ Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title)
       return id;
   }
   const WidgetId id = m_next_widget_id++;
-  m_widgets[id] = Widget{WidgetKind::Window, owner, title};
+  Widget w{WidgetKind::Window, owner, title};
+  w.embedded = embedded;
+  m_widgets[id] = std::move(w);
   m_windows.push_back(id);
   return id;
 }
@@ -157,6 +161,39 @@ void Gui::SetText(WidgetId id, const std::string& text)
   auto it = m_widgets.find(id);
   if (it != m_widgets.end())
     it->second.label = text;
+}
+
+void Gui::SetClicked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.clicked = true;
+}
+
+std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
+{
+  std::lock_guard lock(m_widget_mutex);
+  std::vector<WindowInfo> result;
+  for (WidgetId wid : m_windows)
+  {
+    auto wit = m_widgets.find(wid);
+    if (wit == m_widgets.end() || wit->second.embedded)
+      continue;
+    WindowInfo info;
+    info.id = wid;
+    info.title = wit->second.label;
+    for (WidgetId cid : wit->second.children)
+    {
+      auto cit = m_widgets.find(cid);
+      if (cit == m_widgets.end())
+        continue;
+      info.children.push_back({cid, cit->second.kind, cit->second.label,
+                                cit->second.min, cit->second.max});
+    }
+    result.push_back(std::move(info));
+  }
+  return result;
 }
 
 void Gui::RemoveWidgetsForOwner(void* owner)

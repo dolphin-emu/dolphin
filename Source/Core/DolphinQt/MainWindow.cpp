@@ -122,6 +122,7 @@
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/Scripting/ScriptWindowManager.h"
 #include "DolphinQt/Scripting/ScriptingWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
@@ -756,6 +757,7 @@ void MainWindow::CreateComponents()
   m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
   m_scripting_widget = new ScriptingWidget(this);
+  m_script_window_manager = new ScriptWindowManager(this);
   m_thread_widget = new ThreadWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
