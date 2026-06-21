@@ -4,6 +4,8 @@
 
 #include "Gui.h"
 
+#include <cstring>
+
 #include "VideoCommon/OnScreenDisplay.h"
 
 #define GUI_DRAW_DEFERRED(draw_call) \
@@ -34,8 +36,10 @@ void Gui::Render()
 
   ImGui::SetNextWindowPos(ImVec2{0, 0});
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-  static auto flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration;
+  // NoInputs stops this full-screen draw canvas from grabbing focus and covering script windows.
+  static auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
+                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                      ImGuiWindowFlags_NoBringToFrontOnFocus;
 
   ImGui::Begin("gui api", nullptr, flags);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -49,6 +53,7 @@ void Gui::Render()
 void Gui::RenderWidgets()
 {
   std::lock_guard lock(m_widget_mutex);
+  bool any_focused = false;
   for (WidgetId window_id : m_windows)
   {
     auto window_it = m_widgets.find(window_id);
@@ -62,6 +67,8 @@ void Gui::RenderWidgets()
       ImGui::End();
       continue;
     }
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+      any_focused = true;
     for (WidgetId child_id : window.children)
     {
       auto child_it = m_widgets.find(child_id);
@@ -82,12 +89,25 @@ void Gui::RenderWidgets()
       case WidgetKind::Text:
         ImGui::TextUnformatted(w.label.c_str());
         break;
+      case WidgetKind::Checkbox:
+        ImGui::Checkbox(id_label.c_str(), &w.checked);
+        break;
+      case WidgetKind::InputText:
+      {
+        char buf[256];
+        std::strncpy(buf, w.text_value.c_str(), sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+        if (ImGui::InputText(id_label.c_str(), buf, sizeof(buf)))
+          w.text_value = buf;
+        break;
+      }
       default:
         break;
       }
     }
     ImGui::End();
   }
+  m_script_window_focused.store(any_focused);
 }
 
 Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool embedded)
@@ -171,6 +191,36 @@ void Gui::SetClicked(WidgetId id)
     it->second.clicked = true;
 }
 
+bool Gui::GetChecked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it != m_widgets.end() && it->second.checked;
+}
+
+void Gui::SetChecked(WidgetId id, bool checked)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.checked = checked;
+}
+
+std::string Gui::GetInputText(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it == m_widgets.end() ? std::string() : it->second.text_value;
+}
+
+void Gui::SetInputText(WidgetId id, const std::string& text)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.text_value = text;
+}
+
 std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
 {
   std::lock_guard lock(m_widget_mutex);
@@ -188,8 +238,8 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
       auto cit = m_widgets.find(cid);
       if (cit == m_widgets.end())
         continue;
-      info.children.push_back({cid, cit->second.kind, cit->second.label,
-                                cit->second.min, cit->second.max});
+      info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.min,
+                               cit->second.max, cit->second.checked, cit->second.text_value});
     }
     result.push_back(std::move(info));
   }

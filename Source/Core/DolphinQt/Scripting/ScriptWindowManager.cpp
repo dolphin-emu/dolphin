@@ -6,6 +6,7 @@
 
 #include <QCheckBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QSlider>
 #include <QVBoxLayout>
@@ -93,6 +94,27 @@ void ScriptWindowManager::Sync()
       case API::Gui::WidgetKind::Text:
         w = new QLabel(QString::fromStdString(child.label), mw.window);
         break;
+      case API::Gui::WidgetKind::Checkbox:
+      {
+        auto* box = new QCheckBox(QString::fromStdString(child.label), mw.window);
+        box->setChecked(child.checked);
+        const API::Gui::WidgetId cid = child.id;
+        connect(box, &QCheckBox::toggled, this,
+                [cid](bool on) { API::GetGui().SetChecked(cid, on); });
+        w = box;
+        break;
+      }
+      case API::Gui::WidgetKind::InputText:
+      {
+        mw.window->layout()->addWidget(
+            new QLabel(QString::fromStdString(child.label), mw.window));
+        auto* edit = new QLineEdit(QString::fromStdString(child.text_value), mw.window);
+        const API::Gui::WidgetId cid = child.id;
+        connect(edit, &QLineEdit::textEdited, this,
+                [cid](const QString& t) { API::GetGui().SetInputText(cid, t.toStdString()); });
+        w = edit;
+        break;
+      }
       default:
         break;
       }

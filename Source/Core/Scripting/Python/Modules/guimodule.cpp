@@ -187,6 +187,49 @@ static u64 widget_text(PyObject* self, u64 parent, const char* text)
   return state->gui->AddChild(parent, API::Gui::WidgetKind::Text, std::string(text));
 }
 
+static u64 widget_checkbox(PyObject* self, u64 parent, const char* label, int checked)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::Checkbox, std::string(label));
+  state->gui->SetChecked(id, checked != 0);
+  return id;
+}
+
+static u64 widget_input_text(PyObject* self, u64 parent, const char* label, const char* initial)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::InputText, std::string(label));
+  state->gui->SetInputText(id, std::string(initial));
+  return id;
+}
+
+static bool widget_get_checked(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetChecked(id);
+}
+
+static void widget_set_checked(PyObject* self, u64 id, int checked)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetChecked(id, checked != 0);
+}
+
+static PyObject* widget_get_input_text(PyObject* self, PyObject* args)
+{
+  unsigned long long id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return PyUnicode_FromString(state->gui->GetInputText(id).c_str());
+}
+
+static void widget_set_input_text(PyObject* self, u64 id, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetInputText(id, std::string(text));
+}
+
 static bool widget_take_clicked(PyObject* self, u64 id)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
@@ -280,6 +323,26 @@ class Text:
     def set(self, text):
         _widget_set_text(self._id, text)
 
+class Checkbox:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def checked(self):
+        return _widget_get_checked(self._id)
+    @checked.setter
+    def checked(self, v):
+        _widget_set_checked(self._id, int(v))
+
+class InputText:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def value(self):
+        return _widget_get_input_text(self._id)
+    @value.setter
+    def value(self, v):
+        _widget_set_input_text(self._id, v)
+
 class Window:
     def __init__(self, title, embedded=True):
         self._id = _widget_window(title, int(embedded))
@@ -289,6 +352,10 @@ class Window:
         return SliderFloat(_widget_slider_float(self._id, label, min, max))
     def text(self, text = ""):
         return Text(_widget_text(self._id, text))
+    def checkbox(self, label, checked = False):
+        return Checkbox(_widget_checkbox(self._id, label, int(checked)))
+    def input_text(self, label, initial = ""):
+        return InputText(_widget_input_text(self._id, label, initial))
 
 def window(title, embedded=True):
     return Window(title, embedded)
@@ -324,6 +391,12 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_button", Py::as_py_func<widget_button>, METH_VARARGS, ""},
       {"_widget_slider_float", Py::as_py_func<widget_slider_float>, METH_VARARGS, ""},
       {"_widget_text", Py::as_py_func<widget_text>, METH_VARARGS, ""},
+      {"_widget_checkbox", Py::as_py_func<widget_checkbox>, METH_VARARGS, ""},
+      {"_widget_input_text", Py::as_py_func<widget_input_text>, METH_VARARGS, ""},
+      {"_widget_get_checked", Py::as_py_func<widget_get_checked>, METH_VARARGS, ""},
+      {"_widget_set_checked", Py::as_py_func<widget_set_checked>, METH_VARARGS, ""},
+      {"_widget_get_input_text", widget_get_input_text, METH_VARARGS, ""},
+      {"_widget_set_input_text", Py::as_py_func<widget_set_input_text>, METH_VARARGS, ""},
       {"_widget_take_clicked", Py::as_py_func<widget_take_clicked>, METH_VARARGS, ""},
       {"_widget_get_value", Py::as_py_func<widget_get_value>, METH_VARARGS, ""},
       {"_widget_set_value", Py::as_py_func<widget_set_value>, METH_VARARGS, ""},

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <imgui.h>
 #include <map>
@@ -59,6 +60,8 @@ public:
     Button,
     SliderFloat,
     Text,
+    Checkbox,
+    InputText,
   };
   struct Widget
   {
@@ -68,9 +71,11 @@ public:
     std::vector<WidgetId> children;  // Window only
     bool embedded = true;            // Window only: false = detached Qt window
     bool clicked = false;            // Button: latched until read
+    bool checked = false;            // Checkbox
     float value = 0.0f;              // SliderFloat
     float min = 0.0f;
     float max = 1.0f;
+    std::string text_value;          // InputText: editable contents
   };
 
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
@@ -81,12 +86,27 @@ public:
   void SetSliderRange(WidgetId id, float min, float max);
   void SetText(WidgetId id, const std::string& text);
   void SetClicked(WidgetId id);
+  bool GetChecked(WidgetId id);
+  void SetChecked(WidgetId id, bool checked);
+  std::string GetInputText(WidgetId id);
+  void SetInputText(WidgetId id, const std::string& text);
   void RemoveWidgetsForOwner(void* owner);
 
   // Snapshot for the Qt detached-window manager; called from the Qt main thread.
-  struct ChildInfo { WidgetId id; WidgetKind kind; std::string label; float min, max; };
+  struct ChildInfo
+  {
+    WidgetId id;
+    WidgetKind kind;
+    std::string label;
+    float min, max;
+    bool checked;
+    std::string text_value;
+  };
   struct WindowInfo { WidgetId id; std::string title; std::vector<ChildInfo> children; };
   std::vector<WindowInfo> SnapshotDetachedWindows();
+
+  // True while an embedded script window holds ImGui focus, so the input gate can treat it as transparent.
+  bool IsScriptWindowFocused() const { return m_script_window_focused.load(); }
 
 private:
   void RenderWidgets();
@@ -103,6 +123,7 @@ private:
   std::map<WidgetId, Widget> m_widgets;
   std::vector<WidgetId> m_windows;  // top-level, in creation order
   WidgetId m_next_widget_id = 1;
+  std::atomic<bool> m_script_window_focused{false};  // set by video thread in RenderWidgets
 };
 
 // global instance
