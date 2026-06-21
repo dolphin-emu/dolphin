@@ -316,17 +316,24 @@ void AdvancedPane::CreateLayout()
          "your current system time."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
-  auto* movie_group = new QGroupBox(tr("Movie Playback"));
+  auto* movie_group = new QGroupBox(tr("Movie"));
   movie_group->setLayout(new QVBoxLayout());
   main_layout->addWidget(movie_group);
 
   auto* const clear_saves_on_playback = new ConfigBool(
-      tr("Clear Saves Before Movie Playback"), Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK);
+      tr("Delete Saves Before Movie Playback"), Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK);
   clear_saves_on_playback->SetDescription(
       tr("Permanently deletes the SRAM and memory card files for the booted region before a movie "
          "that uses a memory card starts playing, so the run boots from a clean save and stays in "
-         "sync.<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"));
+         "sync."));
   movie_group->layout()->addWidget(clear_saves_on_playback);
+
+  auto* const clear_saves_on_recording = new ConfigBool(
+      tr("Delete Saves Before Movie Recording"), Config::MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING);
+  clear_saves_on_recording->SetDescription(
+      tr("Permanently deletes the SRAM and memory card files for the booted region before a new "
+         "recording starts, so the run begins from a clean save and stays in sync."));
+  movie_group->layout()->addWidget(clear_saves_on_recording);
 
   auto* reset_group = new QGroupBox(tr("Reset Dolphin Settings"));
   reset_group->setLayout(new QVBoxLayout());

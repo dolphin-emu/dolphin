@@ -117,17 +117,19 @@ u8 SlotToEXIDevice(Slot slot)
 }
 
 // Permanently deletes the booted region's SRAM and memory cards before a movie that uses a memory
-// card starts from boot, so both playback and a fresh recording begin from a clean, in-sync save.
+// card starts from boot, so playback or a fresh recording begins from a clean, in-sync save.
 static void ClearSaveFilesForMovie(Core::System& system)
 {
-  if (!Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK))
-    return;
-
   auto& movie = system.GetMovie();
   const bool playing = movie.IsPlayingInput();
   const bool recording = movie.IsRecordingInput();
   // Movies that resume from a savestate carry their save data in the state, so leave files alone.
   if ((!playing && !recording) || movie.IsRecordingInputFromSaveState())
+    return;
+
+  if (playing && !Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK))
+    return;
+  if (recording && !Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING))
     return;
 
   // On playback the header decides which slots hold a card; while recording, the EXI config does.
