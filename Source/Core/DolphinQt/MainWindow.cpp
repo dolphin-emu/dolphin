@@ -148,6 +148,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -2575,6 +2576,12 @@ void MainWindow::OnPlayRecording()
     emit ReadOnlyModeChanged(true);
   }
 
+  // Posted pre-boot, so go straight to OSD; Core::DisplayMessage would drop it while stopped.
+  if (!Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK))
+    OSD::AddMessage("Warning: \"Delete Saves Before Movie Playback\" is off - playback may desync. "
+                    "Enable it under Options > Advanced > Movie.",
+                    OSD::Duration::VERY_LONG);
+
   std::optional<std::string> savestate_path;
   if (movie.PlayInput(dtm_file.toStdString(), &savestate_path))
   {
@@ -2615,6 +2622,12 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::None;
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
+
+  // Recording can start before boot, so go straight to OSD to survive the running-state guard.
+  if (!Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING))
+    OSD::AddMessage("Warning: \"Delete Saves Before Movie Recording\" is off - stale saves can "
+                    "cause desyncs. Enable it under Options > Advanced > Movie.",
+                    OSD::Duration::VERY_LONG);
 
   if (movie.BeginRecordingInput(controllers, wiimotes))
   {

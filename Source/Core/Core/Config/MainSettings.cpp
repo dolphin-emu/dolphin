@@ -537,7 +537,9 @@ const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"
 const Info<bool> MAIN_MOVIE_SHOW_OSD{{System::Main, "Movie", "ShowMovieWindow"}, false};
 const Info<bool> MAIN_MOVIE_VIEW_TAS_INPUTS{{System::Main, "Movie", "ViewTASInputs"}, false};
 const Info<bool> MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK{
-    {System::Main, "Movie", "ClearSavesOnPlayback"}, true};
+    {System::Main, "Movie", "ClearSavesOnPlayback"}, false};
+const Info<bool> MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING{
+    {System::Main, "Movie", "ClearSavesOnRecording"}, false};
 
 // Main.Input
 
