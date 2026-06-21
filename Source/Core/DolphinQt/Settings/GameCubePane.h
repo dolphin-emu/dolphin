@@ -14,6 +14,7 @@
 
 class ConfigBool;
 class ConfigChoice;
+class ConfigInteger;
 class ConfigText;
 class ConfigUserPath;
 class QComboBox;
@@ -85,4 +86,5 @@ private:
   std::array<ConfigText*, 4> m_gba_rom_edits;
   QPushButton* m_gba_browse_saves;
   ConfigUserPath* m_gba_saves_edit;
+  ConfigInteger* m_gba_dump_frame_scale;
 };

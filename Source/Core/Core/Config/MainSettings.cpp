@@ -402,6 +402,10 @@ const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, 
 const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
 const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
 #endif
+const Info<bool> MAIN_GBA_DUMP_FRAMES{{System::Main, "GBA", "DumpFrames"}, false};
+const Info<bool> MAIN_GBA_DUMP_AUDIO{{System::Main, "GBA", "DumpAudio"}, false};
+// Nearest-neighbor upscale factor for GBA frame dumps; native 240x160 looks soft once scaled.
+const Info<int> MAIN_GBA_DUMP_FRAME_SCALE{{System::Main, "GBA", "DumpFrameScale"}, 6};
 
 // Main.Network
 

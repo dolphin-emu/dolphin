@@ -39,6 +39,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #ifdef HAS_LIBMGBA
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigText.h"
 #include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
 #endif
@@ -231,6 +232,15 @@ void GameCubePane::CreateWidgets()
   gba_layout->addWidget(new QLabel(tr("Saves:")), gba_row, 0);
   gba_layout->addWidget(m_gba_saves_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_saves, gba_row, 2);
+  gba_row++;
+
+  m_gba_dump_frame_scale = new ConfigInteger(1, 10, Config::MAIN_GBA_DUMP_FRAME_SCALE);
+  m_gba_dump_frame_scale->SetTitle(tr("Frame Dump Upscale Factor"));
+  m_gba_dump_frame_scale->SetDescription(
+      tr("Nearest-neighbor upscale applied to dumped GBA frames (native 240x160), keeping pixels "
+         "crisp when the dump is scaled for display.\n\nDoes not add detail."));
+  gba_layout->addWidget(new QLabel(tr("Frame Dump Upscale Factor:")), gba_row, 0);
+  gba_layout->addWidget(m_gba_dump_frame_scale, gba_row, 1);
   gba_row++;
 #endif
 

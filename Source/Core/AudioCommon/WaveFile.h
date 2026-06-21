@@ -37,6 +37,9 @@ public:
   // big endian
   void AddStereoSamplesBE(const short* sample_data, u32 count, u32 sample_rate_divisor,
                           int l_volume, int r_volume);
+  // little endian, already interleaved LR
+  void AddStereoSamplesLE(const short* sample_data, u32 count, u32 sample_rate_divisor,
+                          int l_volume, int r_volume);
   u32 GetAudioSize() const { return m_audio_size; }
 
 private:

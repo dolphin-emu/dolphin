@@ -24,6 +24,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/FrameDumpFFMpeg.h"
+
 class GBAHostInterface;
 class PointerWrap;
 namespace Core
@@ -113,6 +115,8 @@ private:
   void SetAVStream();
   void SetupEvent();
 
+  void DumpFrame();
+
   const int m_device_number;
 
   bool m_started = false;
@@ -127,6 +131,12 @@ private:
   SIODriver m_sio_driver{};
   AVStream m_stream{};
   std::vector<u32> m_video_buffer;
+
+#if defined(HAVE_FFMPEG)
+  FFMpegFrameDump m_frame_dump;
+  u32 m_frame_dump_count = 0;
+  std::vector<u32> m_frame_dump_scaled;
+#endif
 
   u64 m_last_gc_ticks = 0;
   u64 m_gc_ticks_remainder = 0;

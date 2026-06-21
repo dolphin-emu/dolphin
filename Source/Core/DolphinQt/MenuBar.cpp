@@ -32,6 +32,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -900,6 +901,25 @@ void MenuBar::AddMovieMenu()
   connect(dump_audio, &QAction::toggled,
           [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 
+#ifdef HAS_LIBMGBA
+  m_dump_gba_frames = movie_menu->addAction(tr("Dump GBA Frames"));
+  m_dump_gba_frames->setCheckable(true);
+  m_dump_gba_frames->setChecked(Config::Get(Config::MAIN_GBA_DUMP_FRAMES));
+  connect(m_dump_gba_frames, &QAction::toggled,
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_FRAMES, value); });
+
+  m_dump_gba_audio = movie_menu->addAction(tr("Dump GBA Audio"));
+  m_dump_gba_audio->setCheckable(true);
+  m_dump_gba_audio->setChecked(Config::Get(Config::MAIN_GBA_DUMP_AUDIO));
+  connect(m_dump_gba_audio, &QAction::toggled,
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_AUDIO, value); });
+
+  // Only offer GBA dumping when an emulated GBA is configured; refresh on open since the controller
+  // config can change at any time.
+  connect(movie_menu, &QMenu::aboutToShow, this, &MenuBar::UpdateGBADumpActions);
+  UpdateGBADumpActions();
+#endif
+
   auto* view_movie_inputs = movie_menu->addAction(tr("View Movie Inputs"));
   view_movie_inputs->setCheckable(true);
   view_movie_inputs->setChecked(Config::Get(Config::MAIN_MOVIE_VIEW_TAS_INPUTS));
@@ -907,6 +927,23 @@ void MenuBar::AddMovieMenu()
     Config::SetBaseOrCurrent(Config::MAIN_MOVIE_VIEW_TAS_INPUTS, value);
   });
 }
+
+#ifdef HAS_LIBMGBA
+void MenuBar::UpdateGBADumpActions()
+{
+  bool has_gba = false;
+  for (int i = 0; i < 4; ++i)
+  {
+    if (Config::Get(Config::GetInfoForSIDevice(i)) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+    {
+      has_gba = true;
+      break;
+    }
+  }
+  m_dump_gba_frames->setEnabled(has_gba);
+  m_dump_gba_audio->setEnabled(has_gba);
+}
+#endif
 
 void MenuBar::AddJITMenu()
 {

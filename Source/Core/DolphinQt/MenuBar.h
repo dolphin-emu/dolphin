@@ -162,6 +162,9 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
   void AddMovieMenu();
+#ifdef HAS_LIBMGBA
+  void UpdateGBADumpActions();
+#endif
   void AddJITMenu();
   void AddSymbolsMenu();
 
@@ -264,6 +267,10 @@ private:
   QAction* m_recording_read_only;
   QAction* m_movie_window;
   QAction* m_dtm_editor;
+#ifdef HAS_LIBMGBA
+  QAction* m_dump_gba_frames;
+  QAction* m_dump_gba_audio;
+#endif
 
   // Options
   QAction* m_boot_to_pause;

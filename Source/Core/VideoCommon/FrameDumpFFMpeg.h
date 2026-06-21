@@ -6,6 +6,7 @@
 #include <ctime>
 #include <limits>
 #include <memory>
+#include <string>
 
 #include "Common/CommonTypes.h"
 
@@ -38,7 +39,9 @@ public:
   FFMpegFrameDump();
   ~FFMpegFrameDump();
 
-  bool Start(int w, int h, u64 start_ticks);
+  // A non-empty name_prefix replaces the game-id filename base, letting auxiliary windows
+  // (e.g. GBA cores) dump to their own files.
+  bool Start(int w, int h, u64 start_ticks, const std::string& name_prefix = {});
   void AddFrame(const FrameData&);
   void Stop();
   void DoState(PointerWrap&);
@@ -63,6 +66,7 @@ private:
   // Used for filename generation.
   std::time_t m_start_time = {};
   u32 m_file_index = 0;
+  std::string m_name_prefix;
 
   // Some codecs (like MPEG4) have a limit to this
   int64_t m_max_denominator = std::numeric_limits<s64>::max();
