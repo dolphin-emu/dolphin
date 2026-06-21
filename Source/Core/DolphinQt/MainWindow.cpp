@@ -122,6 +122,7 @@
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/Scripting/InputDisplayController.h"
 #include "DolphinQt/Scripting/ScriptWindowManager.h"
 #include "DolphinQt/Scripting/ScriptingWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
@@ -877,6 +878,10 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
   connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
   connect(m_menu_bar, &MenuBar::ShowDTMEditor, this, &MainWindow::ShowDTMEditor);
+  connect(m_menu_bar, &MenuBar::ShowInputDisplay, this, &MainWindow::OnShowInputDisplay);
+  connect(m_menu_bar, &MenuBar::DumpControllerInputs, this, &MainWindow::OnDumpControllerInputs);
+  connect(m_script_window_manager, &ScriptWindowManager::OverlayClosed, this,
+          [this] { m_menu_bar->SetInputDisplayChecked(false); });
   connect(m_menu_bar, &MenuBar::ConfigureOSD, this, &MainWindow::ShowOSDWindow);
 
   // View
@@ -2713,6 +2718,26 @@ void MainWindow::ShowDTMEditor()
   m_dtm_editor->show();
   m_dtm_editor->raise();
   m_dtm_editor->activateWindow();
+}
+
+void MainWindow::OnShowInputDisplay(bool show)
+{
+  if (!m_input_display)
+    m_input_display = std::make_unique<InputDisplayController>();
+  if (show)
+    m_input_display->Show();
+  else
+    m_input_display->Hide();
+}
+
+void MainWindow::OnDumpControllerInputs(bool dump)
+{
+  if (!m_input_display)
+    m_input_display = std::make_unique<InputDisplayController>();
+  if (dump)
+    m_input_display->StartDump();
+  else
+    m_input_display->StopDump();
 }
 
 void MainWindow::OnConnectWiiRemote(int id)
