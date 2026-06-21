@@ -317,6 +317,8 @@ add_executable(dolphin-emu
   QtUtils/ClearLayoutRecursively.cpp
   QtUtils/ClearLayoutRecursively.h
   QtUtils/ClickableStatusBar.h
+  QtUtils/FlowLayout.cpp
+  QtUtils/FlowLayout.h
   QtUtils/DolphinFileDialog.cpp
   QtUtils/DolphinFileDialog.h
   QtUtils/DoubleClickEventFilter.cpp
@@ -392,6 +394,8 @@ add_executable(dolphin-emu
   TAS/GBATASInputWindow.h
   TAS/IRWidget.cpp
   TAS/IRWidget.h
+  TAS/SectionResizer.cpp
+  TAS/SectionResizer.h
   TAS/StickWidget.cpp
   TAS/StickWidget.h
   TAS/TASCheckBox.cpp
@@ -511,23 +515,23 @@ if(WIN32)
 
   # Copy Sys dir
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:dolphin-emu>/Sys"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "$<TARGET_FILE_DIR:dolphin-emu>/Sys"
   )
 
   # Copy COPYING
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/COPYING" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/COPYING"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/COPYING" "$<TARGET_FILE_DIR:dolphin-emu>/COPYING"
   )
 
   # Copy Licenses dir
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/LICENSES" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Licenses"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/LICENSES" "$<TARGET_FILE_DIR:dolphin-emu>/Licenses"
   )
 
   # Copy qt.conf
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "$<TARGET_FILE_DIR:dolphin-emu>/qt.conf"
   )
 
   if (DEFINED DOLPHIN_PYTHON_RUNTIME_LIBRARY AND EXISTS "${DOLPHIN_PYTHON_RUNTIME_LIBRARY}")
@@ -552,7 +556,7 @@ if(WIN32)
   if (ENABLE_AUTOUPDATE)
     # Copy build_info.txt
     add_custom_command(TARGET dolphin-emu POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/build_info.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/build_info.txt" "$<TARGET_FILE_DIR:dolphin-emu>/build_info.txt"
     )
   endif()
 
@@ -577,8 +581,8 @@ if(WIN32)
   #
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
-            "${WINDEPLOYQT_EXE}" --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-                                 --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
+            "${WINDEPLOYQT_EXE}" --libdir="$<TARGET_FILE_DIR:dolphin-emu>"
+                                 --plugindir="$<TARGET_FILE_DIR:dolphin-emu>/QtPlugins"
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
                                  --no-compiler-runtime

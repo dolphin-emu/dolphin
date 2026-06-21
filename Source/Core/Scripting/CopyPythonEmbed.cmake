@@ -1,3 +1,6 @@
+# IN_LIST needs CMP0057; cmake -P defaults it to OLD.
+cmake_minimum_required(VERSION 3.13)
+
 if(NOT DEFINED OUTPUT_DIR)
   message(FATAL_ERROR "OUTPUT_DIR must be provided")
 endif()

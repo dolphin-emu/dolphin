@@ -8,7 +8,9 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -114,9 +116,88 @@ u8 SlotToEXIDevice(Slot slot)
   }
 }
 
+// Permanently deletes the booted region's SRAM and memory cards before a movie that uses a memory
+// card starts from boot, so playback or a fresh recording begins from a clean, in-sync save.
+static void ClearSaveFilesForMovie(Core::System& system)
+{
+  auto& movie = system.GetMovie();
+  const bool playing = movie.IsPlayingInput();
+  const bool recording = movie.IsRecordingInput();
+  // Movies that resume from a savestate carry their save data in the state, so leave files alone.
+  if ((!playing && !recording) || movie.IsRecordingInputFromSaveState())
+    return;
+
+  if (playing && !Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK))
+    return;
+  if (recording && !Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING))
+    return;
+
+  // On playback the header decides which slots hold a card; while recording, the EXI config does.
+  const auto slot_uses_memcard = [&](Slot slot) {
+    if (playing)
+      return movie.IsConfigSaved() && movie.IsUsingMemcard(slot);
+    const EXIDeviceType device = Config::Get(Config::GetInfoForEXIDevice(slot));
+    return device == EXIDeviceType::MemoryCard || device == EXIDeviceType::MemoryCardFolder;
+  };
+
+  const bool slot_a = slot_uses_memcard(Slot::A);
+  const bool slot_b = slot_uses_memcard(Slot::B);
+  if (!slot_a && !slot_b)
+    return;
+
+  const DiscIO::Region region = SConfig::GetInstance().m_region;
+
+  // Match the raw card filename the loader would produce for the configured card size.
+  u16 size_mb = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
+  const int size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+  if (size_override >= 0 && size_override <= 4)
+    size_mb = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
+
+  const std::string gc_user = File::GetUserPath(D_GCUSER_IDX);
+  const char* const region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(region));
+
+  const auto delete_file = [](const std::string& path) {
+    if (File::Exists(path) && File::Delete(path))
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Cleared memory card for movie: {}", path);
+  };
+  const auto delete_dir = [](const std::string& path) {
+    if (File::IsDirectory(path) && File::DeleteDirRecursively(path))
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Cleared GCI folder for movie: {}", path);
+  };
+
+  // A clear-save movie loads a dedicated "Movie" card that persists between runs; everything else
+  // loads the real per-region card. Clear only whichever one will actually be read.
+  const bool clear_save = playing && movie.IsStartingFromClearSave();
+
+  const auto clear_slot = [&](Slot slot) {
+    const char short_name = slot == Slot::A ? 'A' : 'B';
+    if (clear_save)
+    {
+      delete_file(fmt::format("{}Movie{}.raw", gc_user, short_name));
+      delete_dir(fmt::format("{}{}/Movie/Card {}", gc_user, region_dir, short_name));
+    }
+    else
+    {
+      delete_file(Config::GetMemcardPath(slot, region, size_mb));
+      delete_dir(Config::GetGCIFolderPath(slot, region));
+    }
+  };
+  if (slot_a)
+    clear_slot(Slot::A);
+  if (slot_b)
+    clear_slot(Slot::B);
+
+  const std::string& sram_path = SConfig::GetInstance().m_strSRAM;
+  if (File::Exists(sram_path) && File::Delete(sram_path))
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "Cleared SRAM for movie: {}", sram_path);
+}
+
 void ExpansionInterfaceManager::Init(const Sram* override_sram)
 {
   auto& sram = m_system.GetSRAM();
+  if (!override_sram)
+    ClearSaveFilesForMovie(m_system);
+
   if (override_sram)
   {
     sram = *override_sram;

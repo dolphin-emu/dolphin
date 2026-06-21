@@ -196,6 +196,7 @@
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\ClearLayoutRecursively.cpp" />
+    <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\DolphinFileDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
@@ -231,6 +232,7 @@
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\GBATASInputWindow.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />
+    <ClCompile Include="TAS\SectionResizer.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\TASCheckBox.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
@@ -261,6 +263,7 @@
     <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ClearLayoutRecursively.h" />
+    <ClInclude Include="QtUtils\FlowLayout.h" />
     <QtMoc Include="QtUtils\ClickableStatusBar.h" />
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
@@ -445,6 +448,7 @@
     <QtMoc Include="TAS\GCTASInputWindow.h" />
     <QtMoc Include="TAS\GBATASInputWindow.h" />
     <QtMoc Include="TAS\IRWidget.h" />
+    <QtMoc Include="TAS\SectionResizer.h" />
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\TASCheckBox.h" />
     <QtMoc Include="TAS\TASInputWindow.h" />

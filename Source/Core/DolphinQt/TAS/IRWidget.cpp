@@ -22,6 +22,11 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
   setMinimumSize(QSize(16, 12));
 }
 
+QSize IRWidget::sizeHint() const
+{
+  return QSize(160, 120);
+}
+
 void IRWidget::SetX(u16 x)
 {
   m_x = std::min(IR_MAX_X, x);

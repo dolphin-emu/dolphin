@@ -38,6 +38,7 @@
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/TAS/IRWidget.h"
+#include "DolphinQt/TAS/SectionResizer.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASSlider.h"
@@ -310,6 +311,47 @@ void TASInputWindow::SetResizableContentLayout(QLayout* content_layout)
   setLayout(content_layout);
   setMinimumSize(160, 120);
   resize(sizeHint());
+}
+
+void TASInputWindow::MakeSectionResizable(const std::string& key, QWidget* widget)
+{
+  if (!widget)
+    return;
+
+  auto* resizer = new SectionResizer(widget, [this] { RelayoutSections(); }, this);
+  m_resizable_sections.push_back({key, widget, resizer});
+}
+
+void TASInputWindow::RelayoutSections()
+{
+  if (QLayout* content_layout = layout())
+  {
+    content_layout->invalidate();
+    content_layout->activate();
+  }
+}
+
+std::map<std::string, int> TASInputWindow::GetSectionWidths() const
+{
+  std::map<std::string, int> widths;
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    if (section.resizer->HasCustomWidth())
+      widths[section.key] = section.resizer->CustomWidth();
+  }
+  return widths;
+}
+
+void TASInputWindow::ApplySectionWidths(const std::map<std::string, int>& widths)
+{
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    const auto it = widths.find(section.key);
+    if (it != widths.end())
+      section.resizer->SetCustomWidth(it->second);
+    else
+      section.resizer->ClearCustomWidth();
+  }
 }
 
 void TASInputWindow::RegisterVisibilitySection(const QString& label, const std::string& key,

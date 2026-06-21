@@ -54,6 +54,9 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
+  void StartLogGBAAudio(std::size_t device_number);
+  void StopLogGBAAudio(std::size_t device_number);
+
   // 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
   static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
@@ -158,13 +161,16 @@ private:
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
+  std::array<WaveFileWriter, 4> m_wave_writer_gba{};
 
   bool m_log_dtk_audio = false;
   bool m_log_dsp_audio = false;
+  std::array<bool, 4> m_log_gba_audio{};
 
   float m_config_emulation_speed;
   bool m_config_fill_audio_gaps;
   int m_config_audio_buffer_ms;
+  bool m_config_gba_dump_audio = false;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

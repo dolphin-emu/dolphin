@@ -204,6 +204,7 @@ extern const Info<bool> MAIN_TIME_TRACKING;
 extern const Info<std::string> MAIN_DUMP_PATH;
 extern const Info<std::string> MAIN_LOAD_PATH;
 extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
+extern const Info<std::string> MAIN_SCRIPTS_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_WII_SD_CARD_IMAGE_PATH;
 extern const Info<std::string> MAIN_WII_SD_CARD_SYNC_FOLDER_PATH;
@@ -227,6 +228,9 @@ extern const Info<std::string> MAIN_GBA_SAVES_PATH;
 extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
 extern const Info<bool> MAIN_GBA_THREADS;
 #endif
+extern const Info<bool> MAIN_GBA_DUMP_FRAMES;
+extern const Info<bool> MAIN_GBA_DUMP_AUDIO;
+extern const Info<int> MAIN_GBA_DUMP_FRAME_SCALE;
 
 // Main.Network
 
@@ -337,6 +341,8 @@ extern const Info<bool> MAIN_MOVIE_SHOW_RTC;
 extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 extern const Info<bool> MAIN_MOVIE_SHOW_OSD;
 extern const Info<bool> MAIN_MOVIE_VIEW_TAS_INPUTS;
+extern const Info<bool> MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK;
+extern const Info<bool> MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING;
 
 // Main.Input
 

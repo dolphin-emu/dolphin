@@ -24,6 +24,7 @@ private:
   void BrowseDump();
   void BrowseLoad();
   void BrowseResourcePack();
+  void BrowseScripts();
   void BrowseWFS();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
@@ -35,6 +36,7 @@ private:
   ConfigText* m_dump_edit;
   ConfigText* m_load_edit;
   ConfigText* m_resource_pack_edit;
+  ConfigText* m_scripts_edit;
   ConfigText* m_wfs_edit;
 
   QPushButton* m_remove_path;

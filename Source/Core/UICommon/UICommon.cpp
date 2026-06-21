@@ -88,6 +88,14 @@ static void CreateLoadPath(std::string path)
   File::CreateFullPath(File::GetUserPath(D_DYNAMICINPUT_IDX));
 }
 
+static void CreateScriptsPath(std::string path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_SCRIPTS_IDX, std::move(path));
+  File::CreateFullPath(File::GetUserPath(D_SCRIPTS_IDX));
+  File::CreateFullPath(File::GetUserPath(D_MODULES_IDX));
+}
+
 static void CreateResourcePackPath(std::string path)
 {
   if (!path.empty())
@@ -104,6 +112,7 @@ static void InitCustomPaths()
 {
   File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
+  CreateScriptsPath(Config::Get(Config::MAIN_SCRIPTS_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
   CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));

@@ -120,18 +120,25 @@ void InitAVCodec()
   }
 }
 
-std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
+std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index,
+                        const std::string& name_prefix)
 {
-  const std::string dump_path = Config::Get(Config::GFX_DUMP_PATH);
-  if (!dump_path.empty())
-    return dump_path;
+  // The fixed GFX_DUMP_PATH override targets a single file, so it only applies to the main dump.
+  if (name_prefix.empty())
+  {
+    const std::string dump_path = Config::Get(Config::GFX_DUMP_PATH);
+    if (!dump_path.empty())
+      return dump_path;
+  }
 
   const auto local_time = Common::LocalTime(time);
   if (!local_time)
     return "";
 
   const std::string path_prefix =
-      File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
+      name_prefix.empty() ?
+          File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID() :
+          File::GetUserPath(D_DUMPFRAMES_IDX) + name_prefix;
 
   const std::string base_name =
       fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *local_time, index);
@@ -165,7 +172,7 @@ std::string AVErrorString(int error)
 
 }  // namespace
 
-bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
+bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks, const std::string& name_prefix)
 {
   if (IsStarted())
     return true;
@@ -173,6 +180,7 @@ bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
   m_savestate_index = 0;
   m_start_time = std::time(nullptr);
   m_file_index = 0;
+  m_name_prefix = name_prefix;
 
   return PrepareEncoding(w, h, start_ticks, m_savestate_index);
 }
@@ -201,7 +209,7 @@ bool FFMpegFrameDump::CreateVideoFile()
 {
   const std::string format = Config::Get(Config::GFX_DUMP_FORMAT);
 
-  const std::string dump_path = GetDumpPath(format, m_start_time, m_file_index);
+  const std::string dump_path = GetDumpPath(format, m_start_time, m_file_index, m_name_prefix);
 
   if (dump_path.empty())
     return false;

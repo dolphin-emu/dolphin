@@ -38,6 +38,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt/QtUtils/FlowLayout.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Scripting/ScriptFavoritesWidget.h"
 #include "DolphinQt/TAS/IRWidget.h"
@@ -239,6 +240,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_classic_left_stick_box->setMinimumHeight(20);
   m_classic_right_stick_box->setMinimumHeight(20);
 
+  // The IR/stick widgets own the top row, growing and shrinking with the window.
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_ir_box);
   top_layout->addWidget(m_nunchuk_stick_box);
@@ -548,25 +550,25 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   m_favorites_widget = new ScriptFavoritesWidget(this);
   m_favorites_widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  auto* buttons_column = new QVBoxLayout;
-  buttons_column->addWidget(m_remote_buttons_box);
-  buttons_column->addWidget(m_nunchuk_buttons_box);
-  buttons_column->addWidget(m_classic_buttons_box);
 
-  auto* buttons_row = new QHBoxLayout;
-  buttons_row->addLayout(buttons_column, 1);
-  buttons_row->addWidget(m_favorites_widget, 0, Qt::AlignTop);
+  // The remaining sections flow left-to-right and wrap to the next row when the window is too
+  // narrow. Hidden sections (per extension / options menu) reserve no space.
+  auto* bottom_layout = new FlowLayout;
+  bottom_layout->addWidget(m_remote_accelerometer_box);
+  bottom_layout->addWidget(m_remote_gyroscope_box);
+  bottom_layout->addWidget(m_nunchuk_accelerometer_box);
+  bottom_layout->addWidget(m_triggers_box);
+  bottom_layout->addWidget(m_remote_buttons_box);
+  bottom_layout->addWidget(m_nunchuk_buttons_box);
+  bottom_layout->addWidget(m_classic_buttons_box);
+  bottom_layout->addWidget(m_settings_box);
+  bottom_layout->addWidget(m_battery_box);
+  bottom_layout->addWidget(m_reset_box);
+  bottom_layout->addWidget(m_favorites_widget);
 
   auto* layout = new QVBoxLayout;
-  layout->addLayout(top_layout);
-  layout->addWidget(m_remote_accelerometer_box);
-  layout->addWidget(m_remote_gyroscope_box);
-  layout->addWidget(m_nunchuk_accelerometer_box);
-  layout->addWidget(m_triggers_box);
-  layout->addLayout(buttons_row);
-  layout->addWidget(m_settings_box);
-  layout->addWidget(m_battery_box);
-  layout->addWidget(m_reset_box);
+  layout->addLayout(top_layout, 1);
+  layout->addLayout(bottom_layout);
 
   SetResizableContentLayout(layout);
 
@@ -591,6 +593,18 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   RegisterVisibilitySection(tr("Favorite Scripts"), SECTION_WII_FAVORITE_SCRIPTS,
                             m_favorites_widget);
   FinalizeVisibilitySections();
+
+  MakeSectionResizable(SECTION_WII_REMOTE_ACCELEROMETER, m_remote_accelerometer_box);
+  MakeSectionResizable(SECTION_WII_REMOTE_GYROSCOPE, m_remote_gyroscope_box);
+  MakeSectionResizable(SECTION_WII_NUNCHUK_ACCELEROMETER, m_nunchuk_accelerometer_box);
+  MakeSectionResizable(SECTION_WII_TRIGGERS, m_triggers_box);
+  MakeSectionResizable("Wii.RemoteButtons", m_remote_buttons_box);
+  MakeSectionResizable("Wii.NunchukButtons", m_nunchuk_buttons_box);
+  MakeSectionResizable("Wii.ClassicButtons", m_classic_buttons_box);
+  MakeSectionResizable(SECTION_WII_SETTINGS, m_settings_box);
+  MakeSectionResizable(SECTION_WII_BATTERY, m_battery_box);
+  MakeSectionResizable(SECTION_WII_RESET, m_reset_box);
+  MakeSectionResizable(SECTION_WII_FAVORITE_SCRIPTS, m_favorites_widget);
 }
 
 WiiTASInputWindow::~WiiTASInputWindow()

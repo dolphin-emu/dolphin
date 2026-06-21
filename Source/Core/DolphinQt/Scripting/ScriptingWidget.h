@@ -35,7 +35,10 @@ private:
   void OnEmulationStateChanged(Core::State state);
   void OnDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight,
                      const QList<int>& roles);
-  
+  // Re-root the tree when the scripts path changes in settings; ignored while a game is running
+  // since that view is pinned to the game-specific subdirectory.
+  void RefreshScriptsRoot();
+
   void OpenScriptsFolder();
   void OnTreeClicked(const QModelIndex& index);
 
@@ -46,4 +49,5 @@ private:
 
   ScriptsFileSystemModel* m_scripts_model;
   QTreeView* m_tree;
+  bool m_game_running = false;
 };

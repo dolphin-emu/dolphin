@@ -12,12 +12,14 @@
 #include <QDropEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QIcon>
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QMargins>
 #include <QSaveFile>
 #include <QMimeData>
+#include <QScreen>
 #include <QSet>
 #include <QStackedWidget>
 #include <QStyleHints>
@@ -30,6 +32,7 @@
 
 #include <algorithm>
 #include <future>
+#include <map>
 #include <optional>
 #include <variant>
 
@@ -145,6 +148,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -228,11 +232,26 @@ struct WindowPresetEntry
 {
   QString preset;
   QString window;
+  // For screen-relative entries x/y are offsets within `screen`; otherwise absolute virtual-desktop.
   int x = 0;
   int y = 0;
   int width = 0;
   int height = 0;
+  QString screen;
+  bool screen_relative = false;
 };
+
+static QScreen* FindScreenByName(const QString& name)
+{
+  if (name.isEmpty())
+    return nullptr;
+  for (QScreen* screen : QGuiApplication::screens())
+  {
+    if (screen->name() == name)
+      return screen;
+  }
+  return nullptr;
+}
 
 static QString WindowPresetsPath()
 {
@@ -300,7 +319,17 @@ static QList<WindowPresetEntry> ReadWindowPresetEntries(const QString& path)
     if (line.isEmpty())
       continue;
 
-    const QStringList parts = line.split(QLatin1Char(','));
+    QStringList parts = line.split(QLatin1Char(','));
+
+    // Optional trailing "@<screen>" marks screen-relative coordinates; legacy rows omit it.
+    QString screen;
+    bool screen_relative = false;
+    if (!parts.isEmpty() && parts.last().startsWith(QLatin1Char('@')))
+    {
+      screen = parts.takeLast().mid(1).trimmed();
+      screen_relative = true;
+    }
+
     if (parts.size() < 4)
       continue;
 
@@ -338,7 +367,7 @@ static QList<WindowPresetEntry> ReadWindowPresetEntries(const QString& path)
     if (!x_ok || !y_ok || !width_ok || !height_ok || preset.isEmpty() || window.isEmpty())
       continue;
 
-    entries.push_back({preset, window, x, y, width, height});
+    entries.push_back({preset, window, x, y, width, height, screen, screen_relative});
   }
 
   return entries;
@@ -349,6 +378,64 @@ static QString MakeWindowPresetKey(const QString& prefix, int index)
   return QStringLiteral("%1%2").arg(prefix).arg(index + 1);
 }
 
+// Per-section drag-resized widths for a TAS window, stored on dedicated CSV rows tagged "#sections".
+struct WindowSectionEntry
+{
+  QString preset;
+  QString window;
+  std::map<std::string, int> widths;
+};
+
+static QList<WindowSectionEntry> ReadWindowSectionEntries(const QString& path)
+{
+  QList<WindowSectionEntry> entries;
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    return entries;
+
+  const QString suffix = QStringLiteral("#sections");
+  QTextStream in(&file);
+  while (!in.atEnd())
+  {
+    const QString line = in.readLine().trimmed();
+    if (line.isEmpty())
+      continue;
+
+    const QStringList parts = line.split(QLatin1Char(','));
+    if (parts.size() < 3)
+      continue;
+
+    const QString tag = parts[parts.size() - 2].trimmed();
+    if (!tag.endsWith(suffix))
+      continue;
+
+    const QString window = tag.left(tag.size() - suffix.size());
+    const QString preset = parts.mid(0, parts.size() - 2).join(QLatin1Char(',')).trimmed();
+    const QString payload = parts[parts.size() - 1].trimmed();
+    if (preset.isEmpty() || window.isEmpty() || payload.isEmpty())
+      continue;
+
+    std::map<std::string, int> widths;
+    const QStringList pairs = payload.split(QLatin1Char('|'));
+    for (const QString& pair : pairs)
+    {
+      const int colon = pair.lastIndexOf(QLatin1Char(':'));
+      if (colon <= 0)
+        continue;
+      bool ok = false;
+      const int width = pair.mid(colon + 1).toInt(&ok);
+      if (!ok || width <= 0)
+        continue;
+      widths[pair.left(colon).toStdString()] = width;
+    }
+
+    if (!widths.empty())
+      entries.push_back({preset, window, std::move(widths)});
+  }
+
+  return entries;
+}
+
 static void ApplyWindowGeometry(QWidget* window, const WindowPresetEntry& entry)
 {
   if (!window)
@@ -356,9 +443,29 @@ static void ApplyWindowGeometry(QWidget* window, const WindowPresetEntry& entry)
 
   const bool was_minimized = window->isMinimized();
 
+  // Re-anchor screen-relative presets to their saved monitor so the offset is interpreted
+  // against that screen's origin, not the primary's. Legacy entries stay absolute.
+  QRect target_frame(entry.x, entry.y, entry.width, entry.height);
+  QScreen* target_screen = nullptr;
+  if (entry.screen_relative)
+  {
+    target_screen = FindScreenByName(entry.screen);
+    if (!target_screen)
+      target_screen = QGuiApplication::primaryScreen();
+    if (target_screen)
+      target_frame.translate(target_screen->geometry().topLeft());
+  }
+
+  // Force a native handle so geometry sticks and the screen association is valid even while
+  // hidden; without this, auto-load (windows not yet shown) lets the WM re-place on first show.
+  window->createWinId();
+  QWindow* handle = window->windowHandle();
+  if (handle && target_screen && handle->screen() != target_screen)
+    handle->setScreen(target_screen);
+
   QRect frame;
   QRect geom;
-  if (QWindow* handle = window->windowHandle())
+  if (handle)
   {
     frame = handle->frameGeometry();
     geom = handle->geometry();
@@ -371,12 +478,12 @@ static void ApplyWindowGeometry(QWidget* window, const WindowPresetEntry& entry)
 
   const QMargins margins(geom.left() - frame.left(), geom.top() - frame.top(),
                          frame.right() - geom.right(), frame.bottom() - geom.bottom());
-  const int client_width = std::max(1, entry.width - margins.left() - margins.right());
-  const int client_height = std::max(1, entry.height - margins.top() - margins.bottom());
-  const QRect client_rect(entry.x + margins.left(), entry.y + margins.top(), client_width,
-                          client_height);
+  const int client_width = std::max(1, target_frame.width() - margins.left() - margins.right());
+  const int client_height = std::max(1, target_frame.height() - margins.top() - margins.bottom());
+  const QRect client_rect(target_frame.x() + margins.left(), target_frame.y() + margins.top(),
+                          client_width, client_height);
 
-  if (QWindow* handle = window->windowHandle())
+  if (handle)
     handle->setGeometry(client_rect);
   else
     window->setGeometry(client_rect);
@@ -388,7 +495,7 @@ static void ApplyWindowGeometry(QWidget* window, const WindowPresetEntry& entry)
   {
     window->raise();
     window->activateWindow();
-    if (QWindow* handle = window->windowHandle())
+    if (handle)
       handle->requestActivate();
   }
 }
@@ -1570,15 +1677,40 @@ void MainWindow::SaveWindowPreset()
                                }),
                 entries.end());
 
+  QList<WindowSectionEntry> section_entries = ReadWindowSectionEntries(WindowPresetsPath());
+  section_entries.erase(std::remove_if(section_entries.begin(), section_entries.end(),
+                                       [&trimmed_name](const WindowSectionEntry& entry) {
+                                         return entry.preset == trimmed_name;
+                                       }),
+                        section_entries.end());
+
+  auto add_section_entry = [&](const QString& window_key, TASInputWindow* window) {
+    if (!window)
+      return;
+    std::map<std::string, int> widths = window->GetSectionWidths();
+    if (widths.empty())
+      return;
+    section_entries.push_back({trimmed_name, window_key, std::move(widths)});
+  };
+
   auto add_window_entry = [&](const QString& window_key, const QWidget* window) {
     if (!window)
       return;
-    const QPoint top_left = window->frameGeometry().topLeft();
-    const QSize size = window->frameGeometry().size();
+    const QRect frame = window->frameGeometry();
+    const QSize size = frame.size();
     if (size.width() <= 0 || size.height() <= 0)
       return;
-    entries.push_back(
-        {trimmed_name, window_key, top_left.x(), top_left.y(), size.width(), size.height()});
+    // Store coordinates relative to the window's current screen so restore survives the
+    // monitors' differing virtual-desktop origins; fall back to absolute if no screen.
+    QPoint top_left = frame.topLeft();
+    QString screen_name;
+    if (const QScreen* screen = window->screen())
+    {
+      screen_name = screen->name();
+      top_left -= screen->geometry().topLeft();
+    }
+    entries.push_back({trimmed_name, window_key, top_left.x(), top_left.y(), size.width(),
+                       size.height(), screen_name, !screen_name.isEmpty()});
   };
 
   const bool render_to_main =
@@ -1589,11 +1721,23 @@ void MainWindow::SaveWindowPreset()
     add_window_entry(QStringLiteral("RenderWindow"), m_render_widget);
 
   for (int i = 0; i < static_cast<int>(m_gc_tas_input_windows.size()); ++i)
-    add_window_entry(MakeWindowPresetKey(QStringLiteral("GCTAS"), i), m_gc_tas_input_windows[i]);
+  {
+    const QString key = MakeWindowPresetKey(QStringLiteral("GCTAS"), i);
+    add_window_entry(key, m_gc_tas_input_windows[i]);
+    add_section_entry(key, m_gc_tas_input_windows[i]);
+  }
   for (int i = 0; i < static_cast<int>(m_gba_tas_input_windows.size()); ++i)
-    add_window_entry(MakeWindowPresetKey(QStringLiteral("GBATAS"), i), m_gba_tas_input_windows[i]);
+  {
+    const QString key = MakeWindowPresetKey(QStringLiteral("GBATAS"), i);
+    add_window_entry(key, m_gba_tas_input_windows[i]);
+    add_section_entry(key, m_gba_tas_input_windows[i]);
+  }
   for (int i = 0; i < static_cast<int>(m_wii_tas_input_windows.size()); ++i)
-    add_window_entry(MakeWindowPresetKey(QStringLiteral("WiiTAS"), i), m_wii_tas_input_windows[i]);
+  {
+    const QString key = MakeWindowPresetKey(QStringLiteral("WiiTAS"), i);
+    add_window_entry(key, m_wii_tas_input_windows[i]);
+    add_section_entry(key, m_wii_tas_input_windows[i]);
+  }
 #ifdef HAS_LIBMGBA
   for (int i = 0; i < num_gc_controllers; ++i)
     add_window_entry(MakeWindowPresetKey(QStringLiteral("GBA"), i),
@@ -1611,8 +1755,21 @@ void MainWindow::SaveWindowPreset()
 
   QTextStream out(&file);
   for (const auto& entry : entries)
+  {
     out << entry.preset << ',' << entry.window << ',' << entry.x << ',' << entry.y << ','
-        << entry.width << ',' << entry.height << '\n';
+        << entry.width << ',' << entry.height;
+    if (entry.screen_relative && !entry.screen.isEmpty())
+      out << ",@" << entry.screen;
+    out << '\n';
+  }
+  for (const auto& entry : section_entries)
+  {
+    QStringList pairs;
+    for (const auto& [key, width] : entry.widths)
+      pairs << QStringLiteral("%1:%2").arg(QString::fromStdString(key)).arg(width);
+    out << entry.preset << ',' << entry.window << "#sections," << pairs.join(QLatin1Char('|'))
+        << '\n';
+  }
 
   if (!file.commit())
   {
@@ -1770,6 +1927,40 @@ void MainWindow::ApplyWindowPreset(const QString& preset_name, bool warn_if_miss
       continue;
     }
 #endif
+  }
+
+  const QList<WindowSectionEntry> section_entries =
+      ReadWindowSectionEntries(WindowPresetsPath());
+  for (const auto& entry : section_entries)
+  {
+    if (entry.preset != preset_name)
+      continue;
+
+    TASInputWindow* window = nullptr;
+    if (entry.window.startsWith(QStringLiteral("GCTAS")))
+    {
+      const int index = entry.window.mid(5).toInt() - 1;
+      if (index >= 0 && index < static_cast<int>(m_gc_tas_input_windows.size()))
+        window = m_gc_tas_input_windows[index];
+    }
+    else if (entry.window.startsWith(QStringLiteral("GBATAS")))
+    {
+      const int index = entry.window.mid(6).toInt() - 1;
+      if (index >= 0 && index < static_cast<int>(m_gba_tas_input_windows.size()))
+        window = m_gba_tas_input_windows[index];
+    }
+    else if (entry.window.startsWith(QStringLiteral("WiiTAS")))
+    {
+      const int index = entry.window.mid(6).toInt() - 1;
+      if (index >= 0 && index < static_cast<int>(m_wii_tas_input_windows.size()))
+        window = m_wii_tas_input_windows[index];
+    }
+
+    if (window)
+    {
+      window->ApplySectionWidths(entry.widths);
+      applied = true;
+    }
   }
 
   if (!applied && warn_if_missing)
@@ -2385,6 +2576,12 @@ void MainWindow::OnPlayRecording()
     emit ReadOnlyModeChanged(true);
   }
 
+  // Posted pre-boot, so go straight to OSD; Core::DisplayMessage would drop it while stopped.
+  if (!Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_PLAYBACK))
+    OSD::AddMessage("Warning: \"Delete Saves Before Movie Playback\" is off - playback may desync. "
+                    "Enable it under Options > Advanced > Movie.",
+                    OSD::Duration::VERY_LONG);
+
   std::optional<std::string> savestate_path;
   if (movie.PlayInput(dtm_file.toStdString(), &savestate_path))
   {
@@ -2425,6 +2622,12 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::None;
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
+
+  // Recording can start before boot, so go straight to OSD to survive the running-state guard.
+  if (!Config::Get(Config::MAIN_MOVIE_CLEAR_SAVES_ON_RECORDING))
+    OSD::AddMessage("Warning: \"Delete Saves Before Movie Recording\" is off - stale saves can "
+                    "cause desyncs. Enable it under Options > Advanced > Movie.",
+                    OSD::Duration::VERY_LONG);
 
   if (movie.BeginRecordingInput(controllers, wiimotes))
   {

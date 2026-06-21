@@ -91,6 +91,8 @@ ScriptingWidget::ScriptingWidget(QWidget* parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this](Core::State state) { OnEmulationStateChanged(state); });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &ScriptingWidget::RefreshScriptsRoot);
 
   connect(m_scripts_model, &ScriptsFileSystemModel::dataChanged, this,
           &ScriptingWidget::OnDataChanged);
@@ -185,6 +187,7 @@ void ScriptingWidget::OnEmulationStateChanged(Core::State state)
   {
   case Core::State::Starting:
   {
+    m_game_running = true;
     SConfig& config = SConfig::GetInstance();
 
     // e.g. RMCE01 prefix will be RMC
@@ -204,6 +207,8 @@ void ScriptingWidget::OnEmulationStateChanged(Core::State state)
   }
   case Core::State::Uninitialized:
   {
+    m_game_running = false;
+
     // Reset QTreeView to root scripts dir
     QModelIndex rootIdx =
         m_scripts_model->setRootPath(QString::fromStdString(File::GetUserPath(D_SCRIPTS_IDX)));
@@ -215,7 +220,19 @@ void ScriptingWidget::OnEmulationStateChanged(Core::State state)
   }
   default:
     break;
-  }  
+  }
+}
+
+void ScriptingWidget::RefreshScriptsRoot()
+{
+  if (m_game_running)
+    return;
+
+  const QString path = QString::fromStdString(File::GetUserPath(D_SCRIPTS_IDX));
+  if (QDir(m_scripts_model->rootPath()) == QDir(path))
+    return;
+
+  m_tree->setRootIndex(m_scripts_model->setRootPath(path));
 }
 
 void ScriptingWidget::OnTreeClicked(const QModelIndex& index)

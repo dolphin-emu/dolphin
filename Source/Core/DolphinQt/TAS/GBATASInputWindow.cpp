@@ -103,6 +103,10 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
   RegisterVisibilitySection(tr("Settings"), "GBA.Settings", m_settings_box);
   RegisterVisibilitySection(tr("Favorite Scripts"), "GBA.FavoriteScripts", favorites_widget);
   FinalizeVisibilitySections();
+
+  MakeSectionResizable("GBA.Buttons", buttons_box);
+  MakeSectionResizable("GBA.FavoriteScripts", favorites_widget);
+  MakeSectionResizable("GBA.Settings", m_settings_box);
 }
 
 void GBATASInputWindow::hideEvent(QHideEvent* event)

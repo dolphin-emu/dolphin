@@ -27,6 +27,7 @@ class QEvent;
 class QGroupBox;
 class QLayout;
 class QPoint;
+class SectionResizer;
 class StickWidget;
 class TASCheckBox;
 class TASSpinBox;
@@ -56,6 +57,10 @@ public:
   int GetTurboPressFrames() const;
   int GetTurboReleaseFrames() const;
 
+  // Custom widths of drag-resized bottom-row sections, keyed by section. Persisted in window presets.
+  std::map<std::string, int> GetSectionWidths() const;
+  void ApplySectionWidths(const std::map<std::string, int>& widths);
+
 protected:
   virtual void UpdateLiveInputDisplay() = 0;
 
@@ -83,6 +88,7 @@ protected:
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
   void SetResizableContentLayout(QLayout* content_layout);
+  void MakeSectionResizable(const std::string& key, QWidget* widget);
   void RegisterVisibilitySection(const QString& label, const std::string& key, QWidget* widget);
   void RegisterVisibilitySection(const QString& label, const std::string& key,
                                  std::vector<QWidget*> widgets);
@@ -109,6 +115,14 @@ private:
     std::vector<QWidget*> widgets;
   };
 
+  struct ResizableSection
+  {
+    std::string key;
+    QWidget* widget;
+    SectionResizer* resizer;
+  };
+
+  void RelayoutSections();
   bool ShouldViewMovieInputs() const;
   void PollViewInputs();
   void InstallOptionsMenu(QWidget* widget);
@@ -128,6 +142,7 @@ private:
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, ControlState controller_state,
                                          ControlState scale);
   std::vector<VisibilitySection> m_visibility_sections;
+  std::vector<ResizableSection> m_resizable_sections;
   Qt::WindowFlags m_default_window_flags;
   std::string m_always_on_top_config_key;
   QElapsedTimer m_options_menu_click_timer;

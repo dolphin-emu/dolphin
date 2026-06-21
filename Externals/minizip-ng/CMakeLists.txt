@@ -5,5 +5,16 @@ set(MZ_BUILD_FUZZ_TESTS OFF)
 set(MZ_CODE_COVERAGE OFF)
 set(SKIP_INSTALL_ALL ON)
 
+# minizip-ng's bundled bzip2/zstd/lzma collide with Dolphin's own targets.
+if(TARGET bzip2)
+  set(MZ_BZIP2 OFF CACHE BOOL "" FORCE)
+endif()
+if(TARGET libzstd_static)
+  set(MZ_ZSTD OFF CACHE BOOL "" FORCE)
+endif()
+if(TARGET lzma)
+  set(MZ_LZMA OFF CACHE BOOL "" FORCE)
+endif()
+
 add_subdirectory(minizip-ng)
 dolphin_disable_warnings(minizip-ng)

@@ -24,6 +24,7 @@
 #include "Core/Movie.h"
 #include "Core/System.h"
 
+#include "DolphinQt/QtUtils/FlowLayout.h"
 #include "DolphinQt/Scripting/ScriptFavoritesWidget.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
@@ -78,6 +79,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   if (c_stick_widget)
     c_stick_widget->setMinimumSize(16, 16);
 
+  // The sticks own the top row and split it evenly, growing and shrinking with the window.
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_main_stick_box);
   top_layout->addWidget(m_c_stick_box);
@@ -164,20 +166,18 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   auto* favorites_widget = new ScriptFavoritesWidget(this);
   favorites_widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   favorites_widget->setFixedHeight(m_buttons_box->sizeHint().height());
-  auto* buttons_and_favorites = new QHBoxLayout;
-  buttons_and_favorites->setAlignment(Qt::AlignTop);
-  buttons_and_favorites->addWidget(m_buttons_box, 1, Qt::AlignTop);
-  buttons_and_favorites->addWidget(favorites_widget, 0, Qt::AlignTop);
 
-  auto* lower_row = new QHBoxLayout;
-  lower_row->setAlignment(Qt::AlignTop);
-  lower_row->addWidget(m_triggers_box, 0, Qt::AlignTop);
-  lower_row->addLayout(buttons_and_favorites, 1);
-  lower_row->addWidget(m_settings_box, 0, Qt::AlignTop);
+  // The remaining sections flow left-to-right and wrap to the next row when the window is too
+  // narrow, instead of overflowing offscreen.
+  auto* bottom_layout = new FlowLayout;
+  bottom_layout->addWidget(m_triggers_box);
+  bottom_layout->addWidget(m_buttons_box);
+  bottom_layout->addWidget(favorites_widget);
+  bottom_layout->addWidget(m_settings_box);
 
   auto* layout = new QVBoxLayout;
-  layout->addLayout(top_layout);
-  layout->addLayout(lower_row);
+  layout->addLayout(top_layout, 1);
+  layout->addLayout(bottom_layout);
   SetResizableContentLayout(layout);
 
   RegisterVisibilitySection(tr("Main Stick"), "GC.MainStick", m_main_stick_box);
@@ -187,6 +187,11 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   RegisterVisibilitySection(tr("Settings"), "GC.Settings", m_settings_box);
   RegisterVisibilitySection(tr("Favorite Scripts"), "GC.FavoriteScripts", favorites_widget);
   FinalizeVisibilitySections();
+
+  MakeSectionResizable("GC.Triggers", m_triggers_box);
+  MakeSectionResizable("GC.Buttons", m_buttons_box);
+  MakeSectionResizable("GC.FavoriteScripts", favorites_widget);
+  MakeSectionResizable("GC.Settings", m_settings_box);
 
   if (m_toggle_lines && main_stick_widget)
     connect(m_toggle_lines, &QCheckBox::toggled, main_stick_widget, &StickWidget::SetAxisLines);
