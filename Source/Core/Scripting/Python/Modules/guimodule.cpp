@@ -254,6 +254,24 @@ static void widget_set_text(PyObject* self, u64 id, const char* text)
   state->gui->SetText(id, std::string(text));
 }
 
+static void widget_set_text_color(PyObject* self, u64 id, u32 color)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetTextColor(id, color);
+}
+
+static void widget_set_bg_color(PyObject* self, u64 id, u32 color)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetBgColor(id, color);
+}
+
+static void widget_set_style(PyObject* self, u64 id, const char* qss)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetStyle(id, std::string(qss));
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -343,22 +361,65 @@ class InputText:
     def value(self, v):
         _widget_set_input_text(self._id, v)
 
-class Window:
-    def __init__(self, title, embedded=True):
-        self._id = _widget_window(title, int(embedded))
-    def button(self, label):
-        return Button(_widget_button(self._id, label))
-    def slider_float(self, label, min = 0.0, max = 1.0):
-        return SliderFloat(_widget_slider_float(self._id, label, min, max))
-    def text(self, text = ""):
-        return Text(_widget_text(self._id, text))
-    def checkbox(self, label, checked = False):
-        return Checkbox(_widget_checkbox(self._id, label, int(checked)))
-    def input_text(self, label, initial = ""):
-        return InputText(_widget_input_text(self._id, label, initial))
+class _BaseWindow:
+    def __init__(self, wid):
+        self._id = wid
+    def _child(self, wid, style, text_color, bg_color):
+        if text_color is not None:
+            _widget_set_text_color(wid, text_color)
+        if bg_color is not None:
+            _widget_set_bg_color(wid, bg_color)
+        if style is not None:
+            _widget_set_style(wid, style)
+        return wid
 
-def window(title, embedded=True):
-    return Window(title, embedded)
+class Overlay(_BaseWindow):
+    def button(self, label, *, text_color=None, bg_color=None):
+        return Button(self._child(_widget_button(self._id, label), None, text_color, bg_color))
+    def slider_float(self, label, min = 0.0, max = 1.0, *, text_color=None, bg_color=None):
+        return SliderFloat(self._child(_widget_slider_float(self._id, label, min, max),
+                                       None, text_color, bg_color))
+    def text(self, text = "", *, text_color=None, bg_color=None):
+        return Text(self._child(_widget_text(self._id, text), None, text_color, bg_color))
+    def checkbox(self, label, checked = False, *, text_color=None, bg_color=None):
+        return Checkbox(self._child(_widget_checkbox(self._id, label, int(checked)),
+                                    None, text_color, bg_color))
+    def input_text(self, label, initial = "", *, text_color=None, bg_color=None):
+        return InputText(self._child(_widget_input_text(self._id, label, initial),
+                                     None, text_color, bg_color))
+
+class Window(_BaseWindow):
+    def button(self, label, *, style=None, text_color=None, bg_color=None):
+        return Button(self._child(_widget_button(self._id, label), style, text_color, bg_color))
+    def slider_float(self, label, min = 0.0, max = 1.0, *, style=None, text_color=None, bg_color=None):
+        return SliderFloat(self._child(_widget_slider_float(self._id, label, min, max),
+                                       style, text_color, bg_color))
+    def text(self, text = "", *, style=None, text_color=None, bg_color=None):
+        return Text(self._child(_widget_text(self._id, text), style, text_color, bg_color))
+    def checkbox(self, label, checked = False, *, style=None, text_color=None, bg_color=None):
+        return Checkbox(self._child(_widget_checkbox(self._id, label, int(checked)),
+                                    style, text_color, bg_color))
+    def input_text(self, label, initial = "", *, style=None, text_color=None, bg_color=None):
+        return InputText(self._child(_widget_input_text(self._id, label, initial),
+                                     style, text_color, bg_color))
+
+def overlay(title, *, bg_color=None, text_color=None):
+    w = Overlay(_widget_window(title, 1))
+    if bg_color is not None:
+        _widget_set_bg_color(w._id, bg_color)
+    if text_color is not None:
+        _widget_set_text_color(w._id, text_color)
+    return w
+
+def window(title, *, style=None, bg_color=None, text_color=None):
+    w = Window(_widget_window(title, 0))
+    if bg_color is not None:
+        _widget_set_bg_color(w._id, bg_color)
+    if text_color is not None:
+        _widget_set_text_color(w._id, text_color)
+    if style is not None:
+        _widget_set_style(w._id, style)
+    return w
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
@@ -401,6 +462,9 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_get_value", Py::as_py_func<widget_get_value>, METH_VARARGS, ""},
       {"_widget_set_value", Py::as_py_func<widget_set_value>, METH_VARARGS, ""},
       {"_widget_set_text", Py::as_py_func<widget_set_text>, METH_VARARGS, ""},
+      {"_widget_set_text_color", Py::as_py_func<widget_set_text_color>, METH_VARARGS, ""},
+      {"_widget_set_bg_color", Py::as_py_func<widget_set_bg_color>, METH_VARARGS, ""},
+      {"_widget_set_style", Py::as_py_func<widget_set_style>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

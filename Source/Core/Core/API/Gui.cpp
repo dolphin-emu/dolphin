@@ -62,7 +62,12 @@ void Gui::RenderWidgets()
     Widget& window = window_it->second;
     if (!window.embedded)
       continue;
-    if (!ImGui::Begin(window.label.c_str()))
+    if (window.bg_color)
+      ImGui::PushStyleColor(ImGuiCol_WindowBg, ARGBToABGR(*window.bg_color));
+    const bool window_open = ImGui::Begin(window.label.c_str());
+    if (window.bg_color)
+      ImGui::PopStyleColor();
+    if (!window_open)
     {
       ImGui::End();
       continue;
@@ -77,6 +82,20 @@ void Gui::RenderWidgets()
       Widget& w = child_it->second;
       // Suffix the ImGui id so identical labels stay distinct widgets.
       const std::string id_label = w.label + "##" + std::to_string(child_id);
+      int pushed_colors = 0;
+      if (w.text_color)
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, ARGBToABGR(*w.text_color));
+        ++pushed_colors;
+      }
+      if (w.bg_color)
+      {
+        const u32 abgr = ARGBToABGR(*w.bg_color);
+        // Frame-backed widgets read FrameBg; buttons read Button.
+        ImGui::PushStyleColor(
+            w.kind == WidgetKind::Button ? ImGuiCol_Button : ImGuiCol_FrameBg, abgr);
+        ++pushed_colors;
+      }
       switch (w.kind)
       {
       case WidgetKind::Button:
@@ -104,6 +123,8 @@ void Gui::RenderWidgets()
       default:
         break;
       }
+      if (pushed_colors)
+        ImGui::PopStyleColor(pushed_colors);
     }
     ImGui::End();
   }
@@ -221,6 +242,30 @@ void Gui::SetInputText(WidgetId id, const std::string& text)
     it->second.text_value = text;
 }
 
+void Gui::SetTextColor(WidgetId id, u32 color)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.text_color = color;
+}
+
+void Gui::SetBgColor(WidgetId id, u32 color)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.bg_color = color;
+}
+
+void Gui::SetStyle(WidgetId id, const std::string& style)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.style = style;
+}
+
 std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
 {
   std::lock_guard lock(m_widget_mutex);
@@ -233,13 +278,17 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
     WindowInfo info;
     info.id = wid;
     info.title = wit->second.label;
+    info.text_color = wit->second.text_color;
+    info.bg_color = wit->second.bg_color;
+    info.style = wit->second.style;
     for (WidgetId cid : wit->second.children)
     {
       auto cit = m_widgets.find(cid);
       if (cit == m_widgets.end())
         continue;
       info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.min,
-                               cit->second.max, cit->second.checked, cit->second.text_value});
+                               cit->second.max, cit->second.checked, cit->second.text_value,
+                               cit->second.text_color, cit->second.bg_color, cit->second.style});
     }
     result.push_back(std::move(info));
   }

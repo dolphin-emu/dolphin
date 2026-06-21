@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,9 @@ public:
     float min = 0.0f;
     float max = 1.0f;
     std::string text_value;          // InputText: editable contents
+    std::optional<u32> text_color;   // ARGB
+    std::optional<u32> bg_color;     // ARGB
+    std::string style;               // QSS, detached only
   };
 
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
@@ -90,6 +94,9 @@ public:
   void SetChecked(WidgetId id, bool checked);
   std::string GetInputText(WidgetId id);
   void SetInputText(WidgetId id, const std::string& text);
+  void SetTextColor(WidgetId id, u32 color);
+  void SetBgColor(WidgetId id, u32 color);
+  void SetStyle(WidgetId id, const std::string& style);
   void RemoveWidgetsForOwner(void* owner);
 
   // Snapshot for the Qt detached-window manager; called from the Qt main thread.
@@ -101,8 +108,19 @@ public:
     float min, max;
     bool checked;
     std::string text_value;
+    std::optional<u32> text_color;
+    std::optional<u32> bg_color;
+    std::string style;
   };
-  struct WindowInfo { WidgetId id; std::string title; std::vector<ChildInfo> children; };
+  struct WindowInfo
+  {
+    WidgetId id;
+    std::string title;
+    std::vector<ChildInfo> children;
+    std::optional<u32> text_color;
+    std::optional<u32> bg_color;
+    std::string style;
+  };
   std::vector<WindowInfo> SnapshotDetachedWindows();
 
   // True while an embedded script window holds ImGui focus, so the input gate can treat it as transparent.

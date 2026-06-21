@@ -15,6 +15,26 @@
 
 static constexpr int POLL_INTERVAL_MS = 33;
 
+// ARGB colors become rgba() QSS fragments; the raw style is appended last so it wins on conflict.
+static QString BuildStyleSheet(const std::optional<u32>& text_color,
+                               const std::optional<u32>& bg_color, const std::string& style)
+{
+  QString qss;
+  auto rgba = [](u32 argb) {
+    return QStringLiteral("rgba(%1,%2,%3,%4)")
+        .arg((argb >> 16) & 0xFF)
+        .arg((argb >> 8) & 0xFF)
+        .arg(argb & 0xFF)
+        .arg(((argb >> 24) & 0xFF) / 255.0);
+  };
+  if (text_color)
+    qss += QStringLiteral("color: %1;").arg(rgba(*text_color));
+  if (bg_color)
+    qss += QStringLiteral("background-color: %1;").arg(rgba(*bg_color));
+  qss += QString::fromStdString(style);
+  return qss;
+}
+
 ScriptWindowManager::ScriptWindowManager(QObject* parent) : QObject(parent)
 {
   connect(&m_timer, &QTimer::timeout, this, &ScriptWindowManager::Sync);
@@ -51,6 +71,8 @@ void ScriptWindowManager::Sync()
       QWidget* win = new QWidget(nullptr, Qt::Window);
       win->setWindowTitle(QString::fromStdString(snap.title));
       win->setLayout(new QVBoxLayout);
+      if (snap.text_color || snap.bg_color || !snap.style.empty())
+        win->setStyleSheet(BuildStyleSheet(snap.text_color, snap.bg_color, snap.style));
       win->show();
       m_windows[snap.id] = ManagedWindow{snap.id, win, {}};
       it = m_windows.find(snap.id);
@@ -120,6 +142,8 @@ void ScriptWindowManager::Sync()
       }
       if (w)
       {
+        if (child.text_color || child.bg_color || !child.style.empty())
+          w->setStyleSheet(BuildStyleSheet(child.text_color, child.bg_color, child.style));
         mw.window->layout()->addWidget(w);
         mw.children[child.id] = w;
       }
