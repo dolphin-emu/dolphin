@@ -16,6 +16,7 @@
 #include <windows.h>
 #endif
 
+#include "Core/API/Gui.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -299,9 +300,11 @@ void Host_RequestRenderWindowSize(int w, int h)
 
 bool Host_UIBlocksControllerState()
 {
+  // Script-owned windows are transparent to the gate so interacting with them never blocks game input.
   // TODO: Remove the Paused check once async presentation is implemented.
   return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard &&
-         Core::GetState(Core::System::GetInstance()) != Core::State::Paused;
+         Core::GetState(Core::System::GetInstance()) != Core::State::Paused &&
+         !API::GetGui().IsScriptWindowFocused();
 }
 
 void Host_TitleChanged()
