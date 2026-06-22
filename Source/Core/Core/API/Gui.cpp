@@ -93,6 +93,9 @@ void Gui::RenderEmbeddedCanvas(WidgetId id, const std::string& title)
     case CanvasPrimitive::Type::Text:
       dl->AddText(off(p.p0), c, p.text.c_str());
       break;
+    case CanvasPrimitive::Type::Image:
+      // Textures only render through the Qt canvas path, not the embedded ImGui overlay.
+      break;
     }
   }
   ImGui::End();

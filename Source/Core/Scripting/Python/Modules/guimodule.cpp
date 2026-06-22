@@ -336,6 +336,15 @@ static void canvas_text(PyObject* self, u64 id, float x, float y, u32 color, con
                               std::string(text)});
 }
 
+static void canvas_image(PyObject* self, u64 id, const char* path, float x, float y, float w,
+                         float h, u32 tint, float sx0, float sy0, float sx1, float sy1)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Image, {x, y}, {x + w, y + h}, {}, 0.0f, 1.0f, 0.0f, tint,
+                              std::string{}, std::string(path), {sx0, sy0}, {sx1, sy1}});
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -492,6 +501,11 @@ class Canvas:
         _canvas_triangle(self._id, a[0], a[1], b[0], b[1], c[0], c[1], color, 1, 1)
     def text(self, pos, color, text):
         _canvas_text(self._id, pos[0], pos[1], color, text)
+    def image(self, path, pos, size, *, tint=0, src=(0.0, 0.0, 1.0, 1.0)):
+        # tint=0 draws the texture as-is; otherwise RGB tints it and alpha scales opacity.
+        # src is a normalized (x0, y0, x1, y1) crop for partial draws (e.g. analog fills).
+        _canvas_image(self._id, path, pos[0], pos[1], size[0], size[1], tint,
+                      src[0], src[1], src[2], src[3])
 
 def canvas(title, width, height, *, embedded=False, overlay=False):
     return Canvas(_canvas_window(title, width, height, int(embedded), int(overlay)), width, height)
@@ -566,6 +580,7 @@ PyMODINIT_FUNC PyInit_gui()
       {"_canvas_circle", Py::as_py_func<canvas_circle>, METH_VARARGS, ""},
       {"_canvas_triangle", Py::as_py_func<canvas_triangle>, METH_VARARGS, ""},
       {"_canvas_text", Py::as_py_func<canvas_text>, METH_VARARGS, ""},
+      {"_canvas_image", Py::as_py_func<canvas_image>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

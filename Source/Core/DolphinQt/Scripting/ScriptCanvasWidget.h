@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include <QHash>
+#include <QPixmap>
 #include <QWidget>
 
 #include "Core/API/Gui.h"
@@ -29,6 +31,12 @@ protected:
   void closeEvent(QCloseEvent* event) override;
 
 private:
+  // Texture cache; tinted variants are keyed by "path|argb" so each tint is built once.
+  const QPixmap& LoadPixmap(const QString& path);
+  const QPixmap& TintedPixmap(const QString& path, u32 argb);
+
   std::vector<API::Gui::CanvasPrimitive> m_prims;
   bool m_overlay;
+  QHash<QString, QPixmap> m_pixmaps;
+  QHash<QString, QPixmap> m_tinted;
 };

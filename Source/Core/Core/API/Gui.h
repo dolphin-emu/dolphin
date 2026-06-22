@@ -99,6 +99,7 @@ public:
       Triangle,
       TriangleFilled,
       Text,
+      Image,
     };
     Type type;
     Vec2f p0, p1, p2;
@@ -107,6 +108,11 @@ public:
     float rounding = 0.0f;
     u32 color = 0;  // ARGB
     std::string text;
+    // Image only: path + dest rect (p0..p1) + normalized [0,1] src crop. color==0 draws untinted;
+    // else RGB tints the texture and alpha scales opacity.
+    std::string image;
+    Vec2f src_min{0.0f, 0.0f};
+    Vec2f src_max{1.0f, 1.0f};
   };
 
   WidgetId GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
