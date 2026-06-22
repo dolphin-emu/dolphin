@@ -12,7 +12,7 @@ namespace
 {
 constexpr char kSubdir[] = "test";
 constexpr char kRelativePath[] = "/test";
-}
+}  // namespace
 
 class RiivolutionPatcherTest : public testing::Test
 {
