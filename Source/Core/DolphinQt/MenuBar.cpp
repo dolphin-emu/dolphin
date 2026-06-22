@@ -874,11 +874,6 @@ void MenuBar::AddMovieMenu()
   connect(m_show_input_display, &QAction::toggled, this,
           [this](bool show) { emit ShowInputDisplay(show); });
 
-  m_dump_input_display = movie_menu->addAction(tr("Dump Controller Inputs"));
-  m_dump_input_display->setCheckable(true);
-  connect(m_dump_input_display, &QAction::toggled, this,
-          [this](bool dump) { emit DumpControllerInputs(dump); });
-
   movie_menu->addSeparator();
 
   auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
@@ -915,6 +910,11 @@ void MenuBar::AddMovieMenu()
   dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
           [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
+
+  m_dump_input_display = movie_menu->addAction(tr("Dump Controller Inputs"));
+  m_dump_input_display->setCheckable(true);
+  connect(m_dump_input_display, &QAction::toggled, this,
+          [this](bool dump) { emit DumpControllerInputs(dump); });
 
 #ifdef HAS_LIBMGBA
   m_dump_gba_frames = movie_menu->addAction(tr("Dump GBA Frames"));
