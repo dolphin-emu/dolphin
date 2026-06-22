@@ -6,6 +6,8 @@
 
 #include <memory>
 
+class InputDisplayDumper;
+
 namespace Scripting
 {
 class ScriptingBackend;
@@ -28,5 +30,6 @@ public:
 
 private:
   std::unique_ptr<Scripting::ScriptingBackend> m_backend;
+  std::unique_ptr<InputDisplayDumper> m_dumper;
   bool m_dumping = false;
 };

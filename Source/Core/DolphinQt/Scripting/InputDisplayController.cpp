@@ -5,6 +5,7 @@
 #include "DolphinQt/Scripting/InputDisplayController.h"
 
 #include "Common/FileUtil.h"
+#include "DolphinQt/Scripting/InputDisplayDumper.h"
 #include "Scripting/ScriptingEngine.h"
 
 namespace
@@ -27,8 +28,8 @@ void InputDisplayController::Show()
 
 void InputDisplayController::Hide()
 {
+  StopDump();
   m_backend.reset();
-  m_dumping = false;
 }
 
 bool InputDisplayController::IsShown() const
@@ -40,11 +41,16 @@ void InputDisplayController::StartDump()
 {
   // Dumping needs a live overlay to capture.
   Show();
+  if (!m_dumper)
+    m_dumper = std::make_unique<InputDisplayDumper>();
+  m_dumper->Start();
   m_dumping = true;
 }
 
 void InputDisplayController::StopDump()
 {
+  if (m_dumper)
+    m_dumper->Stop();
   m_dumping = false;
 }
 
