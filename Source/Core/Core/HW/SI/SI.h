@@ -65,6 +65,7 @@ public:
   void ChangeDevice(SIDevices device, int channel);
 
   SIDevices GetDeviceType(int channel) const;
+  ISIDevice* GetDevice(int channel) const;
 
   u32 GetPollXLines();
 

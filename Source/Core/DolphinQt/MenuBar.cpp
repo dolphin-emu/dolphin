@@ -30,6 +30,7 @@
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -283,6 +284,9 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+  m_triforce_card_manager_action =
+      tools_menu->addAction(tr("Triforce Card Manager"), this, &MenuBar::ShowTriforceCardManager);
+  m_triforce_card_manager_action->setVisible(false);
 
   auto* usb_device_menu = new QMenu(tr("Emulated USB Devices"), tools_menu);
   usb_device_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
@@ -1102,6 +1106,11 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
 {
   const bool is_uninitialized = state == Core::State::Uninitialized;
   const bool is_running = state == Core::State::Running || state == Core::State::Paused;
+  const bool is_ic_card_game =
+      is_running && (AMMediaboard::GetGameType() == AMMediaboard::VirtuaStriker4 ||
+                     AMMediaboard::GetGameType() == AMMediaboard::VirtuaStriker4_2006 ||
+                     AMMediaboard::GetGameType() == AMMediaboard::GekitouProYakyuu ||
+                     AMMediaboard::GetGameType() == AMMediaboard::KeyOfAvalon);
 
   m_boot_sysmenu->setEnabled(is_uninitialized);
   m_perform_online_update_menu->setEnabled(is_uninitialized);
@@ -1115,6 +1124,9 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
   m_import_wii_save->setEnabled(is_uninitialized);
   m_import_wii_saves->setEnabled(is_uninitialized);
   m_export_wii_saves->setEnabled(is_uninitialized);
+  // Keep the manager reachable while idle so cards can still be created.
+  m_triforce_card_manager_action->setVisible(is_uninitialized || is_ic_card_game);
+  m_triforce_card_manager_action->setEnabled(is_uninitialized || is_ic_card_game);
 
   if (is_uninitialized)
   {

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+
 #include "Core/HW/MagCard/MagneticCardReader.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -21,8 +24,21 @@ namespace SerialInterface
 class CSIDevice_AMBaseboard final : public ISIDevice
 {
 public:
+  struct ICCardSlotStatus
+  {
+    std::string selected_card_path;
+    bool wants_inserted = false;
+    bool is_present = false;
+    bool is_ejecting = false;
+  };
+
   CSIDevice_AMBaseboard(Core::System& system, SIDevices device, int device_number);
   ~CSIDevice_AMBaseboard() override;
+
+  u32 GetICCardSlotCount() const;
+  ICCardSlotStatus GetICCardSlotStatus(u32 slot_index) const;
+  void SetICCardSlotPath(u32 slot_index, std::string path);
+  void SetICCardSlotInserted(u32 slot_index, bool inserted);
 
   int RunBuffer(u8* buffer, int request_length) override;
 
@@ -51,6 +67,8 @@ private:
 
   // Serial B
   std::unique_ptr<Triforce::SerialDevice> m_serial_device_b;
+
+  std::array<Triforce::ICCardReader*, Triforce::IOPorts::PLAYER_COUNT> m_ic_card_readers{};
 };
 
 }  // namespace SerialInterface

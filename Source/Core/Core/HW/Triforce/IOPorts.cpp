@@ -219,19 +219,15 @@ void VirtuaStriker4Common_IOAdapter::Update()
 
   if (is_slot_a_locked)
   {
-    // If slot A is locked, insert slot B.
-    if (m_card_readers[1]->IsReadyToInsertCard())
+    if (m_card_readers[1]->WantsCardInserted() && m_card_readers[1]->IsReadyToInsertCard())
       m_card_readers[1]->InsertCard();
   }
-  else
+  else if (m_card_readers[1]->IsCardPresent() && !is_slot_b_locked)
   {
-    // If slot A is unlocked, remove slot B if unlocked.
-    if (m_card_readers[1]->IsCardPresent() && !is_slot_b_locked)
-      m_card_readers[1]->EjectCard();
+    m_card_readers[1]->EjectCard();
   }
 
-  // Insert slot A.
-  if (m_card_readers[0]->IsReadyToInsertCard())
+  if (m_card_readers[0]->WantsCardInserted() && m_card_readers[0]->IsReadyToInsertCard())
     m_card_readers[0]->InsertCard();
 
   const auto analog_inputs = io_ports->GetAnalogInputs();
@@ -320,7 +316,7 @@ void GekitouProYakyuu_IOAdapter::Update()
   for (int i = 0; i != IOPorts::PLAYER_COUNT; ++i)
   {
     // Gekitou isn't as picky as VS4. We can insert cards whenever.
-    if (m_card_readers[i]->IsReadyToInsertCard())
+    if (m_card_readers[i]->WantsCardInserted() && m_card_readers[i]->IsReadyToInsertCard())
       m_card_readers[i]->InsertCard();
 
     const auto switch_inputs = io_ports->GetSwitchInputs(i);
@@ -382,7 +378,7 @@ void KeyOfAvalon_IOAdapter::Update()
   if (m_card_reader->GetCardPresentInsertCheckCount() >= insert_check_count_before_removing_card)
     m_card_reader->EjectCard();
 
-  if (m_card_reader->IsReadyToInsertCard())
+  if (m_card_reader->WantsCardInserted() && m_card_reader->IsReadyToInsertCard())
     m_card_reader->InsertCard();
 
   const auto switch_inputs = GetIOPorts()->GetSwitchInputs(0);

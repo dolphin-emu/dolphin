@@ -3,6 +3,7 @@
 
 #include "Core/HW/Triforce/ICCardReader.h"
 
+#include <array>
 #include <numeric>
 
 #include <fmt/ranges.h>
@@ -11,12 +12,16 @@
 #include "Common/ChunkFile.h"
 #include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVD/AMMediaboard.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {
@@ -57,7 +62,7 @@ bool LoadCardData(const std::string& filename, std::span<u8> data)
   return true;
 }
 
-void SanitizeSerialNumber(std::span<u8> data)
+void SanitizeSerialNumber(std::span<u8> data, AMMediaboard::GameType game_type)
 {
   DEBUG_ASSERT(data.size() == 8);
 
@@ -77,7 +82,7 @@ void SanitizeSerialNumber(std::span<u8> data)
   data[0] = 0x95;
   data[1] = 0x71;
 
-  switch (AMMediaboard::GetGameType())
+  switch (game_type)
   {
   case AMMediaboard::KeyOfAvalon:
   {
@@ -109,9 +114,9 @@ void SanitizeSerialNumber(std::span<u8> data)
   }
 }
 
-void InitializeCardData(std::span<u8> data)
+void InitializeCardData(std::span<u8> data, AMMediaboard::GameType game_type)
 {
-  SanitizeSerialNumber(data.subspan(READ_ONLY_PAGE_INDEX * 8, 8));
+  SanitizeSerialNumber(data.subspan(READ_ONLY_PAGE_INDEX * 8, 8), game_type);
 
   constexpr u32 use_count_offset = 0x28;
 
@@ -119,6 +124,13 @@ void InitializeCardData(std::span<u8> data)
 
   // The use count seems to be a big endian count down from 0xffff.
   Common::WriteSwap16(data.data() + use_count_offset, 0xffff - use_count);
+}
+
+std::array<u8, 8> MakeUID(std::string_view stable_name, u8 card_index)
+{
+  const u32 crc = Common::ComputeCRC32(stable_name);
+  return {0x00, 0x00,          0x54,         0x4D,
+          0x50, u8(crc >> 16), u8(crc >> 8), static_cast<u8>(u8(crc) ^ card_index)};
 }
 
 // TODO: I'm not so sure that this is really a device status.
@@ -162,27 +174,50 @@ ICCardReader::ICCardReader(u8 slot_index) : m_slot_index{slot_index}
 {
 }
 
+bool ICCardReader::CreateBlankCardFile(const std::string& filename,
+                                       AMMediaboard::GameType game_type)
+{
+  if (!File::CreateFullPath(filename))
+    return false;
+
+  ICCard card{filename, MakeUID(filename, 0), game_type};
+  card.Initialize();
+  return File::Exists(filename);
+}
+
+void ICCardReader::SetConfiguredCardFiles(std::vector<std::string> card_filenames)
+{
+  m_configured_card_filenames = std::move(card_filenames);
+}
+
 void ICCardReader::CreateCards(u8 card_count)
 {
   m_ic_cards.clear();
 
-  // Filled in with slot index and card number just for uniqueness.
-  ICCard::UID card_id = {0x00, 0x00, 0x54, 0x4D, 0x50, 0x00, m_slot_index, 0x00};
-
   for (u8 i = 0; i != card_count; ++i)
   {
-    std::string slot_name = fmt::format("slot{}", m_slot_index + 1);
+    std::string filename;
+    // Named cards come from the manager. Fall back to the old slot files until
+    // a slot has an explicit library card selected.
+    if (i < m_configured_card_filenames.size() && !m_configured_card_filenames[i].empty())
+    {
+      filename = m_configured_card_filenames[i];
+    }
+    else
+    {
+      std::string slot_name = fmt::format("slot{}", m_slot_index + 1);
 
-    // Files for additional tags get naming like "slot1b.bin"
-    if (i > 0)
-      slot_name += char('a' + i);
+      // Files for additional tags get naming like "slot1b.bin"
+      if (i > 0)
+        slot_name += char('a' + i);
 
-    const auto filename = fmt::format("{}tricard_{}_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
-                                      SConfig::GetInstance().GetGameID(), slot_name);
+      filename = fmt::format("{}tricard_{}_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
+                             SConfig::GetInstance().GetGameID(), slot_name);
+    }
 
-    card_id.back() = i;
-
-    m_ic_cards.emplace_back(std::make_unique<ICCard>(filename, card_id));
+    m_ic_cards.emplace_back(
+        std::make_unique<ICCard>(filename, MakeUID(filename, i),
+                                 static_cast<AMMediaboard::GameType>(AMMediaboard::GetGameType())));
   }
 }
 
@@ -704,7 +739,9 @@ void ICCardReader::DoState(PointerWrap& p)
   for (auto& card : m_ic_cards)
     card->DoState(p);
 
+  p.Do(m_configured_card_filenames);
   p.Do(m_is_field_on);
+  p.Do(m_want_card_inserted);
 
   p.Do(m_eject_timer);
   p.Do(m_card_present_insert_check_count);
@@ -717,8 +754,8 @@ void ICCardReader::ICCard::DoState(PointerWrap& p)
   p.Do(m_current_state);
 }
 
-ICCardReader::ICCard::ICCard(std::string filename, const UID& uid)
-    : m_filename{std::move(filename)}, m_uid{uid}
+ICCardReader::ICCard::ICCard(std::string filename, const UID& uid, AMMediaboard::GameType game_type)
+    : m_filename{std::move(filename)}, m_uid{uid}, m_game_type{game_type}
 {
 }
 
@@ -727,7 +764,7 @@ void ICCardReader::ICCard::Initialize()
   if (!LoadCardData(m_filename, m_data))
   {
     NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "Creating new IC Card data.");
-    InitializeCardData(m_data);
+    InitializeCardData(m_data, m_game_type);
     FlushData(READ_ONLY_PAGE_INDEX * PAGE_SIZE, PAGE_SIZE * 2);
   }
 }
@@ -756,6 +793,13 @@ void ICCardReader::InsertCard()
 
   CreateCards(1);
   std::ranges::for_each(m_ic_cards, &ICCard::Initialize);
+
+  if (!m_ic_cards.empty())
+  {
+    OSD::AddMessage(
+        fmt::format("Inserted card: {}", PathToFileName(m_ic_cards.front()->GetFilename())),
+        OSD::Duration::SHORT);
+  }
 }
 
 void ICCardReader::EjectCard()
@@ -766,6 +810,7 @@ void ICCardReader::EjectCard()
   NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "EjectCard");
 
   m_ic_cards.clear();
+  m_want_card_inserted = false;
 
   m_eject_timer = 120;
   m_card_present_insert_check_count = 0;
