@@ -33,6 +33,7 @@ add_library(common
   Config/ConfigInfo.cpp
   Config/ConfigInfo.h
   Config/Enums.h
+  CoroutineUtil.h
   Config/Layer.cpp
   Config/Layer.h
   Contains.h
