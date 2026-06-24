@@ -346,7 +346,8 @@ public:
     condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
 
     // Is "infinity" always supported ?
-    condition.length = SDL_HAPTIC_INFINITY;
+    // condition.length = SDL_HAPTIC_INFINITY;
+    condition.length = 0x7fff;
 
     const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
     condition.right_sat[0] = unsigned_gain;
