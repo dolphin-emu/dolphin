@@ -10,10 +10,10 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/System.h"
-#include "Core/HW/Memmap.h"
 
 // This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because
 // of the IOS HLE
@@ -264,11 +264,9 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
   // Sets the Hollywood version register to 0x11 (same as placed in lomem)
   mmio->Register(base | VERSION, MMIO::Constant<u32>(0x00000011), MMIO::Nop<u32>());
-  
+
   const bool mem2_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
-  mmio->Register(base | IS_128,
-	MMIO::Constant<u16>(mem2_128 ? 1 : 0),
-	MMIO::Nop<u16>());
+  mmio->Register(base | IS_128, MMIO::Constant<u16>(mem2_128 ? 1 : 0), MMIO::Nop<u16>());
 
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
