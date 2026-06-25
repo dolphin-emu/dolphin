@@ -13,6 +13,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/System.h"
+#include "Core/HW/Memmap.h"
 
 // This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because
 // of the IOS HLE
@@ -56,6 +57,10 @@ enum
   UNK_180 = 0x180,
   UNK_1CC = 0x1cc,
   UNK_1D0 = 0x1d0,
+
+  VERSION = 0x214,
+
+  IS_128 = 0xB4216,
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
@@ -129,6 +134,7 @@ void WiiIPC::Shutdown()
 
 void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
+  auto& memory = m_system.GetMemory();
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
   mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
@@ -256,6 +262,14 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Register some stubbed/unknown MMIOs required to make Wii games work.
   mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
   mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
+  // Sets the Hollywood version register to 0x11 (same as placed in lomem)
+  mmio->Register(base | VERSION, MMIO::Constant<u32>(0x00000011), MMIO::Nop<u32>());
+  
+  const bool mem2_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
+  mmio->Register(base | IS_128,
+	MMIO::Constant<u16>(mem2_128 ? 1 : 0),
+	MMIO::Nop<u16>());
+
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
