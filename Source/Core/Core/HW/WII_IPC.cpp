@@ -60,7 +60,9 @@ enum
 
   VERSION = 0x214,
 
-  IS_128 = 0xB4216,
+  MEM2_ROWSEL = 0xB4212,
+  MEM2_RANKSEL = 0xB4216,
+  MEM2_ROWMSK = 0xB421A,
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
@@ -265,8 +267,10 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Sets the Hollywood version register to 0x11 (same as placed in lomem)
   mmio->Register(base | VERSION, MMIO::Constant<u32>(0x00000011), MMIO::Nop<u32>());
 
-  const bool mem2_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
-  mmio->Register(base | IS_128, MMIO::Constant<u16>(mem2_128 ? 1 : 0), MMIO::Nop<u16>());
+  const bool mem2_is_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
+  mmio->Register(base | MEM2_ROWSEL, MMIO::Constant<u16>(4), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_RANKSEL, MMIO::Constant<u16>(mem2_is_128 ? 1 : 7), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_ROWMSK, MMIO::Constant<u16>(0xFFF), MMIO::Nop<u16>());
 
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
