@@ -1,7 +1,7 @@
 {
-  "_credit": "Button artwork from m-overlay by bkacjios (MIT). See gamecube/ATTRIBUTION.txt.",
+  "_credit": "Button artwork from m-overlay by bkacjios (MIT). See assets/ATTRIBUTION.txt.",
   "name": "GameCube",
-  "textures": "gamecube",
+  "textures": "assets",
   "background": "0xFF0000FF",
   "layout": { "scale": 1.0, "offset_x": 0, "offset_y": 32, "design_w": 522, "design_h": 304 },
   "tex_size": 128,

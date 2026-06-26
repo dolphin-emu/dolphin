@@ -25,7 +25,7 @@
 class InputDisplayDumper
 {
 public:
-  explicit InputDisplayDumper(const GCSkin& skin);
+  explicit InputDisplayDumper(const GCSkin& skin, int port = 0);
   ~InputDisplayDumper();
 
   void Start();
@@ -38,6 +38,7 @@ private:
   const QImage& TintedImage(const QString& path, u32 argb);
 
   const GCSkin& m_skin;
+  int m_port;
   std::atomic<bool> m_active{false};
   API::ListenerID<API::Events::FrameAdvance> m_listener;
 

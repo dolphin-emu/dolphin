@@ -33,9 +33,9 @@ static u32 ParseColor(const QJsonValue& v, u32 fallback = 0)
   return fallback;
 }
 
-static GCSkin LoadFrom(const QString& dir)
+static GCSkin LoadFrom(const QString& dir, const QString& skin_name)
 {
-  QFile f(dir + QStringLiteral("/gamecube.json"));
+  QFile f(dir + QLatin1Char('/') + skin_name + QStringLiteral("/skin.json"));
   if (!f.open(QIODevice::ReadOnly))
     return {};
 
@@ -49,6 +49,7 @@ static GCSkin LoadFrom(const QString& dir)
   const QString tex_sub = root[QStringLiteral("textures")].toString(QStringLiteral("gamecube"));
   skin.tex_dir = dir + QLatin1Char('/') + tex_sub;
   skin.background = ParseColor(root[QStringLiteral("background")], 0xCC000000u);
+  skin.gba_mode = root[QStringLiteral("gba_mode")].toBool(false);
 
   const QJsonObject layout = root[QStringLiteral("layout")].toObject();
   skin.scale = (float)layout[QStringLiteral("scale")].toDouble(0.5);
@@ -126,16 +127,30 @@ static GCSkin LoadFrom(const QString& dir)
     skin.triggers.append(trig);
   }
 
+  for (const QJsonValue& ov : root[QStringLiteral("overlays")].toArray())
+  {
+    const QJsonObject o = ov.toObject();
+    GCSkinOverlay overlay;
+    overlay.when = o[QStringLiteral("when")].toString();
+    overlay.fill = ParseColor(o[QStringLiteral("fill")], 0);
+    overlay.opacity = (float)o[QStringLiteral("opacity")].toDouble(1.0);
+    overlay.image = o[QStringLiteral("image")].toString();
+    overlay.tint = ParseColor(o[QStringLiteral("tint")], 0);
+    overlay.scale = (float)o[QStringLiteral("scale")].toDouble(1.0);
+    overlay.align = o[QStringLiteral("align")].toString(QStringLiteral("center"));
+    skin.overlays.append(overlay);
+  }
+
   return skin;
 }
 
-GCSkin GCSkin::Load(const QString& sys_dir)
+GCSkin GCSkin::Load(const QString& sys_dir, const QString& skin_name)
 {
   // Prefer writable user dir; fall back to the bundled Sys copy.
   const QString user_dir =
       QString::fromStdString(File::GetUserPath(D_USER_IDX)) + QStringLiteral("InputDisplay");
-  GCSkin skin = LoadFrom(user_dir);
+  GCSkin skin = LoadFrom(user_dir, skin_name);
   if (!skin.IsValid())
-    skin = LoadFrom(sys_dir);
+    skin = LoadFrom(sys_dir, skin_name);
   return skin;
 }

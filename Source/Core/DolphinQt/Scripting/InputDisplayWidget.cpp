@@ -35,6 +35,8 @@ static bool PadButton(const GCPadStatus& pad, const QString& key)
 
 static u8 PadAxis(const GCPadStatus& pad, const QString& key)
 {
+  if (key.isEmpty())
+    return 0;
   if (key == QStringLiteral("StickX"))       return pad.stickX;
   if (key == QStringLiteral("StickY"))       return pad.stickY;
   if (key == QStringLiteral("CStickX"))      return pad.substickX;
@@ -44,11 +46,20 @@ static u8 PadAxis(const GCPadStatus& pad, const QString& key)
   return 128;
 }
 
-InputDisplayWidget::InputDisplayWidget(const GCSkin& skin, QWidget* parent)
-    : QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint), m_skin(skin)
+static bool OverlayActive(const GCSkinOverlay& ov, const GCPadStatus& pad, bool connected)
+{
+  if (ov.when == QStringLiteral("disconnected"))
+    return !connected;
+  if (ov.when == QStringLiteral("connected"))
+    return connected;
+  return PadButton(pad, ov.when);
+}
+
+InputDisplayWidget::InputDisplayWidget(const GCSkin& skin, int port, QWidget* parent)
+    : QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint), m_skin(skin), m_port(port)
 {
   setFixedSize(skin.Width(), skin.Height());
-  setWindowTitle(QStringLiteral("Input Display"));
+  setWindowTitle(tr("Input Display - Controller %1").arg(m_port + 1));
 
   connect(&m_timer, &QTimer::timeout, this, &InputDisplayWidget::Poll);
   m_timer.setInterval(16);
@@ -91,11 +102,11 @@ const QPixmap& InputDisplayWidget::TintedPixmap(const QString& path, u32 argb)
 
 void InputDisplayWidget::Poll()
 {
-  const auto status = Core::System::GetInstance().GetMovie().GetDisplayedPadStatus(0);
+  const auto status = Core::System::GetInstance().GetMovie().GetDisplayedPadStatus(m_port);
   if (status.has_value())
   {
     m_pad = *status;
-    m_connected = m_pad.isConnected;
+    m_connected = m_skin.gba_mode ? !(m_pad.button & PAD_BUTTON_Y) : m_pad.isConnected;
   }
   // If nullopt (no game running yet), keep the previous pad state rather than
   // showing "No controller" — the neutral default shows an idle controller.
@@ -129,13 +140,6 @@ void InputDisplayWidget::DrawSkin(QPainter& p)
   };
 
   p.fillRect(rect(), ArgbToColor(m_skin.background));
-
-  if (!m_connected)
-  {
-    p.setPen(QColor(170, 170, 170));
-    p.drawText(rect(), Qt::AlignCenter, QStringLiteral("No controller"));
-    return;
-  }
 
   for (const GCSkinStick& st : m_skin.sticks)
   {
@@ -184,11 +188,44 @@ void InputDisplayWidget::DrawSkin(QPainter& p)
     {
       p.drawRect(QRectF(sx(t.analog_x), fy, t.analog_w * s * val, fh));
     }
-    if (digital)
-      p.drawRect(QRectF(sx(t.digital_x), fy, t.digital_w * s, fh));
+    if (t.digital_w > 0)
+    {
+      if (digital)
+        p.drawRect(QRectF(sx(t.digital_x), fy, t.digital_w * s, fh));
+      p.setPen(QPen(ArgbToColor(white), 2.0));
+      p.setBrush(Qt::NoBrush);
+      p.drawLine(QPointF(sx(t.divider_x), fy), QPointF(sx(t.divider_x), fy + fh));
+    }
+  }
 
-    p.setPen(QPen(ArgbToColor(white), 2.0));
-    p.setBrush(Qt::NoBrush);
-    p.drawLine(QPointF(sx(t.divider_x), fy), QPointF(sx(t.divider_x), fy + fh));
+  // Generic conditional overlays: a full-window scrim and/or a tinted image, per `when` state.
+  for (const GCSkinOverlay& ov : m_skin.overlays)
+  {
+    if (!OverlayActive(ov, m_pad, m_connected))
+      continue;
+
+    p.setOpacity(ov.opacity);
+    if ((ov.fill >> 24) != 0)
+      p.fillRect(rect(), ArgbToColor(ov.fill));
+
+    if (!ov.image.isEmpty())
+    {
+      const QString path = m_skin.tex_dir + QLatin1Char('/') + ov.image;
+      const QPixmap& pix = (ov.tint == 0) ? LoadPixmap(path) : TintedPixmap(path, ov.tint);
+      if (!pix.isNull())
+      {
+        if (ov.align == QStringLiteral("fill"))
+        {
+          p.drawPixmap(rect(), pix);
+        }
+        else
+        {
+          const float iw = pix.width() * ov.scale, ih = pix.height() * ov.scale;
+          p.drawPixmap(QRectF((width() - iw) / 2.0f, (height() - ih) / 2.0f, iw, ih), pix,
+                       QRectF(pix.rect()));
+        }
+      }
+    }
+    p.setOpacity(1.0);
   }
 }

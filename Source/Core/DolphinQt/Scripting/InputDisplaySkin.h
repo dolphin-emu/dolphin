@@ -47,6 +47,19 @@ struct GCSkinTrigger
   bool dir_right = false;
 };
 
+// A conditional layer drawn over the controller: a full-window scrim and/or a tinted image.
+// `when` names the state that activates it ("disconnected", or a button key like "Start").
+struct GCSkinOverlay
+{
+  QString when;
+  u32 fill = 0;          // ARGB scrim color; alpha 0 means no scrim
+  float opacity = 1.0f;  // layer-wide multiplier applied to scrim and image
+  QString image;
+  u32 tint = 0;          // ARGB image tint; 0 means draw the image untinted
+  float scale = 1.0f;
+  QString align;         // "center" (default) or "fill"
+};
+
 struct GCSkin
 {
   QString tex_dir;
@@ -61,11 +74,13 @@ struct GCSkin
   GCSkinDpad dpad;
   bool has_dpad = false;
   QVector<GCSkinTrigger> triggers;
+  QVector<GCSkinOverlay> overlays;
+  bool gba_mode = false;
 
   int Width() const;
   int Height() const;
   bool IsValid() const { return !tex_dir.isEmpty(); }
 
   // Prefers writable user InputDisplay/ dir; falls back to the bundled sys_dir copy.
-  static GCSkin Load(const QString& sys_dir);
+  static GCSkin Load(const QString& sys_dir, const QString& skin_name = QStringLiteral("gamecube"));
 };

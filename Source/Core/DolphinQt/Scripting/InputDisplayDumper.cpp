@@ -38,6 +38,8 @@ static bool PadButton(const GCPadStatus& pad, const QString& key)
 
 static u8 PadAxis(const GCPadStatus& pad, const QString& key)
 {
+  if (key.isEmpty())
+    return 0;
   if (key == QStringLiteral("StickX"))       return pad.stickX;
   if (key == QStringLiteral("StickY"))       return pad.stickY;
   if (key == QStringLiteral("CStickX"))      return pad.substickX;
@@ -47,7 +49,16 @@ static u8 PadAxis(const GCPadStatus& pad, const QString& key)
   return 128;
 }
 
-InputDisplayDumper::InputDisplayDumper(const GCSkin& skin) : m_skin(skin)
+static bool OverlayActive(const GCSkinOverlay& ov, const GCPadStatus& pad, bool connected)
+{
+  if (ov.when == QStringLiteral("disconnected"))
+    return !connected;
+  if (ov.when == QStringLiteral("connected"))
+    return connected;
+  return PadButton(pad, ov.when);
+}
+
+InputDisplayDumper::InputDisplayDumper(const GCSkin& skin, int port) : m_skin(skin), m_port(port)
 {
   m_listener = API::GetEventHub().ListenEvent<API::Events::FrameAdvance>(
       [this](const API::Events::FrameAdvance&) { OnFrameAdvance(); });
@@ -133,9 +144,6 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
 
   p.fillRect(image.rect(), ArgbToColor(m_skin.background));
 
-  if (!connected)
-    return image;
-
   for (const GCSkinStick& st : m_skin.sticks)
   {
     drawImg(st.gate, sx(st.x), sy(st.y), ts, ts, col(st.gate_color));
@@ -183,12 +191,44 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
     {
       p.drawRect(QRectF(sx(t.analog_x), fy, t.analog_w * s * val, fh));
     }
-    if (digital)
-      p.drawRect(QRectF(sx(t.digital_x), fy, t.digital_w * s, fh));
+    if (t.digital_w > 0)
+    {
+      if (digital)
+        p.drawRect(QRectF(sx(t.digital_x), fy, t.digital_w * s, fh));
+      p.setPen(QPen(ArgbToColor(white), 2.0));
+      p.setBrush(Qt::NoBrush);
+      p.drawLine(QPointF(sx(t.divider_x), fy), QPointF(sx(t.divider_x), fy + fh));
+    }
+  }
 
-    p.setPen(QPen(ArgbToColor(white), 2.0));
-    p.setBrush(Qt::NoBrush);
-    p.drawLine(QPointF(sx(t.divider_x), fy), QPointF(sx(t.divider_x), fy + fh));
+  // Generic conditional overlays: a full-window scrim and/or a tinted image, per `when` state.
+  for (const GCSkinOverlay& ov : m_skin.overlays)
+  {
+    if (!OverlayActive(ov, pad, connected))
+      continue;
+
+    p.setOpacity(ov.opacity);
+    if ((ov.fill >> 24) != 0)
+      p.fillRect(image.rect(), ArgbToColor(ov.fill));
+
+    if (!ov.image.isEmpty())
+    {
+      const QString path = m_skin.tex_dir + QLatin1Char('/') + ov.image;
+      const QImage& img = (ov.tint == 0) ? LoadImage(path) : TintedImage(path, ov.tint);
+      if (!img.isNull())
+      {
+        if (ov.align == QStringLiteral("fill"))
+        {
+          p.drawImage(image.rect(), img);
+        }
+        else
+        {
+          const float iw = img.width() * ov.scale, ih = img.height() * ov.scale;
+          p.drawImage(QRectF((w - iw) / 2.0f, (h - ih) / 2.0f, iw, ih), img, QRectF(img.rect()));
+        }
+      }
+    }
+    p.setOpacity(1.0);
   }
 
   return image;
@@ -201,9 +241,10 @@ void InputDisplayDumper::OnFrameAdvance()
     return;
 
   auto& movie = Core::System::GetInstance().GetMovie();
-  const auto status = movie.GetDisplayedPadStatus(0);
+  const auto status = movie.GetDisplayedPadStatus(m_port);
   const GCPadStatus pad = status.value_or(GCPadStatus{});
-  const bool connected = status.has_value() && pad.isConnected;
+  const bool connected = status.has_value() &&
+                         (m_skin.gba_mode ? !(pad.button & PAD_BUTTON_Y) : pad.isConnected);
 
   const QImage image = RenderSkin(pad, connected);
   const u64 ticks = Core::System::GetInstance().GetCoreTiming().GetTicks();

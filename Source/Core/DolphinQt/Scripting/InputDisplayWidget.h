@@ -17,7 +17,7 @@ class InputDisplayWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit InputDisplayWidget(const GCSkin& skin, QWidget* parent = nullptr);
+  explicit InputDisplayWidget(const GCSkin& skin, int port = 0, QWidget* parent = nullptr);
 
 signals:
   // Emitted on user close so the menu toggle can stay in sync.
@@ -34,6 +34,7 @@ private:
   void Poll();
 
   const GCSkin& m_skin;
+  int m_port;
   QTimer m_timer;
   QHash<QString, QPixmap> m_pixmaps;
   QHash<QString, QPixmap> m_tinted;
