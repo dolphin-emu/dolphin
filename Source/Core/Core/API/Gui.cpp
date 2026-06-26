@@ -5,6 +5,7 @@
 #include "Gui.h"
 
 #include <cstring>
+#include <utility>
 
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -251,6 +252,26 @@ void Gui::CanvasReportWheel(WidgetId id, float delta)
 {
   std::lock_guard lock(m_widget_mutex);
   m_canvas_input[id].wheel_accum += delta;
+}
+
+void Gui::CanvasReportSize(WidgetId id, int w, int h)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+  {
+    it->second.canvas_w = w;
+    it->second.canvas_h = h;
+  }
+}
+
+std::pair<int, int> Gui::CanvasSize(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it == m_widgets.end())
+    return {0, 0};
+  return {it->second.canvas_w, it->second.canvas_h};
 }
 
 Vec2f Gui::CanvasMousePos(WidgetId id, bool& inside)

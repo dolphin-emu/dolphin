@@ -11,6 +11,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -136,6 +137,8 @@ public:
   void CanvasReportMouse(WidgetId id, float x, float y, bool inside);  // Qt thread
   void CanvasReportClick(WidgetId id, float x, float y);               // Qt thread
   void CanvasReportWheel(WidgetId id, float delta);                    // Qt thread
+  void CanvasReportSize(WidgetId id, int w, int h);                    // Qt thread
+  std::pair<int, int> CanvasSize(WidgetId id);                        // script thread
   Vec2f CanvasMousePos(WidgetId id, bool& inside);                     // script thread
   bool CanvasTakeClick(WidgetId id, Vec2f& pos);                       // script thread, consumes
   float CanvasTakeWheel(WidgetId id);                                  // script thread, consumes

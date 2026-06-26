@@ -388,6 +388,17 @@ static PyObject* canvas_take_click(PyObject* self, PyObject* args)
   return Py_BuildValue("(ff)", pos.x, pos.y);
 }
 
+// Returns current canvas size as (width, height) in pixels.
+static PyObject* canvas_size(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto [w, h] = state->gui->CanvasSize(id);
+  return Py_BuildValue("(ii)", w, h);
+}
+
 // Returns accumulated wheel notches since last call (positive = scroll up). Consumes it.
 static float canvas_take_wheel(PyObject* self, u64 id)
 {
@@ -533,8 +544,12 @@ class Window(_BaseWindow):
 class Canvas:
     def __init__(self, id, width, height):
         self._id = id
-        self.width = width
-        self.height = height
+    @property
+    def width(self):
+        return _canvas_size(self._id)[0]
+    @property
+    def height(self):
+        return _canvas_size(self._id)[1]
     def clear(self):
         _canvas_clear(self._id)
     def commit(self):
@@ -647,6 +662,7 @@ PyMODINIT_FUNC PyInit_gui()
       {"_canvas_triangle", Py::as_py_func<canvas_triangle>, METH_VARARGS, ""},
       {"_canvas_text", Py::as_py_func<canvas_text>, METH_VARARGS, ""},
       {"_canvas_image", Py::as_py_func<canvas_image>, METH_VARARGS, ""},
+      {"_canvas_size", canvas_size, METH_VARARGS, ""},
       {"_canvas_mouse_pos", canvas_mouse_pos, METH_VARARGS, ""},
       {"_canvas_take_click", canvas_take_click, METH_VARARGS, ""},
       {"_canvas_take_wheel", Py::as_py_func<canvas_take_wheel>, METH_VARARGS, ""},

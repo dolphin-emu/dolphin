@@ -9,6 +9,8 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygonF>
+#include <QResizeEvent>
+#include <QSizePolicy>
 #include <QWheelEvent>
 
 static QColor ArgbToColor(u32 argb)
@@ -57,7 +59,8 @@ ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, API:
                                  parent ? Qt::Widget : Qt::Window),
       m_overlay(overlay), m_id(id)
 {
-  setFixedSize(width, height);
+  resize(width, height);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // Track motion even with no button held so scripts get live hover coordinates.
   setMouseTracking(true);
 }
@@ -89,6 +92,12 @@ void ScriptCanvasWidget::leaveEvent(QEvent*)
   bool inside = false;
   const Vec2f last = API::GetGui().CanvasMousePos(m_id, inside);
   API::GetGui().CanvasReportMouse(m_id, last.x, last.y, false);
+}
+
+void ScriptCanvasWidget::resizeEvent(QResizeEvent* event)
+{
+  QWidget::resizeEvent(event);
+  API::GetGui().CanvasReportSize(m_id, event->size().width(), event->size().height());
 }
 
 void ScriptCanvasWidget::closeEvent(QCloseEvent* event)

@@ -34,6 +34,7 @@ protected:
   void mouseMoveEvent(QMouseEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
   void leaveEvent(QEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
   // Texture cache; tinted variants are keyed by "path|argb" so each tint is built once.
