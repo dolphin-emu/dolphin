@@ -69,7 +69,7 @@ void ScriptWindowManager::Sync()
     {
       if (it == m_windows.end())
       {
-        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, snap.overlay);
+        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, snap.overlay, snap.id);
         if (snap.overlay)
           connect(cw, &ScriptCanvasWidget::closed, this, &ScriptWindowManager::OverlayClosed);
         cw->setWindowTitle(QString::fromStdString(snap.title));

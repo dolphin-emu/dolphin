@@ -90,5 +90,10 @@ class Canvas:
     # tint=0 draws the texture as-is; otherwise RGB tints it and alpha scales opacity.
     # src is a normalized (x0, y0, x1, y1) crop for partial draws (e.g. analog fills).
     def image(self, path: str, pos: Tuple[float, float], size: Tuple[float, float], *, tint: int = 0, src: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)) -> None: ...
+    # Pointer input (detached Qt canvas only; embedded ImGui canvases report nothing).
+    # Coordinates are canvas pixels. Reads lag input by up to one Qt poll interval.
+    def mouse_pos(self) -> Tuple[float, float, bool]: ...           # (x, y, inside)
+    def take_click(self) -> Optional[Tuple[float, float]]: ...      # last unconsumed left-click, consumes it
+    def take_wheel(self) -> float: ...                              # accumulated wheel notches (+ = up), consumes
 
 def canvas(title: str, width: int, height: int, *, embedded: bool = False, overlay: bool = False) -> Canvas: ...

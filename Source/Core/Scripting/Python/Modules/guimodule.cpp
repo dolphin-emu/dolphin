@@ -345,6 +345,38 @@ static void canvas_image(PyObject* self, u64 id, const char* path, float x, floa
                               std::string{}, std::string(path), {sx0, sy0}, {sx1, sy1}});
 }
 
+// Returns (x, y, inside) for the canvas cursor; coords are canvas pixels.
+static PyObject* canvas_mouse_pos(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  bool inside = false;
+  const auto pos = state->gui->CanvasMousePos(id, inside);
+  return Py_BuildValue("(ffO)", pos.x, pos.y, inside ? Py_True : Py_False);
+}
+
+// Returns (x, y) of the last unconsumed left-click, or None. Consumes it.
+static PyObject* canvas_take_click(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  Vec2f pos;
+  if (!state->gui->CanvasTakeClick(id, pos))
+    Py_RETURN_NONE;
+  return Py_BuildValue("(ff)", pos.x, pos.y);
+}
+
+// Returns accumulated wheel notches since last call (positive = scroll up). Consumes it.
+static float canvas_take_wheel(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->CanvasTakeWheel(id);
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -506,6 +538,15 @@ class Canvas:
         # src is a normalized (x0, y0, x1, y1) crop for partial draws (e.g. analog fills).
         _canvas_image(self._id, path, pos[0], pos[1], size[0], size[1], tint,
                       src[0], src[1], src[2], src[3])
+    def mouse_pos(self):
+        # (x, y, inside): last cursor position in canvas pixels; inside is False off-widget.
+        return _canvas_mouse_pos(self._id)
+    def take_click(self):
+        # (x, y) of the last unconsumed left-click in canvas pixels, or None. Consumes it.
+        return _canvas_take_click(self._id)
+    def take_wheel(self):
+        # Accumulated wheel notches since the last call (positive = scroll up). Consumes it.
+        return _canvas_take_wheel(self._id)
 
 def canvas(title, width, height, *, embedded=False, overlay=False):
     return Canvas(_canvas_window(title, width, height, int(embedded), int(overlay)), width, height)
@@ -581,6 +622,9 @@ PyMODINIT_FUNC PyInit_gui()
       {"_canvas_triangle", Py::as_py_func<canvas_triangle>, METH_VARARGS, ""},
       {"_canvas_text", Py::as_py_func<canvas_text>, METH_VARARGS, ""},
       {"_canvas_image", Py::as_py_func<canvas_image>, METH_VARARGS, ""},
+      {"_canvas_mouse_pos", canvas_mouse_pos, METH_VARARGS, ""},
+      {"_canvas_take_click", canvas_take_click, METH_VARARGS, ""},
+      {"_canvas_take_wheel", Py::as_py_func<canvas_take_wheel>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

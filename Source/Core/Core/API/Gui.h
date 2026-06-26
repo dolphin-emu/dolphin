@@ -122,6 +122,23 @@ public:
   void CanvasCommit(WidgetId id);
   std::vector<CanvasPrimitive> SnapshotCanvas(WidgetId id);
 
+  // Canvas pointer input: Qt widget reports (main thread), scripts consume (emu thread).
+  // Click and wheel latch until read so a once-per-frame poll never misses one.
+  struct CanvasInput
+  {
+    float mouse_x = 0.0f, mouse_y = 0.0f;
+    bool inside = false;
+    bool clicked = false;       // latched until CanvasTakeClick
+    float click_x = 0.0f, click_y = 0.0f;
+    float wheel_accum = 0.0f;   // accumulated wheel notches until CanvasTakeWheel
+  };
+  void CanvasReportMouse(WidgetId id, float x, float y, bool inside);  // Qt thread
+  void CanvasReportClick(WidgetId id, float x, float y);               // Qt thread
+  void CanvasReportWheel(WidgetId id, float delta);                    // Qt thread
+  Vec2f CanvasMousePos(WidgetId id, bool& inside);                     // script thread
+  bool CanvasTakeClick(WidgetId id, Vec2f& pos);                       // script thread, consumes
+  float CanvasTakeWheel(WidgetId id);                                  // script thread, consumes
+
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
   WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
   bool TakeClicked(WidgetId id);
@@ -187,6 +204,8 @@ private:
   // Canvas primitive lists keyed by window id; building is script-side, committed is Qt-visible.
   std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_building;
   std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_committed;
+  // Pointer input per canvas, written by Qt, drained by scripts.
+  std::map<WidgetId, CanvasInput> m_canvas_input;
   WidgetId m_next_widget_id = 1;
   std::atomic<bool> m_script_window_focused{false};  // set by video thread in RenderWidgets
 };

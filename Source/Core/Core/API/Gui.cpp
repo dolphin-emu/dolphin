@@ -235,6 +235,65 @@ std::vector<Gui::CanvasPrimitive> Gui::SnapshotCanvas(WidgetId id)
   return it == m_canvas_committed.end() ? std::vector<CanvasPrimitive>{} : it->second;
 }
 
+void Gui::CanvasReportMouse(WidgetId id, float x, float y, bool inside)
+{
+  std::lock_guard lock(m_widget_mutex);
+  CanvasInput& in = m_canvas_input[id];
+  in.mouse_x = x;
+  in.mouse_y = y;
+  in.inside = inside;
+}
+
+void Gui::CanvasReportClick(WidgetId id, float x, float y)
+{
+  std::lock_guard lock(m_widget_mutex);
+  CanvasInput& in = m_canvas_input[id];
+  in.clicked = true;
+  in.click_x = x;
+  in.click_y = y;
+}
+
+void Gui::CanvasReportWheel(WidgetId id, float delta)
+{
+  std::lock_guard lock(m_widget_mutex);
+  m_canvas_input[id].wheel_accum += delta;
+}
+
+Vec2f Gui::CanvasMousePos(WidgetId id, bool& inside)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_canvas_input.find(id);
+  if (it == m_canvas_input.end())
+  {
+    inside = false;
+    return {0.0f, 0.0f};
+  }
+  inside = it->second.inside;
+  return {it->second.mouse_x, it->second.mouse_y};
+}
+
+bool Gui::CanvasTakeClick(WidgetId id, Vec2f& pos)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_canvas_input.find(id);
+  if (it == m_canvas_input.end() || !it->second.clicked)
+    return false;
+  it->second.clicked = false;
+  pos = {it->second.click_x, it->second.click_y};
+  return true;
+}
+
+float Gui::CanvasTakeWheel(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_canvas_input.find(id);
+  if (it == m_canvas_input.end())
+    return 0.0f;
+  const float d = it->second.wheel_accum;
+  it->second.wheel_accum = 0.0f;
+  return d;
+}
+
 Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool embedded)
 {
   std::lock_guard lock(m_widget_mutex);

@@ -18,7 +18,7 @@ class ScriptCanvasWidget : public QWidget
   Q_OBJECT
 public:
   explicit ScriptCanvasWidget(int width, int height, bool overlay = false,
-                              QWidget* parent = nullptr);
+                              API::Gui::WidgetId id = 0, QWidget* parent = nullptr);
 
   void SetPrimitives(std::vector<API::Gui::CanvasPrimitive> prims);
 
@@ -29,6 +29,11 @@ signals:
 protected:
   void paintEvent(QPaintEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
+  // Pointer events forwarded into API::Gui so scripts can read click/hover/wheel.
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void leaveEvent(QEvent* event) override;
 
 private:
   // Texture cache; tinted variants are keyed by "path|argb" so each tint is built once.
@@ -37,6 +42,7 @@ private:
 
   std::vector<API::Gui::CanvasPrimitive> m_prims;
   bool m_overlay;
+  API::Gui::WidgetId m_id;  // canvas id used to report pointer input back to API::Gui
   QHash<QString, QPixmap> m_pixmaps;
   QHash<QString, QPixmap> m_tinted;
 };

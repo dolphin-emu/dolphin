@@ -5,8 +5,11 @@
 #include "DolphinQt/Scripting/ScriptCanvasWidget.h"
 
 #include <QCloseEvent>
+#include <QEvent>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPolygonF>
+#include <QWheelEvent>
 
 static QColor ArgbToColor(u32 argb)
 {
@@ -48,11 +51,43 @@ const QPixmap& ScriptCanvasWidget::TintedPixmap(const QString& path, u32 argb)
   return *m_tinted.insert(key, tinted);
 }
 
-ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, QWidget* parent)
+ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, API::Gui::WidgetId id,
+                                       QWidget* parent)
     : QWidget(parent, overlay ? (Qt::Window | Qt::WindowStaysOnTopHint) : Qt::Window),
-      m_overlay(overlay)
+      m_overlay(overlay), m_id(id)
 {
   setFixedSize(width, height);
+  // Track motion even with no button held so scripts get live hover coordinates.
+  setMouseTracking(true);
+}
+
+void ScriptCanvasWidget::mousePressEvent(QMouseEvent* event)
+{
+  const QPointF p = event->position();
+  if (event->button() == Qt::LeftButton)
+    API::GetGui().CanvasReportClick(m_id, static_cast<float>(p.x()), static_cast<float>(p.y()));
+  API::GetGui().CanvasReportMouse(m_id, static_cast<float>(p.x()), static_cast<float>(p.y()), true);
+}
+
+void ScriptCanvasWidget::mouseMoveEvent(QMouseEvent* event)
+{
+  const QPointF p = event->position();
+  API::GetGui().CanvasReportMouse(m_id, static_cast<float>(p.x()), static_cast<float>(p.y()), true);
+}
+
+void ScriptCanvasWidget::wheelEvent(QWheelEvent* event)
+{
+  // angleDelta is in eighths of a degree; one mouse notch is 120 → 1.0 notch.
+  API::GetGui().CanvasReportWheel(m_id, event->angleDelta().y() / 120.0f);
+  event->accept();
+}
+
+void ScriptCanvasWidget::leaveEvent(QEvent*)
+{
+  // Mark the cursor as outside; keep the last position so a script can still read it.
+  bool inside = false;
+  const Vec2f last = API::GetGui().CanvasMousePos(m_id, inside);
+  API::GetGui().CanvasReportMouse(m_id, last.x, last.y, false);
 }
 
 void ScriptCanvasWidget::closeEvent(QCloseEvent* event)
