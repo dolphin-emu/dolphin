@@ -39,4 +39,6 @@ private:
 
   std::map<API::Gui::WidgetId, ManagedWindow> m_windows;
   QTimer m_timer;
+  // Drives the script HostUpdate event so scripts keep ticking while emulation is paused.
+  QTimer m_host_update_timer;
 };

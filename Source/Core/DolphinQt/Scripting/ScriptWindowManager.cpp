@@ -11,9 +11,11 @@
 #include <QSlider>
 #include <QVBoxLayout>
 
+#include "Core/API/Events.h"
 #include "Core/API/Gui.h"
 
 static constexpr int POLL_INTERVAL_MS = 33;
+static constexpr int HOST_UPDATE_INTERVAL_MS = 16;  // ~60Hz heartbeat for scripts
 
 // ARGB colors become rgba() QSS fragments; the raw style is appended last so it wins on conflict.
 static QString BuildStyleSheet(const std::optional<u32>& text_color,
@@ -39,6 +41,10 @@ ScriptWindowManager::ScriptWindowManager(QObject* parent) : QObject(parent)
 {
   connect(&m_timer, &QTimer::timeout, this, &ScriptWindowManager::Sync);
   m_timer.start(POLL_INTERVAL_MS);
+
+  connect(&m_host_update_timer, &QTimer::timeout, this,
+          [] { API::GetEventHub().EmitEvent(API::Events::HostUpdate{}); });
+  m_host_update_timer.start(HOST_UPDATE_INTERVAL_MS);
 }
 
 ScriptWindowManager::~ScriptWindowManager()
