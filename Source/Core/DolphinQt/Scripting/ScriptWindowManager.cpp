@@ -71,13 +71,14 @@ void ScriptWindowManager::Sync()
   for (const auto& snap : snapshots)
   {
     auto it = m_windows.find(snap.id);
-    if (snap.canvas)
+
+    // Overlay canvas: a frameless stays-on-top top-level surface with no form children.
+    if (snap.overlay)
     {
       if (it == m_windows.end())
       {
-        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, snap.overlay, snap.id);
-        if (snap.overlay)
-          connect(cw, &ScriptCanvasWidget::closed, this, &ScriptWindowManager::OverlayClosed);
+        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, true, snap.id);
+        connect(cw, &ScriptCanvasWidget::closed, this, &ScriptWindowManager::OverlayClosed);
         cw->setWindowTitle(QString::fromStdString(snap.title));
         cw->show();
         m_windows[snap.id] = ManagedWindow{snap.id, cw, {}, cw};
@@ -89,7 +90,7 @@ void ScriptWindowManager::Sync()
 
     if (it == m_windows.end())
     {
-      // New window — create the QWidget.
+      // New window — a container that can hold a canvas surface and/or form widgets.
       QWidget* win = new QWidget(nullptr, Qt::Window);
       win->setWindowTitle(QString::fromStdString(snap.title));
       win->setLayout(new QVBoxLayout);
@@ -101,6 +102,16 @@ void ScriptWindowManager::Sync()
     }
 
     ManagedWindow& mw = it->second;
+
+    // Attach the canvas surface once if the window carries one; it sits above the form widgets.
+    if (snap.canvas && !mw.canvas)
+    {
+      auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, false, snap.id, mw.window);
+      mw.window->layout()->addWidget(cw);
+      mw.canvas = cw;
+    }
+    if (mw.canvas)
+      mw.canvas->SetPrimitives(gui.SnapshotCanvas(snap.id));
 
     // Add any child widgets not yet created.
     for (const auto& child : snap.children)

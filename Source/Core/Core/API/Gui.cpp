@@ -50,17 +50,12 @@ void Gui::Render()
   RenderWidgets();
 }
 
-// Replays a committed canvas list into the ImGui overlay; caller holds m_widget_mutex.
-void Gui::RenderEmbeddedCanvas(WidgetId id, const std::string& title)
+// Replays a committed canvas list at the cursor; caller holds m_widget_mutex and is inside Begin.
+void Gui::RenderEmbeddedCanvas(WidgetId id, int width, int height)
 {
   auto it = m_canvas_committed.find(id);
   if (it == m_canvas_committed.end())
     return;
-  if (!ImGui::Begin(title.c_str()))
-  {
-    ImGui::End();
-    return;
-  }
   const ImVec2 o = ImGui::GetCursorScreenPos();
   ImDrawList* dl = ImGui::GetWindowDrawList();
   auto off = [&](const Vec2f& p) { return ImVec2{o.x + p.x, o.y + p.y}; };
@@ -98,7 +93,8 @@ void Gui::RenderEmbeddedCanvas(WidgetId id, const std::string& title)
       break;
     }
   }
-  ImGui::End();
+  // Reserve the canvas footprint so following child widgets flow below it.
+  ImGui::Dummy(ImVec2(static_cast<float>(width), static_cast<float>(height)));
 }
 
 void Gui::RenderWidgets()
@@ -111,14 +107,8 @@ void Gui::RenderWidgets()
     if (window_it == m_widgets.end())
       continue;
     Widget& window = window_it->second;
-    if (window.canvas)
-    {
-      if (window.embedded)
-        RenderEmbeddedCanvas(window_id, window.label);
-      continue;
-    }
     if (!window.embedded)
-      continue;
+      continue;  // Qt owns detached windows, canvas and form alike
     if (window.bg_color)
       ImGui::PushStyleColor(ImGuiCol_WindowBg, ARGBToABGR(*window.bg_color));
     const bool window_open = ImGui::Begin(window.label.c_str());
@@ -131,6 +121,8 @@ void Gui::RenderWidgets()
     }
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
       any_focused = true;
+    if (window.canvas)
+      RenderEmbeddedCanvas(window_id, window.canvas_w, window.canvas_h);
     for (WidgetId child_id : window.children)
     {
       auto child_it = m_widgets.find(child_id);
@@ -309,6 +301,17 @@ Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool
   m_widgets[id] = std::move(w);
   m_windows.push_back(id);
   return id;
+}
+
+void Gui::EnableCanvas(WidgetId id, int width, int height)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it == m_widgets.end() || it->second.kind != WidgetKind::Window)
+    return;
+  it->second.canvas = true;
+  it->second.canvas_w = width;
+  it->second.canvas_h = height;
 }
 
 Gui::WidgetId Gui::AddChild(WidgetId parent, WidgetKind kind, const std::string& label)

@@ -53,7 +53,8 @@ const QPixmap& ScriptCanvasWidget::TintedPixmap(const QString& path, u32 argb)
 
 ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, API::Gui::WidgetId id,
                                        QWidget* parent)
-    : QWidget(parent, overlay ? (Qt::Window | Qt::WindowStaysOnTopHint) : Qt::Window),
+    : QWidget(parent, overlay ? (Qt::Window | Qt::WindowStaysOnTopHint) :
+                                 parent ? Qt::Widget : Qt::Window),
       m_overlay(overlay), m_id(id)
 {
   setFixedSize(width, height);

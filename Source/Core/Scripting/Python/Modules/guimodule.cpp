@@ -167,6 +167,12 @@ static u64 widget_window(PyObject* self, const char* title, int embedded)
   return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title), embedded != 0);
 }
 
+static void widget_enable_canvas(PyObject* self, u64 id, int width, int height)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->EnableCanvas(id, width, height);
+}
+
 static u64 widget_button(PyObject* self, u64 parent, const char* label)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
@@ -469,6 +475,10 @@ class InputText:
 class _BaseWindow:
     def __init__(self, wid):
         self._id = wid
+    def canvas(self, width, height):
+        # Attach a drawing surface to this window; form widgets added here sit below it.
+        _widget_enable_canvas(self._id, width, height)
+        return Canvas(self._id, width, height)
     def _child(self, wid, style, text_color, bg_color):
         if text_color is not None:
             _widget_set_text_color(wid, text_color)
@@ -597,6 +607,7 @@ PyMODINIT_FUNC PyInit_gui()
       {"_draw_polyline", draw_polyline, METH_VARARGS, ""},
       {"_draw_convex_poly_filled", draw_convex_poly_filled, METH_VARARGS, ""},
       {"_widget_window", Py::as_py_func<widget_window>, METH_VARARGS, ""},
+      {"_widget_enable_canvas", Py::as_py_func<widget_enable_canvas>, METH_VARARGS, ""},
       {"_widget_button", Py::as_py_func<widget_button>, METH_VARARGS, ""},
       {"_widget_slider_float", Py::as_py_func<widget_slider_float>, METH_VARARGS, ""},
       {"_widget_text", Py::as_py_func<widget_text>, METH_VARARGS, ""},

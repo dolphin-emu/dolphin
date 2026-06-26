@@ -140,6 +140,8 @@ public:
   float CanvasTakeWheel(WidgetId id);                                  // script thread, consumes
 
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
+  // Attaches a freeform canvas region to an existing window so it hosts a canvas and child widgets.
+  void EnableCanvas(WidgetId window, int width, int height);
   WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
   bool TakeClicked(WidgetId id);
   float GetValue(WidgetId id);
@@ -188,7 +190,8 @@ public:
 
 private:
   void RenderWidgets();
-  void RenderEmbeddedCanvas(WidgetId id, const std::string& title);
+  // Replays a committed canvas list at the current cursor; caller is already inside ImGui::Begin.
+  void RenderEmbeddedCanvas(WidgetId id, int width, int height);
 
 private:
   // Pushing all draw calls onto a vector of functions is probably not
