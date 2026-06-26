@@ -154,6 +154,124 @@ static PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
+// Retained-mode widgets. The owner is the current backend so a script's windows
+// are pruned together when it stops; ids are opaque handles into the Gui tree.
+static void* CurrentOwner()
+{
+  return PyScripting::PyScriptingBackend::GetCurrent();
+}
+
+static u64 widget_window(PyObject* self, const char* title, int embedded)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title), embedded != 0);
+}
+
+static u64 widget_button(PyObject* self, u64 parent, const char* label)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->AddChild(parent, API::Gui::WidgetKind::Button, std::string(label));
+}
+
+static u64 widget_slider_float(PyObject* self, u64 parent, const char* label, float min, float max)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::SliderFloat, std::string(label));
+  state->gui->SetSliderRange(id, min, max);
+  return id;
+}
+
+static u64 widget_text(PyObject* self, u64 parent, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->AddChild(parent, API::Gui::WidgetKind::Text, std::string(text));
+}
+
+static u64 widget_checkbox(PyObject* self, u64 parent, const char* label, int checked)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::Checkbox, std::string(label));
+  state->gui->SetChecked(id, checked != 0);
+  return id;
+}
+
+static u64 widget_input_text(PyObject* self, u64 parent, const char* label, const char* initial)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  u64 id = state->gui->AddChild(parent, API::Gui::WidgetKind::InputText, std::string(label));
+  state->gui->SetInputText(id, std::string(initial));
+  return id;
+}
+
+static bool widget_get_checked(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetChecked(id);
+}
+
+static void widget_set_checked(PyObject* self, u64 id, int checked)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetChecked(id, checked != 0);
+}
+
+static PyObject* widget_get_input_text(PyObject* self, PyObject* args)
+{
+  unsigned long long id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return PyUnicode_FromString(state->gui->GetInputText(id).c_str());
+}
+
+static void widget_set_input_text(PyObject* self, u64 id, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetInputText(id, std::string(text));
+}
+
+static bool widget_take_clicked(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->TakeClicked(id);
+}
+
+static float widget_get_value(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetValue(id);
+}
+
+static void widget_set_value(PyObject* self, u64 id, float value)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetValue(id, value);
+}
+
+static void widget_set_text(PyObject* self, u64 id, const char* text)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetText(id, std::string(text));
+}
+
+static void widget_set_text_color(PyObject* self, u64 id, u32 color)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetTextColor(id, color);
+}
+
+static void widget_set_bg_color(PyObject* self, u64 id, u32 color)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetBgColor(id, color);
+}
+
+static void widget_set_style(PyObject* self, u64 id, const char* qss)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetStyle(id, std::string(qss));
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -199,6 +317,109 @@ def draw_polyline(points, color, closed = False, thickness = 1):
 
 def draw_convex_poly_filled(points, color):
     _draw_convex_poly_filled(points, color)
+
+class Button:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def clicked(self):
+        return _widget_take_clicked(self._id)
+
+class SliderFloat:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def value(self):
+        return _widget_get_value(self._id)
+    @value.setter
+    def value(self, v):
+        _widget_set_value(self._id, v)
+
+class Text:
+    def __init__(self, id):
+        self._id = id
+    def set(self, text):
+        _widget_set_text(self._id, text)
+
+class Checkbox:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def checked(self):
+        return _widget_get_checked(self._id)
+    @checked.setter
+    def checked(self, v):
+        _widget_set_checked(self._id, int(v))
+
+class InputText:
+    def __init__(self, id):
+        self._id = id
+    @property
+    def value(self):
+        return _widget_get_input_text(self._id)
+    @value.setter
+    def value(self, v):
+        _widget_set_input_text(self._id, v)
+
+class _BaseWindow:
+    def __init__(self, wid):
+        self._id = wid
+    def _child(self, wid, style, text_color, bg_color):
+        if text_color is not None:
+            _widget_set_text_color(wid, text_color)
+        if bg_color is not None:
+            _widget_set_bg_color(wid, bg_color)
+        if style is not None:
+            _widget_set_style(wid, style)
+        return wid
+
+class Overlay(_BaseWindow):
+    def button(self, label, *, text_color=None, bg_color=None):
+        return Button(self._child(_widget_button(self._id, label), None, text_color, bg_color))
+    def slider_float(self, label, min = 0.0, max = 1.0, *, text_color=None, bg_color=None):
+        return SliderFloat(self._child(_widget_slider_float(self._id, label, min, max),
+                                       None, text_color, bg_color))
+    def text(self, text = "", *, text_color=None, bg_color=None):
+        return Text(self._child(_widget_text(self._id, text), None, text_color, bg_color))
+    def checkbox(self, label, checked = False, *, text_color=None, bg_color=None):
+        return Checkbox(self._child(_widget_checkbox(self._id, label, int(checked)),
+                                    None, text_color, bg_color))
+    def input_text(self, label, initial = "", *, text_color=None, bg_color=None):
+        return InputText(self._child(_widget_input_text(self._id, label, initial),
+                                     None, text_color, bg_color))
+
+class Window(_BaseWindow):
+    def button(self, label, *, style=None, text_color=None, bg_color=None):
+        return Button(self._child(_widget_button(self._id, label), style, text_color, bg_color))
+    def slider_float(self, label, min = 0.0, max = 1.0, *, style=None, text_color=None, bg_color=None):
+        return SliderFloat(self._child(_widget_slider_float(self._id, label, min, max),
+                                       style, text_color, bg_color))
+    def text(self, text = "", *, style=None, text_color=None, bg_color=None):
+        return Text(self._child(_widget_text(self._id, text), style, text_color, bg_color))
+    def checkbox(self, label, checked = False, *, style=None, text_color=None, bg_color=None):
+        return Checkbox(self._child(_widget_checkbox(self._id, label, int(checked)),
+                                    style, text_color, bg_color))
+    def input_text(self, label, initial = "", *, style=None, text_color=None, bg_color=None):
+        return InputText(self._child(_widget_input_text(self._id, label, initial),
+                                     style, text_color, bg_color))
+
+def overlay(title, *, bg_color=None, text_color=None):
+    w = Overlay(_widget_window(title, 1))
+    if bg_color is not None:
+        _widget_set_bg_color(w._id, bg_color)
+    if text_color is not None:
+        _widget_set_text_color(w._id, text_color)
+    return w
+
+def window(title, *, style=None, bg_color=None, text_color=None):
+    w = Window(_widget_window(title, 0))
+    if bg_color is not None:
+        _widget_set_bg_color(w._id, bg_color)
+    if text_color is not None:
+        _widget_set_text_color(w._id, text_color)
+    if style is not None:
+        _widget_set_style(w._id, style)
+    return w
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
@@ -227,6 +448,23 @@ PyMODINIT_FUNC PyInit_gui()
       {"_draw_text", Py::as_py_func<draw_text>, METH_VARARGS, ""},
       {"_draw_polyline", draw_polyline, METH_VARARGS, ""},
       {"_draw_convex_poly_filled", draw_convex_poly_filled, METH_VARARGS, ""},
+      {"_widget_window", Py::as_py_func<widget_window>, METH_VARARGS, ""},
+      {"_widget_button", Py::as_py_func<widget_button>, METH_VARARGS, ""},
+      {"_widget_slider_float", Py::as_py_func<widget_slider_float>, METH_VARARGS, ""},
+      {"_widget_text", Py::as_py_func<widget_text>, METH_VARARGS, ""},
+      {"_widget_checkbox", Py::as_py_func<widget_checkbox>, METH_VARARGS, ""},
+      {"_widget_input_text", Py::as_py_func<widget_input_text>, METH_VARARGS, ""},
+      {"_widget_get_checked", Py::as_py_func<widget_get_checked>, METH_VARARGS, ""},
+      {"_widget_set_checked", Py::as_py_func<widget_set_checked>, METH_VARARGS, ""},
+      {"_widget_get_input_text", widget_get_input_text, METH_VARARGS, ""},
+      {"_widget_set_input_text", Py::as_py_func<widget_set_input_text>, METH_VARARGS, ""},
+      {"_widget_take_clicked", Py::as_py_func<widget_take_clicked>, METH_VARARGS, ""},
+      {"_widget_get_value", Py::as_py_func<widget_get_value>, METH_VARARGS, ""},
+      {"_widget_set_value", Py::as_py_func<widget_set_value>, METH_VARARGS, ""},
+      {"_widget_set_text", Py::as_py_func<widget_set_text>, METH_VARARGS, ""},
+      {"_widget_set_text_color", Py::as_py_func<widget_set_text_color>, METH_VARARGS, ""},
+      {"_widget_set_bg_color", Py::as_py_func<widget_set_bg_color>, METH_VARARGS, ""},
+      {"_widget_set_style", Py::as_py_func<widget_set_style>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

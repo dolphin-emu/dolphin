@@ -323,6 +323,7 @@ PyScriptingBackend::~PyScriptingBackend()
   std::lock_guard lock{s_bookkeeping_lock};
   if (m_interp_threadstate == nullptr)
     return;  // we've been moved from (if moving was implemented)
+  m_gui.RemoveWidgetsForOwner(this);
   PyEval_RestoreThread(m_interp_threadstate);
   u64 interp_id = PyInterpreterState_GetID(m_interp_threadstate->interp);
 

@@ -4,6 +4,8 @@
 
 #include "Gui.h"
 
+#include <cstring>
+
 #include "VideoCommon/OnScreenDisplay.h"
 
 #define GUI_DRAW_DEFERRED(draw_call) \
@@ -34,14 +36,276 @@ void Gui::Render()
 
   ImGui::SetNextWindowPos(ImVec2{0, 0});
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-  static auto flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration;
+  // NoInputs stops this full-screen draw canvas from grabbing focus and covering script windows.
+  static auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
+                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                      ImGuiWindowFlags_NoBringToFrontOnFocus;
 
   ImGui::Begin("gui api", nullptr, flags);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   for (auto call : draw_calls)
     call(draw_list);
   ImGui::End();
+
+  RenderWidgets();
+}
+
+void Gui::RenderWidgets()
+{
+  std::lock_guard lock(m_widget_mutex);
+  bool any_focused = false;
+  for (WidgetId window_id : m_windows)
+  {
+    auto window_it = m_widgets.find(window_id);
+    if (window_it == m_widgets.end())
+      continue;
+    Widget& window = window_it->second;
+    if (!window.embedded)
+      continue;
+    if (window.bg_color)
+      ImGui::PushStyleColor(ImGuiCol_WindowBg, ARGBToABGR(*window.bg_color));
+    const bool window_open = ImGui::Begin(window.label.c_str());
+    if (window.bg_color)
+      ImGui::PopStyleColor();
+    if (!window_open)
+    {
+      ImGui::End();
+      continue;
+    }
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+      any_focused = true;
+    for (WidgetId child_id : window.children)
+    {
+      auto child_it = m_widgets.find(child_id);
+      if (child_it == m_widgets.end())
+        continue;
+      Widget& w = child_it->second;
+      // Suffix the ImGui id so identical labels stay distinct widgets.
+      const std::string id_label = w.label + "##" + std::to_string(child_id);
+      int pushed_colors = 0;
+      if (w.text_color)
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, ARGBToABGR(*w.text_color));
+        ++pushed_colors;
+      }
+      if (w.bg_color)
+      {
+        const u32 abgr = ARGBToABGR(*w.bg_color);
+        // Frame-backed widgets read FrameBg; buttons read Button.
+        ImGui::PushStyleColor(
+            w.kind == WidgetKind::Button ? ImGuiCol_Button : ImGuiCol_FrameBg, abgr);
+        ++pushed_colors;
+      }
+      switch (w.kind)
+      {
+      case WidgetKind::Button:
+        if (ImGui::Button(id_label.c_str()))
+          w.clicked = true;
+        break;
+      case WidgetKind::SliderFloat:
+        ImGui::SliderFloat(id_label.c_str(), &w.value, w.min, w.max);
+        break;
+      case WidgetKind::Text:
+        ImGui::TextUnformatted(w.label.c_str());
+        break;
+      case WidgetKind::Checkbox:
+        ImGui::Checkbox(id_label.c_str(), &w.checked);
+        break;
+      case WidgetKind::InputText:
+      {
+        char buf[256];
+        std::strncpy(buf, w.text_value.c_str(), sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+        if (ImGui::InputText(id_label.c_str(), buf, sizeof(buf)))
+          w.text_value = buf;
+        break;
+      }
+      default:
+        break;
+      }
+      if (pushed_colors)
+        ImGui::PopStyleColor(pushed_colors);
+    }
+    ImGui::End();
+  }
+  m_script_window_focused.store(any_focused);
+}
+
+Gui::WidgetId Gui::GetOrCreateWindow(void* owner, const std::string& title, bool embedded)
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (WidgetId id : m_windows)
+  {
+    auto it = m_widgets.find(id);
+    if (it != m_widgets.end() && it->second.owner == owner && it->second.label == title)
+      return id;
+  }
+  const WidgetId id = m_next_widget_id++;
+  Widget w{WidgetKind::Window, owner, title};
+  w.embedded = embedded;
+  m_widgets[id] = std::move(w);
+  m_windows.push_back(id);
+  return id;
+}
+
+Gui::WidgetId Gui::AddChild(WidgetId parent, WidgetKind kind, const std::string& label)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto parent_it = m_widgets.find(parent);
+  if (parent_it == m_widgets.end())
+    return 0;
+  const WidgetId id = m_next_widget_id++;
+  m_widgets[id] = Widget{kind, parent_it->second.owner, label};
+  parent_it->second.children.push_back(id);
+  return id;
+}
+
+bool Gui::TakeClicked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it == m_widgets.end() || !it->second.clicked)
+    return false;
+  it->second.clicked = false;
+  return true;
+}
+
+float Gui::GetValue(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it == m_widgets.end() ? 0.0f : it->second.value;
+}
+
+void Gui::SetValue(WidgetId id, float value)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.value = value;
+}
+
+void Gui::SetSliderRange(WidgetId id, float min, float max)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+  {
+    it->second.min = min;
+    it->second.max = max;
+  }
+}
+
+void Gui::SetText(WidgetId id, const std::string& text)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.label = text;
+}
+
+void Gui::SetClicked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.clicked = true;
+}
+
+bool Gui::GetChecked(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it != m_widgets.end() && it->second.checked;
+}
+
+void Gui::SetChecked(WidgetId id, bool checked)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.checked = checked;
+}
+
+std::string Gui::GetInputText(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it == m_widgets.end() ? std::string() : it->second.text_value;
+}
+
+void Gui::SetInputText(WidgetId id, const std::string& text)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.text_value = text;
+}
+
+void Gui::SetTextColor(WidgetId id, u32 color)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.text_color = color;
+}
+
+void Gui::SetBgColor(WidgetId id, u32 color)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.bg_color = color;
+}
+
+void Gui::SetStyle(WidgetId id, const std::string& style)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.style = style;
+}
+
+std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
+{
+  std::lock_guard lock(m_widget_mutex);
+  std::vector<WindowInfo> result;
+  for (WidgetId wid : m_windows)
+  {
+    auto wit = m_widgets.find(wid);
+    if (wit == m_widgets.end() || wit->second.embedded)
+      continue;
+    WindowInfo info;
+    info.id = wid;
+    info.title = wit->second.label;
+    info.text_color = wit->second.text_color;
+    info.bg_color = wit->second.bg_color;
+    info.style = wit->second.style;
+    for (WidgetId cid : wit->second.children)
+    {
+      auto cit = m_widgets.find(cid);
+      if (cit == m_widgets.end())
+        continue;
+      info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.min,
+                               cit->second.max, cit->second.checked, cit->second.text_value,
+                               cit->second.text_color, cit->second.bg_color, cit->second.style});
+    }
+    result.push_back(std::move(info));
+  }
+  return result;
+}
+
+void Gui::RemoveWidgetsForOwner(void* owner)
+{
+  std::lock_guard lock(m_widget_mutex);
+  for (auto it = m_widgets.begin(); it != m_widgets.end();)
+  {
+    if (it->second.owner == owner)
+      it = m_widgets.erase(it);
+    else
+      ++it;
+  }
+  std::erase_if(m_windows, [&](WidgetId id) { return !m_widgets.contains(id); });
 }
 
 Vec2f Gui::GetDisplaySize()

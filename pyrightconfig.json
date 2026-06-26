@@ -1,0 +1,8 @@
+{
+  "stubPath": "python-stubs",
+  "pythonVersion": "3.8",
+  "include": [
+    "Binary/x64/Release/Scripts"
+  ],
+  "reportMissingModuleSource": "none"
+}

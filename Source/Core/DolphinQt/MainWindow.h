@@ -51,6 +51,7 @@ class RenderWidget;
 class SearchBar;
 class SettingsWindow;
 class SkylanderPortalWindow;
+class ScriptWindowManager;
 class ScriptingWidget;
 class ThreadWidget;
 class ToolBar;
@@ -297,6 +298,7 @@ private:
   NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;
   ScriptingWidget* m_scripting_widget;
+  ScriptWindowManager* m_script_window_manager;
   ThreadWidget* m_thread_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager{};
