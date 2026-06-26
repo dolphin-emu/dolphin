@@ -26,6 +26,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/IOS/USB/Emulated/CameraBase.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -84,6 +85,7 @@ struct System::Impl
   HSP::HSPManager m_hsp;
   IOS::HLE::USB::InfinityBase m_infinity_base;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
+  IOS::HLE::USB::CameraBase m_camera_data;
   IOS::WiiIPC m_wii_ipc;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
@@ -249,6 +251,11 @@ IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
 IOS::HLE::USB::InfinityBase& System::GetInfinityBase() const
 {
   return m_impl->m_infinity_base;
+}
+
+IOS::HLE::USB::CameraBase& System::GetCameraBase() const
+{
+  return m_impl->m_camera_data;
 }
 
 IOS::WiiIPC& System::GetWiiIPC() const
