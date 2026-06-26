@@ -2,14 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt/Scripting/InputDisplayDumper.h"
+#include "DolphinQt/Scripting/InputDisplayWidget.h"
 
+#include <QCloseEvent>
 #include <QPainter>
 
-#include <fmt/format.h>
-
-#include "Common/CommonPaths.h"
-#include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 #include "InputCommon/GCPadStatus.h"
@@ -47,74 +44,74 @@ static u8 PadAxis(const GCPadStatus& pad, const QString& key)
   return 128;
 }
 
-InputDisplayDumper::InputDisplayDumper(const GCSkin& skin) : m_skin(skin)
+InputDisplayWidget::InputDisplayWidget(const GCSkin& skin, QWidget* parent)
+    : QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint), m_skin(skin)
 {
-  m_listener = API::GetEventHub().ListenEvent<API::Events::FrameAdvance>(
-      [this](const API::Events::FrameAdvance&) { OnFrameAdvance(); });
+  setFixedSize(skin.Width(), skin.Height());
+  setWindowTitle(QStringLiteral("Input Display"));
+
+  connect(&m_timer, &QTimer::timeout, this, &InputDisplayWidget::Poll);
+  m_timer.setInterval(16);
+  m_timer.start();
 }
 
-InputDisplayDumper::~InputDisplayDumper()
+void InputDisplayWidget::closeEvent(QCloseEvent* event)
 {
-  Stop();
-  API::GetEventHub().UnlistenEvent(m_listener);
+  emit closed();
+  QWidget::closeEvent(event);
 }
 
-void InputDisplayDumper::Start()
+const QPixmap& InputDisplayWidget::LoadPixmap(const QString& path)
 {
-  m_active = true;
-}
-
-void InputDisplayDumper::Stop()
-{
-  m_active = false;
-  std::lock_guard lock(m_dump_mutex);
-#if defined(HAVE_FFMPEG)
-  if (m_dump.IsStarted())
-    m_dump.Stop();
-  m_frame_count = 0;
-#endif
-}
-
-const QImage& InputDisplayDumper::LoadImage(const QString& path)
-{
-  auto it = m_images.find(path);
-  if (it == m_images.end())
-    it = m_images.insert(path, QImage(path));
+  auto it = m_pixmaps.find(path);
+  if (it == m_pixmaps.end())
+    it = m_pixmaps.insert(path, QPixmap(path));
   return *it;
 }
 
-// Multiply-tints a texture: black stays black, white becomes the tint. Mirrors ScriptCanvasWidget,
-// but on QImage so it can run off the GUI thread (QPixmap can't).
-const QImage& InputDisplayDumper::TintedImage(const QString& path, u32 argb)
+// Multiply-tints a texture: black stays black, white becomes the tint. Mirrors ScriptCanvasWidget.
+const QPixmap& InputDisplayWidget::TintedPixmap(const QString& path, u32 argb)
 {
   const QString key = path + QLatin1Char('|') + QString::number(argb, 16);
   auto it = m_tinted.find(key);
   if (it != m_tinted.end())
     return *it;
 
-  QImage tinted = LoadImage(path);
+  QPixmap tinted = LoadPixmap(path);
   if (!tinted.isNull())
   {
-    tinted = tinted.convertToFormat(QImage::Format_ARGB32);
     QPainter p(&tinted);
     p.setCompositionMode(QPainter::CompositionMode_Multiply);
     p.fillRect(tinted.rect(), ArgbToColor(argb | 0xFF000000u));
     p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-    p.drawImage(0, 0, LoadImage(path));
+    p.drawPixmap(0, 0, LoadPixmap(path));
   }
   return *m_tinted.insert(key, tinted);
 }
 
-QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
+void InputDisplayWidget::Poll()
 {
-  const int w = m_skin.Width(), h = m_skin.Height();
-  QImage image(w, h, QImage::Format_RGBA8888);
-  image.fill(Qt::transparent);
+  const auto status = Core::System::GetInstance().GetMovie().GetDisplayedPadStatus(0);
+  if (status.has_value())
+  {
+    m_pad = *status;
+    m_connected = m_pad.isConnected;
+  }
+  // If nullopt (no game running yet), keep the previous pad state rather than
+  // showing "No controller" — the neutral default shows an idle controller.
+  update();
+}
 
-  QPainter p(&image);
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+void InputDisplayWidget::paintEvent(QPaintEvent*)
+{
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+  DrawSkin(painter);
+}
 
+void InputDisplayWidget::DrawSkin(QPainter& p)
+{
   const float s = m_skin.scale;
   const float ox = m_skin.offset_x, oy = m_skin.offset_y;
   const float ts = m_skin.tex_size * s;
@@ -122,25 +119,29 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
   auto sx = [&](float v) { return (v + ox) * s; };
   auto sy = [&](float v) { return (v + oy) * s; };
   auto col = [&](const QString& key) -> u32 { return m_skin.colors.value(key, 0); };
-  auto drawImg = [&](const QString& name, float x, float y, float fw, float fh, u32 tint = 0) {
+  auto drawImg = [&](const QString& name, float x, float y, float w, float h, u32 tint = 0) {
     if (name.isEmpty())
       return;
     const QString path = m_skin.tex_dir + QLatin1Char('/') + name;
-    const QImage& img = (tint == 0) ? LoadImage(path) : TintedImage(path, tint);
-    if (!img.isNull())
-      p.drawImage(QRectF(x, y, fw, fh), img, QRectF(img.rect()));
+    const QPixmap& pix = (tint == 0) ? LoadPixmap(path) : TintedPixmap(path, tint);
+    if (!pix.isNull())
+      p.drawPixmap(QRectF(x, y, w, h), pix, QRectF(pix.rect()));
   };
 
-  p.fillRect(image.rect(), ArgbToColor(m_skin.background));
+  p.fillRect(rect(), ArgbToColor(m_skin.background));
 
-  if (!connected)
-    return image;
+  if (!m_connected)
+  {
+    p.setPen(QColor(170, 170, 170));
+    p.drawText(rect(), Qt::AlignCenter, QStringLiteral("No controller"));
+    return;
+  }
 
   for (const GCSkinStick& st : m_skin.sticks)
   {
     drawImg(st.gate, sx(st.x), sy(st.y), ts, ts, col(st.gate_color));
-    const float nx = (PadAxis(pad, st.key_x) - 128) / 128.0f;
-    const float ny = (PadAxis(pad, st.key_y) - 128) / 128.0f;
+    const float nx = (PadAxis(m_pad, st.key_x) - 128) / 128.0f;
+    const float ny = (PadAxis(m_pad, st.key_y) - 128) / 128.0f;
     drawImg(st.knob, sx(st.x + nx * st.travel), sy(st.y - ny * st.travel),
             ts, ts, col(st.knob_color));
   }
@@ -151,14 +152,14 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
     drawImg(d.gate, sx(d.x), sy(d.y), ts, ts, col(d.gate_color));
     for (auto it = d.pressed.begin(); it != d.pressed.end(); ++it)
     {
-      if (PadButton(pad, it.key()))
+      if (PadButton(m_pad, it.key()))
         drawImg(it.value(), sx(d.x), sy(d.y), ts, ts, 0);
     }
   }
 
   for (const GCSkinButton& btn : m_skin.buttons)
   {
-    const QString& name = PadButton(pad, btn.key) ? btn.pressed : btn.filled;
+    const QString& name = PadButton(m_pad, btn.key) ? btn.pressed : btn.filled;
     drawImg(name, sx(btn.x), sy(btn.y), ts, ts, col(btn.color_key));
   }
 
@@ -166,8 +167,8 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
   {
     drawImg(t.base, sx(t.bx), sy(t.by), t.bw * s, t.bh * s, 0);
 
-    const bool digital = PadButton(pad, t.key);
-    const float val = digital ? 1.0f : (PadAxis(pad, t.axis) / 255.0f);
+    const bool digital = PadButton(m_pad, t.key);
+    const float val = digital ? 1.0f : (PadAxis(m_pad, t.axis) / 255.0f);
     const u32 white = m_skin.colors.value(QStringLiteral("white"), 0xFFFFFFFFu);
     const float fy = sy(t.fill_y);
     const float fh = sy(t.fill_y + t.fill_h) - fy;
@@ -190,44 +191,4 @@ QImage InputDisplayDumper::RenderSkin(const GCPadStatus& pad, bool connected)
     p.setBrush(Qt::NoBrush);
     p.drawLine(QPointF(sx(t.divider_x), fy), QPointF(sx(t.divider_x), fy + fh));
   }
-
-  return image;
-}
-
-void InputDisplayDumper::OnFrameAdvance()
-{
-#if defined(HAVE_FFMPEG)
-  if (!m_active)
-    return;
-
-  auto& movie = Core::System::GetInstance().GetMovie();
-  const auto status = movie.GetDisplayedPadStatus(0);
-  const GCPadStatus pad = status.value_or(GCPadStatus{});
-  const bool connected = status.has_value() && pad.isConnected;
-
-  const QImage image = RenderSkin(pad, connected);
-  const u64 ticks = Core::System::GetInstance().GetCoreTiming().GetTicks();
-
-  std::lock_guard lock(m_dump_mutex);
-  if (!m_active)
-    return;
-
-  if (!m_dump.IsStarted())
-  {
-    if (!m_dump.Start(m_skin.Width(), m_skin.Height(), ticks, "InputDisplay" DIR_SEP "input"))
-    {
-      m_active = false;
-      return;
-    }
-  }
-
-  FrameData frame;
-  frame.data = image.constBits();
-  frame.width = m_skin.Width();
-  frame.height = m_skin.Height();
-  frame.stride = static_cast<int>(image.bytesPerLine());
-  frame.state = m_dump.FetchState(ticks, static_cast<int>(m_frame_count));
-  m_dump.AddFrame(frame);
-  ++m_frame_count;
-#endif
 }

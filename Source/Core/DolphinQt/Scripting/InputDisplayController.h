@@ -6,18 +6,19 @@
 
 #include <memory>
 
+#include <QObject>
+
+#include "DolphinQt/Scripting/InputDisplaySkin.h"
+
 class InputDisplayDumper;
+class InputDisplayWidget;
 
-namespace Scripting
+// Owns the input-display window and sidecar dumper; lifecycle driven by the Movie menu.
+class InputDisplayController : public QObject
 {
-class ScriptingBackend;
-}
-
-// Drives the bundled input-display script through its own backend, decoupled from the Scripts window.
-class InputDisplayController
-{
+  Q_OBJECT
 public:
-  InputDisplayController();
+  explicit InputDisplayController(QObject* parent = nullptr);
   ~InputDisplayController();
 
   void Show();
@@ -28,8 +29,13 @@ public:
   void StopDump();
   bool IsDumping() const;
 
+signals:
+  // Forwarded from the widget's close button so the menu toggle can uncheck.
+  void closed();
+
 private:
-  std::unique_ptr<Scripting::ScriptingBackend> m_backend;
+  GCSkin m_skin;
+  InputDisplayWidget* m_widget = nullptr;
   std::unique_ptr<InputDisplayDumper> m_dumper;
   bool m_dumping = false;
 };

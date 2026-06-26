@@ -880,8 +880,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowDTMEditor, this, &MainWindow::ShowDTMEditor);
   connect(m_menu_bar, &MenuBar::ShowInputDisplay, this, &MainWindow::OnShowInputDisplay);
   connect(m_menu_bar, &MenuBar::DumpControllerInputs, this, &MainWindow::OnDumpControllerInputs);
-  connect(m_script_window_manager, &ScriptWindowManager::OverlayClosed, this,
-          [this] { m_menu_bar->SetInputDisplayChecked(false); });
+
   connect(m_menu_bar, &MenuBar::ConfigureOSD, this, &MainWindow::ShowOSDWindow);
 
   // View
@@ -2723,7 +2722,11 @@ void MainWindow::ShowDTMEditor()
 void MainWindow::OnShowInputDisplay(bool show)
 {
   if (!m_input_display)
+  {
     m_input_display = std::make_unique<InputDisplayController>();
+    connect(m_input_display.get(), &InputDisplayController::closed, this,
+            [this] { m_menu_bar->SetInputDisplayChecked(false); });
+  }
   if (show)
     m_input_display->Show();
   else
@@ -2733,7 +2736,11 @@ void MainWindow::OnShowInputDisplay(bool show)
 void MainWindow::OnDumpControllerInputs(bool dump)
 {
   if (!m_input_display)
+  {
     m_input_display = std::make_unique<InputDisplayController>();
+    connect(m_input_display.get(), &InputDisplayController::closed, this,
+            [this] { m_menu_bar->SetInputDisplayChecked(false); });
+  }
   if (dump)
     m_input_display->StartDump();
   else

@@ -13,18 +13,19 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/API/Events.h"
-#include "Core/API/Gui.h"
+#include "DolphinQt/Scripting/InputDisplaySkin.h"
+#include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_FFMPEG)
 #include "VideoCommon/FrameDumpFFMpeg.h"
 #endif
 
-// Captures the input-display overlay to a frame-locked sidecar video, one frame per emulation frame.
-// Hooks API::Events::FrameAdvance and replays the committed primitives into an off-widget QImage.
+// Captures the input-display skin to a frame-locked sidecar video, one frame per emulation frame.
+// Hooks API::Events::FrameAdvance and renders the skin into an off-widget QImage.
 class InputDisplayDumper
 {
 public:
-  InputDisplayDumper();
+  explicit InputDisplayDumper(const GCSkin& skin);
   ~InputDisplayDumper();
 
   void Start();
@@ -32,10 +33,11 @@ public:
 
 private:
   void OnFrameAdvance();
-  QImage RenderCanvas(API::Gui::WidgetId id, int width, int height);
+  QImage RenderSkin(const GCPadStatus& pad, bool connected);
   const QImage& LoadImage(const QString& path);
   const QImage& TintedImage(const QString& path, u32 argb);
 
+  const GCSkin& m_skin;
   std::atomic<bool> m_active{false};
   API::ListenerID<API::Events::FrameAdvance> m_listener;
 
