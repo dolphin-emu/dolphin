@@ -83,6 +83,7 @@ public:
     bool canvas = false;             // Window only: freeform QPainter canvas
     int canvas_w = 0, canvas_h = 0;  // Window only
     bool overlay = false;            // Window only: frameless, stays-on-top, not user-closable
+    bool visible = true;             // child widgets: hidden ones aren't rendered
   };
 
   // Freeform canvas: a window backed by a replayable primitive list instead of widgets.
@@ -151,6 +152,8 @@ public:
   void SetClicked(WidgetId id);
   bool GetChecked(WidgetId id);
   void SetChecked(WidgetId id, bool checked);
+  bool GetVisible(WidgetId id);
+  void SetVisible(WidgetId id, bool visible);
   std::string GetInputText(WidgetId id);
   void SetInputText(WidgetId id, const std::string& text);
   void SetTextColor(WidgetId id, u32 color);
@@ -170,6 +173,7 @@ public:
     std::optional<u32> text_color;
     std::optional<u32> bg_color;
     std::string style;
+    bool visible;
   };
   struct WindowInfo
   {

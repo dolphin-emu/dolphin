@@ -29,11 +29,17 @@ signals:
 private:
   void Sync();
 
+  struct ManagedChild
+  {
+    QWidget* control;
+    QWidget* caption = nullptr;  // separate caption label for slider/input_text, hidden as a unit
+  };
+
   struct ManagedWindow
   {
     API::Gui::WidgetId id;
     QWidget* window;
-    std::map<API::Gui::WidgetId, QWidget*> children;
+    std::map<API::Gui::WidgetId, ManagedChild> children;
     ScriptCanvasWidget* canvas = nullptr;  // non-null for freeform canvas windows
   };
 

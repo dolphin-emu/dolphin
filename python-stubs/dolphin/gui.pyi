@@ -32,19 +32,24 @@ def draw_convex_poly_filled(points: List[Tuple[float, float]], color: int) -> No
 # (no QSS); the window takes full raw QSS via style= plus convenience colors.
 
 class Button:
+    visible: bool  # default True; False hides the widget (and its caption) until re-shown
     @property
     def clicked(self) -> bool: ...  # True once per click; reading consumes it
 
 class SliderFloat:
+    visible: bool
     value: float
 
 class Text:
+    visible: bool
     def set(self, text: str) -> None: ...
 
 class Checkbox:
+    visible: bool
     checked: bool
 
 class InputText:
+    visible: bool
     value: str
 
 class Overlay:

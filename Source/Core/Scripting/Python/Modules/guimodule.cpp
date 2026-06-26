@@ -221,6 +221,18 @@ static void widget_set_checked(PyObject* self, u64 id, int checked)
   state->gui->SetChecked(id, checked != 0);
 }
 
+static bool widget_get_visible(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetVisible(id);
+}
+
+static void widget_set_visible(PyObject* self, u64 id, int visible)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetVisible(id, visible != 0);
+}
+
 static PyObject* widget_get_input_text(PyObject* self, PyObject* args)
 {
   unsigned long long id;
@@ -429,16 +441,22 @@ def draw_polyline(points, color, closed = False, thickness = 1):
 def draw_convex_poly_filled(points, color):
     _draw_convex_poly_filled(points, color)
 
-class Button:
+class _Widget:
     def __init__(self, id):
         self._id = id
+    @property
+    def visible(self):
+        return _widget_get_visible(self._id)
+    @visible.setter
+    def visible(self, v):
+        _widget_set_visible(self._id, int(v))
+
+class Button(_Widget):
     @property
     def clicked(self):
         return _widget_take_clicked(self._id)
 
-class SliderFloat:
-    def __init__(self, id):
-        self._id = id
+class SliderFloat(_Widget):
     @property
     def value(self):
         return _widget_get_value(self._id)
@@ -446,15 +464,11 @@ class SliderFloat:
     def value(self, v):
         _widget_set_value(self._id, v)
 
-class Text:
-    def __init__(self, id):
-        self._id = id
+class Text(_Widget):
     def set(self, text):
         _widget_set_text(self._id, text)
 
-class Checkbox:
-    def __init__(self, id):
-        self._id = id
+class Checkbox(_Widget):
     @property
     def checked(self):
         return _widget_get_checked(self._id)
@@ -462,9 +476,7 @@ class Checkbox:
     def checked(self, v):
         _widget_set_checked(self._id, int(v))
 
-class InputText:
-    def __init__(self, id):
-        self._id = id
+class InputText(_Widget):
     @property
     def value(self):
         return _widget_get_input_text(self._id)
@@ -615,6 +627,8 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_input_text", Py::as_py_func<widget_input_text>, METH_VARARGS, ""},
       {"_widget_get_checked", Py::as_py_func<widget_get_checked>, METH_VARARGS, ""},
       {"_widget_set_checked", Py::as_py_func<widget_set_checked>, METH_VARARGS, ""},
+      {"_widget_get_visible", Py::as_py_func<widget_get_visible>, METH_VARARGS, ""},
+      {"_widget_set_visible", Py::as_py_func<widget_set_visible>, METH_VARARGS, ""},
       {"_widget_get_input_text", widget_get_input_text, METH_VARARGS, ""},
       {"_widget_set_input_text", Py::as_py_func<widget_set_input_text>, METH_VARARGS, ""},
       {"_widget_take_clicked", Py::as_py_func<widget_take_clicked>, METH_VARARGS, ""},

@@ -120,6 +120,7 @@ void ScriptWindowManager::Sync()
         continue;
 
       QWidget* w = nullptr;
+      QWidget* caption = nullptr;
       switch (child.kind)
       {
       case API::Gui::WidgetKind::Button:
@@ -134,8 +135,8 @@ void ScriptWindowManager::Sync()
       case API::Gui::WidgetKind::SliderFloat:
       {
         // QSlider is integer; map float range to 0–1000 steps.
-        mw.window->layout()->addWidget(
-            new QLabel(QString::fromStdString(child.label), mw.window));
+        caption = new QLabel(QString::fromStdString(child.label), mw.window);
+        mw.window->layout()->addWidget(caption);
         auto* slider = new QSlider(Qt::Horizontal, mw.window);
         slider->setRange(0, 1000);
         const API::Gui::WidgetId cid = child.id;
@@ -161,8 +162,8 @@ void ScriptWindowManager::Sync()
       }
       case API::Gui::WidgetKind::InputText:
       {
-        mw.window->layout()->addWidget(
-            new QLabel(QString::fromStdString(child.label), mw.window));
+        caption = new QLabel(QString::fromStdString(child.label), mw.window);
+        mw.window->layout()->addWidget(caption);
         auto* edit = new QLineEdit(QString::fromStdString(child.text_value), mw.window);
         const API::Gui::WidgetId cid = child.id;
         connect(edit, &QLineEdit::textEdited, this,
@@ -178,19 +179,22 @@ void ScriptWindowManager::Sync()
         if (child.text_color || child.bg_color || !child.style.empty())
           w->setStyleSheet(BuildStyleSheet(child.text_color, child.bg_color, child.style));
         mw.window->layout()->addWidget(w);
-        mw.children[child.id] = w;
+        mw.children[child.id] = {w, caption};
       }
     }
 
-    // Sync live text labels.
+    // Sync live text labels and per-widget visibility.
     for (const auto& child : snap.children)
     {
-      if (child.kind != API::Gui::WidgetKind::Text)
-        continue;
       auto cit = mw.children.find(child.id);
-      if (cit != mw.children.end())
-        if (auto* lbl = qobject_cast<QLabel*>(cit->second))
+      if (cit == mw.children.end())
+        continue;
+      if (child.kind == API::Gui::WidgetKind::Text)
+        if (auto* lbl = qobject_cast<QLabel*>(cit->second.control))
           lbl->setText(QString::fromStdString(child.label));
+      cit->second.control->setVisible(child.visible);
+      if (cit->second.caption)
+        cit->second.caption->setVisible(child.visible);
     }
   }
 }

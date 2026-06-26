@@ -129,6 +129,8 @@ void Gui::RenderWidgets()
       if (child_it == m_widgets.end())
         continue;
       Widget& w = child_it->second;
+      if (!w.visible)
+        continue;
       // Suffix the ImGui id so identical labels stay distinct widgets.
       const std::string id_label = w.label + "##" + std::to_string(child_id);
       int pushed_colors = 0;
@@ -393,6 +395,21 @@ void Gui::SetChecked(WidgetId id, bool checked)
     it->second.checked = checked;
 }
 
+bool Gui::GetVisible(WidgetId id)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  return it == m_widgets.end() || it->second.visible;
+}
+
+void Gui::SetVisible(WidgetId id, bool visible)
+{
+  std::lock_guard lock(m_widget_mutex);
+  auto it = m_widgets.find(id);
+  if (it != m_widgets.end())
+    it->second.visible = visible;
+}
+
 std::string Gui::GetInputText(WidgetId id)
 {
   std::lock_guard lock(m_widget_mutex);
@@ -458,7 +475,8 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
         continue;
       info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.min,
                                cit->second.max, cit->second.checked, cit->second.text_value,
-                               cit->second.text_color, cit->second.bg_color, cit->second.style});
+                               cit->second.text_color, cit->second.bg_color, cit->second.style,
+                               cit->second.visible});
     }
     result.push_back(std::move(info));
   }
