@@ -57,9 +57,12 @@ ScriptCanvasWidget::ScriptCanvasWidget(int width, int height, bool overlay, API:
                                        QWidget* parent)
     : QWidget(parent, overlay ? (Qt::Window | Qt::WindowStaysOnTopHint) :
                                  parent ? Qt::Widget : Qt::Window),
-      m_overlay(overlay), m_id(id)
+      m_requested_size(width, height), m_overlay(overlay), m_id(id)
 {
   resize(width, height);
+  // Honor the requested size as the floor so a sibling form layout can't compress the canvas
+  // below it on initial show; Expanding still lets the user grow the window past it.
+  setMinimumSize(width, height);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // Track motion even with no button held so scripts get live hover coordinates.
   setMouseTracking(true);

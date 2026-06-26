@@ -109,6 +109,8 @@ void ScriptWindowManager::Sync()
       auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, false, snap.id, mw.window);
       mw.window->layout()->addWidget(cw);
       mw.canvas = cw;
+      // Window was shown empty a tick earlier; grow it to fit the canvas now that it's attached.
+      mw.window->adjustSize();
     }
     if (mw.canvas)
       mw.canvas->SetPrimitives(gui.SnapshotCanvas(snap.id));

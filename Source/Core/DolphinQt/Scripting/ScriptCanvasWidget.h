@@ -8,6 +8,7 @@
 
 #include <QHash>
 #include <QPixmap>
+#include <QSize>
 #include <QWidget>
 
 #include "Core/API/Gui.h"
@@ -21,6 +22,9 @@ public:
                               API::Gui::WidgetId id = 0, QWidget* parent = nullptr);
 
   void SetPrimitives(std::vector<API::Gui::CanvasPrimitive> prims);
+
+  // Requested size is the layout's preferred size so the host window opens fit to it.
+  QSize sizeHint() const override { return m_requested_size; }
 
 signals:
   // Emitted only for overlays, so their owning menu toggle can untoggle on user close.
@@ -42,6 +46,7 @@ private:
   const QPixmap& TintedPixmap(const QString& path, u32 argb);
 
   std::vector<API::Gui::CanvasPrimitive> m_prims;
+  QSize m_requested_size;
   bool m_overlay;
   API::Gui::WidgetId m_id;  // canvas id used to report pointer input back to API::Gui
   QHash<QString, QPixmap> m_pixmaps;
