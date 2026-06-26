@@ -60,9 +60,16 @@ enum
 
   VERSION = 0x214,
 
+  // Memory controller registers
+
+  MEM2_COLSEL = 0xB4210,
   MEM2_ROWSEL = 0xB4212,
+  MEM2_BANKSEL = 0xB4214,
   MEM2_RANKSEL = 0xB4216,
+
+  MEM2_COLMSK = 0xB4218,
   MEM2_ROWMSK = 0xB421A,
+  MEM2_BANKMSK = 0xB421C,
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
@@ -268,9 +275,15 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | VERSION, MMIO::Constant<u32>(0x00000011), MMIO::Nop<u32>());
 
   const bool mem2_is_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
+
+  mmio->Register(base | MEM2_COLSEL, MMIO::Constant<u16>(6), MMIO::Nop<u16>());
   mmio->Register(base | MEM2_ROWSEL, MMIO::Constant<u16>(4), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_BANKSEL, MMIO::Constant<u16>(2), MMIO::Nop<u16>());
   mmio->Register(base | MEM2_RANKSEL, MMIO::Constant<u16>(mem2_is_128 ? 1 : 7), MMIO::Nop<u16>());
+
+  mmio->Register(base | MEM2_COLMSK, MMIO::Constant<u16>(0x1FF), MMIO::Nop<u16>());
   mmio->Register(base | MEM2_ROWMSK, MMIO::Constant<u16>(0xFFF), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_BANKMSK, MMIO::Constant<u16>(7), MMIO::Nop<u16>());
 
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
