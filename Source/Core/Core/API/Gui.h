@@ -11,6 +11,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -80,9 +81,71 @@ public:
     std::optional<u32> text_color;   // ARGB
     std::optional<u32> bg_color;     // ARGB
     std::string style;               // QSS, detached only
+    bool canvas = false;             // Window only: freeform QPainter canvas
+    int canvas_w = 0, canvas_h = 0;  // Window only
+    bool overlay = false;            // Window only: frameless, stays-on-top, not user-closable
+    bool visible = true;             // child widgets: hidden ones aren't rendered
   };
 
+  // Freeform canvas: a window backed by a replayable primitive list instead of widgets.
+  // Scripts push primitives, call CanvasCommit, and Qt replays them via QPainter.
+  struct CanvasPrimitive
+  {
+    enum class Type : u8
+    {
+      Line,
+      Rect,
+      RectFilled,
+      Circle,
+      CircleFilled,
+      Triangle,
+      TriangleFilled,
+      Text,
+      Image,
+    };
+    Type type;
+    Vec2f p0, p1, p2;
+    float radius = 0.0f;
+    float thickness = 1.0f;
+    float rounding = 0.0f;
+    u32 color = 0;  // ARGB
+    std::string text;
+    // Image only: path + dest rect (p0..p1) + normalized [0,1] src crop. color==0 draws untinted;
+    // else RGB tints the texture and alpha scales opacity.
+    std::string image;
+    Vec2f src_min{0.0f, 0.0f};
+    Vec2f src_max{1.0f, 1.0f};
+  };
+
+  WidgetId GetOrCreateCanvas(void* owner, const std::string& title, int width, int height,
+                             bool embedded = false, bool overlay = false);
+  void CanvasClear(WidgetId id);
+  void CanvasAdd(WidgetId id, const CanvasPrimitive& prim);
+  void CanvasCommit(WidgetId id);
+  std::vector<CanvasPrimitive> SnapshotCanvas(WidgetId id);
+
+  // Canvas pointer input: Qt widget reports (main thread), scripts consume (emu thread).
+  // Click and wheel latch until read so a once-per-frame poll never misses one.
+  struct CanvasInput
+  {
+    float mouse_x = 0.0f, mouse_y = 0.0f;
+    bool inside = false;
+    bool clicked = false;       // latched until CanvasTakeClick
+    float click_x = 0.0f, click_y = 0.0f;
+    float wheel_accum = 0.0f;   // accumulated wheel notches until CanvasTakeWheel
+  };
+  void CanvasReportMouse(WidgetId id, float x, float y, bool inside);  // Qt thread
+  void CanvasReportClick(WidgetId id, float x, float y);               // Qt thread
+  void CanvasReportWheel(WidgetId id, float delta);                    // Qt thread
+  void CanvasReportSize(WidgetId id, int w, int h);                    // Qt thread
+  std::pair<int, int> CanvasSize(WidgetId id);                        // script thread
+  Vec2f CanvasMousePos(WidgetId id, bool& inside);                     // script thread
+  bool CanvasTakeClick(WidgetId id, Vec2f& pos);                       // script thread, consumes
+  float CanvasTakeWheel(WidgetId id);                                  // script thread, consumes
+
   WidgetId GetOrCreateWindow(void* owner, const std::string& title, bool embedded = true);
+  // Attaches a freeform canvas region to an existing window so it hosts a canvas and child widgets.
+  void EnableCanvas(WidgetId window, int width, int height);
   WidgetId AddChild(WidgetId parent, WidgetKind kind, const std::string& label);
   bool TakeClicked(WidgetId id);
   float GetValue(WidgetId id);
@@ -92,6 +155,8 @@ public:
   void SetClicked(WidgetId id);
   bool GetChecked(WidgetId id);
   void SetChecked(WidgetId id, bool checked);
+  bool GetVisible(WidgetId id);
+  void SetVisible(WidgetId id, bool visible);
   std::string GetInputText(WidgetId id);
   void SetInputText(WidgetId id, const std::string& text);
   void SetTextColor(WidgetId id, u32 color);
@@ -111,6 +176,7 @@ public:
     std::optional<u32> text_color;
     std::optional<u32> bg_color;
     std::string style;
+    bool visible;
   };
   struct WindowInfo
   {
@@ -120,6 +186,9 @@ public:
     std::optional<u32> text_color;
     std::optional<u32> bg_color;
     std::string style;
+    bool canvas = false;
+    int canvas_w = 0, canvas_h = 0;
+    bool overlay = false;
   };
   std::vector<WindowInfo> SnapshotDetachedWindows();
 
@@ -128,6 +197,8 @@ public:
 
 private:
   void RenderWidgets();
+  // Replays a committed canvas list at the current cursor; caller is already inside ImGui::Begin.
+  void RenderEmbeddedCanvas(WidgetId id, int width, int height);
 
 private:
   // Pushing all draw calls onto a vector of functions is probably not
@@ -140,6 +211,11 @@ private:
   std::mutex m_widget_mutex;
   std::map<WidgetId, Widget> m_widgets;
   std::vector<WidgetId> m_windows;  // top-level, in creation order
+  // Canvas primitive lists keyed by window id; building is script-side, committed is Qt-visible.
+  std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_building;
+  std::map<WidgetId, std::vector<CanvasPrimitive>> m_canvas_committed;
+  // Pointer input per canvas, written by Qt, drained by scripts.
+  std::map<WidgetId, CanvasInput> m_canvas_input;
   WidgetId m_next_widget_id = 1;
   std::atomic<bool> m_script_window_focused{false};  // set by video thread in RenderWidgets
 };

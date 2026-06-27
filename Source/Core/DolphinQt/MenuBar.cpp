@@ -837,6 +837,11 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
   }
 }
 
+void MenuBar::SetInputDisplayChecked(bool checked)
+{
+  m_show_input_display->setChecked(checked);
+}
+
 void MenuBar::AddMovieMenu()
 {
   auto* const movie_menu{new QtUtils::NonAutodismissibleMenu(tr("&Movie"), this)};
@@ -863,6 +868,11 @@ void MenuBar::AddMovieMenu()
 
   movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
   m_dtm_editor = movie_menu->addAction(tr("DTM Editor"), this, [this] { emit ShowDTMEditor(); });
+
+  m_show_input_display = movie_menu->addAction(tr("Show Input Display"));
+  m_show_input_display->setCheckable(true);
+  connect(m_show_input_display, &QAction::toggled, this,
+          [this](bool show) { emit ShowInputDisplay(show); });
 
   movie_menu->addSeparator();
 
@@ -900,6 +910,11 @@ void MenuBar::AddMovieMenu()
   dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
           [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
+
+  m_dump_input_display = movie_menu->addAction(tr("Dump Controller Inputs"));
+  m_dump_input_display->setCheckable(true);
+  connect(m_dump_input_display, &QAction::toggled, this,
+          [this](bool dump) { emit DumpControllerInputs(dump); });
 
 #ifdef HAS_LIBMGBA
   m_dump_gba_frames = movie_menu->addAction(tr("Dump GBA Frames"));

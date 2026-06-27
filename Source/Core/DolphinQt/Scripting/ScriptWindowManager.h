@@ -11,6 +11,7 @@
 #include <QWidget>
 
 #include "Core/API/Gui.h"
+#include "DolphinQt/Scripting/ScriptCanvasWidget.h"
 
 // Manages free-floating OS windows for non-embedded script GUI windows.
 // Polls API::Gui's widget tree on a timer; Qt signals write results back.
@@ -21,16 +22,29 @@ public:
   explicit ScriptWindowManager(QObject* parent = nullptr);
   ~ScriptWindowManager();
 
+signals:
+  // A user closed an overlay canvas window (X / Alt+F4); its menu toggle should follow.
+  void OverlayClosed();
+
 private:
   void Sync();
+
+  struct ManagedChild
+  {
+    QWidget* control;
+    QWidget* caption = nullptr;  // separate caption label for slider/input_text, hidden as a unit
+  };
 
   struct ManagedWindow
   {
     API::Gui::WidgetId id;
     QWidget* window;
-    std::map<API::Gui::WidgetId, QWidget*> children;
+    std::map<API::Gui::WidgetId, ManagedChild> children;
+    ScriptCanvasWidget* canvas = nullptr;  // non-null for freeform canvas windows
   };
 
   std::map<API::Gui::WidgetId, ManagedWindow> m_windows;
   QTimer m_timer;
+  // Drives the script HostUpdate event so scripts keep ticking while emulation is paused.
+  QTimer m_host_update_timer;
 };

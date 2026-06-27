@@ -55,6 +55,8 @@ public:
 
   void InstallUpdateManually();
 
+  void SetInputDisplayChecked(bool checked);
+
 signals:
   // File
   void Open();
@@ -134,6 +136,8 @@ signals:
   void ExportRecording();
   void ShowTASInput();
   void ShowDTMEditor();
+  void ShowInputDisplay(bool show);
+  void DumpControllerInputs(bool dump);
 
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void RecordingStatusChanged(bool recording);
@@ -267,6 +271,8 @@ private:
   QAction* m_recording_read_only;
   QAction* m_movie_window;
   QAction* m_dtm_editor;
+  QAction* m_show_input_display;
+  QAction* m_dump_input_display;
 #ifdef HAS_LIBMGBA
   QAction* m_dump_gba_frames;
   QAction* m_dump_gba_audio;

@@ -37,6 +37,7 @@ class GBATASInputWindow;
 class GCTASInputWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
+class InputDisplayController;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
@@ -214,6 +215,8 @@ private:
   void OnRequestGolfControl();
   void ShowTASInput();
   void ShowDTMEditor();
+  void OnShowInputDisplay(bool show);
+  void OnDumpControllerInputs(bool dump);
   void ShowOSDWindow();
   void SaveWindowPreset();
   void LoadWindowPreset();
@@ -271,6 +274,7 @@ private:
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
   DTMEditorDialog* m_dtm_editor = nullptr;
+  std::unique_ptr<InputDisplayController> m_input_display;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

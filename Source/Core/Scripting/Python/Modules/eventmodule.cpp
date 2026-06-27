@@ -64,6 +64,7 @@ struct GenericEventModuleState
 };
 using EventModuleState = GenericEventModuleState<
   API::Events::FrameAdvance,
+  API::Events::HostUpdate,
   API::Events::FrameDrawn,
   API::Events::MemoryBreakpoint,
   API::Events::CodeBreakpoint,
@@ -231,6 +232,10 @@ static const std::tuple<> PyFrameAdvance(const API::Events::FrameAdvance& evt)
 {
   return std::make_tuple();
 }
+static const std::tuple<> PyHostUpdate(const API::Events::HostUpdate& evt)
+{
+  return std::make_tuple();
+}
 static const std::tuple<u32, u32, PyObject*> PyFrameDrawn(const API::Events::FrameDrawn& evt)
 {
   const u32 num_bytes = evt.width * evt.height * 4;
@@ -257,6 +262,7 @@ static const std::tuple<bool, u32> PySaveStateLoad(const API::Events::SaveStateL
 // EVENT DEFINITIONS
 // Creates a PyEvent class from the signature.
 using PyFrameAdvanceEvent = PyEventFromMappingFunc<PyFrameAdvance>;
+using PyHostUpdateEvent = PyEventFromMappingFunc<PyHostUpdate>;
 using PyFrameDrawnEvent = PyEventFromMappingFunc<PyFrameDrawn>;
 using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 using PyCodeBreakpointEvent = PyEventFromMappingFunc<PyCodeBreakpoint>;
@@ -268,6 +274,7 @@ using PySaveStateLoadEvent = PyEventFromMappingFunc<PySaveStateLoad>;
 // deduced from the PyEvent signature's input argument.
 using EventTuple = std::tuple<
   PyFrameAdvanceEvent,
+  PyHostUpdateEvent,
   PyFrameDrawnEvent,
   PyMemoryBreakpointEvent,
   PyCodeBreakpointEvent,
@@ -276,6 +283,7 @@ using EventTuple = std::tuple<
   >;
 using EventContainer = PythonEventContainer<
   PyFrameAdvanceEvent,
+  PyHostUpdateEvent,
   PyFrameDrawnEvent,
   PyMemoryBreakpointEvent,
   PyCodeBreakpointEvent,
@@ -292,6 +300,7 @@ std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
       // All async-awaitable events must be listed twice:
       // Here, and under the same name in the setup python code
       {"frameadvance", PyFrameAdvanceEvent::ScheduleCoroutine},
+      {"hostupdate", PyHostUpdateEvent::ScheduleCoroutine},
       {"framedrawn", PyFrameDrawnEvent::ScheduleCoroutine},
       {"memorybreakpoint", PyMemoryBreakpointEvent::ScheduleCoroutine},
       {"codebreakpoint", PyCodeBreakpointEvent::ScheduleCoroutine},
@@ -317,6 +326,9 @@ class _DolphinAsyncEvent:
 
 async def frameadvance():
     return (await _DolphinAsyncEvent("frameadvance"))
+
+async def hostupdate():
+    return (await _DolphinAsyncEvent("hostupdate"))
 
 async def memorybreakpoint():
     return (await _DolphinAsyncEvent("memorybreakpoint"))
@@ -374,6 +386,7 @@ PyMODINIT_FUNC PyInit_event()
       // EVENT CALLBACKS
       // Has "on_"-prefix, let's python code register a callback
       Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
+      Py::MakeMethodDef<PyHostUpdateEvent::SetCallback>("on_hostupdate"),
       Py::MakeMethodDef<PyFrameDrawnEvent::SetCallback>("on_framedrawn"),
       Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
       Py::MakeMethodDef<PyCodeBreakpointEvent::SetCallback>("on_codebreakpoint"),

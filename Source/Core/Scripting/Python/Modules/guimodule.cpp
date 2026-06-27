@@ -167,6 +167,12 @@ static u64 widget_window(PyObject* self, const char* title, int embedded)
   return state->gui->GetOrCreateWindow(CurrentOwner(), std::string(title), embedded != 0);
 }
 
+static void widget_enable_canvas(PyObject* self, u64 id, int width, int height)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->EnableCanvas(id, width, height);
+}
+
 static u64 widget_button(PyObject* self, u64 parent, const char* label)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
@@ -213,6 +219,18 @@ static void widget_set_checked(PyObject* self, u64 id, int checked)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->SetChecked(id, checked != 0);
+}
+
+static bool widget_get_visible(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetVisible(id);
+}
+
+static void widget_set_visible(PyObject* self, u64 id, int visible)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->SetVisible(id, visible != 0);
 }
 
 static PyObject* widget_get_input_text(PyObject* self, PyObject* args)
@@ -272,6 +290,122 @@ static void widget_set_style(PyObject* self, u64 id, const char* qss)
   state->gui->SetStyle(id, std::string(qss));
 }
 
+static u64 canvas_window(PyObject* self, const char* title, int width, int height, int embedded,
+                         int overlay)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->GetOrCreateCanvas(CurrentOwner(), std::string(title), width, height,
+                                       embedded != 0, overlay != 0);
+}
+
+static void canvas_clear(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasClear(id);
+}
+
+static void canvas_commit(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasCommit(id);
+}
+
+static void canvas_line(PyObject* self, u64 id, float ax, float ay, float bx, float by, u32 color,
+                        float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Line, {ax, ay}, {bx, by}, {}, 0.0f, thickness, 0.0f, color});
+}
+
+static void canvas_rect(PyObject* self, u64 id, float ax, float ay, float bx, float by, u32 color,
+                        int filled, float rounding, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::RectFilled : P::Type::Rect;
+  state->gui->CanvasAdd(id, P{type, {ax, ay}, {bx, by}, {}, 0.0f, thickness, rounding, color});
+}
+
+static void canvas_circle(PyObject* self, u64 id, float cx, float cy, float radius, u32 color,
+                          int filled, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::CircleFilled : P::Type::Circle;
+  state->gui->CanvasAdd(id, P{type, {cx, cy}, {}, {}, radius, thickness, 0.0f, color});
+}
+
+static void canvas_triangle(PyObject* self, u64 id, float ax, float ay, float bx, float by,
+                            float cx, float cy, u32 color, int filled, float thickness)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto type = filled ? P::Type::TriangleFilled : P::Type::Triangle;
+  state->gui->CanvasAdd(id,
+                        P{type, {ax, ay}, {bx, by}, {cx, cy}, 0.0f, thickness, 0.0f, color});
+}
+
+static void canvas_text(PyObject* self, u64 id, float x, float y, u32 color, const char* text)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Text, {x, y}, {}, {}, 0.0f, 1.0f, 0.0f, color,
+                              std::string(text)});
+}
+
+static void canvas_image(PyObject* self, u64 id, const char* path, float x, float y, float w,
+                         float h, u32 tint, float sx0, float sy0, float sx1, float sy1)
+{
+  using P = API::Gui::CanvasPrimitive;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  state->gui->CanvasAdd(id, P{P::Type::Image, {x, y}, {x + w, y + h}, {}, 0.0f, 1.0f, 0.0f, tint,
+                              std::string{}, std::string(path), {sx0, sy0}, {sx1, sy1}});
+}
+
+// Returns (x, y, inside) for the canvas cursor; coords are canvas pixels.
+static PyObject* canvas_mouse_pos(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  bool inside = false;
+  const auto pos = state->gui->CanvasMousePos(id, inside);
+  return Py_BuildValue("(ffO)", pos.x, pos.y, inside ? Py_True : Py_False);
+}
+
+// Returns (x, y) of the last unconsumed left-click, or None. Consumes it.
+static PyObject* canvas_take_click(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  Vec2f pos;
+  if (!state->gui->CanvasTakeClick(id, pos))
+    Py_RETURN_NONE;
+  return Py_BuildValue("(ff)", pos.x, pos.y);
+}
+
+// Returns current canvas size as (width, height) in pixels.
+static PyObject* canvas_size(PyObject* self, PyObject* args)
+{
+  u64 id;
+  if (!PyArg_ParseTuple(args, "K", &id))
+    return nullptr;
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  const auto [w, h] = state->gui->CanvasSize(id);
+  return Py_BuildValue("(ii)", w, h);
+}
+
+// Returns accumulated wheel notches since last call (positive = scroll up). Consumes it.
+static float canvas_take_wheel(PyObject* self, u64 id)
+{
+  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
+  return state->gui->CanvasTakeWheel(id);
+}
+
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -318,16 +452,22 @@ def draw_polyline(points, color, closed = False, thickness = 1):
 def draw_convex_poly_filled(points, color):
     _draw_convex_poly_filled(points, color)
 
-class Button:
+class _Widget:
     def __init__(self, id):
         self._id = id
+    @property
+    def visible(self):
+        return _widget_get_visible(self._id)
+    @visible.setter
+    def visible(self, v):
+        _widget_set_visible(self._id, int(v))
+
+class Button(_Widget):
     @property
     def clicked(self):
         return _widget_take_clicked(self._id)
 
-class SliderFloat:
-    def __init__(self, id):
-        self._id = id
+class SliderFloat(_Widget):
     @property
     def value(self):
         return _widget_get_value(self._id)
@@ -335,15 +475,11 @@ class SliderFloat:
     def value(self, v):
         _widget_set_value(self._id, v)
 
-class Text:
-    def __init__(self, id):
-        self._id = id
+class Text(_Widget):
     def set(self, text):
         _widget_set_text(self._id, text)
 
-class Checkbox:
-    def __init__(self, id):
-        self._id = id
+class Checkbox(_Widget):
     @property
     def checked(self):
         return _widget_get_checked(self._id)
@@ -351,9 +487,7 @@ class Checkbox:
     def checked(self, v):
         _widget_set_checked(self._id, int(v))
 
-class InputText:
-    def __init__(self, id):
-        self._id = id
+class InputText(_Widget):
     @property
     def value(self):
         return _widget_get_input_text(self._id)
@@ -364,6 +498,10 @@ class InputText:
 class _BaseWindow:
     def __init__(self, wid):
         self._id = wid
+    def canvas(self, width, height):
+        # Attach a drawing surface to this window; form widgets added here sit below it.
+        _widget_enable_canvas(self._id, width, height)
+        return Canvas(self._id, width, height)
     def _child(self, wid, style, text_color, bg_color):
         if text_color is not None:
             _widget_set_text_color(wid, text_color)
@@ -402,6 +540,53 @@ class Window(_BaseWindow):
     def input_text(self, label, initial = "", *, style=None, text_color=None, bg_color=None):
         return InputText(self._child(_widget_input_text(self._id, label, initial),
                                      style, text_color, bg_color))
+
+class Canvas:
+    def __init__(self, id, width, height):
+        self._id = id
+    @property
+    def width(self):
+        return _canvas_size(self._id)[0]
+    @property
+    def height(self):
+        return _canvas_size(self._id)[1]
+    def clear(self):
+        _canvas_clear(self._id)
+    def commit(self):
+        _canvas_commit(self._id)
+    def line(self, a, b, color, thickness = 1):
+        _canvas_line(self._id, a[0], a[1], b[0], b[1], color, thickness)
+    def rect(self, a, b, color, rounding = 0, thickness = 1):
+        _canvas_rect(self._id, a[0], a[1], b[0], b[1], color, 0, rounding, thickness)
+    def rect_filled(self, a, b, color, rounding = 0):
+        _canvas_rect(self._id, a[0], a[1], b[0], b[1], color, 1, rounding, 1)
+    def circle(self, center, radius, color, thickness = 1):
+        _canvas_circle(self._id, center[0], center[1], radius, color, 0, thickness)
+    def circle_filled(self, center, radius, color):
+        _canvas_circle(self._id, center[0], center[1], radius, color, 1, 1)
+    def triangle(self, a, b, c, color, thickness = 1):
+        _canvas_triangle(self._id, a[0], a[1], b[0], b[1], c[0], c[1], color, 0, thickness)
+    def triangle_filled(self, a, b, c, color):
+        _canvas_triangle(self._id, a[0], a[1], b[0], b[1], c[0], c[1], color, 1, 1)
+    def text(self, pos, color, text):
+        _canvas_text(self._id, pos[0], pos[1], color, text)
+    def image(self, path, pos, size, *, tint=0, src=(0.0, 0.0, 1.0, 1.0)):
+        # tint=0 draws the texture as-is; otherwise RGB tints it and alpha scales opacity.
+        # src is a normalized (x0, y0, x1, y1) crop for partial draws (e.g. analog fills).
+        _canvas_image(self._id, path, pos[0], pos[1], size[0], size[1], tint,
+                      src[0], src[1], src[2], src[3])
+    def mouse_pos(self):
+        # (x, y, inside): last cursor position in canvas pixels; inside is False off-widget.
+        return _canvas_mouse_pos(self._id)
+    def take_click(self):
+        # (x, y) of the last unconsumed left-click in canvas pixels, or None. Consumes it.
+        return _canvas_take_click(self._id)
+    def take_wheel(self):
+        # Accumulated wheel notches since the last call (positive = scroll up). Consumes it.
+        return _canvas_take_wheel(self._id)
+
+def canvas(title, width, height, *, embedded=False, overlay=False):
+    return Canvas(_canvas_window(title, width, height, int(embedded), int(overlay)), width, height)
 
 def overlay(title, *, bg_color=None, text_color=None):
     w = Overlay(_widget_window(title, 1))
@@ -449,6 +634,7 @@ PyMODINIT_FUNC PyInit_gui()
       {"_draw_polyline", draw_polyline, METH_VARARGS, ""},
       {"_draw_convex_poly_filled", draw_convex_poly_filled, METH_VARARGS, ""},
       {"_widget_window", Py::as_py_func<widget_window>, METH_VARARGS, ""},
+      {"_widget_enable_canvas", Py::as_py_func<widget_enable_canvas>, METH_VARARGS, ""},
       {"_widget_button", Py::as_py_func<widget_button>, METH_VARARGS, ""},
       {"_widget_slider_float", Py::as_py_func<widget_slider_float>, METH_VARARGS, ""},
       {"_widget_text", Py::as_py_func<widget_text>, METH_VARARGS, ""},
@@ -456,6 +642,8 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_input_text", Py::as_py_func<widget_input_text>, METH_VARARGS, ""},
       {"_widget_get_checked", Py::as_py_func<widget_get_checked>, METH_VARARGS, ""},
       {"_widget_set_checked", Py::as_py_func<widget_set_checked>, METH_VARARGS, ""},
+      {"_widget_get_visible", Py::as_py_func<widget_get_visible>, METH_VARARGS, ""},
+      {"_widget_set_visible", Py::as_py_func<widget_set_visible>, METH_VARARGS, ""},
       {"_widget_get_input_text", widget_get_input_text, METH_VARARGS, ""},
       {"_widget_set_input_text", Py::as_py_func<widget_set_input_text>, METH_VARARGS, ""},
       {"_widget_take_clicked", Py::as_py_func<widget_take_clicked>, METH_VARARGS, ""},
@@ -465,6 +653,19 @@ PyMODINIT_FUNC PyInit_gui()
       {"_widget_set_text_color", Py::as_py_func<widget_set_text_color>, METH_VARARGS, ""},
       {"_widget_set_bg_color", Py::as_py_func<widget_set_bg_color>, METH_VARARGS, ""},
       {"_widget_set_style", Py::as_py_func<widget_set_style>, METH_VARARGS, ""},
+      {"_canvas_window", Py::as_py_func<canvas_window>, METH_VARARGS, ""},
+      {"_canvas_clear", Py::as_py_func<canvas_clear>, METH_VARARGS, ""},
+      {"_canvas_commit", Py::as_py_func<canvas_commit>, METH_VARARGS, ""},
+      {"_canvas_line", Py::as_py_func<canvas_line>, METH_VARARGS, ""},
+      {"_canvas_rect", Py::as_py_func<canvas_rect>, METH_VARARGS, ""},
+      {"_canvas_circle", Py::as_py_func<canvas_circle>, METH_VARARGS, ""},
+      {"_canvas_triangle", Py::as_py_func<canvas_triangle>, METH_VARARGS, ""},
+      {"_canvas_text", Py::as_py_func<canvas_text>, METH_VARARGS, ""},
+      {"_canvas_image", Py::as_py_func<canvas_image>, METH_VARARGS, ""},
+      {"_canvas_size", canvas_size, METH_VARARGS, ""},
+      {"_canvas_mouse_pos", canvas_mouse_pos, METH_VARARGS, ""},
+      {"_canvas_take_click", canvas_take_click, METH_VARARGS, ""},
+      {"_canvas_take_wheel", Py::as_py_func<canvas_take_wheel>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

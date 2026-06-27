@@ -1,0 +1,44 @@
+{
+  "_credit": "Button artwork from m-overlay by bkacjios (MIT). See assets/ATTRIBUTION.txt.",
+  "name": "GBA",
+  "textures": "assets",
+  "gba_mode": true,
+  "background": "0xFF000000",
+  "layout": { "scale": 1.0, "offset_x": 0, "offset_y": 0, "design_w": 380, "design_h": 264 },
+  "tex_size": 128,
+  "colors": {
+    "A":      "0xFF1A65C8",
+    "B":      "0xFFB88A00",
+    "L":      "0xFF999999",
+    "R":      "0xFF999999",
+    "Select": "0xFF888888",
+    "Start":  "0xFFAAAAAA",
+    "white":  "0xFFFFFFFF"
+  },
+  "buttons": [
+    { "key": "A",     "x": 248, "y":  20, "filled": "a-filled.png",     "pressed": "a-pressed.png",     "color": "A" },
+    { "key": "B",     "x": 200, "y":  80, "filled": "b-filled.png",     "pressed": "b-pressed.png",     "color": "B" },
+    { "key": "Z",     "x": 102, "y": 136, "filled": "start-filled.png", "pressed": "start-pressed.png", "color": "Select" },
+    { "key": "Start", "x": 156, "y": 136, "filled": "start-filled.png", "pressed": "start-pressed.png", "color": "Start" }
+  ],
+  "dpad": {
+    "x": 8, "y": 38, "gate": "d-pad-gate-filled.png", "gate_color": "white",
+    "pressed": {
+      "Up":    "d-pad-pressed-up.png",
+      "Down":  "d-pad-pressed-down.png",
+      "Left":  "d-pad-pressed-left.png",
+      "Right": "d-pad-pressed-right.png"
+    }
+  },
+  "triggers": [
+    { "key": "L", "axis": "", "base": "analog-filled.png",
+      "bx": 0,   "by": 0, "bw": 148, "bh": 24,
+      "fill_y": 6, "fill_h": 12, "analog_x": 6,   "analog_w": 128, "digital_x": 0, "digital_w": 0, "divider_x": -999, "dir": "left" },
+    { "key": "R", "axis": "", "base": "analog-filled.png",
+      "bx": 232, "by": 0, "bw": 148, "bh": 24,
+      "fill_y": 6, "fill_h": 12, "analog_x": 246, "analog_w": 128, "digital_x": 0, "digital_w": 0, "divider_x": -999, "dir": "right" }
+  ],
+  "overlays": [
+    { "when": "disconnected", "fill": "0x73000000", "image": "disconnected.png", "tint": "0xFFFF0000", "align": "center", "scale": 1.0 }
+  ]
+}

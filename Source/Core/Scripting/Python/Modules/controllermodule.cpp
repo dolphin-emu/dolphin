@@ -7,6 +7,8 @@
 #include <algorithm>
 
 #include "Core/API/Controller.h"
+#include "Core/Movie.h"
+#include "Core/System.h"
 #include "Common/Logging/Log.h"
 #include "Scripting/Python/PyScriptingBackend.h"
 #include "Scripting/Python/Utils/module.h"
@@ -277,6 +279,24 @@ static PyObject* get_gc_buttons(PyObject* module, PyObject* args)
   return GCPadStatusToPyDict(pad_status);
 }
 
+// Input as the game sees it: the played-back DTM frame during movie playback, else the live pad.
+static PyObject* get_gc_buttons_display(PyObject* module, PyObject* args)
+{
+  auto controller_id_opt = Py::ParseTuple<int>(args);
+  if (!controller_id_opt.has_value())
+    return nullptr;
+  int controller_id = std::get<0>(controller_id_opt.value());
+  auto& movie = Core::System::GetInstance().GetMovie();
+  if (movie.IsPlayingInput())
+  {
+    std::optional<GCPadStatus> status = movie.GetDisplayedPadStatus(controller_id);
+    if (status.has_value())
+      return GCPadStatusToPyDict(*status);
+  }
+  ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
+  return GCPadStatusToPyDict(state->gc_manip->Get(controller_id));
+}
+
 static PyObject* set_gc_buttons(PyObject* module, PyObject* args)
 {
   int controller_id;
@@ -485,6 +505,7 @@ PyMODINIT_FUNC PyInit_controller()
 {
   static PyMethodDef method_defs[] = {
       {"get_gc_buttons", get_gc_buttons, METH_VARARGS, ""},
+      {"get_gc_buttons_display", get_gc_buttons_display, METH_VARARGS, ""},
       {"set_gc_buttons", set_gc_buttons, METH_VARARGS, ""},
       {"set_gc_input_override", set_gc_input_override, METH_VARARGS, ""},
       {"clear_gc_input_override", clear_gc_input_override, METH_VARARGS, ""},

@@ -1,0 +1,45 @@
+{
+  "_credit": "Button artwork from m-overlay by bkacjios (MIT). See assets/ATTRIBUTION.txt.",
+  "name": "GameCube",
+  "textures": "assets",
+  "background": "0xFF0000FF",
+  "layout": { "scale": 1.0, "offset_x": 0, "offset_y": 32, "design_w": 522, "design_h": 304 },
+  "tex_size": 128,
+  "colors": {
+    "A": "0xFF00E196",
+    "B": "0xFFE60000",
+    "X": "0xFFFFFFFF",
+    "Y": "0xFFFFFFFF",
+    "Z": "0xFFA54BA5",
+    "Start": "0xFFFFFFFF",
+    "white": "0xFFFFFFFF",
+    "c_stick": "0xFFFFEB00"
+  },
+  "buttons": [
+    { "key": "A",     "x": 332, "y":  48, "filled": "a-filled.png",     "pressed": "a-pressed.png",     "color": "A" },
+    { "key": "B",     "x": 272, "y":  92, "filled": "b-filled.png",     "pressed": "b-pressed.png",     "color": "B" },
+    { "key": "X",     "x": 394, "y":  32, "filled": "x-filled.png",     "pressed": "x-pressed.png",     "color": "X" },
+    { "key": "Y",     "x": 316, "y": -16, "filled": "y-filled.png",     "pressed": "y-pressed.png",     "color": "Y" },
+    { "key": "Z",     "x": 384, "y": -32, "filled": "z-filled.png",     "pressed": "z-pressed.png",     "color": "Z" },
+    { "key": "Start", "x": 256, "y":  26, "filled": "start-filled.png", "pressed": "start-pressed.png", "color": "Start" }
+  ],
+  "sticks": [
+    { "keyx": "StickX",  "keyy": "StickY",  "x":  22, "y": 52, "gate": "joystick-gate-filled.png", "gate_color": "white",   "knob": "joystick-ribs-filled.png", "knob_color": "white",   "travel": 20 },
+    { "keyx": "CStickX", "keyy": "CStickY", "x": 176, "y": 52, "gate": "c-stick-gate-filled.png",  "gate_color": "c_stick", "knob": "c-stick-solid.png",        "knob_color": "c_stick", "travel": 18 }
+  ],
+  "dpad": {
+    "x": 108, "y": 144, "gate": "d-pad-gate-filled.png", "gate_color": "white",
+    "pressed": {
+      "Up": "d-pad-pressed-up.png",
+      "Down": "d-pad-pressed-down.png",
+      "Left": "d-pad-pressed-left.png",
+      "Right": "d-pad-pressed-right.png"
+    }
+  },
+  "triggers": [
+    { "key": "L", "axis": "TriggerLeft",  "base": "analog-filled.png", "bx": 30, "by": 14, "bw": 116, "bh": 24,
+      "fill_y": 20, "fill_h": 12, "analog_x": 38,  "analog_w": 88, "digital_x": 126, "digital_w": 12, "divider_x": 126, "dir": "left" },
+    { "key": "R", "axis": "TriggerRight", "base": "analog-filled.png", "bx": 182, "by": 14, "bw": 116, "bh": 24,
+      "fill_y": 20, "fill_h": 12, "analog_x": 202, "analog_w": 88, "digital_x": 190, "digital_w": 12, "divider_x": 202, "dir": "right" }
+  ]
+}

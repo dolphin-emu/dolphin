@@ -11,9 +11,11 @@
 #include <QSlider>
 #include <QVBoxLayout>
 
+#include "Core/API/Events.h"
 #include "Core/API/Gui.h"
 
 static constexpr int POLL_INTERVAL_MS = 33;
+static constexpr int HOST_UPDATE_INTERVAL_MS = 16;  // ~60Hz heartbeat for scripts
 
 // ARGB colors become rgba() QSS fragments; the raw style is appended last so it wins on conflict.
 static QString BuildStyleSheet(const std::optional<u32>& text_color,
@@ -39,6 +41,10 @@ ScriptWindowManager::ScriptWindowManager(QObject* parent) : QObject(parent)
 {
   connect(&m_timer, &QTimer::timeout, this, &ScriptWindowManager::Sync);
   m_timer.start(POLL_INTERVAL_MS);
+
+  connect(&m_host_update_timer, &QTimer::timeout, this,
+          [] { API::GetEventHub().EmitEvent(API::Events::HostUpdate{}); });
+  m_host_update_timer.start(HOST_UPDATE_INTERVAL_MS);
 }
 
 ScriptWindowManager::~ScriptWindowManager()
@@ -65,9 +71,26 @@ void ScriptWindowManager::Sync()
   for (const auto& snap : snapshots)
   {
     auto it = m_windows.find(snap.id);
+
+    // Overlay canvas: a frameless stays-on-top top-level surface with no form children.
+    if (snap.overlay)
+    {
+      if (it == m_windows.end())
+      {
+        auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, true, snap.id);
+        connect(cw, &ScriptCanvasWidget::closed, this, &ScriptWindowManager::OverlayClosed);
+        cw->setWindowTitle(QString::fromStdString(snap.title));
+        cw->show();
+        m_windows[snap.id] = ManagedWindow{snap.id, cw, {}, cw};
+        it = m_windows.find(snap.id);
+      }
+      it->second.canvas->SetPrimitives(gui.SnapshotCanvas(snap.id));
+      continue;
+    }
+
     if (it == m_windows.end())
     {
-      // New window — create the QWidget.
+      // New window — a container that can hold a canvas surface and/or form widgets.
       QWidget* win = new QWidget(nullptr, Qt::Window);
       win->setWindowTitle(QString::fromStdString(snap.title));
       win->setLayout(new QVBoxLayout);
@@ -80,6 +103,18 @@ void ScriptWindowManager::Sync()
 
     ManagedWindow& mw = it->second;
 
+    // Attach the canvas surface once if the window carries one; it sits above the form widgets.
+    if (snap.canvas && !mw.canvas)
+    {
+      auto* cw = new ScriptCanvasWidget(snap.canvas_w, snap.canvas_h, false, snap.id, mw.window);
+      mw.window->layout()->addWidget(cw);
+      mw.canvas = cw;
+      // Window was shown empty a tick earlier; grow it to fit the canvas now that it's attached.
+      mw.window->adjustSize();
+    }
+    if (mw.canvas)
+      mw.canvas->SetPrimitives(gui.SnapshotCanvas(snap.id));
+
     // Add any child widgets not yet created.
     for (const auto& child : snap.children)
     {
@@ -87,6 +122,7 @@ void ScriptWindowManager::Sync()
         continue;
 
       QWidget* w = nullptr;
+      QWidget* caption = nullptr;
       switch (child.kind)
       {
       case API::Gui::WidgetKind::Button:
@@ -101,8 +137,8 @@ void ScriptWindowManager::Sync()
       case API::Gui::WidgetKind::SliderFloat:
       {
         // QSlider is integer; map float range to 0–1000 steps.
-        mw.window->layout()->addWidget(
-            new QLabel(QString::fromStdString(child.label), mw.window));
+        caption = new QLabel(QString::fromStdString(child.label), mw.window);
+        mw.window->layout()->addWidget(caption);
         auto* slider = new QSlider(Qt::Horizontal, mw.window);
         slider->setRange(0, 1000);
         const API::Gui::WidgetId cid = child.id;
@@ -128,8 +164,8 @@ void ScriptWindowManager::Sync()
       }
       case API::Gui::WidgetKind::InputText:
       {
-        mw.window->layout()->addWidget(
-            new QLabel(QString::fromStdString(child.label), mw.window));
+        caption = new QLabel(QString::fromStdString(child.label), mw.window);
+        mw.window->layout()->addWidget(caption);
         auto* edit = new QLineEdit(QString::fromStdString(child.text_value), mw.window);
         const API::Gui::WidgetId cid = child.id;
         connect(edit, &QLineEdit::textEdited, this,
@@ -145,19 +181,22 @@ void ScriptWindowManager::Sync()
         if (child.text_color || child.bg_color || !child.style.empty())
           w->setStyleSheet(BuildStyleSheet(child.text_color, child.bg_color, child.style));
         mw.window->layout()->addWidget(w);
-        mw.children[child.id] = w;
+        mw.children[child.id] = {w, caption};
       }
     }
 
-    // Sync live text labels.
+    // Sync live text labels and per-widget visibility.
     for (const auto& child : snap.children)
     {
-      if (child.kind != API::Gui::WidgetKind::Text)
-        continue;
       auto cit = mw.children.find(child.id);
-      if (cit != mw.children.end())
-        if (auto* lbl = qobject_cast<QLabel*>(cit->second))
+      if (cit == mw.children.end())
+        continue;
+      if (child.kind == API::Gui::WidgetKind::Text)
+        if (auto* lbl = qobject_cast<QLabel*>(cit->second.control))
           lbl->setText(QString::fromStdString(child.label));
+      cit->second.control->setVisible(child.visible);
+      if (cit->second.caption)
+        cit->second.caption->setVisible(child.visible);
     }
   }
 }

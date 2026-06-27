@@ -32,23 +32,29 @@ def draw_convex_poly_filled(points: List[Tuple[float, float]], color: int) -> No
 # (no QSS); the window takes full raw QSS via style= plus convenience colors.
 
 class Button:
+    visible: bool  # default True; False hides the widget (and its caption) until re-shown
     @property
     def clicked(self) -> bool: ...  # True once per click; reading consumes it
 
 class SliderFloat:
+    visible: bool
     value: float
 
 class Text:
+    visible: bool
     def set(self, text: str) -> None: ...
 
 class Checkbox:
+    visible: bool
     checked: bool
 
 class InputText:
+    visible: bool
     value: str
 
 class Overlay:
     """In-viewport ImGui panel. Per-widget bg_color/text_color only (no QSS)."""
+    def canvas(self, width: int, height: int) -> "Canvas": ...  # drawing surface above this panel's widgets
     def button(self, label: str, *, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> Button: ...
     def slider_float(self, label: str, min: float = 0.0, max: float = 1.0, *, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> SliderFloat: ...
     def text(self, text: str = "", *, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> Text: ...
@@ -58,6 +64,7 @@ class Overlay:
 class Window:
     """Floating Qt OS window. Full QSS via style=; raw style wins over the
     generated color fragment on conflict."""
+    def canvas(self, width: int, height: int) -> "Canvas": ...  # drawing surface above this window's widgets
     def button(self, label: str, *, style: Optional[str] = None, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> Button: ...
     def slider_float(self, label: str, min: float = 0.0, max: float = 1.0, *, style: Optional[str] = None, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> SliderFloat: ...
     def text(self, text: str = "", *, style: Optional[str] = None, text_color: Optional[int] = None, bg_color: Optional[int] = None) -> Text: ...
@@ -66,3 +73,37 @@ class Window:
 
 def overlay(title: str, *, bg_color: Optional[int] = None, text_color: Optional[int] = None) -> Overlay: ...
 def window(title: str, *, style: Optional[str] = None, bg_color: Optional[int] = None, text_color: Optional[int] = None) -> Window: ...
+
+# --- freeform canvas ---
+#
+# A window backed by a replayable primitive list instead of widgets. Push primitives each frame,
+# then commit() to make them visible. Points/sizes are (x, y) pixel tuples; colors are ARGB ints.
+# embedded=True draws in the game viewport via ImGui; otherwise it's a floating Qt window.
+# overlay=True makes that window frameless and stays-on-top. Image draws need the Qt path (not embedded).
+
+class Canvas:
+    width: int
+    height: int
+    def clear(self) -> None: ...
+    def commit(self) -> None: ...
+    def line(self, a: Tuple[float, float], b: Tuple[float, float], color: int, thickness: float = 1) -> None: ...
+    def rect(self, a: Tuple[float, float], b: Tuple[float, float], color: int, rounding: float = 0, thickness: float = 1) -> None: ...
+    def rect_filled(self, a: Tuple[float, float], b: Tuple[float, float], color: int, rounding: float = 0) -> None: ...
+    def circle(self, center: Tuple[float, float], radius: float, color: int, thickness: float = 1) -> None: ...
+    def circle_filled(self, center: Tuple[float, float], radius: float, color: int) -> None: ...
+    def triangle(self, a: Tuple[float, float], b: Tuple[float, float], c: Tuple[float, float], color: int, thickness: float = 1) -> None: ...
+    def triangle_filled(self, a: Tuple[float, float], b: Tuple[float, float], c: Tuple[float, float], color: int) -> None: ...
+    def text(self, pos: Tuple[float, float], color: int, text: str) -> None: ...
+    # tint=0 draws the texture as-is; otherwise RGB tints it and alpha scales opacity.
+    # src is a normalized (x0, y0, x1, y1) crop for partial draws (e.g. analog fills).
+    def image(self, path: str, pos: Tuple[float, float], size: Tuple[float, float], *, tint: int = 0, src: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)) -> None: ...
+    # Pointer input (detached Qt canvas only; embedded ImGui canvases report nothing).
+    # Coordinates are canvas pixels. Reads lag input by up to one Qt poll interval.
+    def mouse_pos(self) -> Tuple[float, float, bool]: ...           # (x, y, inside)
+    def take_click(self) -> Optional[Tuple[float, float]]: ...      # last unconsumed left-click, consumes it
+    def take_wheel(self) -> float: ...                              # accumulated wheel notches (+ = up), consumes
+
+def canvas(title: str, width: int, height: int, *, embedded: bool = False, overlay: bool = False) -> Canvas: ...
+
+# A window/overlay can host BOTH a canvas and form widgets: call window.canvas(w, h) to attach a
+# drawing surface (it sits above the form widgets), then add buttons/sliders/etc. to the same window.

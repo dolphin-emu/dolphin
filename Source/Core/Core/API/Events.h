@@ -19,6 +19,10 @@ namespace Events
 struct FrameAdvance
 {
 };
+// Host-thread heartbeat, fired off a UI timer so scripts keep running while emulation is paused.
+struct HostUpdate
+{
+};
 struct FrameDrawn
 {
   int width;
@@ -191,6 +195,7 @@ private:
 // all existing events need to be listed here, otherwise there will be spooky templating errors
 using EventHub = GenericEventHub<
   Events::FrameAdvance,
+  Events::HostUpdate,
   Events::FrameDrawn,
   Events::MemoryBreakpoint,
   Events::CodeBreakpoint,

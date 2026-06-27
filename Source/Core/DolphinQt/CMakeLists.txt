@@ -425,10 +425,20 @@ target_sources(dolphin-emu PRIVATE
   Scripting/ScriptFavoritesManager.cpp
   Scripting/ScriptFavoritesWidget.cpp
   Scripting/ScriptWindowManager.cpp
+  Scripting/ScriptCanvasWidget.cpp
+  Scripting/InputDisplayController.cpp
+  Scripting/InputDisplayDumper.cpp
+  Scripting/InputDisplaySkin.cpp
+  Scripting/InputDisplayWidget.cpp
   Scripting/ScriptingWidget.h
   Scripting/ScriptFavoritesManager.h
   Scripting/ScriptFavoritesWidget.h
   Scripting/ScriptWindowManager.h
+  Scripting/ScriptCanvasWidget.h
+  Scripting/InputDisplayController.h
+  Scripting/InputDisplayDumper.h
+  Scripting/InputDisplaySkin.h
+  Scripting/InputDisplayWidget.h
   Scripting/ScriptsListModel.cpp
   Scripting/ScriptsListModel.h
 )
