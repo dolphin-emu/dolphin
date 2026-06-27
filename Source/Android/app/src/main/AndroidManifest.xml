@@ -92,6 +92,12 @@
             android:label="@string/cheats"/>
 
         <activity
+            android:name=".features.achievements.ui.AchievementsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main"
+            android:label="@string/achievements"/>
+
+        <activity
             android:name=".activities.EmulationActivity"
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main"
