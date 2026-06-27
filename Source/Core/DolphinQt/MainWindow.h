@@ -32,6 +32,7 @@ class DTMEditorDialog;
 class DiscordHandler;
 class DragEnterEvent;
 class FreeLookWindow;
+class FrameDumpManager;
 class GameList;
 class GBATASInputWindow;
 class GCTASInputWindow;
@@ -186,6 +187,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowFrameDumpManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -216,7 +218,6 @@ private:
   void ShowTASInput();
   void ShowDTMEditor();
   void OnShowInputDisplay(bool show);
-  void OnDumpControllerInputs(bool dump);
   void ShowOSDWindow();
   void SaveWindowPreset();
   void LoadWindowPreset();
@@ -274,6 +275,7 @@ private:
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
   DTMEditorDialog* m_dtm_editor = nullptr;
+  FrameDumpManager* m_frame_dump_manager = nullptr;
   std::unique_ptr<InputDisplayController> m_input_display;
 
   HotkeyScheduler* m_hotkey_scheduler;

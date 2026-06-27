@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include <functional>
+#include <map>
+#include <mutex>
+#include <vector>
+
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -19,6 +24,8 @@ class AbstractFramebuffer;
 class FrameDumper
 {
 public:
+  using FrameDataCallback = std::function<void(const FrameData&)>;
+
   FrameDumper();
   ~FrameDumper();
 
@@ -35,6 +42,12 @@ public:
   bool IsFrameDumping() const;
   int GetRequiredResolutionLeastCommonMultiple() const;
 
+  // Registers a consumer for GPU-readback frames without starting another frame-dump encoder.
+  // Consumers run on the frame-dump worker and must copy frame.data before returning.
+  u64 AddFrameDataCallback(FrameDataCallback callback);
+  void RemoveFrameDataCallback(u64 callback_id);
+  bool HasFrameDataCallback(u64 callback_id) const;
+
   void DoState(PointerWrap& p);
 
 private:
@@ -48,6 +61,7 @@ private:
   void DumpFrameToImage(const FrameData&);
 
   void ShutdownFrameDumping();
+  void StopFrameDumpThread();
 
   // Checks that the frame dump render texture exists and is the correct size.
   bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height);
@@ -57,9 +71,12 @@ private:
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride);
+  void RepeatLastFrameData(u64 ticks);
 
   // Ensures all encoded frames have been written to the output file.
   void FinishFrameData();
+  bool HasFrameDataCallbacks() const;
+  void NotifyFrameDataCallbacks(const FrameData& frame);
 
   std::thread m_frame_dump_thread;
   Common::Flag m_frame_dump_thread_running;
@@ -75,6 +92,13 @@ private:
 
   // Communication of frame between video and dump threads.
   FrameData m_frame_dump_data;
+  bool m_frame_dump_data_callback_only = false;
+  std::vector<u8> m_last_frame_data_copy;
+  FrameState m_last_frame_data_state;
+  int m_last_frame_data_width = 0;
+  int m_last_frame_data_height = 0;
+  int m_last_frame_data_stride = 0;
+  int m_repeated_frame_number = 0;
 
   // Texture used for screenshot/frame dumping
   std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
@@ -87,6 +111,7 @@ private:
   bool m_frame_dump_needs_flush = false;
   // Set when thread is processing output texture.
   bool m_frame_dump_frame_running = false;
+  bool m_frame_dump_frame_uses_output_texture = false;
 
   // Used to generate screenshot names.
   u32 m_frame_dump_image_counter = 0;
@@ -100,6 +125,10 @@ private:
   std::string m_screenshot_name;
 
   Common::EventHook m_frame_end_handle;
+
+  mutable std::mutex m_frame_data_callbacks_mutex;
+  std::map<u64, FrameDataCallback> m_frame_data_callbacks;
+  u64 m_next_frame_data_callback_id = 1;
 };
 
 extern std::unique_ptr<FrameDumper> g_frame_dumper;

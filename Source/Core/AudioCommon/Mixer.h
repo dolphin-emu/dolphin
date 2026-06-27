@@ -57,6 +57,8 @@ public:
   void StartLogGBAAudio(std::size_t device_number);
   void StopLogGBAAudio(std::size_t device_number);
 
+  void RefreshConfig();
+
   // 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
   static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
@@ -144,9 +146,6 @@ private:
 
     StereoPair m_quantization_error;
   };
-
-  void RefreshConfig();
-
   MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000, false};
   MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, false};
   MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};

@@ -99,6 +99,7 @@ signals:
   void ShowAboutDialog();
   void ShowCheatsManager();
   void ShowResourcePackManager();
+  void ShowFrameDumpManager();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
@@ -137,7 +138,6 @@ signals:
   void ShowTASInput();
   void ShowDTMEditor();
   void ShowInputDisplay(bool show);
-  void DumpControllerInputs(bool dump);
 
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void RecordingStatusChanged(bool recording);
@@ -166,9 +166,6 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
   void AddMovieMenu();
-#ifdef HAS_LIBMGBA
-  void UpdateGBADumpActions();
-#endif
   void AddJITMenu();
   void AddSymbolsMenu();
 
@@ -271,12 +268,7 @@ private:
   QAction* m_recording_read_only;
   QAction* m_movie_window;
   QAction* m_dtm_editor;
-  QAction* m_show_input_display;
-  QAction* m_dump_input_display;
-#ifdef HAS_LIBMGBA
-  QAction* m_dump_gba_frames;
-  QAction* m_dump_gba_audio;
-#endif
+  QAction* m_show_input_display = nullptr;
 
   // Options
   QAction* m_boot_to_pause;

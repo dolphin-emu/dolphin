@@ -3,12 +3,16 @@
 
 #include "VideoCommon/FrameDumper.h"
 
+#include <vector>
+
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/Image.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/CoreTiming.h"
+#include "Core/System.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
@@ -118,7 +122,12 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
 void FrameDumper::FlushFrameDump()
 {
   if (!m_frame_dump_needs_flush)
+  {
+    RepeatLastFrameData(Core::System::GetInstance().GetCoreTiming().GetTicks());
+    if (!IsFrameDumping())
+      StopFrameDumpThread();
     return;
+  }
 
   // Ensure dumping thread is done with output texture before swapping.
   FinishFrameData();
@@ -142,14 +151,18 @@ void FrameDumper::FlushFrameDump()
 
   // Shutdown frame dumping if it is no longer active.
   if (!IsFrameDumping())
-    ShutdownFrameDumping();
+    StopFrameDumpThread();
 }
 
 void FrameDumper::ShutdownFrameDumping()
 {
   // Ensure the last queued readback has been sent to the encoder.
   FlushFrameDump();
+  StopFrameDumpThread();
+}
 
+void FrameDumper::StopFrameDumpThread()
+{
   if (!m_frame_dump_thread_running.IsSet())
     return;
 
@@ -171,6 +184,13 @@ void FrameDumper::ShutdownFrameDumping()
 void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride)
 {
   m_frame_dump_data = FrameData{data, w, h, stride, m_last_frame_state};
+  m_frame_dump_data_callback_only = false;
+  m_last_frame_data_width = w;
+  m_last_frame_data_height = h;
+  m_last_frame_data_stride = stride;
+  m_last_frame_data_state = m_last_frame_state;
+  m_repeated_frame_number = m_last_frame_state.frame_number;
+  m_last_frame_data_copy.assign(data, data + static_cast<std::size_t>(stride) * h);
 
   if (!m_frame_dump_thread_running.IsSet())
   {
@@ -183,6 +203,35 @@ void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride)
   // Wake worker thread up.
   m_frame_dump_start.Set();
   m_frame_dump_frame_running = true;
+  m_frame_dump_frame_uses_output_texture = true;
+}
+
+void FrameDumper::RepeatLastFrameData(u64 ticks)
+{
+  if (!HasFrameDataCallbacks() || m_last_frame_data_copy.empty())
+    return;
+
+  FinishFrameData();
+
+  FrameState state = m_last_frame_data_state;
+  state.ticks = ticks;
+  state.frame_number = ++m_repeated_frame_number;
+  m_frame_dump_data =
+      FrameData{m_last_frame_data_copy.data(), m_last_frame_data_width, m_last_frame_data_height,
+                m_last_frame_data_stride, state};
+  m_frame_dump_data_callback_only = true;
+
+  if (!m_frame_dump_thread_running.IsSet())
+  {
+    if (m_frame_dump_thread.joinable())
+      m_frame_dump_thread.join();
+    m_frame_dump_thread_running.Set();
+    m_frame_dump_thread = std::thread(&FrameDumper::FrameDumpThreadFunc, this);
+  }
+
+  m_frame_dump_start.Set();
+  m_frame_dump_frame_running = true;
+  m_frame_dump_frame_uses_output_texture = false;
 }
 
 void FrameDumper::FinishFrameData()
@@ -193,7 +242,9 @@ void FrameDumper::FinishFrameData()
   m_frame_dump_done.Wait();
   m_frame_dump_frame_running = false;
 
-  m_frame_dump_output_texture->Unmap();
+  if (m_frame_dump_frame_uses_output_texture)
+    m_frame_dump_output_texture->Unmap();
+  m_frame_dump_frame_uses_output_texture = false;
 }
 
 void FrameDumper::FrameDumpThreadFunc()
@@ -220,6 +271,15 @@ void FrameDumper::FrameDumpThreadFunc()
       break;
 
     auto frame = m_frame_dump_data;
+    const bool callback_only = m_frame_dump_data_callback_only;
+
+    NotifyFrameDataCallbacks(frame);
+
+    if (callback_only)
+    {
+      m_frame_dump_done.Set();
+      continue;
+    }
 
     // Save screenshot
     if (m_screenshot_request.TestAndClear())
@@ -353,7 +413,8 @@ bool FrameDumper::IsFrameDumping() const
   if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return true;
 
-  return false;
+  std::lock_guard lock(m_frame_data_callbacks_mutex);
+  return !m_frame_data_callbacks.empty();
 }
 
 int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
@@ -361,6 +422,46 @@ int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
   if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return VIDEO_ENCODER_LCM;
   return 1;
+}
+
+u64 FrameDumper::AddFrameDataCallback(FrameDataCallback callback)
+{
+  std::lock_guard lock(m_frame_data_callbacks_mutex);
+  const u64 callback_id = m_next_frame_data_callback_id++;
+  m_frame_data_callbacks.emplace(callback_id, std::move(callback));
+  return callback_id;
+}
+
+void FrameDumper::RemoveFrameDataCallback(u64 callback_id)
+{
+  std::lock_guard lock(m_frame_data_callbacks_mutex);
+  m_frame_data_callbacks.erase(callback_id);
+}
+
+bool FrameDumper::HasFrameDataCallback(u64 callback_id) const
+{
+  std::lock_guard lock(m_frame_data_callbacks_mutex);
+  return m_frame_data_callbacks.contains(callback_id);
+}
+
+bool FrameDumper::HasFrameDataCallbacks() const
+{
+  std::lock_guard lock(m_frame_data_callbacks_mutex);
+  return !m_frame_data_callbacks.empty();
+}
+
+void FrameDumper::NotifyFrameDataCallbacks(const FrameData& frame)
+{
+  std::vector<FrameDataCallback> callbacks;
+  {
+    std::lock_guard lock(m_frame_data_callbacks_mutex);
+    callbacks.reserve(m_frame_data_callbacks.size());
+    for (const auto& [id, callback] : m_frame_data_callbacks)
+      callbacks.push_back(callback);
+  }
+
+  for (const FrameDataCallback& callback : callbacks)
+    callback(frame);
 }
 
 void FrameDumper::DoState(PointerWrap& p)

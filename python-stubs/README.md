@@ -36,4 +36,4 @@ kwargs are flagged.
 
 The stubs are hand-written against this fork's bindings, which have diverged from
 upstream. When a module's `pycode[]` block or method table changes, update the
-matching `.pyi`. Embedded Python is 3.8 — use `Optional[...]`, not `X | None`.
+matching `.pyi`. Embedded Python is 3.8, so use `Optional[...]`, not `X | None`.

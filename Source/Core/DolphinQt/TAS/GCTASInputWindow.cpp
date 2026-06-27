@@ -24,7 +24,6 @@
 #include "Core/Movie.h"
 #include "Core/System.h"
 
-#include "DolphinQt/QtUtils/FlowLayout.h"
 #include "DolphinQt/Scripting/ScriptFavoritesWidget.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
@@ -64,6 +63,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
 
   setWindowTitle(tr("GameCube TAS Input %1").arg(controller_id + 1));
   SetAlwaysOnTopConfigKey("GC.AlwaysOnTop." + std::to_string(controller_id));
+  SetLayoutConfigKey("GC." + std::to_string(controller_id));
 
   StickWidget* main_stick_widget = nullptr;
   StickWidget* c_stick_widget = nullptr;
@@ -79,31 +79,20 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   if (c_stick_widget)
     c_stick_widget->setMinimumSize(16, 16);
 
-  // The sticks own the top row and split it evenly, growing and shrinking with the window.
-  auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(m_main_stick_box);
-  top_layout->addWidget(m_c_stick_box);
-
   m_triggers_box = new QGroupBox(tr("Triggers"));
   auto* l_trigger_layout = new QVBoxLayout;
-  l_trigger_layout->addWidget(new QLabel(QStringLiteral("%1 (%2)")
-                                             .arg(tr("Left"),
-                                                  QKeySequence(Qt::ALT | Qt::Key_N)
-                                                      .toString(QKeySequence::NativeText))));
-  m_l_trigger_value = CreateSliderValuePair(GCPad::TRIGGERS_GROUP, GCPad::L_ANALOG, &m_overrider,
-                                            l_trigger_layout, 0, 0, 0, 255,
-                                            QKeySequence(Qt::ALT | Qt::Key_N), Qt::Vertical,
-                                            m_triggers_box);
+  l_trigger_layout->addWidget(new QLabel(QStringLiteral("%1 (%2)").arg(
+      tr("Left"), QKeySequence(Qt::ALT | Qt::Key_N).toString(QKeySequence::NativeText))));
+  m_l_trigger_value = CreateSliderValuePair(
+      GCPad::TRIGGERS_GROUP, GCPad::L_ANALOG, &m_overrider, l_trigger_layout, 0, 0, 0, 255,
+      QKeySequence(Qt::ALT | Qt::Key_N), Qt::Vertical, m_triggers_box);
 
   auto* r_trigger_layout = new QVBoxLayout;
-  r_trigger_layout->addWidget(new QLabel(QStringLiteral("%1 (%2)")
-                                             .arg(tr("Right"),
-                                                  QKeySequence(Qt::ALT | Qt::Key_M)
-                                                      .toString(QKeySequence::NativeText))));
-  m_r_trigger_value = CreateSliderValuePair(GCPad::TRIGGERS_GROUP, GCPad::R_ANALOG, &m_overrider,
-                                            r_trigger_layout, 0, 0, 0, 255,
-                                            QKeySequence(Qt::ALT | Qt::Key_M), Qt::Vertical,
-                                            m_triggers_box);
+  r_trigger_layout->addWidget(new QLabel(QStringLiteral("%1 (%2)").arg(
+      tr("Right"), QKeySequence(Qt::ALT | Qt::Key_M).toString(QKeySequence::NativeText))));
+  m_r_trigger_value = CreateSliderValuePair(
+      GCPad::TRIGGERS_GROUP, GCPad::R_ANALOG, &m_overrider, r_trigger_layout, 0, 0, 0, 255,
+      QKeySequence(Qt::ALT | Qt::Key_M), Qt::Vertical, m_triggers_box);
 
   auto* triggers_layout = new QHBoxLayout;
   triggers_layout->setAlignment(Qt::AlignTop);
@@ -167,18 +156,27 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   favorites_widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   favorites_widget->setFixedHeight(m_buttons_box->sizeHint().height());
 
-  // The remaining sections flow left-to-right and wrap to the next row when the window is too
-  // narrow, instead of overflowing offscreen.
-  auto* bottom_layout = new FlowLayout;
-  bottom_layout->addWidget(m_triggers_box);
-  bottom_layout->addWidget(m_buttons_box);
-  bottom_layout->addWidget(favorites_widget);
-  bottom_layout->addWidget(m_settings_box);
+  SetDefaultContentLayoutBuilder([this, favorites_widget] {
+    auto* top_layout = new QHBoxLayout;
+    top_layout->addWidget(m_main_stick_box);
+    top_layout->addWidget(m_c_stick_box);
 
-  auto* layout = new QVBoxLayout;
-  layout->addLayout(top_layout, 1);
-  layout->addLayout(bottom_layout);
-  SetResizableContentLayout(layout);
+    auto* buttons_and_favorites = new QHBoxLayout;
+    buttons_and_favorites->setAlignment(Qt::AlignTop);
+    buttons_and_favorites->addWidget(m_buttons_box, 1, Qt::AlignTop);
+    buttons_and_favorites->addWidget(favorites_widget, 0, Qt::AlignTop);
+
+    auto* lower_row = new QHBoxLayout;
+    lower_row->setAlignment(Qt::AlignTop);
+    lower_row->addWidget(m_triggers_box, 0, Qt::AlignTop);
+    lower_row->addLayout(buttons_and_favorites, 1);
+    lower_row->addWidget(m_settings_box, 0, Qt::AlignTop);
+
+    auto* layout = new QVBoxLayout;
+    layout->addLayout(top_layout);
+    layout->addLayout(lower_row);
+    return layout;
+  });
 
   RegisterVisibilitySection(tr("Main Stick"), "GC.MainStick", m_main_stick_box);
   RegisterVisibilitySection(tr("C Stick"), "GC.CStick", m_c_stick_box);
@@ -188,10 +186,13 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   RegisterVisibilitySection(tr("Favorite Scripts"), "GC.FavoriteScripts", favorites_widget);
   FinalizeVisibilitySections();
 
+  MakeSectionResizable("GC.MainStick", m_main_stick_box);
+  MakeSectionResizable("GC.CStick", m_c_stick_box);
   MakeSectionResizable("GC.Triggers", m_triggers_box);
   MakeSectionResizable("GC.Buttons", m_buttons_box);
   MakeSectionResizable("GC.FavoriteScripts", favorites_widget);
   MakeSectionResizable("GC.Settings", m_settings_box);
+  FinalizeLayoutSections();
 
   if (m_toggle_lines && main_stick_widget)
     connect(m_toggle_lines, &QCheckBox::toggled, main_stick_widget, &StickWidget::SetAxisLines);

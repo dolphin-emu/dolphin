@@ -469,6 +469,20 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   connect(blending_action, &QAction::triggered, this,
           [this] { m_interframe_blending = !m_interframe_blending; });
 
+  auto* dump_frames_action = new QAction(tr("Dump GBA Frames"), menu);
+  dump_frames_action->setCheckable(true);
+  dump_frames_action->setChecked(Config::Get(Config::MAIN_GBA_DUMP_FRAMES));
+  connect(dump_frames_action, &QAction::toggled, this, [](bool value) {
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_FRAMES, value);
+  });
+
+  auto* dump_audio_action = new QAction(tr("Dump GBA Audio"), menu);
+  dump_audio_action->setCheckable(true);
+  dump_audio_action->setChecked(Config::Get(Config::MAIN_GBA_DUMP_AUDIO));
+  connect(dump_audio_action, &QAction::toggled, this, [](bool value) {
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_AUDIO, value);
+  });
+
   menu->addAction(disconnect_action);
   menu->addSeparator();
   menu->addAction(load_action);
@@ -482,6 +496,9 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   menu->addAction(mute_action);
   menu->addSeparator();
   menu->addMenu(options_menu);
+  menu->addSeparator();
+  menu->addAction(dump_frames_action);
+  menu->addAction(dump_audio_action);
 
   savefile_menu->addAction(save_import_action);
   savefile_menu->addAction(save_export_action);

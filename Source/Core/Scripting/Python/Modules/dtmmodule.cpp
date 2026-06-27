@@ -8,6 +8,7 @@
 
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/Movie.h"
+#include "Core/State.h"
 #include "Core/System.h"
 
 #include "Scripting/Python/Utils/module.h"
@@ -400,6 +401,21 @@ static PyObject* set_wii_serialized(PyObject*, PyObject* args)
   Py_RETURN_TRUE;
 }
 
+static PyObject* save_to_savestate_slot(PyObject*, PyObject* args)
+{
+  unsigned int slot;
+  if (!PyArg_ParseTuple(args, "I", &slot))
+    return nullptr;
+
+  if (slot > 99)
+  {
+    PyErr_SetString(PyExc_ValueError, "slot number must be between 0 and 99");
+    return nullptr;
+  }
+
+  return BoolObject(State::SaveMovieToSlot(Core::System::GetInstance(), static_cast<int>(slot)));
+}
+
 static void setup_dtm_module(PyObject*, DTMModuleState*)
 {
 }
@@ -421,6 +437,8 @@ PyMODINIT_FUNC PyInit_dtm()
        "set_wii_buttons(row, dict) -> bool. Partially update a Wii row's buttons."},
       {"set_wii_serialized", set_wii_serialized, METH_VARARGS,
        "set_wii_serialized(row, bytes) -> bool. Replace a Wii row's serialized input state."},
+      {"save_to_savestate_slot", save_to_savestate_slot, METH_VARARGS,
+       "save_to_savestate_slot(slot) -> bool. Save the active live DTM beside a savestate slot."},
       {nullptr, nullptr, 0, nullptr},
   };
 

@@ -957,6 +957,26 @@ void Save(Core::System& system, int slot, bool wait)
   SaveAs(system, MakeStateFilename(slot), wait);
 }
 
+bool SaveMovieToSlot(Core::System& system, int slot)
+{
+  if (slot < 0 || slot > 99)
+    return false;
+
+  bool saved = false;
+  Core::RunOnCPUThread(
+      system,
+      [&] {
+        auto& movie = system.GetMovie();
+        if (movie.IsMovieActive() && !movie.IsJustStartingRecordingInputFromSaveState())
+        {
+          movie.SaveRecording(MakeStateFilename(slot) + ".dtm");
+          saved = true;
+        }
+      },
+      true);
+  return saved;
+}
+
 void Load(Core::System& system, int slot)
 {
   LoadAs(system, MakeStateFilename(slot));

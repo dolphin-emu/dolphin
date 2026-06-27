@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -27,7 +28,10 @@ class QEvent;
 class QGroupBox;
 class QLayout;
 class QPoint;
+class QRect;
+class QResizeEvent;
 class SectionResizer;
+enum class SectionGeometryOperation;
 class StickWidget;
 class TASCheckBox;
 class TASSpinBox;
@@ -53,13 +57,17 @@ class TASInputWindow : public QDialog
   Q_OBJECT
 public:
   explicit TASInputWindow(QWidget* parent);
+  ~TASInputWindow() override;
 
   int GetTurboPressFrames() const;
   int GetTurboReleaseFrames() const;
 
-  // Custom widths of drag-resized bottom-row sections, keyed by section. Persisted in window presets.
+  // Custom widths of drag-resized bottom-row sections, keyed by section. Persisted in window
+  // presets.
   std::map<std::string, int> GetSectionWidths() const;
   void ApplySectionWidths(const std::map<std::string, int>& widths);
+  std::string GetLayoutState() const;
+  void ApplyLayoutState(std::string_view state, bool restore_window_size = false);
 
 protected:
   virtual void UpdateLiveInputDisplay() = 0;
@@ -87,18 +95,22 @@ protected:
   TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
-  void SetResizableContentLayout(QLayout* content_layout);
+  void SetDefaultContentLayoutBuilder(std::function<QLayout*()> builder);
   void MakeSectionResizable(const std::string& key, QWidget* widget);
   void RegisterVisibilitySection(const QString& label, const std::string& key, QWidget* widget);
   void RegisterVisibilitySection(const QString& label, const std::string& key,
                                  std::vector<QWidget*> widgets);
   void SetAlwaysOnTopConfigKey(std::string key);
+  void SetLayoutConfigKey(std::string key);
   void FinalizeVisibilitySections();
+  void FinalizeLayoutSections();
   virtual void ApplyVisibilitySettings();
+  bool HasCustomLayout() const { return m_has_custom_layout; }
   bool IsVisibilitySectionUserVisible(const std::string& key) const;
   virtual bool IsVisibilitySectionAvailable(const std::string& key) const;
 
   void changeEvent(QEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
   bool eventFilter(QObject* watched, QEvent* event) override;
 
   QGroupBox* m_settings_box;
@@ -122,6 +134,30 @@ private:
     SectionResizer* resizer;
   };
 
+  struct LayoutPlacement
+  {
+    std::string key;
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+  };
+
+  void ReplaceContentLayout(QLayout* content_layout);
+  void EnterFreeformLayout(const std::vector<LayoutPlacement>& placements);
+  void BuildResponsiveLayout(const std::vector<LayoutPlacement>& placements,
+                             const QSize& baseline_size);
+  std::vector<LayoutPlacement> CaptureCurrentLayout() const;
+  std::optional<QRect> HandleSectionGeometry(QWidget* widget, const QRect& geometry,
+                                             SectionGeometryOperation operation,
+                                             Qt::Edges resize_edges, bool commit);
+  void UpdateFreeformMinimumSize();
+  void SetRearrangeEnabled(bool enabled);
+  void ResetLayout();
+  void SaveLayoutState() const;
+  std::string LoadLayoutState() const;
+  ResizableSection* FindResizableSection(std::string_view key);
+  const ResizableSection* FindResizableSection(std::string_view key) const;
   void RelayoutSections();
   bool ShouldViewMovieInputs() const;
   void PollViewInputs();
@@ -143,10 +179,16 @@ private:
                                          ControlState scale);
   std::vector<VisibilitySection> m_visibility_sections;
   std::vector<ResizableSection> m_resizable_sections;
+  std::function<QLayout*()> m_default_layout_builder;
   Qt::WindowFlags m_default_window_flags;
   std::string m_always_on_top_config_key;
+  std::string m_layout_config_key;
+  bool m_layout_finalized = false;
+  bool m_has_custom_layout = false;
+  bool m_rearrange_enabled = false;
   QElapsedTimer m_options_menu_click_timer;
   QPoint m_last_options_menu_click_pos;
   bool m_has_pending_options_menu_click = false;
   QTimer* m_view_inputs_timer = nullptr;
+  QTimer* m_layout_save_timer = nullptr;
 };

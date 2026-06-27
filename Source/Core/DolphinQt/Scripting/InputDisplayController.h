@@ -43,6 +43,8 @@ private:
   void OpenPort(int port, const QString& skin_name);
   void ClosePort(int port);
   void OnWidgetClosed(int port);
+  void SetPortDumping(int port, bool dumping);
+  bool AnyPortDumping() const;
 
   QHash<QString, GCSkin> m_skins;
   std::array<InputDisplayWidget*, 4> m_widgets{};
@@ -51,4 +53,5 @@ private:
   Config::ConfigChangedCallbackID m_config_callback{};
   bool m_active = false;
   bool m_dumping = false;
+  bool m_dump_all_ports = false;
 };

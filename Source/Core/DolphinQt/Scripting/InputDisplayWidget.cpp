@@ -4,7 +4,10 @@
 
 #include "DolphinQt/Scripting/InputDisplayWidget.h"
 
+#include <QAction>
 #include <QCloseEvent>
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <QPainter>
 
 #include "Core/Movie.h"
@@ -58,6 +61,8 @@ static bool OverlayActive(const GCSkinOverlay& ov, const GCPadStatus& pad, bool 
 InputDisplayWidget::InputDisplayWidget(const GCSkin& skin, int port, QWidget* parent)
     : QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint), m_skin(skin), m_port(port)
 {
+  setAttribute(Qt::WA_TranslucentBackground);
+  setAutoFillBackground(false);
   setFixedSize(skin.Width(), skin.Height());
   setWindowTitle(tr("Input Display - Controller %1").arg(m_port + 1));
 
@@ -70,6 +75,25 @@ void InputDisplayWidget::closeEvent(QCloseEvent* event)
 {
   emit closed();
   QWidget::closeEvent(event);
+}
+
+void InputDisplayWidget::contextMenuEvent(QContextMenuEvent* event)
+{
+  QMenu menu(this);
+
+  auto* dump_action = menu.addAction(tr("Dump Controller Inputs"));
+  dump_action->setCheckable(true);
+  dump_action->setChecked(m_dumping);
+
+  auto* remove_background_action = menu.addAction(tr("Remove Background"));
+  remove_background_action->setCheckable(true);
+  remove_background_action->setChecked(m_remove_background);
+
+  const QAction* selected = menu.exec(event->globalPos());
+  if (selected == dump_action)
+    emit dumpControllerInputsChanged(m_port, !m_dumping);
+  else if (selected == remove_background_action)
+    SetBackgroundRemoved(!m_remove_background);
 }
 
 const QPixmap& InputDisplayWidget::LoadPixmap(const QString& path)
@@ -100,7 +124,7 @@ const QPixmap& InputDisplayWidget::TintedPixmap(const QString& path, u32 argb)
   return *m_tinted.insert(key, tinted);
 }
 
-void InputDisplayWidget::Poll()
+void InputDisplayWidget::RefreshState()
 {
   const auto status = Core::System::GetInstance().GetMovie().GetDisplayedPadStatus(m_port);
   if (status.has_value())
@@ -109,8 +133,27 @@ void InputDisplayWidget::Poll()
     m_connected = m_skin.gba_mode ? !(m_pad.button & PAD_BUTTON_Y) : m_pad.isConnected;
   }
   // If nullopt (no game running yet), keep the previous pad state rather than
-  // showing "No controller" — the neutral default shows an idle controller.
+  // showing "No controller"; the neutral default shows an idle controller.
   update();
+}
+
+void InputDisplayWidget::SetDumping(bool dumping)
+{
+  m_dumping = dumping;
+}
+
+void InputDisplayWidget::SetBackgroundRemoved(bool removed)
+{
+  if (m_remove_background == removed)
+    return;
+
+  m_remove_background = removed;
+  update();
+}
+
+void InputDisplayWidget::Poll()
+{
+  RefreshState();
 }
 
 void InputDisplayWidget::paintEvent(QPaintEvent*)
@@ -139,7 +182,8 @@ void InputDisplayWidget::DrawSkin(QPainter& p)
       p.drawPixmap(QRectF(x, y, w, h), pix, QRectF(pix.rect()));
   };
 
-  p.fillRect(rect(), ArgbToColor(m_skin.background));
+  if (!m_remove_background)
+    p.fillRect(rect(), ArgbToColor(m_skin.background));
 
   for (const GCSkinStick& st : m_skin.sticks)
   {

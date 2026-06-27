@@ -284,6 +284,7 @@ void MenuBar::AddToolsMenu()
   window_presets_menu->addAction(tr("Save Preset..."), this, &MenuBar::WindowPresetsSave);
   window_presets_menu->addAction(tr("Set Auto Load Preset..."), this,
                                  &MenuBar::WindowPresetsAutoLoad);
+  tools_menu->addAction(tr("Frame Dump Manager"), this, &MenuBar::ShowFrameDumpManager);
   tools_menu->addSeparator();
 
   tools_menu->addAction(tr("&Resource Pack Manager"), this,
@@ -910,55 +911,7 @@ void MenuBar::AddMovieMenu()
   dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
           [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
-
-  m_dump_input_display = movie_menu->addAction(tr("Dump Controller Inputs"));
-  m_dump_input_display->setCheckable(true);
-  connect(m_dump_input_display, &QAction::toggled, this,
-          [this](bool dump) { emit DumpControllerInputs(dump); });
-
-#ifdef HAS_LIBMGBA
-  m_dump_gba_frames = movie_menu->addAction(tr("Dump GBA Frames"));
-  m_dump_gba_frames->setCheckable(true);
-  m_dump_gba_frames->setChecked(Config::Get(Config::MAIN_GBA_DUMP_FRAMES));
-  connect(m_dump_gba_frames, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_FRAMES, value); });
-
-  m_dump_gba_audio = movie_menu->addAction(tr("Dump GBA Audio"));
-  m_dump_gba_audio->setCheckable(true);
-  m_dump_gba_audio->setChecked(Config::Get(Config::MAIN_GBA_DUMP_AUDIO));
-  connect(m_dump_gba_audio, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_GBA_DUMP_AUDIO, value); });
-
-  // Only offer GBA dumping when an emulated GBA is configured; refresh on open since the controller
-  // config can change at any time.
-  connect(movie_menu, &QMenu::aboutToShow, this, &MenuBar::UpdateGBADumpActions);
-  UpdateGBADumpActions();
-#endif
-
-  auto* view_movie_inputs = movie_menu->addAction(tr("View Movie Inputs"));
-  view_movie_inputs->setCheckable(true);
-  view_movie_inputs->setChecked(Config::Get(Config::MAIN_MOVIE_VIEW_TAS_INPUTS));
-  connect(view_movie_inputs, &QAction::toggled, [](bool value) {
-    Config::SetBaseOrCurrent(Config::MAIN_MOVIE_VIEW_TAS_INPUTS, value);
-  });
 }
-
-#ifdef HAS_LIBMGBA
-void MenuBar::UpdateGBADumpActions()
-{
-  bool has_gba = false;
-  for (int i = 0; i < 4; ++i)
-  {
-    if (Config::Get(Config::GetInfoForSIDevice(i)) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
-    {
-      has_gba = true;
-      break;
-    }
-  }
-  m_dump_gba_frames->setEnabled(has_gba);
-  m_dump_gba_audio->setEnabled(has_gba);
-}
-#endif
 
 void MenuBar::AddJITMenu()
 {

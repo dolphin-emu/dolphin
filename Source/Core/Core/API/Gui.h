@@ -170,7 +170,9 @@ public:
     WidgetId id;
     WidgetKind kind;
     std::string label;
-    float min, max;
+    float value;
+    float min;
+    float max;
     bool checked;
     std::string text_value;
     std::optional<u32> text_color;

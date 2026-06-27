@@ -102,8 +102,7 @@ QSize FlowLayout::sizeHint() const
   }
 
   const QMargins margins = contentsMargins();
-  return QSize(width + margins.left() + margins.right(),
-               height + margins.top() + margins.bottom());
+  return QSize(width + margins.left() + margins.right(), height + margins.top() + margins.bottom());
 }
 
 QSize FlowLayout::minimumSize() const

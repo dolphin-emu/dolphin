@@ -41,6 +41,7 @@ public:
 
   void GameChanged(const HW::GBA::CoreInfo& info);
   void SetVideoBuffer(std::span<const u32> video_buffer);
+  const QImage& GetCurrentFrame() const { return m_last_frame; }
 
   void SetVolume(int volume);
   void VolumeDown();

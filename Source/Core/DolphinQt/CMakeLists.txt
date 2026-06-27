@@ -283,6 +283,8 @@ add_executable(dolphin-emu
   HotkeyScheduler.h
   InfinityBase/InfinityBaseWindow.cpp
   InfinityBase/InfinityBaseWindow.h
+  FrameDumpManager.cpp
+  FrameDumpManager.h
   Main.cpp
   MainWindow.cpp
   MainWindow.h

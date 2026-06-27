@@ -102,6 +102,7 @@ u64 GetUnixTimeOfSlot(int slot);
 // Slots from 0-99.
 void Save(Core::System& system, int slot, bool wait = false);
 void Load(Core::System& system, int slot);
+bool SaveMovieToSlot(Core::System& system, int slot);
 
 void SaveAs(Core::System& system, const std::string& filename, bool wait = false);
 void LoadAs(Core::System& system, const std::string& filename);

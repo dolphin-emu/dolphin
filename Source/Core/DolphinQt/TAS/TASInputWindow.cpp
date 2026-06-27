@@ -4,13 +4,13 @@
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 #include <algorithm>
-#include <cmath>
+#include <set>
 #include <utility>
 
-#include <QAction>
 #include <QAbstractButton>
 #include <QAbstractSlider>
 #include <QAbstractSpinBox>
+#include <QAction>
 #include <QApplication>
 #include <QCheckBox>
 #include <QEvent>
@@ -22,6 +22,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QRect>
+#include <QResizeEvent>
 #include <QShortcut>
 #include <QSlider>
 #include <QTimer>
@@ -29,6 +30,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -52,8 +54,18 @@ namespace
 {
 constexpr const char* TAS_WINDOW_VISIBILITY_SECTION = "TASWindowVisibility";
 constexpr const char* TAS_WINDOW_OPTIONS_SECTION = "TASWindowOptions";
+constexpr const char* TAS_WINDOW_LAYOUT_SECTION = "TASWindowLayouts";
 constexpr qint64 OPTIONS_MENU_DOUBLE_RIGHT_CLICK_MS = 450;
 constexpr qint64 SAME_PHYSICAL_CLICK_SUPPRESSION_MS = 20;
+constexpr int MAX_LAYOUT_SECTION_SIZE = 16384;
+constexpr int LAYOUT_GRID_SIZE = 12;
+constexpr int LAYOUT_EDGE_MARGIN = 8;
+constexpr int LAYOUT_SECTION_SPACING = 6;
+
+int SnapToLayoutGrid(int value)
+{
+  return ((value + LAYOUT_GRID_SIZE / 2) / LAYOUT_GRID_SIZE) * LAYOUT_GRID_SIZE;
+}
 
 std::string GetDolphinIniPath()
 {
@@ -67,6 +79,94 @@ bool IsInteractiveOptionsMenuWidget(const QObject* object)
          qobject_cast<const QAbstractSpinBox*>(object) ||
          qobject_cast<const StickWidget*>(object) || qobject_cast<const IRWidget*>(object);
 }
+
+class ProportionalTASLayout final : public QLayout
+{
+public:
+  explicit ProportionalTASLayout(const QSize& baseline_size) : m_baseline_size(baseline_size)
+  {
+    setContentsMargins(0, 0, 0, 0);
+  }
+
+  ~ProportionalTASLayout() override
+  {
+    while (QLayoutItem* item = takeAt(0))
+      delete item;
+  }
+
+  void AddWidget(QWidget* widget, const QRect& baseline_geometry)
+  {
+    addChildWidget(widget);
+    m_items.push_back({new QWidgetItem(widget), widget, baseline_geometry});
+  }
+
+  void addItem(QLayoutItem* item) override
+  {
+    m_items.push_back({item, item->widget(), item->geometry()});
+  }
+
+  int count() const override { return static_cast<int>(m_items.size()); }
+
+  QLayoutItem* itemAt(int index) const override
+  {
+    return index >= 0 && index < count() ? m_items[index].item : nullptr;
+  }
+
+  QLayoutItem* takeAt(int index) override
+  {
+    if (index < 0 || index >= count())
+      return nullptr;
+    QLayoutItem* item = m_items[index].item;
+    m_items.erase(m_items.begin() + index);
+    return item;
+  }
+
+  QSize sizeHint() const override { return m_baseline_size; }
+  QSize minimumSize() const override { return {160, 120}; }
+  Qt::Orientations expandingDirections() const override
+  {
+    return Qt::Horizontal | Qt::Vertical;
+  }
+
+  void setGeometry(const QRect& geometry) override
+  {
+    QLayout::setGeometry(geometry);
+    const int baseline_width = std::max(1, m_baseline_size.width());
+    const int baseline_height = std::max(1, m_baseline_size.height());
+    const auto scale_x = [&](int value) {
+      return geometry.x() + qRound(static_cast<double>(value) * geometry.width() / baseline_width);
+    };
+    const auto scale_y = [&](int value) {
+      return geometry.y() +
+             qRound(static_cast<double>(value) * geometry.height() / baseline_height);
+    };
+
+    for (const Item& item : m_items)
+    {
+      const int left = scale_x(item.baseline_geometry.left());
+      const int top = scale_y(item.baseline_geometry.top());
+      const int right = scale_x(item.baseline_geometry.right() + 1);
+      const int bottom = scale_y(item.baseline_geometry.bottom() + 1);
+      const QRect scaled_geometry(left, top, std::max(1, right - left),
+                                  std::max(1, bottom - top));
+      if (item.widget)
+        item.widget->setGeometry(scaled_geometry);
+      else
+        item.item->setGeometry(scaled_geometry);
+    }
+  }
+
+private:
+  struct Item
+  {
+    QLayoutItem* item;
+    QWidget* widget;
+    QRect baseline_geometry;
+  };
+
+  QSize m_baseline_size;
+  std::vector<Item> m_items;
+};
 }  // namespace
 
 void InputOverrider::AddFunction(std::string_view group_name, std::string_view control_name,
@@ -127,7 +227,17 @@ TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
   connect(m_view_inputs_timer, &QTimer::timeout, this, &TASInputWindow::PollViewInputs);
   m_view_inputs_timer->start();
 
+  m_layout_save_timer = new QTimer(this);
+  m_layout_save_timer->setSingleShot(true);
+  m_layout_save_timer->setInterval(200);
+  connect(m_layout_save_timer, &QTimer::timeout, this, &TASInputWindow::SaveLayoutState);
+
   InstallOptionsMenu(this);
+}
+
+TASInputWindow::~TASInputWindow()
+{
+  SaveLayoutState();
 }
 
 int TASInputWindow::GetTurboPressFrames() const
@@ -232,9 +342,9 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  auto* value = CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_,
-                                      min, max, shortcut_key_sequence, Qt::Horizontal,
-                                      shortcut_widget, scale);
+  auto* value =
+      CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_, min, max,
+                            shortcut_key_sequence, Qt::Horizontal, shortcut_widget, scale);
   if (value_out)
     *value_out = value;
 
@@ -305,12 +415,23 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   return value;
 }
 
-void TASInputWindow::SetResizableContentLayout(QLayout* content_layout)
+void TASInputWindow::SetDefaultContentLayoutBuilder(std::function<QLayout*()> builder)
 {
+  m_default_layout_builder = std::move(builder);
+  ReplaceContentLayout(m_default_layout_builder());
+  resize(sizeHint());
+}
+
+void TASInputWindow::ReplaceContentLayout(QLayout* content_layout)
+{
+  if (!content_layout)
+    return;
+
+  delete layout();
   content_layout->setSizeConstraint(QLayout::SetNoConstraint);
   setLayout(content_layout);
   setMinimumSize(160, 120);
-  resize(sizeHint());
+  RelayoutSections();
 }
 
 void TASInputWindow::MakeSectionResizable(const std::string& key, QWidget* widget)
@@ -318,8 +439,34 @@ void TASInputWindow::MakeSectionResizable(const std::string& key, QWidget* widge
   if (!widget)
     return;
 
-  auto* resizer = new SectionResizer(widget, [this] { RelayoutSections(); }, this);
+  if (FindResizableSection(key))
+    return;
+
+  auto* resizer = new SectionResizer(
+      widget, [this] { RelayoutSections(); }, [this] { SaveLayoutState(); },
+      [this](QWidget* moved, const QRect& geometry, SectionGeometryOperation operation,
+             Qt::Edges resize_edges, bool commit) {
+        return HandleSectionGeometry(moved, geometry, operation, resize_edges, commit);
+      },
+      this);
   m_resizable_sections.push_back({key, widget, resizer});
+}
+
+TASInputWindow::ResizableSection* TASInputWindow::FindResizableSection(std::string_view key)
+{
+  const auto it =
+      std::find_if(m_resizable_sections.begin(), m_resizable_sections.end(),
+                   [key](const ResizableSection& section) { return section.key == key; });
+  return it == m_resizable_sections.end() ? nullptr : &*it;
+}
+
+const TASInputWindow::ResizableSection*
+TASInputWindow::FindResizableSection(std::string_view key) const
+{
+  const auto it =
+      std::find_if(m_resizable_sections.begin(), m_resizable_sections.end(),
+                   [key](const ResizableSection& section) { return section.key == key; });
+  return it == m_resizable_sections.end() ? nullptr : &*it;
 }
 
 void TASInputWindow::RelayoutSections()
@@ -329,6 +476,7 @@ void TASInputWindow::RelayoutSections()
     content_layout->invalidate();
     content_layout->activate();
   }
+  updateGeometry();
 }
 
 std::map<std::string, int> TASInputWindow::GetSectionWidths() const
@@ -352,6 +500,594 @@ void TASInputWindow::ApplySectionWidths(const std::map<std::string, int>& widths
     else
       section.resizer->ClearCustomWidth();
   }
+  SaveLayoutState();
+}
+
+std::string TASInputWindow::GetLayoutState() const
+{
+  if (m_has_custom_layout)
+  {
+    std::string state = "scaled:" + std::to_string(width()) + ':' + std::to_string(height()) + ';';
+    bool first = true;
+    for (const LayoutPlacement& placement : CaptureCurrentLayout())
+    {
+      if (!first)
+        state += '|';
+      first = false;
+      state += placement.key + ':' + std::to_string(placement.x) + ':' +
+               std::to_string(placement.y) + ':' + std::to_string(placement.width) + ':' +
+               std::to_string(placement.height);
+    }
+    return state;
+  }
+
+  std::string state = "default;";
+  bool first = true;
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    if (!section.resizer->HasCustomWidth() && !section.resizer->HasCustomHeight())
+    {
+      continue;
+    }
+
+    if (!first)
+      state += '|';
+    first = false;
+    state += section.key + ':' + std::to_string(section.resizer->CustomWidth()) + ':' +
+             std::to_string(section.resizer->CustomHeight());
+  }
+  return state;
+}
+
+void TASInputWindow::ApplyLayoutState(std::string_view state, bool restore_window_size)
+{
+  const std::size_t separator = state.find(';');
+  if (separator == std::string_view::npos)
+    return;
+
+  const std::string_view mode_descriptor = state.substr(0, separator);
+  const std::vector<std::string> mode_fields = SplitString(std::string(mode_descriptor), ':');
+  if (mode_fields.empty())
+    return;
+  const std::string_view mode = mode_fields[0];
+  const bool use_default = mode == "default";
+  const bool use_freeform = mode == "free";
+  const bool use_scaled = mode == "scaled";
+  const bool use_obsolete_layout = mode == "grid" || mode == "flow";
+  if (!use_default && !use_freeform && !use_scaled && !use_obsolete_layout)
+    return;
+
+  int baseline_width = width();
+  int baseline_height = height();
+  if (use_scaled &&
+      (mode_fields.size() != 3 || !TryParse(mode_fields[1], &baseline_width) ||
+       !TryParse(mode_fields[2], &baseline_height) || baseline_width <= 0 ||
+       baseline_height <= 0 || baseline_width > MAX_LAYOUT_SECTION_SIZE ||
+       baseline_height > MAX_LAYOUT_SECTION_SIZE))
+  {
+    return;
+  }
+  const QSize baseline_size(baseline_width, baseline_height);
+
+  std::vector<LayoutPlacement> parsed_sections;
+  std::set<std::string> seen_keys;
+  std::string payload(state.substr(separator + 1));
+  std::size_t start = 0;
+  while (!use_obsolete_layout && start <= payload.size())
+  {
+    const std::size_t end = payload.find('|', start);
+    const std::string entry = payload.substr(start, end - start);
+    const std::vector<std::string> fields = SplitString(entry, ':');
+    const bool has_expected_fields =
+        ((use_freeform || use_scaled) && fields.size() == 5) ||
+        (use_default && fields.size() == 3);
+    if (has_expected_fields && FindResizableSection(fields[0]))
+    {
+      int x = 0;
+      int y = 0;
+      int width = 0;
+      int height = 0;
+      const bool parsed = use_freeform || use_scaled ?
+                              TryParse(fields[1], &x) && TryParse(fields[2], &y) &&
+                                  TryParse(fields[3], &width) && TryParse(fields[4], &height) :
+                              TryParse(fields[1], &width) && TryParse(fields[2], &height);
+      const bool valid_size = use_freeform || use_scaled ? width > 0 && height > 0 :
+                                                          width >= 0 && height >= 0;
+      if (parsed && x >= 0 && y >= 0 && x <= MAX_LAYOUT_SECTION_SIZE &&
+          y <= MAX_LAYOUT_SECTION_SIZE && valid_size &&
+          width <= MAX_LAYOUT_SECTION_SIZE && height <= MAX_LAYOUT_SECTION_SIZE &&
+          seen_keys.insert(fields[0]).second)
+      {
+        parsed_sections.push_back({fields[0], x, y, width, height});
+      }
+    }
+    if (end == std::string::npos)
+      break;
+    start = end + 1;
+  }
+
+  for (ResizableSection& section : m_resizable_sections)
+  {
+    section.resizer->SetRearrangeEnabled(false);
+    section.resizer->ClearCustomSize();
+  }
+  m_rearrange_enabled = false;
+
+  if (use_default)
+  {
+    for (const LayoutPlacement& parsed : parsed_sections)
+    {
+      if (ResizableSection* section = FindResizableSection(parsed.key))
+        section->resizer->SetCustomSize(parsed.width, parsed.height);
+    }
+  }
+
+  if ((use_freeform || use_scaled) && !parsed_sections.empty())
+  {
+    if (restore_window_size && use_scaled)
+      resize(baseline_size);
+    BuildResponsiveLayout(parsed_sections, baseline_size);
+    m_has_custom_layout = true;
+  }
+  else
+  {
+    m_has_custom_layout = false;
+    if (m_default_layout_builder)
+      ReplaceContentLayout(m_default_layout_builder());
+  }
+
+  ApplyVisibilitySettings();
+  if (m_has_custom_layout && !layout())
+    UpdateFreeformMinimumSize();
+  RelayoutSections();
+  SaveLayoutState();
+}
+
+std::vector<TASInputWindow::LayoutPlacement> TASInputWindow::CaptureCurrentLayout() const
+{
+  std::vector<LayoutPlacement> placements;
+  placements.reserve(m_resizable_sections.size());
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    const QRect geometry = section.widget->geometry();
+    placements.push_back(
+        {section.key, geometry.x(), geometry.y(), geometry.width(), geometry.height()});
+  }
+  return placements;
+}
+
+void TASInputWindow::EnterFreeformLayout(const std::vector<LayoutPlacement>& placements)
+{
+  const QSize current_size = size();
+  delete layout();
+
+  std::set<std::string> added;
+  const auto apply_placement = [&](const LayoutPlacement& placement) {
+    ResizableSection* section = FindResizableSection(placement.key);
+    if (!section || !added.insert(placement.key).second)
+      return;
+    section->resizer->SetCustomSizeExact(placement.width, placement.height);
+    section->widget->setGeometry(placement.x, placement.y, placement.width, placement.height);
+  };
+
+  for (const LayoutPlacement& placement : placements)
+    apply_placement(placement);
+  for (ResizableSection& section : m_resizable_sections)
+  {
+    if (!added.contains(section.key))
+    {
+      const QRect geometry = section.widget->geometry();
+      apply_placement(
+          {section.key, geometry.x(), geometry.y(), geometry.width(), geometry.height()});
+    }
+  }
+
+  UpdateFreeformMinimumSize();
+  resize(current_size.expandedTo(minimumSize()));
+}
+
+void TASInputWindow::BuildResponsiveLayout(const std::vector<LayoutPlacement>& placements,
+                                           const QSize& baseline_size)
+{
+  const QSize current_size = size();
+  std::vector<LayoutPlacement> valid_placements;
+  valid_placements.reserve(placements.size());
+  std::set<std::string> added;
+
+  for (const LayoutPlacement& placement : placements)
+  {
+    if (!FindResizableSection(placement.key) || placement.width <= 0 || placement.height <= 0 ||
+        !added.insert(placement.key).second)
+      continue;
+    valid_placements.push_back(placement);
+  }
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    if (added.contains(section.key))
+      continue;
+    const QRect geometry = section.widget->geometry();
+    valid_placements.push_back(
+        {section.key, geometry.x(), geometry.y(), geometry.width(), geometry.height()});
+  }
+
+  if (valid_placements.empty())
+  {
+    if (m_default_layout_builder)
+      ReplaceContentLayout(m_default_layout_builder());
+    return;
+  }
+
+  for (ResizableSection& section : m_resizable_sections)
+    section.resizer->UseResponsiveSize();
+
+  auto* responsive_layout = new ProportionalTASLayout(baseline_size);
+  for (const LayoutPlacement& placement : valid_placements)
+  {
+    ResizableSection* section = FindResizableSection(placement.key);
+    responsive_layout->AddWidget(
+        section->widget,
+        QRect(placement.x, placement.y, placement.width, placement.height));
+  }
+
+  ReplaceContentLayout(responsive_layout);
+  resize(current_size.expandedTo(minimumSize()));
+}
+
+std::optional<QRect> TASInputWindow::HandleSectionGeometry(QWidget* widget, const QRect& geometry,
+                                                           SectionGeometryOperation operation,
+                                                           Qt::Edges resize_edges, bool commit)
+{
+  if (!m_rearrange_enabled || !widget || geometry.width() <= 0 || geometry.height() <= 0)
+    return std::nullopt;
+
+  const auto active_section_it = std::ranges::find_if(
+      m_resizable_sections,
+      [widget](const ResizableSection& section) { return section.widget == widget; });
+  if (active_section_it == m_resizable_sections.end())
+    return std::nullopt;
+  ResizableSection* active_section = &*active_section_it;
+
+  const QRect current_geometry = widget->geometry();
+  const bool resizing = operation == SectionGeometryOperation::Resize;
+  const bool resizing_horizontally =
+      resizing && (resize_edges.testFlag(Qt::LeftEdge) || resize_edges.testFlag(Qt::RightEdge));
+  const bool resizing_vertically =
+      resizing && (resize_edges.testFlag(Qt::TopEdge) || resize_edges.testFlag(Qt::BottomEdge));
+  QRect adjusted = geometry;
+
+  if (resizing_horizontally || resizing_vertically)
+  {
+    if (resize_edges.testFlag(Qt::LeftEdge))
+    {
+      const int maximum_left = adjusted.right() - active_section->resizer->MinimumWidth() + 1;
+      adjusted.setLeft(std::min(maximum_left, SnapToLayoutGrid(adjusted.left())));
+    }
+    else if (resize_edges.testFlag(Qt::RightEdge))
+    {
+      const int minimum_right = adjusted.left() + active_section->resizer->MinimumWidth() - 1;
+      adjusted.setRight(std::max(minimum_right, SnapToLayoutGrid(adjusted.right() + 1) - 1));
+    }
+    if (resize_edges.testFlag(Qt::TopEdge))
+    {
+      const int maximum_top = adjusted.bottom() - active_section->resizer->MinimumHeight() + 1;
+      adjusted.setTop(std::min(maximum_top, SnapToLayoutGrid(adjusted.top())));
+    }
+    else if (resize_edges.testFlag(Qt::BottomEdge))
+    {
+      const int minimum_bottom = adjusted.top() + active_section->resizer->MinimumHeight() - 1;
+      adjusted.setBottom(std::max(minimum_bottom, SnapToLayoutGrid(adjusted.bottom() + 1) - 1));
+    }
+  }
+  else
+  {
+    adjusted.moveLeft(SnapToLayoutGrid(adjusted.left()));
+    adjusted.moveTop(SnapToLayoutGrid(adjusted.top()));
+  }
+
+  const QRect available = rect().adjusted(LAYOUT_EDGE_MARGIN, LAYOUT_EDGE_MARGIN,
+                                          -LAYOUT_EDGE_MARGIN, -LAYOUT_EDGE_MARGIN);
+  if (resize_edges.testFlag(Qt::LeftEdge))
+    adjusted.setLeft(std::max(adjusted.left(), available.left()));
+  else if (resize_edges.testFlag(Qt::RightEdge))
+    adjusted.setRight(std::min(adjusted.right(), available.right()));
+  else
+    adjusted.moveLeft(std::clamp(
+        adjusted.left(), available.left(),
+        std::max(available.left(), available.right() - adjusted.width() + 1)));
+  if (resize_edges.testFlag(Qt::TopEdge))
+    adjusted.setTop(std::max(adjusted.top(), available.top()));
+  else if (resize_edges.testFlag(Qt::BottomEdge))
+    adjusted.setBottom(std::min(adjusted.bottom(), available.bottom()));
+  else
+    adjusted.moveTop(std::clamp(
+        adjusted.top(), available.top(),
+        std::max(available.top(), available.bottom() - adjusted.height() + 1)));
+
+  if (!resizing_horizontally && !resizing_vertically)
+  {
+    ResizableSection* swap_section = nullptr;
+    qsizetype largest_overlap = 0;
+    for (ResizableSection& section : m_resizable_sections)
+    {
+      if (section.widget == widget || !section.widget->isVisible())
+        continue;
+      const QRect intersection = adjusted.intersected(section.widget->geometry());
+      const qsizetype overlap = static_cast<qsizetype>(intersection.width()) * intersection.height();
+      if (section.widget->geometry().contains(adjusted.center()) && overlap > largest_overlap)
+      {
+        swap_section = &section;
+        largest_overlap = overlap;
+      }
+    }
+
+    if (swap_section)
+    {
+      const QRect destination = swap_section->widget->geometry();
+      if (commit)
+      {
+        swap_section->resizer->SetCustomSizeExact(current_geometry.width(),
+                                                  current_geometry.height());
+        swap_section->widget->setGeometry(current_geometry);
+        widget->setGeometry(destination);
+      }
+      return destination;
+    }
+  }
+
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    if (section.widget == widget || !section.widget->isVisible())
+      continue;
+
+    const QRect other = section.widget->geometry();
+    if (resize_edges.testFlag(Qt::RightEdge) && adjusted.top() <= other.bottom() &&
+        adjusted.bottom() >= other.top() && current_geometry.right() < other.left() &&
+        adjusted.right() + LAYOUT_SECTION_SPACING >= other.left())
+    {
+      adjusted.setRight(other.left() - LAYOUT_SECTION_SPACING - 1);
+    }
+    if (resize_edges.testFlag(Qt::LeftEdge) && adjusted.top() <= other.bottom() &&
+        adjusted.bottom() >= other.top() && current_geometry.left() > other.right() &&
+        adjusted.left() - LAYOUT_SECTION_SPACING <= other.right())
+    {
+      adjusted.setLeft(other.right() + LAYOUT_SECTION_SPACING + 1);
+    }
+    if (resize_edges.testFlag(Qt::BottomEdge) && adjusted.left() <= other.right() &&
+        adjusted.right() >= other.left() && current_geometry.bottom() < other.top() &&
+        adjusted.bottom() + LAYOUT_SECTION_SPACING >= other.top())
+    {
+      adjusted.setBottom(other.top() - LAYOUT_SECTION_SPACING - 1);
+    }
+    if (resize_edges.testFlag(Qt::TopEdge) && adjusted.left() <= other.right() &&
+        adjusted.right() >= other.left() && current_geometry.top() > other.bottom() &&
+        adjusted.top() - LAYOUT_SECTION_SPACING <= other.bottom())
+    {
+      adjusted.setTop(other.bottom() + LAYOUT_SECTION_SPACING + 1);
+    }
+  }
+
+  if (adjusted.width() < active_section->resizer->MinimumWidth() ||
+      adjusted.height() < active_section->resizer->MinimumHeight())
+  {
+    return std::nullopt;
+  }
+
+  const QRect collision_geometry = adjusted.adjusted(
+      -LAYOUT_SECTION_SPACING, -LAYOUT_SECTION_SPACING, LAYOUT_SECTION_SPACING,
+      LAYOUT_SECTION_SPACING);
+  std::vector<std::pair<ResizableSection*, QRect>> neighbor_adjustments;
+  std::vector<ResizableSection*> displaced_sections;
+  for (ResizableSection& section : m_resizable_sections)
+  {
+    if (section.widget == widget || !section.widget->isVisible() ||
+        !collision_geometry.intersects(section.widget->geometry()))
+    {
+      continue;
+    }
+
+    if (resizing_horizontally || resizing_vertically)
+      return std::nullopt;
+
+    const QRect other = section.widget->geometry();
+    const int minimum_width = section.resizer->MinimumWidth();
+    const int minimum_height = section.resizer->MinimumHeight();
+    std::vector<QRect> candidates;
+    candidates.emplace_back(other.left(), other.top(),
+                            adjusted.left() - LAYOUT_SECTION_SPACING - other.left(),
+                            other.height());
+    candidates.emplace_back(adjusted.right() + LAYOUT_SECTION_SPACING + 1, other.top(),
+                            other.right() - adjusted.right() - LAYOUT_SECTION_SPACING,
+                            other.height());
+    candidates.emplace_back(other.left(), other.top(), other.width(),
+                            adjusted.top() - LAYOUT_SECTION_SPACING - other.top());
+    candidates.emplace_back(other.left(), adjusted.bottom() + LAYOUT_SECTION_SPACING + 1,
+                            other.width(),
+                            other.bottom() - adjusted.bottom() - LAYOUT_SECTION_SPACING);
+
+    const QRect* best_candidate = nullptr;
+    int best_area = 0;
+    for (const QRect& candidate : candidates)
+    {
+      if (candidate.width() < minimum_width || candidate.height() < minimum_height)
+        continue;
+      const int area = candidate.width() * candidate.height();
+      if (area > best_area)
+      {
+        best_candidate = &candidate;
+        best_area = area;
+      }
+    }
+    if (best_candidate)
+    {
+      neighbor_adjustments.emplace_back(&section, *best_candidate);
+      continue;
+    }
+
+    displaced_sections.push_back(&section);
+  }
+
+  if (!displaced_sections.empty())
+  {
+    if (collision_geometry.intersects(current_geometry))
+      return std::nullopt;
+
+    const auto pack_displaced = [&](bool horizontally)
+        -> std::optional<std::vector<QRect>> {
+      const int count = static_cast<int>(displaced_sections.size());
+      const int total_spacing = LAYOUT_SECTION_SPACING * (count - 1);
+      int required_primary = total_spacing;
+      for (const ResizableSection* section : displaced_sections)
+      {
+        required_primary += horizontally ? section->resizer->MinimumWidth() :
+                                           section->resizer->MinimumHeight();
+        const int cross_minimum = horizontally ? section->resizer->MinimumHeight() :
+                                                 section->resizer->MinimumWidth();
+        const int cross_available =
+            horizontally ? current_geometry.height() : current_geometry.width();
+        if (cross_available < cross_minimum)
+          return std::nullopt;
+      }
+
+      const int primary_available =
+          horizontally ? current_geometry.width() : current_geometry.height();
+      if (primary_available < required_primary)
+        return std::nullopt;
+
+      int cursor = horizontally ? current_geometry.left() : current_geometry.top();
+      int remaining_extra = primary_available - required_primary;
+      std::vector<QRect> packed;
+      packed.reserve(displaced_sections.size());
+      for (int i = 0; i < count; ++i)
+      {
+        const ResizableSection* section = displaced_sections[i];
+        const int minimum = horizontally ? section->resizer->MinimumWidth() :
+                                           section->resizer->MinimumHeight();
+        const int extra = remaining_extra / (count - i);
+        const int extent = minimum + extra;
+        remaining_extra -= extra;
+        if (horizontally)
+          packed.emplace_back(cursor, current_geometry.top(), extent, current_geometry.height());
+        else
+          packed.emplace_back(current_geometry.left(), cursor, current_geometry.width(), extent);
+        cursor += extent + LAYOUT_SECTION_SPACING;
+      }
+      return packed;
+    };
+
+    const bool prefer_horizontal = current_geometry.width() >= current_geometry.height();
+    std::optional<std::vector<QRect>> packed = pack_displaced(prefer_horizontal);
+    if (!packed)
+      packed = pack_displaced(!prefer_horizontal);
+    if (!packed)
+      return std::nullopt;
+    for (std::size_t i = 0; i < displaced_sections.size(); ++i)
+      neighbor_adjustments.emplace_back(displaced_sections[i], (*packed)[i]);
+  }
+
+  if (commit)
+  {
+    for (const auto& [section, new_geometry] : neighbor_adjustments)
+    {
+      section->resizer->SetCustomSize(new_geometry.width(), new_geometry.height());
+      section->widget->setGeometry(new_geometry);
+    }
+    widget->setGeometry(adjusted);
+  }
+  return adjusted;
+}
+
+void TASInputWindow::UpdateFreeformMinimumSize()
+{
+  int required_width = 160;
+  int required_height = 120;
+  for (const ResizableSection& section : m_resizable_sections)
+  {
+    if (!section.widget->isVisible())
+      continue;
+    required_width =
+        std::max(required_width, section.widget->geometry().right() + LAYOUT_EDGE_MARGIN + 1);
+    required_height =
+        std::max(required_height, section.widget->geometry().bottom() + LAYOUT_EDGE_MARGIN + 1);
+  }
+  setMinimumSize(required_width, required_height);
+}
+
+void TASInputWindow::SetRearrangeEnabled(bool enabled)
+{
+  if (enabled == m_rearrange_enabled)
+    return;
+
+  if (enabled)
+  {
+    if (layout())
+      EnterFreeformLayout(CaptureCurrentLayout());
+    m_has_custom_layout = true;
+    ApplyVisibilitySettings();
+    UpdateFreeformMinimumSize();
+  }
+  else
+  {
+    const std::vector<LayoutPlacement> placements = CaptureCurrentLayout();
+    BuildResponsiveLayout(placements, size());
+    ApplyVisibilitySettings();
+  }
+
+  m_rearrange_enabled = enabled;
+  for (ResizableSection& section : m_resizable_sections)
+    section.resizer->SetRearrangeEnabled(enabled);
+  SaveLayoutState();
+}
+
+void TASInputWindow::ResetLayout()
+{
+  m_rearrange_enabled = false;
+  m_has_custom_layout = false;
+  for (ResizableSection& section : m_resizable_sections)
+  {
+    section.resizer->SetRearrangeEnabled(false);
+    section.resizer->ClearCustomSize();
+  }
+  if (m_default_layout_builder)
+    ReplaceContentLayout(m_default_layout_builder());
+  ApplyVisibilitySettings();
+
+  if (!m_layout_config_key.empty())
+  {
+    Common::IniFile ini;
+    const std::string ini_path = GetDolphinIniPath();
+    ini.Load(ini_path);
+    ini.DeleteKey(TAS_WINDOW_LAYOUT_SECTION, m_layout_config_key);
+    ini.Save(ini_path);
+  }
+  resize(sizeHint());
+}
+
+void TASInputWindow::SaveLayoutState() const
+{
+  if (!m_layout_finalized || m_layout_config_key.empty())
+    return;
+
+  Common::IniFile ini;
+  const std::string ini_path = GetDolphinIniPath();
+  ini.Load(ini_path);
+  const std::string state = GetLayoutState();
+  if (state == "default;")
+    ini.DeleteKey(TAS_WINDOW_LAYOUT_SECTION, m_layout_config_key);
+  else
+    ini.GetOrCreateSection(TAS_WINDOW_LAYOUT_SECTION)->Set(m_layout_config_key, state);
+  ini.Save(ini_path);
+}
+
+std::string TASInputWindow::LoadLayoutState() const
+{
+  if (m_layout_config_key.empty())
+    return {};
+
+  std::string state;
+  Common::IniFile ini;
+  ini.Load(GetDolphinIniPath());
+  ini.GetIfExists(TAS_WINDOW_LAYOUT_SECTION, m_layout_config_key, &state);
+  return state;
 }
 
 void TASInputWindow::RegisterVisibilitySection(const QString& label, const std::string& key,
@@ -376,6 +1112,11 @@ void TASInputWindow::SetAlwaysOnTopConfigKey(std::string key)
   ApplyAlwaysOnTopWindowFlags(IsAlwaysOnTopEnabled());
 }
 
+void TASInputWindow::SetLayoutConfigKey(std::string key)
+{
+  m_layout_config_key = std::move(key);
+}
+
 void TASInputWindow::FinalizeVisibilitySections()
 {
   for (std::size_t i = 0; i < m_visibility_sections.size(); ++i)
@@ -385,6 +1126,16 @@ void TASInputWindow::FinalizeVisibilitySections()
   }
 
   ApplyVisibilitySettings();
+}
+
+void TASInputWindow::FinalizeLayoutSections()
+{
+  const std::string state = LoadLayoutState();
+  if (!state.empty())
+    ApplyLayoutState(state, true);
+  m_layout_finalized = true;
+  if (!state.empty())
+    SaveLayoutState();
 }
 
 void TASInputWindow::ApplyVisibilitySettings()
@@ -491,12 +1242,18 @@ void TASInputWindow::ShowOptionsMenu(const QPoint& global_pos)
 {
   QMenu menu(this);
 
+  auto* view_movie_inputs = menu.addAction(tr("View Movie Inputs"));
+  view_movie_inputs->setCheckable(true);
+  view_movie_inputs->setChecked(Config::Get(Config::MAIN_MOVIE_VIEW_TAS_INPUTS));
+  connect(view_movie_inputs, &QAction::toggled, this, [](bool value) {
+    Config::SetBaseOrCurrent(Config::MAIN_MOVIE_VIEW_TAS_INPUTS, value);
+  });
+
   auto* turbo_visualizer = menu.addAction(tr("Turbo Visualizer"));
   turbo_visualizer->setCheckable(true);
   turbo_visualizer->setChecked(Config::Get(Config::MAIN_MOVIE_TURBO_VISUALIZER));
-  connect(turbo_visualizer, &QAction::toggled, this, [](bool value) {
-    Config::SetBaseOrCurrent(Config::MAIN_MOVIE_TURBO_VISUALIZER, value);
-  });
+  connect(turbo_visualizer, &QAction::toggled, this,
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_TURBO_VISUALIZER, value); });
 
   auto* always_on_top = menu.addAction(tr("Always on top"));
   always_on_top->setCheckable(true);
@@ -519,6 +1276,18 @@ void TASInputWindow::ShowOptionsMenu(const QPoint& global_pos)
             [this, i](bool value) { SetVisibilitySectionVisible(i, value); });
   }
 
+  if (!m_resizable_sections.empty())
+  {
+    menu.addSeparator();
+    auto* rearrange = menu.addAction(tr("Rearrange"));
+    rearrange->setCheckable(true);
+    rearrange->setChecked(m_rearrange_enabled);
+    connect(rearrange, &QAction::toggled, this, &TASInputWindow::SetRearrangeEnabled);
+
+    auto* reset_layout = menu.addAction(tr("Reset Layout"));
+    connect(reset_layout, &QAction::triggered, this, &TASInputWindow::ResetLayout);
+  }
+
   menu.exec(global_pos);
 }
 
@@ -536,8 +1305,8 @@ void TASInputWindow::SetAlwaysOnTopEnabled(bool enabled)
   Common::IniFile ini;
   const std::string ini_path = GetDolphinIniPath();
   ini.Load(ini_path);
-  ini.GetOrCreateSection(TAS_WINDOW_OPTIONS_SECTION)->Set(GetAlwaysOnTopConfigKey(), enabled,
-                                                          false);
+  ini.GetOrCreateSection(TAS_WINDOW_OPTIONS_SECTION)
+      ->Set(GetAlwaysOnTopConfigKey(), enabled, false);
   ini.Save(ini_path);
 
   ApplyAlwaysOnTopWindowFlags(enabled);
@@ -591,6 +1360,10 @@ void TASInputWindow::SetVisibilitySectionVisible(std::size_t section_index, bool
   {
     layout()->invalidate();
     layout()->activate();
+  }
+  else if (m_has_custom_layout)
+  {
+    UpdateFreeformMinimumSize();
   }
 }
 
@@ -656,6 +1429,13 @@ void TASInputWindow::changeEvent(QEvent* const event)
     Host::GetInstance()->SetTASInputFocus(active_window_is_tas_input);
   }
   QDialog::changeEvent(event);
+}
+
+void TASInputWindow::resizeEvent(QResizeEvent* event)
+{
+  QDialog::resizeEvent(event);
+  if (m_layout_finalized && m_has_custom_layout && m_layout_save_timer)
+    m_layout_save_timer->start();
 }
 
 void TASInputWindow::PollViewInputs()

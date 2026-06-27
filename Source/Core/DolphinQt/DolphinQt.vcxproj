@@ -173,6 +173,7 @@
     <ClCompile Include="GBAWidget.cpp" />
     <ClCompile Include="GCMemcardCreateNewDialog.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
+    <ClCompile Include="FrameDumpManager.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="InfinityBase/InfinityBaseWindow.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="QtUtils\SignalBlocking.h" />
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
+    <ClInclude Include="FrameDumpManager.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\OnScreenDisplayPane.h" />
     <ClInclude Include="SkylanderPortal\SkylanderModifyDialog.h" />

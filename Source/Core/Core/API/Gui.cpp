@@ -494,10 +494,10 @@ std::vector<Gui::WindowInfo> Gui::SnapshotDetachedWindows()
       auto cit = m_widgets.find(cid);
       if (cit == m_widgets.end())
         continue;
-      info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.min,
-                               cit->second.max, cit->second.checked, cit->second.text_value,
-                               cit->second.text_color, cit->second.bg_color, cit->second.style,
-                               cit->second.visible});
+      info.children.push_back({cid, cit->second.kind, cit->second.label, cit->second.value,
+                               cit->second.min, cit->second.max, cit->second.checked,
+                               cit->second.text_value, cit->second.text_color,
+                               cit->second.bg_color, cit->second.style, cit->second.visible});
     }
     result.push_back(std::move(info));
   }

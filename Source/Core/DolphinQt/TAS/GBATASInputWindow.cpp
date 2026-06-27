@@ -30,6 +30,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
 {
   setWindowTitle(tr("GBA TAS Input %1").arg(controller_id + 1));
   SetAlwaysOnTopConfigKey("GBA.AlwaysOnTop." + std::to_string(controller_id));
+  SetLayoutConfigKey("GBA." + std::to_string(controller_id));
   m_turbo_press_frames->setValue(1);
   m_turbo_release_frames->setValue(1);
   m_toggle_lines->hide();
@@ -88,16 +89,17 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
   buttons_layout->addWidget(m_disconnect_checkbox, 3, 0, 1, 4);
   favorites_widget->setFixedHeight(buttons_box->sizeHint().height());
 
-  auto* buttons_and_favorites = new QHBoxLayout;
-  buttons_and_favorites->setAlignment(Qt::AlignTop);
-  buttons_and_favorites->addWidget(buttons_box, 1, Qt::AlignTop);
-  buttons_and_favorites->addWidget(favorites_widget, 0, Qt::AlignTop);
+  SetDefaultContentLayoutBuilder([this, buttons_box, favorites_widget] {
+    auto* buttons_and_favorites = new QHBoxLayout;
+    buttons_and_favorites->setAlignment(Qt::AlignTop);
+    buttons_and_favorites->addWidget(buttons_box, 1, Qt::AlignTop);
+    buttons_and_favorites->addWidget(favorites_widget, 0, Qt::AlignTop);
 
-  auto* layout = new QVBoxLayout;
-  layout->addLayout(buttons_and_favorites);
-  layout->addWidget(m_settings_box);
-
-  SetResizableContentLayout(layout);
+    auto* layout = new QVBoxLayout;
+    layout->addLayout(buttons_and_favorites);
+    layout->addWidget(m_settings_box);
+    return layout;
+  });
 
   RegisterVisibilitySection(tr("Buttons"), "GBA.Buttons", buttons_box);
   RegisterVisibilitySection(tr("Settings"), "GBA.Settings", m_settings_box);
@@ -107,6 +109,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
   MakeSectionResizable("GBA.Buttons", buttons_box);
   MakeSectionResizable("GBA.FavoriteScripts", favorites_widget);
   MakeSectionResizable("GBA.Settings", m_settings_box);
+  FinalizeLayoutSections();
 }
 
 void GBATASInputWindow::hideEvent(QHideEvent* event)
