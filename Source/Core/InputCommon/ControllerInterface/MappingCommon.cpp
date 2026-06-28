@@ -189,7 +189,7 @@ bool ReshapableInputMapper::Update()
 
 float ReshapableInputMapper::GetCurrentAngle() const
 {
-  constexpr auto quarter_circle = float(MathUtil::TAU) * 0.25f;
+  constexpr auto quarter_circle = MathUtil::TAU_v<float> * 0.25f;
   return quarter_circle - (float(m_input_detector.GetResults().size()) * quarter_circle);
 }
 
