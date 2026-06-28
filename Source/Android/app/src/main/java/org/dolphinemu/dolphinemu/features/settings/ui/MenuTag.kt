@@ -52,6 +52,7 @@ enum class MenuTag {
     WIIMOTE_MOTION_INPUT_2("wiimote_motion_input", 1),
     WIIMOTE_MOTION_INPUT_3("wiimote_motion_input", 2),
     WIIMOTE_MOTION_INPUT_4("wiimote_motion_input", 3),
+    CONFIG_DSU_CLIENT("config_dsu_client"),
     GPU_DRIVERS("gpu_drivers");
 
     var tag: String

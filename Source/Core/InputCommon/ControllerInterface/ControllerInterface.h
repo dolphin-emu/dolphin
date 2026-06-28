@@ -31,7 +31,9 @@
 #if defined(USE_PIPES)
 #define CIFACE_USE_PIPES
 #endif
+#ifndef CIFACE_USE_DUALSHOCKUDPCLIENT
 #define CIFACE_USE_DUALSHOCKUDPCLIENT
+#endif
 #if defined(HAVE_SDL3)
 #define CIFACE_USE_SDL
 #endif
