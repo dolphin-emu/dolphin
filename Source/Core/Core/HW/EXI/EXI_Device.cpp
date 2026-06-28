@@ -55,6 +55,15 @@ u32 IEXIDevice::ImmRead(u32 size)
 
 void IEXIDevice::ImmReadWrite(u32& data, u32 size)
 {
+  u32 position = 0;
+  while (size--)
+  {
+    u32 shift = 24 - (position++ * 8);
+    u8 byte = data >> shift;
+    TransferByte(byte);
+    data &= ~(0xFF << shift);
+    data |= byte << shift;
+  }
 }
 
 void IEXIDevice::DMAWrite(u32 address, u32 size)
