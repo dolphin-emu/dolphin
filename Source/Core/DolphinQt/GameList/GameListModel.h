@@ -91,6 +91,7 @@ private:
   int FindGameIndex(const std::string& path) const;
 
   void OnEmulationStateChanged(Core::State state);
+  void SyncForwarders();
 
   QStringList m_tag_list;
   QMap<QString, QVariant> m_game_tags;
@@ -101,4 +102,5 @@ private:
   TimePlayed m_timer;
   QString m_term;
   float m_scale = 1.0;
+  bool m_forwarder_auto_sync_enabled = false;
 };

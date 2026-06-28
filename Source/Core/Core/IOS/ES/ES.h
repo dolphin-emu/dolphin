@@ -413,6 +413,7 @@ private:
 
   bool LaunchIOS(u64 ios_title_id, HangPPC hang_ppc);
   bool LaunchPPCTitle(u64 title_id);
+  bool LaunchForwarderTitle(u64 title_id);
 
   void FinishInit();
 

@@ -52,6 +52,7 @@ private:
   ConfigBool* m_pal60_mode_checkbox;
   ConfigBool* m_connect_keyboard_checkbox;
   ConfigBool* m_wiilink_checkbox;
+  ConfigBool* m_forwarder_auto_sync_checkbox;
   ConfigChoiceU32* m_system_language_choice;
   QLabel* m_system_language_choice_label;
   ConfigChoiceMap<bool>* m_aspect_ratio_choice;
