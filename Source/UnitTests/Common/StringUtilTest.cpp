@@ -451,6 +451,7 @@ TEST(StringUtil, CharacterEncodingConversion)
 
   // wstring
   EXPECT_EQ(WStringToUTF8(L"hello 🐬"), "hello 🐬");
+  EXPECT_EQ(UTF8ToWString("hello 🐬"), L"hello 🐬");
 
   // UTF-16BE
   auto utf16be_str = utf16_variety;
@@ -458,10 +459,39 @@ TEST(StringUtil, CharacterEncodingConversion)
     c = Common::swap16(c);
   EXPECT_EQ(UTF16BEToUTF8(utf16be_str.c_str(), 99), utf8_variety);
 
-  // Shift JIS
-  EXPECT_EQ(SHIFTJISToUTF8("\x83\x43\x83\x8b\x83\x4a"), "イルカ");
-  EXPECT_EQ(UTF8ToSHIFTJIS("イルカ"), "\x83\x43\x83\x8b\x83\x4a");
-
   // CP1252
-  EXPECT_EQ(CP1252ToUTF8("hello \xa5"), "hello ¥");
+  EXPECT_EQ(CP1252ToUTF8("hello \x81\x80\xa2\x9f"), "hello " + utf8_replacement_char + "€¢Ÿ");
+}
+
+TEST(StringUtil, ShiftJIS)
+{
+  // ASCII differences.
+  // Note: Tested behavior on the Japanese GameCube main menu.
+  EXPECT_EQ(SHIFTJISToUTF8("hello\x7e\x5c!\x81\x5f"), "hello‾¥!\\");
+  EXPECT_EQ(UTF8ToSHIFTJIS("hello‾¥!\\"), "hello\x7e\x5c!\x81\x5f");
+
+  // Single-byte half-width katakana.
+  EXPECT_EQ(SHIFTJISToUTF8("hello \xb2\xd9\xb6"), "hello ｲﾙｶ");
+  EXPECT_EQ(UTF8ToSHIFTJIS("hello ｲﾙｶ"), "hello \xb2\xd9\xb6");
+
+  // Double-byte full-width katakana.
+  EXPECT_EQ(SHIFTJISToUTF8("hello \x83\x43\x83\x8b\x83\x4a"), "hello イルカ");
+  EXPECT_EQ(UTF8ToSHIFTJIS("hello イルカ"), "hello \x83\x43\x83\x8b\x83\x4a");
+
+  // Kanji.
+  EXPECT_EQ(SHIFTJISToUTF8("hello \xe0\x6e\x9f\xad \x8a\x43\x93\xd8"), "hello 瀟洒 海豚");
+  EXPECT_EQ(UTF8ToSHIFTJIS("hello 瀟洒 海豚"), "hello \xe0\x6e\x9f\xad \x8a\x43\x93\xd8");
+
+  // Unsupported characters are replaced with '?'.
+  // Notably, the tilde is unsupported.
+  EXPECT_EQ(UTF8ToSHIFTJIS("hello\x7f 🎮🐬~!"), "hello\x7f ???!");
+
+  const std::string utf8_replacement_char = "\xef\xbf\xbd";
+
+  // Invalid sequences.
+  EXPECT_EQ(SHIFTJISToUTF8("\x80\x89/"), utf8_replacement_char + utf8_replacement_char + '/');
+  EXPECT_EQ(SHIFTJISToUTF8("\xf6test"), utf8_replacement_char + "test");
+  EXPECT_EQ(SHIFTJISToUTF8("\x89\x7f"), utf8_replacement_char + '\x7f');
+  EXPECT_EQ(SHIFTJISToUTF8("hello\xea\xf0!"),
+            "hello" + utf8_replacement_char + utf8_replacement_char + "!");
 }
