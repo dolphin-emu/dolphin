@@ -15,4 +15,8 @@ namespace Common::Wayland
 // or until this is called with a different surface. Does nothing if the compositor does not
 // support the protocol. Must only be called from one thread (Dolphin calls it from the Qt thread).
 void SetSurfaceContentTypeGame(wl_display* display, wl_surface* surface);
+
+// Releases everything SetSurfaceContentTypeGame() created. This has to be called while the
+// wl_display is still alive, i.e. before Qt shuts down, as it can't be left to static destruction.
+void ShutdownContentType();
 }  // namespace Common::Wayland
