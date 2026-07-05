@@ -80,4 +80,9 @@ void SetSurfaceContentTypeGame(wl_display* display, wl_surface* surface)
   s_state->surface = surface;
   s_state->connection->Flush();
 }
+
+void ShutdownContentType()
+{
+  s_state.reset();
+}
 }  // namespace Common::Wayland

@@ -526,12 +526,13 @@ if(ENABLE_WAYLAND)
         add_definitions(-DHAVE_WAYLAND_INPUT=1)
         message(STATUS "Wayland keyboard and mouse input enabled")
       else()
-        message(WARNING "xkbcommon not found. Keyboard and mouse input will not work on Wayland.")
+        message(WARNING "xkbcommon not found. Without it Dolphin cannot receive keyboard and mouse "
+                        "input on Wayland, so it will run through XWayland instead.")
       endif()
     else()
-      message(WARNING "wayland-scanner or wayland-protocols (>=1.41) not found. Native Wayland "
-                      "windows will work, but keyboard/mouse input and the VRR content type hint "
-                      "will be unavailable.")
+      message(WARNING "wayland-scanner or wayland-protocols (>=1.41) not found. Without them "
+                      "Dolphin cannot receive keyboard and mouse input on Wayland, so it will run "
+                      "through XWayland instead.")
     endif()
   else()
     message(WARNING "Wayland support enabled but not found. This build will not support Wayland.")
