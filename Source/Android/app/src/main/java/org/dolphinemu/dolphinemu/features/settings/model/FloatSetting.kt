@@ -8,6 +8,12 @@ enum class FloatSetting(
     private val key: String,
     private val defaultValue: Float
 ) : AbstractFloatSetting {
+    MAIN_OVERLAY_HAPTICS_SCALE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "OverlayHapticsScale",
+        0.5f
+    ),
     // These entries have the same names and order as in C++, just for consistency.
     MAIN_EMULATION_SPEED(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EmulationSpeed", 1.0f),
     MAIN_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Overclock", 1.0f),
