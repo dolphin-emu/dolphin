@@ -1,7 +1,7 @@
 # Dolphin on webOS (experimental)
 
 Initial port scaffolding modeled on RetroArch's `Makefile.webos` flow:
-webosbrew native-toolchain → CMake (NoGUI / headless) → `ares-package` IPK.
+webosbrew native-toolchain → CMake (NoGUI) → `ares-package` IPK.
 
 ## Prerequisites
 
@@ -30,10 +30,10 @@ make -f Makefile.webos launch
 ## Current scope
 
 - **armhf** (32-bit) JIT-less build via `ENABLE_GENERIC`
-- **NoGUI + SDL2** windowing (`-p sdl`, default on webOS); GLES via Dolphin's **EGL** (`GLContextEGLWayland`) using Wayland natives from `SDL_SysWMinfo` (not `SDL_GL_CreateContext`)
-- Requires [webosbrew SDL2](https://github.com/webosbrew/SDL-webOS) (Wayland video driver). Buildroot SDK SDL may be insufficient — prefer the webosbrew ABI tarball when packaging
-- Qt / Vulkan / X11 / bundled SDL3 controllers disabled
-- Packaging ships `dolphin-emu-nogui` + `Sys` + `libSDL2` + runtime libs
+- **NoGUI + Wayland** windowing (`-p wayland`, default on webOS) using `wl_webos_shell`
+- GLES via Dolphin's **EGL** (`GLContextEGLWayland`, aligned with [#14652](https://github.com/dolphin-emu/dolphin/pull/14652))
+- Qt / Vulkan / X11 / SDL disabled
+- Packaging ships `dolphin-emu-nogui` + `Sys` + runtime libs
 - GCC 12 softfp: Release C++ uses `-O1` (avoids ICE in libstdc++ `<limits>` at `-O2`); parallel builds can still ICE — retry with `-j2` if needed
 
 ### aarch64

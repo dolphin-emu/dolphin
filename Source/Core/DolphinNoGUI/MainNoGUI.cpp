@@ -155,9 +155,9 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {
   std::string platform_name = static_cast<const char*>(options.get("platform"));
 
-#if defined(HAVE_SDL2)
-  if (platform_name == "sdl" || platform_name.empty())
-    return Platform::CreateSDLPlatform();
+#if defined(WEBOS)
+  if (platform_name == "wayland" || platform_name.empty())
+    return Platform::CreateWaylandPlatform();
 #endif
 
 #if HAVE_X11
@@ -197,9 +197,9 @@ int main(const int argc, char* argv[])
       .action("store")
       .help("Window platform to use [%choices]")
       .choices({"headless"
-#ifdef HAVE_SDL2
+#if defined(WEBOS)
                 ,
-                "sdl"
+                "wayland"
 #endif
 #ifdef __linux__
                 ,

@@ -23,10 +23,16 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
 endif()
 
-if(ENABLE_SDL_VIDEO)
-  target_sources(dolphin-nogui PRIVATE PlatformSDL.cpp)
-  target_compile_definitions(dolphin-nogui PRIVATE HAVE_SDL2=1)
-  # SDL2 / wayland-egl are linked through `common` when ENABLE_SDL_VIDEO is on.
+if(ENABLE_WAYLAND AND Wayland_FOUND AND WEBOS)
+  target_sources(dolphin-nogui PRIVATE PlatformWayland.cpp)
+  target_link_libraries(dolphin-nogui PRIVATE Wayland::Client)
+  # webOS shell protocol (wl_webos_shell) for TV app surfaces.
+  find_library(WAYLAND_WEBOS_CLIENT_LIBRARY NAMES wayland-webos-client)
+  if(WAYLAND_WEBOS_CLIENT_LIBRARY)
+    target_link_libraries(dolphin-nogui PRIVATE ${WAYLAND_WEBOS_CLIENT_LIBRARY})
+  else()
+    message(FATAL_ERROR "WEBOS Wayland platform requires libwayland-webos-client")
+  endif()
 endif()
 
 if (WIN32)
@@ -72,4 +78,3 @@ endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-nogui)
 install(TARGETS dolphin-nogui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-

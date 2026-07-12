@@ -26,7 +26,7 @@ IPK_VERSION ?= 0.0.1
 BUILD_TYPE ?= Release
 JOBS ?= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.logicalcpu)
 
-ADD_SDL2_LIB ?= 1
+ADD_SDL2_LIB ?= 0
 # aarch64 TV apps typically need the 64→32 bridge + menu architecture patch (RetroArch-style).
 64TO32_BRIDGE_DIR ?= /media/developer/apps/usr/palm/applications/org.webosbrew.bridge-64to32
 ELF_INTERPRETER_BIN ?= /lib/ld-linux-aarch64.so.1
@@ -74,7 +74,7 @@ configure:
 		-DWEBOS=ON \
 		-DENABLE_QT=OFF \
 		-DENABLE_EGL=ON \
-		-DENABLE_SDL_VIDEO=ON \
+		-DENABLE_WAYLAND=ON \
 		-DENABLE_SDL=OFF \
 		-DENABLE_HEADLESS=OFF \
 		-DENABLE_NOGUI=ON \

@@ -304,29 +304,15 @@ if(ENABLE_EGL AND EGL_FOUND)
       GL/GLInterface/EGLX11.h
     )
   endif()
-  if(ENABLE_SDL_VIDEO OR WEBOS)
-    # Wayland EGL path used by NoGUI SDL windowing on webOS (and similar).
-    pkg_check_modules(WAYLAND_EGL IMPORTED_TARGET wayland-egl)
-    if(WAYLAND_EGL_FOUND)
-      target_sources(common PRIVATE
-        GL/GLInterface/EGLWayland.cpp
-        GL/GLInterface/EGLWayland.h
-      )
-      target_compile_definitions(common PUBLIC HAVE_EGL_WAYLAND=1)
-      target_link_libraries(common PUBLIC PkgConfig::WAYLAND_EGL)
-    else()
-      message(WARNING "ENABLE_SDL_VIDEO/WEBOS set but wayland-egl not found; Wayland EGL disabled")
-    endif()
+  if(ENABLE_WAYLAND AND Wayland_FOUND)
+    target_sources(common PRIVATE
+      GL/GLInterface/EGLWayland.cpp
+      GL/GLInterface/EGLWayland.h
+    )
+    target_compile_definitions(common PUBLIC HAVE_EGL_WAYLAND=1)
   endif()
   target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
   target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
-endif()
-
-if(ENABLE_SDL_VIDEO)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
-  target_link_libraries(common PUBLIC PkgConfig::SDL2)
-  target_compile_definitions(common PUBLIC HAVE_SDL2=1)
 endif()
 
 if(WIN32)

@@ -47,8 +47,8 @@ public:
   static std::unique_ptr<Platform> CreateMacOSPlatform();
 #endif
 
-#ifdef HAVE_SDL2
-  static std::unique_ptr<Platform> CreateSDLPlatform();
+#if defined(WEBOS)
+  static std::unique_ptr<Platform> CreateWaylandPlatform();
 #endif
 
 protected:

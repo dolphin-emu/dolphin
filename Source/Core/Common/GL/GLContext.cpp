@@ -104,7 +104,7 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
     context = std::make_unique<GLContextEGLX11>();
 #endif
 #if defined(HAVE_EGL_WAYLAND)
-  if (wsi.type == WindowSystemType::Wayland || wsi.type == WindowSystemType::SDL)
+  if (wsi.type == WindowSystemType::Wayland)
     context = std::make_unique<GLContextEGLWayland>();
 #endif
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
