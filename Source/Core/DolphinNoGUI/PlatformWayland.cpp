@@ -61,13 +61,12 @@ void PlatformWayland::RegistryGlobal(void* data, wl_registry* registry, uint32_t
   }
   else if (std::strcmp(interface, "wl_shell") == 0)
   {
-    self->m_shell =
-        static_cast<wl_shell*>(wl_registry_bind(registry, id, &wl_shell_interface, 1));
+    self->m_shell = static_cast<wl_shell*>(wl_registry_bind(registry, id, &wl_shell_interface, 1));
   }
   else if (std::strcmp(interface, "wl_webos_shell") == 0)
   {
-    self->m_webos_shell = static_cast<wl_webos_shell*>(
-        wl_registry_bind(registry, id, &wl_webos_shell_interface, 1));
+    self->m_webos_shell =
+        static_cast<wl_webos_shell*>(wl_registry_bind(registry, id, &wl_webos_shell_interface, 1));
   }
 }
 
@@ -153,8 +152,7 @@ bool PlatformWayland::Init()
 
   if (!m_compositor || !m_shell || !m_webos_shell)
   {
-    std::fprintf(stderr,
-                 "PlatformWayland: missing compositor/shell/webos_shell (got %p/%p/%p)\n",
+    std::fprintf(stderr, "PlatformWayland: missing compositor/shell/webos_shell (got %p/%p/%p)\n",
                  static_cast<void*>(m_compositor), static_cast<void*>(m_shell),
                  static_cast<void*>(m_webos_shell));
     return false;
