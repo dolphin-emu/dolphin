@@ -14,9 +14,6 @@
 #if defined(__HAIKU__)
 #include "Common/GL/GLInterface/BGL.h"
 #endif
-#if defined(HAVE_SDL2)
-#include "Common/GL/GLInterface/GLContextSDL.h"
-#endif
 #if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
 #if HAVE_X11
@@ -24,6 +21,9 @@
 #endif
 #if defined(ANDROID)
 #include "Common/GL/GLInterface/EGLAndroid.h"
+#endif
+#if defined(HAVE_EGL_WAYLAND)
+#include "Common/GL/GLInterface/EGLWayland.h"
 #endif
 #endif
 
@@ -98,14 +98,14 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   if (wsi.type == WindowSystemType::Haiku)
     context = std::make_unique<GLContextBGL>();
 #endif
-#if defined(HAVE_SDL2)
-  if (wsi.type == WindowSystemType::SDL)
-    context = std::make_unique<GLContextSDL>();
-#endif
 #if HAVE_EGL
 #if HAVE_X11
   if (wsi.type == WindowSystemType::X11)
     context = std::make_unique<GLContextEGLX11>();
+#endif
+#if defined(HAVE_EGL_WAYLAND)
+  if (wsi.type == WindowSystemType::Wayland || wsi.type == WindowSystemType::SDL)
+    context = std::make_unique<GLContextEGLWayland>();
 #endif
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();

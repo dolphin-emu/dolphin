@@ -30,7 +30,8 @@ make -f Makefile.webos launch
 ## Current scope
 
 - **armhf** (32-bit) JIT-less build via `ENABLE_GENERIC`
-- **NoGUI + SDL2** window platform (`-p sdl`, default on webOS) with GLES via `GLContextSDL` (SDL2→EGL under the hood)
+- **NoGUI + SDL2** windowing (`-p sdl`, default on webOS); GLES via Dolphin's **EGL** (`GLContextEGLWayland`) using Wayland natives from `SDL_SysWMinfo` (not `SDL_GL_CreateContext`)
+- Requires [webosbrew SDL2](https://github.com/webosbrew/SDL-webOS) (Wayland video driver). Buildroot SDK SDL may be insufficient — prefer the webosbrew ABI tarball when packaging
 - Qt / Vulkan / X11 / bundled SDL3 controllers disabled
 - Packaging ships `dolphin-emu-nogui` + `Sys` + `libSDL2` + runtime libs
 - GCC 12 softfp: Release C++ uses `-O1` (avoids ICE in libstdc++ `<limits>` at `-O2`); parallel builds can still ICE — retry with `-j2` if needed

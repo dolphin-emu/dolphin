@@ -26,7 +26,7 @@ endif()
 if(ENABLE_SDL_VIDEO)
   target_sources(dolphin-nogui PRIVATE PlatformSDL.cpp)
   target_compile_definitions(dolphin-nogui PRIVATE HAVE_SDL2=1)
-  # SDL2 is linked through `common` when ENABLE_SDL_VIDEO is on.
+  # SDL2 / wayland-egl are linked through `common` when ENABLE_SDL_VIDEO is on.
 endif()
 
 if (WIN32)
