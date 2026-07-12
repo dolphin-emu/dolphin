@@ -46,3 +46,8 @@ CMakeLists.txt.user
 
 # clangd cache for Neovim
 .cache/clangd
+
+# webOS packaging output
+/webos/dist/
+/webos/*.ipk
+/build-webos/

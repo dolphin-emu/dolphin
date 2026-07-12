@@ -65,7 +65,16 @@ set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 
 set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
 
-if(UNIX AND NOT APPLE AND NOT ANDROID)
+# Detect LG webOS TV cross builds (webosbrew native-toolchain).
+set(_WEBOS_DEFAULT OFF)
+if(CMAKE_C_COMPILER MATCHES "webos" OR CMAKE_CXX_COMPILER MATCHES "webos" OR
+   CMAKE_C_COMPILER MATCHES "starfish" OR CMAKE_CXX_COMPILER MATCHES "starfish")
+  set(_WEBOS_DEFAULT ON)
+endif()
+option(WEBOS "Build for LG webOS TVs" ${_WEBOS_DEFAULT})
+unset(_WEBOS_DEFAULT)
+
+if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT WEBOS)
   option(ENABLE_X11 "Enables X11 Support" ON)
 endif()
 if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
@@ -87,6 +96,14 @@ option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
+
+# webOS TV userspace is usually 32-bit ARM; force a JIT-less generic build before arch checks.
+if(WEBOS AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+  set(ENABLE_GENERIC ON CACHE BOOL "Enables generic build that should run on any little-endian host" FORCE)
+endif()
+if(WEBOS)
+  set(ENABLE_HEADLESS ON CACHE BOOL "Enables running Dolphin as a headless variant" FORCE)
+endif()
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_CUBEB "Enables Cubeb sound backend" ON)
@@ -451,6 +468,40 @@ if(ANDROID)
   set(USE_DISCORD_PRESENCE 0)
 
   # We are cross compiling, search only the toolchain for libraries and includes
+  SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+  SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+  SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+  SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+endif()
+
+if(WEBOS)
+  message(STATUS "Building for webOS")
+  add_definitions(-DWEBOS=1)
+  set(ENABLE_QT 0)
+  set(ENABLE_X11 0)
+  set(ENABLE_VULKAN 0)
+  set(ENABLE_TESTS 0)
+  set(ENABLE_LLVM 0)
+  set(ENABLE_CLI_TOOL 0)
+  set(ENABLE_AUTOUPDATE 0)
+  set(ENABLE_ANALYTICS 0)
+  set(USE_DISCORD_PRESENCE 0)
+  set(USE_UPNP 0)
+  set(ENCODE_FRAMEDUMPS 0)
+  set(ENABLE_EVDEV 0)
+  set(ENABLE_HWDB 0)
+  # Prefer the NoGUI frontend for the initial port (headless / later SDL).
+  set(ENABLE_NOGUI 1)
+
+  # Match RetroArch softfp CPU flags. Avoid -O2 ICEs in GCC 12 libstdc++ <limits>
+  # on this softfp toolchain when compiling as C++23.
+  if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    add_compile_options(-mcpu=cortex-a9 -mtune=cortex-a53 -mfloat-abi=softfp -mfpu=neon)
+    # Downgrade optimization: GCC 12.2 ICE in long-double denorm_min at -O2.
+    string(REPLACE "-O2" "-O1" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    string(REPLACE "-O3" "-O1" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+  endif()
+
   SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
   SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
   SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
