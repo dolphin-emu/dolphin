@@ -14,6 +14,9 @@
 #if defined(__HAIKU__)
 #include "Common/GL/GLInterface/BGL.h"
 #endif
+#if defined(HAVE_SDL2)
+#include "Common/GL/GLInterface/GLContextSDL.h"
+#endif
 #if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
 #if HAVE_X11
@@ -94,6 +97,10 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
 #if defined(__HAIKU__)
   if (wsi.type == WindowSystemType::Haiku)
     context = std::make_unique<GLContextBGL>();
+#endif
+#if defined(HAVE_SDL2)
+  if (wsi.type == WindowSystemType::SDL)
+    context = std::make_unique<GLContextSDL>();
 #endif
 #if HAVE_EGL
 #if HAVE_X11

@@ -96,13 +96,16 @@ option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
+option(ENABLE_SDL_VIDEO "Enable SDL2 window/GL backend for NoGUI (webOS and similar)" OFF)
 
 # webOS TV userspace is usually 32-bit ARM; force a JIT-less generic build before arch checks.
 if(WEBOS AND CMAKE_SIZEOF_VOID_P EQUAL 4)
   set(ENABLE_GENERIC ON CACHE BOOL "Enables generic build that should run on any little-endian host" FORCE)
 endif()
 if(WEBOS)
-  set(ENABLE_HEADLESS ON CACHE BOOL "Enables running Dolphin as a headless variant" FORCE)
+  # Prefer SDL2 window + GLES over headless for TV targets.
+  set(ENABLE_SDL_VIDEO ON CACHE BOOL "Enable SDL2 window/GL backend for NoGUI (webOS and similar)" FORCE)
+  set(ENABLE_HEADLESS OFF CACHE BOOL "Enables running Dolphin as a headless variant" FORCE)
 endif()
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
@@ -490,8 +493,10 @@ if(WEBOS)
   set(ENCODE_FRAMEDUMPS 0)
   set(ENABLE_EVDEV 0)
   set(ENABLE_HWDB 0)
-  # Prefer the NoGUI frontend for the initial port (headless / later SDL).
+  # Prefer the NoGUI frontend for the initial port (SDL2 window / GLES).
   set(ENABLE_NOGUI 1)
+  # Avoid shipping bundled SDL3 alongside system SDL2 (ABI / init conflicts).
+  set(ENABLE_SDL 0)
 
   # Match RetroArch softfp CPU flags. Avoid -O2 ICEs in GCC 12 libstdc++ <limits>
   # on this softfp toolchain when compiling as C++23.

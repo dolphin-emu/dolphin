@@ -30,14 +30,21 @@ make -f Makefile.webos launch
 ## Current scope
 
 - **armhf** (32-bit) JIT-less build via `ENABLE_GENERIC`
-- **NoGUI** frontend, **headless** platform (no on-TV window yet)
-- Qt / Vulkan / X11 / tests disabled
-- Packaging ships `dolphin-emu-nogui` + `Sys` + a few runtime libs
-- GCC 12 softfp: Release C++ uses `-O1` (avoids an ICE in libstdc++ `<limits>` at `-O2`)
+- **NoGUI + SDL2** window platform (`-p sdl`, default on webOS) with GLES via `GLContextSDL` (SDL2→EGL under the hood)
+- Qt / Vulkan / X11 / bundled SDL3 controllers disabled
+- Packaging ships `dolphin-emu-nogui` + `Sys` + `libSDL2` + runtime libs
+- GCC 12 softfp: Release C++ uses `-O1` (avoids ICE in libstdc++ `<limits>` at `-O2`); parallel builds can still ICE — retry with `-j2` if needed
 
-Verified locally: `make -f Makefile.webos ipk` produces `webos/org.dolphinemu.webos_0.0.1_arm.ipk`.
+### aarch64
 
-Next steps toward a usable TV app: SDL2 or Wayland/EGL window platform, aarch64 + 64→32 bridge (like RetroArch), input, and performance work.
+Makefile supports `aarch64-webos-linux-gnu-` (JIT-capable `_M_ARM_64`). Prebuilt SDKs are **Linux-hosted only** ([cscd98/buildroot-nc4](https://github.com/cscd98/buildroot-nc4/releases)):
+
+```sh
+# On Linux amd64 / or with Docker Desktop running on macOS:
+./webos/build-aarch64-docker.sh
+```
+
+The Docker helper uses `linux/amd64` + `aarch64-webos-linux-gnu_sdk-buildroot-x86_64.tar.gz`, then applies RetroArch-style ELF interpreter / IPK arch patching for the 64→32 bridge.
 
 ## macOS toolchain-wrapper workaround
 

@@ -47,6 +47,10 @@ public:
   static std::unique_ptr<Platform> CreateMacOSPlatform();
 #endif
 
+#ifdef HAVE_SDL2
+  static std::unique_ptr<Platform> CreateSDLPlatform();
+#endif
+
 protected:
   void UpdateRunningFlag();
 

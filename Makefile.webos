@@ -1,16 +1,18 @@
 # RetroArch-style entry point for cross-building Dolphin for LG webOS TVs.
-# Requires: https://github.com/webosbrew/native-toolchain
+# Requires webOS NDK:
+#   armhf:   https://github.com/webosbrew/native-toolchain
+#   aarch64: https://github.com/cscd98/buildroot-nc4 (aarch64-webos-linux-gnu_sdk-*)
 #
-#   source /path/to/arm-webos-linux-gnueabi_sdk-buildroot/environment-setup
+#   source /path/to/<triple>_sdk-buildroot/environment-setup
 #   make -f Makefile.webos ipk
 
 ifeq ($(filter $(CROSS_COMPILE),arm-webos-linux-gnueabi- aarch64-webos-linux-gnu-),$(CROSS_COMPILE))
 else
-  $(error You need the webOS toolchain. See https://github.com/webosbrew/native-toolchain)
+  $(error You need the webOS toolchain (arm-webos or aarch64-webos).)
 endif
 
 ifdef SDKTARGETSYSROOT
-  $(warning OE-based toolchain isn't supported. Use https://github.com/webosbrew/native-toolchain)
+  $(warning OE-based toolchain isn't supported. Use the buildroot NDK.)
   STAGING_DIR ?= $(SDKTARGETSYSROOT)
 else ifndef STAGING_DIR
   $(error STAGING_DIR not set. Source the toolchain environment-setup script first.)
@@ -21,17 +23,29 @@ TOOLCHAIN_FILE ?= $(WEBOS_SDK_ROOT)/share/buildroot/toolchainfile.cmake
 
 APP_PACKAGE_NAME ?= org.dolphinemu.webos
 IPK_VERSION ?= 0.0.1
-BUILD_DIR ?= build-webos
 BUILD_TYPE ?= Release
 JOBS ?= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.logicalcpu)
 
+ADD_SDL2_LIB ?= 1
+# aarch64 TV apps typically need the 64→32 bridge + menu architecture patch (RetroArch-style).
+64TO32_BRIDGE_DIR ?= /media/developer/apps/usr/palm/applications/org.webosbrew.bridge-64to32
+ELF_INTERPRETER_BIN ?= /lib/ld-linux-aarch64.so.1
+
 ifeq ($(findstring aarch64,$(CROSS_COMPILE)),aarch64)
   IPK_ARCH := aarch64
+  BUILD_DIR ?= build-webos-aarch64
   CMAKE_EXTRA_FLAGS += -DENABLE_GENERIC=OFF
+  SET_ELF_INTERPRETER ?= 1
+  REPACK_64_IPK_FOR_MENU ?= 1
+  HAVE_64TO32BIT_BRIDGE ?= 1
 else
   IPK_ARCH := arm
+  BUILD_DIR ?= build-webos
   # 32-bit webOS userspace: JIT-less generic interpreter build
   CMAKE_EXTRA_FLAGS += -DENABLE_GENERIC=ON
+  SET_ELF_INTERPRETER ?= 0
+  REPACK_64_IPK_FOR_MENU ?= 0
+  HAVE_64TO32BIT_BRIDGE ?= 0
 endif
 
 WEBOS_USR_LIB_DIR ?= $(STAGING_DIR)/usr/lib
@@ -39,7 +53,6 @@ WEBOS_LIB_DIR ?= $(STAGING_DIR)/lib
 STRIP ?= $(CROSS_COMPILE)strip
 
 CMAKE ?= cmake
-NINJA ?= ninja
 
 .PHONY: all configure build ipk clean install launch info
 
@@ -60,7 +73,9 @@ configure:
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DWEBOS=ON \
 		-DENABLE_QT=OFF \
-		-DENABLE_HEADLESS=ON \
+		-DENABLE_SDL_VIDEO=ON \
+		-DENABLE_SDL=OFF \
+		-DENABLE_HEADLESS=OFF \
 		-DENABLE_NOGUI=ON \
 		-DENABLE_X11=OFF \
 		-DENABLE_VULKAN=OFF \
@@ -101,14 +116,30 @@ ipk: build
 	echo "$$APPINFO" > webos/dist/appinfo.json
 	cp -f $(BUILD_DIR)/Binaries/dolphin-emu-nogui webos/dist/
 	cp -f webos/icon160.png webos/dist/
-	# Ship a minimal Sys tree next to the binary (LINUX_LOCAL_DEV-style layout).
 	cp -a Data/Sys/. webos/dist/Sys/
 	cp -f $(WEBOS_USR_LIB_DIR)/libstdc++.so.6 webos/dist/lib/ 2>/dev/null || true
 	cp -f $(WEBOS_LIB_DIR)/libatomic.so.1 webos/dist/lib/ 2>/dev/null || true
+ifeq ($(ADD_SDL2_LIB),1)
+	cp -f $(WEBOS_USR_LIB_DIR)/libSDL2-2.0.so.0 webos/dist/lib/ 2>/dev/null || \
+		cp -f $(WEBOS_USR_LIB_DIR)/libSDL2.so webos/dist/lib/libSDL2-2.0.so.0 2>/dev/null || true
+endif
+ifeq ($(SET_ELF_INTERPRETER),1)
+	patchelf --set-interpreter $(64TO32_BRIDGE_DIR)$(ELF_INTERPRETER_BIN) webos/dist/dolphin-emu-nogui || true
+endif
+ifeq ($(HAVE_64TO32BIT_BRIDGE),1)
+	# Runtime loader search path for the brew 64→32 graphics bridge.
+	patchelf --set-rpath '$$ORIGIN/lib:$(64TO32_BRIDGE_DIR)/lib' webos/dist/dolphin-emu-nogui || true
+endif
 ifneq ($(BUILD_TYPE),Debug)
 	$(STRIP) webos/dist/dolphin-emu-nogui || true
 endif
 	cd webos && ares-package dist
+ifeq ($(REPACK_64_IPK_FOR_MENU),1)
+	./webos/patch-aarch64-in-ipk.sh webos/$(APP_PACKAGE_NAME)_$(IPK_VERSION)_$(IPK_ARCH).ipk
+	rm -f webos/$(APP_PACKAGE_NAME)_$(IPK_VERSION)_$(IPK_ARCH).ipk
+	mv webos/$(APP_PACKAGE_NAME)_$(IPK_VERSION)_$(IPK_ARCH)-patched.ipk \
+		webos/$(APP_PACKAGE_NAME)_$(IPK_VERSION)_$(IPK_ARCH).ipk
+endif
 	@echo "Built: webos/$(APP_PACKAGE_NAME)_$(IPK_VERSION)_$(IPK_ARCH).ipk"
 
 install: ipk
@@ -118,5 +149,5 @@ launch: install
 	ares-launch $(APP_PACKAGE_NAME)
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf build-webos build-webos-aarch64
 	rm -rf webos/dist webos/*.ipk

@@ -23,6 +23,12 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
 endif()
 
+if(ENABLE_SDL_VIDEO)
+  target_sources(dolphin-nogui PRIVATE PlatformSDL.cpp)
+  target_compile_definitions(dolphin-nogui PRIVATE HAVE_SDL2=1)
+  # SDL2 is linked through `common` when ENABLE_SDL_VIDEO is on.
+endif()
+
 if (WIN32)
   target_sources(dolphin-nogui PRIVATE DolphinNoGUI.exe.manifest DolphinNoGUI.rc)
 
