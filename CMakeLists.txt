@@ -33,24 +33,18 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the c++23 features we use
-set (GCC_min_version 12)
-set (Clang_min_version 15)
-set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.3") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 19.32)
-set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
+# Enforce minimum compiler versions that support the C++23 features we use
+set(GCC_min_version 12)
+set(Clang_min_version 15)
+set(AppleClang_min_version 14.0.3)
+set(MSVC_min_version 19.32)
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
-if ("-" STREQUAL "${${COMPILER}_min_version}-")
+if(NOT DEFINED ${COMPILER}_min_version)
   message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
-else()
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
-    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
-    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
-    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
-  endif()
+elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${${COMPILER}_min_version})
+  message(FATAL_ERROR "Requires ${COMPILER} ${${COMPILER}_min_version} or higher")
 endif()
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
