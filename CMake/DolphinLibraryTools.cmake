@@ -138,3 +138,13 @@ function(dolphin_find_optional_system_library_pkgconfig library search alias bun
     dolphin_add_bundled_library(${library} ${use_system} ${bundled_path})
   endif()
 endfunction()
+
+function(dolphin_check_toolset_version LABEL VERSION_VAR MIN_VERSION)
+    if(NOT DEFINED ${VERSION_VAR})
+      return()
+    endif()
+    message(STATUS "Using ${LABEL} ${${VERSION_VAR}}")
+    if(${VERSION_VAR} VERSION_LESS ${MIN_VERSION})
+        message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
+    endif()
+endfunction()

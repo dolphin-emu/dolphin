@@ -19,6 +19,18 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+
+# Support functions
+include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
+include(CheckSymbolExists)
+include(DolphinCompileDefinitions)
+include(DolphinDisableWarningsMSVC)
+include(DolphinLibraryTools)
+include(GNUInstallDirs)
+include(RemoveCompileFlag)
+
 # When using the Visual Studio generator, only show our targets and not the ones from Externals.
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
@@ -33,11 +45,18 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the C++23 features we use
+# Minimum required versions
+# Toolsets
+set(Xcode_min_version 14.3)
+set(MSVC_toolset_min_version 143)
+# Compilers
 set(GCC_min_version 12)
 set(Clang_min_version 15)
 set(AppleClang_min_version 14.0.3)
 set(MSVC_min_version 19.32)
+
+dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
+dolphin_check_toolset_version("MSVC Toolset" MSVC_TOOLSET_VERSION ${MSVC_toolset_min_version})
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
@@ -135,20 +154,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
   endif()
 endif()
-
-list(APPEND CMAKE_MODULE_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake
-)
-
-# Support functions
-include(CheckAndAddFlag)
-include(CheckCCompilerFlag)
-include(CheckSymbolExists)
-include(DolphinCompileDefinitions)
-include(DolphinDisableWarningsMSVC)
-include(DolphinLibraryTools)
-include(GNUInstallDirs)
-include(RemoveCompileFlag)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
