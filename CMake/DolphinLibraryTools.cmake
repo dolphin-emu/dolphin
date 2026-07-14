@@ -1,3 +1,6 @@
+include(CheckCXXSourceCompiles)
+include(CheckCXXSymbolExists)
+
 # like add_library(new ALIAS old) but avoids add_library cannot create ALIAS target "new" because target "old" is imported but not globally visible. on older cmake
 # This can be replaced with a direct alias call once our minimum is cmake 3.18
 function(dolphin_alias_library new old)
@@ -147,4 +150,22 @@ function(dolphin_check_toolset_version LABEL VERSION_VAR MIN_VERSION)
     if(${VERSION_VAR} VERSION_LESS ${MIN_VERSION})
         message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
     endif()
+endfunction()
+
+
+function(dolphin_check_std_version LABEL VERSION_MACRO MIN_VERSION)
+  check_cxx_symbol_exists(${VERSION_MACRO} version IS_${LABEL})
+  if(NOT IS_${LABEL})
+    return()
+  endif()
+  check_cxx_source_compiles([[
+    #include <version>
+    #if ${VERSION_MACRO} < ${MIN_VERSION}
+    #error
+    #endif
+    int main(){}
+  ]] HAS_MINIMUM_${LABEL})
+  if(NOT HAS_MINIMUM_${LABEL})
+    message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
+  endif()
 endfunction()
