@@ -11,6 +11,16 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
  */
 interface SettingsActivityView {
     /**
+     * The query currently displayed in the settings search view.
+     */
+    val settingsSearchQuery: String
+
+    /**
+     * Whether the dedicated settings search screen is active.
+     */
+    val isSettingsSearchActive: Boolean
+
+    /**
      * Show a new SettingsFragment.
      *
      * @param menuTag    Identifier for the settings group that should be displayed.
@@ -22,6 +32,16 @@ interface SettingsActivityView {
         addToStack: Boolean,
         gameId: String
     )
+
+    /**
+     * Opens the settings screen containing a search result and scrolls to the result.
+     */
+    fun showSearchResult(menuTag: MenuTag, settingPosition: Int, gameId: String, extras: Bundle?)
+
+    /**
+     * Filters the root settings screen using the current search query.
+     */
+    fun filterSettings(query: String)
 
     /**
      * Shows a DialogFragment.
@@ -87,6 +107,11 @@ interface SettingsActivityView {
     fun hasMenuTagActionForValue(menuTag: MenuTag, value: Int): Boolean
 
     /**
+     * Returns the arguments used when opening a navigable setting's associated screen.
+     */
+    fun getMenuTagActionExtras(menuTag: MenuTag, value: Int): Bundle?
+
+    /**
      * Show loading dialog while loading the settings
      */
     fun showLoading()
@@ -102,9 +127,9 @@ interface SettingsActivityView {
     fun showGameIniJunkDeletionQuestion()
 
     /**
-     * Accesses the material toolbar layout and changes the title
+     * Updates the settings app bar as a single state change.
      */
-    fun setToolbarTitle(title: String)
+    fun setToolbarState(title: String, showHeadline: Boolean, showSearch: Boolean)
     /**
      * Returns whether the input mapping dialog should detect inputs from all devices,
      * not just the device configured for the controller.

@@ -112,11 +112,15 @@ class SettingsAdapter(
             SettingsItem.TYPE_DATETIME_CHOICE -> DateTimeSettingViewHolder(
                 ListItemSettingBinding.inflate(inflater, parent, false), this
             )
+            SettingsItem.TYPE_SEARCH_RESULT -> SettingsSearchResultViewHolder(
+                ListItemSearchResultBinding.inflate(inflater, parent, false), this
+            )
             else -> throw IllegalArgumentException("Invalid view type: $viewType")
         }
     }
 
     override fun onBindViewHolder(holder: SettingViewHolder, position: Int) {
+        holder.clearSearchResultHighlight()
         holder.bind(getItem(position))
     }
 
@@ -143,7 +147,7 @@ class SettingsAdapter(
 
     fun clearSetting(item: SettingsItem) {
         item.clear(settings!!)
-        fragmentView.onSettingChanged()
+        fragmentView.onSettingChanged(item)
     }
 
     fun notifyAllSettingsChanged() {
@@ -153,7 +157,7 @@ class SettingsAdapter(
 
     fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
         item.setChecked(settings!!, checked)
-        fragmentView.onSettingChanged()
+        fragmentView.onSettingChanged(item)
     }
 
     fun onInputStringClick(item: InputStringSetting, position: Int) {
@@ -168,7 +172,7 @@ class SettingsAdapter(
                 val editTextInput = input.text.toString()
                 if (item.selectedValue != editTextInput) {
                     notifyItemChanged(position)
-                    fragmentView.onSettingChanged()
+                    fragmentView.onSettingChanged(item)
                 }
                 item.setSelectedValue(fragmentView.settings!!, editTextInput)
             }
@@ -271,6 +275,10 @@ class SettingsAdapter(
         fragmentView.loadSubMenu(item.menuKey)
     }
 
+    fun onSearchResultClick(item: SettingsSearchResult) {
+        fragmentView.loadSearchResult(item.menuKey, item.settingPosition, item.navigationExtras)
+    }
+
     fun onInputMappingClick(item: InputMappingControlSetting, position: Int) {
         if (item.controller.getDefaultDevice().isEmpty() && !fragmentView.isMappingAllDevices) {
             MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
@@ -307,7 +315,7 @@ class SettingsAdapter(
         ) { _: DialogInterface?, _: Int -> item.clearValue() }
         dialog.setOnDismissListener {
             notifyItemChanged(position)
-            fragmentView.onSettingChanged()
+            fragmentView.onSettingChanged(item)
         }
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
@@ -338,7 +346,7 @@ class SettingsAdapter(
         ) { _: DialogInterface?, _: Int ->
             item.value = dialog.expression
             notifyItemChanged(position)
-            fragmentView.onSettingChanged()
+            fragmentView.onSettingChanged(item)
         }
         dialog.setButton(AlertDialog.BUTTON_NEGATIVE, context.getString(R.string.cancel), this)
         dialog.setButton(
@@ -435,7 +443,7 @@ class SettingsAdapter(
             val rtcString = "0x" + java.lang.Long.toHexString(epochTime)
             if (item.getSelectedValue() != rtcString) {
                 notifyItemChanged(clickedPosition)
-                fragmentView.onSettingChanged()
+                fragmentView.onSettingChanged(item)
             }
             item.setSelectedValue(fragmentView.settings!!, rtcString)
             clickedItem = null
@@ -448,7 +456,7 @@ class SettingsAdapter(
 
         if (filePicker.getSelectedValue() != selectedFile) {
             notifyItemChanged(clickedPosition)
-            fragmentView.onSettingChanged()
+            fragmentView.onSettingChanged(filePicker)
         }
 
         filePicker.setSelectedValue(fragmentView.settings!!, selectedFile)
@@ -470,7 +478,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as SingleChoiceSetting
 
                 val value = getValueForSingleChoiceSelection(scSetting, which)
-                if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
+                if (scSetting.selectedValue != value) fragmentView.onSettingChanged(scSetting)
 
                 scSetting.setSelectedValue(settings!!, value)
 
@@ -480,7 +488,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as SingleChoiceSettingDynamicDescriptions
 
                 val value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which)
-                if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
+                if (scSetting.selectedValue != value) fragmentView.onSettingChanged(scSetting)
 
                 scSetting.setSelectedValue(settings!!, value)
 
@@ -490,7 +498,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as StringSingleChoiceSetting
 
                 val value = scSetting.getValueAt(which)
-                if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
+                if (scSetting.selectedValue != value) fragmentView.onSettingChanged(scSetting)
 
                 scSetting.setSelectedValue(settings!!, value)
 
@@ -499,7 +507,7 @@ class SettingsAdapter(
             is IntSliderSetting -> {
                 val sliderSetting = clickedItem as IntSliderSetting
                 if (sliderSetting.selectedValue != seekbarProgress.toInt()) {
-                    fragmentView.onSettingChanged()
+                    fragmentView.onSettingChanged(sliderSetting)
                 }
                 sliderSetting.setSelectedValue(settings!!, seekbarProgress.toInt())
                 closeDialog()
@@ -507,7 +515,9 @@ class SettingsAdapter(
             is FloatSliderSetting -> {
                 val sliderSetting = clickedItem as FloatSliderSetting
 
-                if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
+                if (sliderSetting.selectedValue != seekbarProgress) {
+                    fragmentView.onSettingChanged(sliderSetting)
+                }
 
                 sliderSetting.setSelectedValue(settings!!, seekbarProgress)
 
@@ -540,6 +550,7 @@ class SettingsAdapter(
 
     override fun onViewRecycled(holder: SettingViewHolder) {
         super.onViewRecycled(holder)
+        holder.clearSearchResultHighlight()
         holder.onViewRecycled()
     }
 

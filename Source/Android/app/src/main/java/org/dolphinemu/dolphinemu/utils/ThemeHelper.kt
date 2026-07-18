@@ -170,7 +170,10 @@ object ThemeHelper {
         activity: AppCompatActivity, toolbar: MaterialToolbar, appBarLayout: AppBarLayout
     ) {
         appBarLayout.addOnOffsetChangedListener { layout: AppBarLayout, verticalOffset: Int ->
-            if (-verticalOffset >= layout.totalScrollRange / 2) {
+            if (
+                layout.totalScrollRange > 0 &&
+                -verticalOffset >= layout.totalScrollRange / 2
+            ) {
                 @ColorInt val color =
                     ElevationOverlayProvider(appBarLayout.context).compositeOverlay(
                         MaterialColors.getColor(appBarLayout, R.attr.colorSurface),

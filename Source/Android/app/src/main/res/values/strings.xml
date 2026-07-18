@@ -62,6 +62,10 @@
 
     <!-- Main Preference Fragment -->
     <string name="settings">Settings</string>
+    <string name="search_settings">Search settings</string>
+    <string name="search_settings_back">Back to settings</string>
+    <string name="search_settings_no_results">No settings found for “%1$s”</string>
+    <string name="search_settings_category_path">%1$s › %2$s</string>
     <string name="game_settings">Game Settings: %1$s</string>
     <string name="config">Config</string>
     <string name="graphics_settings">Graphics Settings</string>

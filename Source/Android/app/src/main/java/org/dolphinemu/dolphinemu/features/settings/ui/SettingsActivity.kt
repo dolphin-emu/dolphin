@@ -7,14 +7,17 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.Menu
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.PathInterpolator
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
@@ -39,6 +42,17 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     private var dialog: AlertDialog? = null
     private var toolbarLayout: CollapsingToolbarLayout? = null
     private var binding: ActivitySettingsBinding? = null
+    private lateinit var searchView: SearchView
+    private var expandedToolbarHeight = 0
+    private var toolbarStateGeneration = 0
+    private var currentToolbarTitle: String? = null
+    private var currentToolbarShowsHeadline = false
+    private var currentToolbarShowsSearch = false
+    private var currentToolbarShowsSearchMode = false
+    override val settingsSearchQuery: String
+        get() = presenter!!.settingsSearchQuery
+    override val isSettingsSearchActive: Boolean
+        get() = presenter!!.isSettingsSearchActive
 
     override var themeId: Int = 0
     override var isMappingAllDevices = false
@@ -76,8 +90,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         presenter = SettingsActivityPresenter(this, settings)
         presenter!!.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this)
         toolbarLayout = binding!!.toolbarSettingsLayout
+        expandedToolbarHeight = toolbarLayout!!.layoutParams.height
         setSupportActionBar(binding!!.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        setUpSettingsSearch()
+        setUpBackNavigation()
 
         // TODO: Remove this when CollapsingToolbarLayouts are fixed by Google
         // https://github.com/material-components/material-components-android/issues/1310
@@ -86,16 +103,84 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         enableScrollTint(this, binding!!.toolbarSettings, binding!!.appbarSettings)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu_settings, menu)
-        return true
+    private fun setUpSettingsSearch() {
+        searchView = binding!!.settingsSearch
+        searchView.setQuery(settingsSearchQuery, false)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                searchView.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                presenter!!.onSettingsSearchQueryChanged(newText.orEmpty())
+                return true
+            }
+        })
+        binding!!.settingsSearchPreview.setOnClickListener { enterSettingsSearch() }
+        binding!!.settingsSearchToolbar.setNavigationOnClickListener { exitSettingsSearch() }
+    }
+
+    private fun enterSettingsSearch() {
+        if (!presenter!!.enterSettingsSearch()) {
+            return
+        }
+
+        refreshToolbarState()
+        val focusDelay =
+            if (areSystemAnimationsEnabled()) SEARCH_FOCUS_DELAY_MS else 0L
+        searchView.postDelayed({
+            if (!isSettingsSearchActive) {
+                return@postDelayed
+            }
+            searchView.requestFocus()
+            WindowCompat.getInsetsController(window, searchView)
+                .show(WindowInsetsCompat.Type.ime())
+        }, focusDelay)
+    }
+
+    private fun exitSettingsSearch() {
+        if (!presenter!!.exitSettingsSearch()) {
+            return
+        }
+
+        searchView.setQuery("", false)
+        searchView.clearFocus()
+        WindowCompat.getInsetsController(window, searchView).hide(WindowInsetsCompat.Type.ime())
+        refreshToolbarState()
+    }
+
+    private fun refreshToolbarState() {
+        val title = currentToolbarTitle ?: getString(R.string.settings)
+        setToolbarState(
+            title,
+            currentToolbarShowsHeadline,
+            currentToolbarShowsSearch
+        )
+    }
+
+    private fun setUpBackNavigation() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (supportFragmentManager.backStackEntryCount == 0 &&
+                    isSettingsSearchActive
+                ) {
+                    exitSettingsSearch()
+                    return
+                }
+
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+                isEnabled = true
+            }
+        })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         // Critical: If super method is not called, rotations will be busted.
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_MAPPING_ALL_DEVICES, isMappingAllDevices)
+        presenter!!.onSaveInstanceState(outState)
     }
 
     override fun onStart() {
@@ -128,10 +213,17 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     }
 
     override fun showSettingsFragment(
+        menuTag: MenuTag, extras: Bundle?, addToStack: Boolean, gameId: String
+    ) {
+        replaceSettingsFragment(menuTag, extras, addToStack, gameId, false)
+    }
+
+    private fun replaceSettingsFragment(
         menuTag: MenuTag,
         extras: Bundle?,
         addToStack: Boolean,
-        gameId: String
+        gameId: String,
+        isSearchResult: Boolean
     ) {
         if (!addToStack && fragment != null) return
         val transaction = supportFragmentManager.beginTransaction()
@@ -140,15 +232,18 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
                 transaction.setCustomAnimations(
                     R.anim.anim_settings_fragment_in,
                     R.anim.anim_settings_fragment_out,
-                    0,
-                    R.anim.anim_pop_settings_fragment_out
+                    if (isSearchResult) R.anim.anim_settings_search_pop_in else 0,
+                    if (isSearchResult) {
+                        R.anim.anim_settings_search_pop_out
+                    } else {
+                        R.anim.anim_pop_settings_fragment_out
+                    }
                 )
             }
             transaction.addToBackStack(null)
         }
         transaction.replace(
-            R.id.frame_content_settings,
-            newInstance(menuTag, gameId, extras), FRAGMENT_TAG
+            R.id.frame_content_settings, newInstance(menuTag, gameId, extras), FRAGMENT_TAG
         )
         transaction.commit()
     }
@@ -157,16 +252,22 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         fragment.show(supportFragmentManager, FRAGMENT_DIALOG_TAG)
     }
 
+    override fun showSearchResult(
+        menuTag: MenuTag, settingPosition: Int, gameId: String, extras: Bundle?
+    ) {
+        val navigationExtras = extras?.let(::Bundle) ?: Bundle()
+        navigationExtras.putInt(
+            SettingsFragment.ARGUMENT_SCROLL_TO_SETTING_POSITION, settingPosition
+        )
+        replaceSettingsFragment(menuTag, navigationExtras, true, gameId, true)
+    }
+
     private fun areSystemAnimationsEnabled(): Boolean {
         val duration = android.provider.Settings.Global.getFloat(
-            contentResolver,
-            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f
+            contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f
         )
         val transition = android.provider.Settings.Global.getFloat(
-            contentResolver,
-            android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE,
-            1f
+            contentResolver, android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE, 1f
         )
         return duration != 0f && transition != 0f
     }
@@ -183,10 +284,8 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
 
     override fun showLoading() {
         if (dialog == null) {
-            dialog = MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.load_settings))
-                .setView(R.layout.dialog_indeterminate_progress)
-                .create()
+            dialog = MaterialAlertDialogBuilder(this).setTitle(getString(R.string.load_settings))
+                .setView(R.layout.dialog_indeterminate_progress).create()
         }
         dialog!!.show()
     }
@@ -196,12 +295,10 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     }
 
     override fun showGameIniJunkDeletionQuestion() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.game_ini_junk_title))
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.game_ini_junk_title))
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int -> presenter!!.clearGameSettings() }
-            .setNegativeButton(R.string.no, null)
-            .show()
+            .setNegativeButton(R.string.no, null).show()
     }
 
     override fun onSettingsFileLoaded(settings: Settings) {
@@ -229,13 +326,78 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         return presenter!!.hasMenuTagActionForValue(menuTag, value)
     }
 
+    override fun getMenuTagActionExtras(menuTag: MenuTag, value: Int): Bundle? {
+        return presenter!!.getMenuTagActionExtras(menuTag, value)
+    }
+
+    override fun filterSettings(query: String) {
+        fragment?.filterSettings(query)
+    }
+
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 
-    override fun setToolbarTitle(title: String) {
-        binding!!.toolbarSettingsLayout.title = title
+    override fun setToolbarState(title: String, showHeadline: Boolean, showSearch: Boolean) {
+        val appBar = binding!!.appbarSettings
+        val generation = ++toolbarStateGeneration
+        val showSearchMode = showSearch && isSettingsSearchActive
+        val stateChanged =
+            currentToolbarTitle != title || currentToolbarShowsHeadline != showHeadline || currentToolbarShowsSearch != showSearch || currentToolbarShowsSearchMode != showSearchMode
+        appBar.animate().cancel()
+
+        if (!appBar.isLaidOut || !stateChanged) {
+            applyToolbarState(title, showHeadline, showSearch)
+            appBar.alpha = 1f
+            return
+        }
+
+        if (!showSearch) {
+            searchView.clearFocus()
+        }
+
+        appBar.animate().alpha(0f).setDuration(APP_BAR_FADE_OUT_DURATION_MS)
+            .setInterpolator(APP_BAR_FADE_OUT_INTERPOLATOR).withEndAction {
+                if (generation != toolbarStateGeneration) {
+                    return@withEndAction
+                }
+
+                applyToolbarState(title, showHeadline, showSearch)
+                appBar.post {
+                    if (generation != toolbarStateGeneration) {
+                        return@post
+                    }
+
+                    appBar.animate().alpha(1f).setDuration(APP_BAR_FADE_IN_DURATION_MS)
+                        .setInterpolator(APP_BAR_FADE_IN_INTERPOLATOR).start()
+                }
+            }.start()
+    }
+
+    private fun applyToolbarState(title: String, showHeadline: Boolean, showSearch: Boolean) {
+        val showSearchMode = showSearch && isSettingsSearchActive
+        toolbarLayout!!.isTitleEnabled = showHeadline
+        supportActionBar!!.title = title
+        if (showHeadline) {
+            toolbarLayout!!.title = title
+        }
+        toolbarLayout!!.layoutParams = toolbarLayout!!.layoutParams.apply {
+            height = if (showHeadline) {
+                expandedToolbarHeight
+            } else {
+                binding!!.toolbarSettings.layoutParams.height
+            }
+        }
+        toolbarLayout!!.visibility = if (showSearchMode) View.GONE else View.VISIBLE
+        binding!!.settingsSearchContainer.visibility =
+            if (showSearch && !showSearchMode) View.VISIBLE else View.GONE
+        binding!!.settingsSearchModeContainer.visibility =
+            if (showSearchMode) View.VISIBLE else View.GONE
+        currentToolbarTitle = title
+        currentToolbarShowsHeadline = showHeadline
+        currentToolbarShowsSearch = showSearch
+        currentToolbarShowsSearchMode = showSearchMode
     }
 
     override fun setOldControllerSettingsWarningVisibility(visible: Boolean): Int {
@@ -274,14 +436,16 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         private const val KEY_MAPPING_ALL_DEVICES = "all_devices"
         private const val FRAGMENT_TAG = "settings"
         private const val FRAGMENT_DIALOG_TAG = "settings_dialog"
+        private const val APP_BAR_FADE_OUT_DURATION_MS = 90L
+        private const val APP_BAR_FADE_IN_DURATION_MS = 180L
+        private const val SEARCH_FOCUS_DELAY_MS =
+            APP_BAR_FADE_OUT_DURATION_MS + APP_BAR_FADE_IN_DURATION_MS
+        private val APP_BAR_FADE_OUT_INTERPOLATOR = PathInterpolator(0.4f, 0f, 1f, 1f)
+        private val APP_BAR_FADE_IN_INTERPOLATOR = PathInterpolator(0f, 0f, 0.2f, 1f)
 
         @JvmStatic
         fun launch(
-            context: Context,
-            menuTag: MenuTag?,
-            gameId: String?,
-            revision: Int,
-            isWii: Boolean
+            context: Context, menuTag: MenuTag?, gameId: String?, revision: Int, isWii: Boolean
         ) {
             val settings = Intent(context, SettingsActivity::class.java)
             settings.putExtra(ARG_MENU_TAG, menuTag)
@@ -296,8 +460,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
             val settings = Intent(context, SettingsActivity::class.java)
             settings.putExtra(ARG_MENU_TAG, menuTag)
             settings.putExtra(
-                ARG_IS_WII,
-                !NativeLibrary.IsRunning() || NativeLibrary.IsEmulatingWii()
+                ARG_IS_WII, !NativeLibrary.IsRunning() || NativeLibrary.IsEmulatingWii()
             )
             context.startActivity(settings)
         }

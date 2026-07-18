@@ -2,14 +2,20 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder
 
+import android.animation.ValueAnimator
 import android.content.DialogInterface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.view.View
 import android.view.View.OnLongClickListener
+import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.DolphinApplication
 import org.dolphinemu.dolphinemu.R
@@ -20,6 +26,9 @@ import org.dolphinemu.dolphinemu.utils.LifecycleViewHolder
 abstract class SettingViewHolder(itemView: View, protected val adapter: SettingsAdapter) :
     LifecycleViewHolder(itemView, adapter.getFragmentLifecycle()),
     LifecycleOwner, View.OnClickListener, OnLongClickListener {
+
+    private val defaultBackground: Drawable? = itemView.background
+    private var searchResultHighlightAnimator: ValueAnimator? = null
 
     init {
         itemView.setOnClickListener(this)
@@ -37,6 +46,35 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
             textView.paintFlags =
                 textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         }
+    }
+
+    fun highlightSearchResult() {
+        clearSearchResultHighlight()
+
+        val highlight = ColorDrawable(
+            MaterialColors.getColor(
+                itemView, com.google.android.material.R.attr.colorSecondaryContainer
+            )
+        ).apply { alpha = 0 }
+        itemView.background = if (defaultBackground == null) {
+            highlight
+        } else {
+            LayerDrawable(arrayOf(highlight, defaultBackground))
+        }
+        searchResultHighlightAnimator = ValueAnimator.ofInt(
+            0, SEARCH_RESULT_HIGHLIGHT_MAX_ALPHA
+        ).apply {
+            duration = SEARCH_RESULT_HIGHLIGHT_FADE_IN_DURATION_MS
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { highlight.alpha = it.animatedValue as Int }
+            start()
+        }
+    }
+
+    fun clearSearchResultHighlight() {
+        searchResultHighlightAnimator?.cancel()
+        searchResultHighlightAnimator = null
+        itemView.background = defaultBackground
     }
 
     /**
@@ -101,5 +139,10 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
             R.string.setting_not_runtime_editable,
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+    companion object {
+        private const val SEARCH_RESULT_HIGHLIGHT_FADE_IN_DURATION_MS = 180L
+        private const val SEARCH_RESULT_HIGHLIGHT_MAX_ALPHA = 255
     }
 }
