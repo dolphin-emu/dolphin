@@ -7,6 +7,7 @@
 
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_haptic.h>
+#include <fmt/format.h>
 
 #include "Common/MathUtil.h"
 
@@ -16,17 +17,17 @@ namespace
 {
 std::string GetLegacyButtonName(int index)
 {
-  return "Button " + std::to_string(index);
+  return fmt::format("Button {}", index);
 }
 
 std::string GetLegacyAxisName(int index, int range)
 {
-  return "Axis " + std::to_string(index) + (range < 0 ? '-' : '+');
+  return fmt::format("Axis {}{}", index, range < 0 ? '-' : '+');
 }
 
 std::string GetLegacyHatName(int index, int direction)
 {
-  return "Hat " + std::to_string(index) + ' ' + "NESW"[direction];
+  return fmt::format("Hat {} {}", index, "NESW"[direction]);
 }
 
 constexpr int GetDirectionFromHatMask(int mask)

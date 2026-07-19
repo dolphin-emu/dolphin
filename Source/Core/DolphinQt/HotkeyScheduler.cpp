@@ -344,7 +344,7 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(std::string("Volume: ") +
                         (Config::Get(Config::MAIN_AUDIO_MUTED) ?
                              "Muted" :
-                             std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
+                             fmt::format("{}%", Config::Get(Config::MAIN_AUDIO_VOLUME))));
       };
 
       // Volume

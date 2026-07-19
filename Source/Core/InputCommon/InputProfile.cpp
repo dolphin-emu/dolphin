@@ -133,7 +133,7 @@ void ProfileCycler::CycleProfile(CycleDirection cycle_direction, InputConfig* de
   }
   else
   {
-    Core::DisplayMessage("No controller found for index: " + std::to_string(controller_index),
+    Core::DisplayMessage(fmt::format("No controller found for index: {}", controller_index),
                          display_message_ms);
   }
 }
@@ -172,7 +172,7 @@ void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
   }
   else
   {
-    Core::DisplayMessage("No controller found for index: " + std::to_string(controller_index),
+    Core::DisplayMessage(fmt::format("No controller found for index: {}", controller_index),
                          display_message_ms);
   }
 }
