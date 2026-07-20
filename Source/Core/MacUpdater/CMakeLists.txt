@@ -6,7 +6,7 @@ set(SOURCES
   AppDelegate.mm
   ViewController.h
   ViewController.m
-  MacUI.mm
+  UIMac.mm
   ${STORYBOARDS}
 )
 

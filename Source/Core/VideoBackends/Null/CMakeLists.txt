@@ -1,5 +1,4 @@
 add_library(videonull
-  NullBackend.cpp
   NullBoundingBox.h
   NullGfx.cpp
   NullGfx.h
@@ -10,6 +9,7 @@ add_library(videonull
   PerfQuery.h
   TextureCache.h
   VideoBackend.h
+  VideoBackendNull.cpp
 )
 
 target_link_libraries(videonull

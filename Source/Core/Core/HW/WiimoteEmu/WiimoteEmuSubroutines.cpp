@@ -14,7 +14,6 @@
 #include "Common/Swap.h"
 
 #include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 

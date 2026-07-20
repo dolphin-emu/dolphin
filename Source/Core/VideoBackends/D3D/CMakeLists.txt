@@ -3,7 +3,6 @@ add_library(videod3d
   D3DBase.h
   D3DBoundingBox.cpp
   D3DBoundingBox.h
-  D3DMain.cpp
   D3DNativeVertexFormat.cpp
   D3DPerfQuery.cpp
   D3DPerfQuery.h
@@ -21,6 +20,7 @@ add_library(videod3d
   DXTexture.cpp
   DXTexture.h
   VideoBackend.h
+  VideoBackendD3D.cpp
 )
 
 target_link_libraries(videod3d

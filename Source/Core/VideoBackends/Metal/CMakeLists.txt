@@ -4,7 +4,6 @@ add_library(videometal
   MTLBoundingBox.h
   MTLGfx.mm
   MTLGfx.h
-  MTLMain.mm
   MTLObjectCache.h
   MTLObjectCache.mm
   MTLPerfQuery.mm
@@ -24,6 +23,7 @@ add_library(videometal
   MTLVertexManager.mm
   MTLVertexManager.h
   VideoBackend.h
+  VideoBackendMTL.mm
 )
 
 find_library(METAL_LIBRARY Metal)
