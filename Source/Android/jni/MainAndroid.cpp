@@ -1,11 +1,14 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <array>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <mutex>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <thread>
@@ -13,6 +16,7 @@
 #include <vector>
 
 #include <EGL/egl.h>
+#include <android/input.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <fmt/format.h>
@@ -22,11 +26,14 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+#include "Common/Contains.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
@@ -37,11 +44,15 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
@@ -57,6 +68,11 @@
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/Android/Android.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/InputConfig.h"
+
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
@@ -66,6 +82,7 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/AutomaticControllers.h"
 
 namespace
 {
@@ -188,12 +205,45 @@ void Host_YieldToUI()
 {
 }
 
+static void AutoSetupControllers();
+
+namespace
+{
+constexpr int NUM_GC_PORTS = 4;
+
+// The controller occupying each GameCube port, for the duration of one emulation session.
+// Guarded by s_controller_setup_mutex.
+std::mutex s_controller_setup_mutex;
+std::array<std::string, NUM_GC_PORTS> s_controller_ports;
+bool s_mappings_applied = false;
+}  // namespace
+
+namespace AutomaticControllers
+{
+bool IsActive()
+{
+  if (!Config::Get(Config::MAIN_AUTOMATIC_CONTROLLERS))
+    return false;
+
+  const std::lock_guard setup_lock(s_controller_setup_mutex);
+  return std::ranges::any_of(s_controller_ports,
+                             [](const std::string& owner) { return !owner.empty(); });
+}
+}  // namespace AutomaticControllers
+
 void Host_TitleChanged()
 {
   s_game_metadata_is_valid = true;
 
   JNIEnv* env = IDCache::GetEnvForThread();
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
+
+  // On Wii, an ES title change reloads the pad configs from disk right after this callback
+  // returns (TitleContext::Update calls SConfig::OnESTitleChanged after SetRunningGameMetadata),
+  // clobbering automatically generated controller mappings. Queue a re-application to run
+  // once the current CPU-thread callstack, including that reload, has finished; the job is
+  // serviced by the emulation run loop.
+  Core::QueueHostJob([](Core::System&) { AutoSetupControllers(); }, false);
 }
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
@@ -547,6 +597,318 @@ static float GetRenderSurfaceScale(JNIEnv* env)
   return env->CallStaticFloatMethod(native_library_class, get_render_surface_scale_method);
 }
 
+static bool HasInput(const ciface::Core::Device& device, std::string_view name)
+{
+  return device.FindInput(name) != nullptr;
+}
+
+// Enough to swallow the noise an analog stick reports while it sits idle
+constexpr const char* DEAD_ZONE = "10.";
+
+static std::string AxisName(int axis, bool negative)
+{
+  return fmt::format("Axis {}{}", axis, negative ? '-' : '+');
+}
+
+// Android reports an axis either as centered, with a direction each way, or as one way only.
+// Which of the two it is depends on the axis alone: the sticks, the hat, AXIS_Z and AXIS_RZ
+// are always centered, while AXIS_LTRIGGER, AXIS_RTRIGGER, AXIS_BRAKE and AXIS_GAS are always
+// one way. It says nothing about what the control physically is.
+static bool HasCenteredAxis(const ciface::Core::Device& device, int axis)
+{
+  return HasInput(device, AxisName(axis, false)) && HasInput(device, AxisName(axis, true));
+}
+
+static bool HasOneWayAxis(const ciface::Core::Device& device, int axis)
+{
+  return HasInput(device, AxisName(axis, false)) && !HasInput(device, AxisName(axis, true));
+}
+
+// Builds an expression that triggers on whichever of the given controls the controller has,
+// so that one is enough but several are allowed, e.g. "`Up` | `Axis 16-`". Empty, leaving
+// the control unmapped, if it has none of them.
+static std::string AnyOf(const ciface::Core::Device& device,
+                         std::initializer_list<std::string_view> controls)
+{
+  std::string result;
+  for (std::string_view control : controls)
+  {
+    if (!HasInput(device, control))
+      continue;
+    if (!result.empty())
+      result += " | ";
+    result += fmt::format("`{}`", control);
+  }
+  return result;
+}
+
+// The first of the given axes that the controller reports as one way, if any
+static std::string FirstOneWayAxis(const ciface::Core::Device& device,
+                                   std::initializer_list<int> axes)
+{
+  for (int axis : axes)
+  {
+    if (HasOneWayAxis(device, axis))
+      return fmt::format("`{}`", AxisName(axis, false));
+  }
+  return {};
+}
+
+// Generates a standard GameCube mapping for an Android controller from the controls it
+// reports. Face buttons follow their physical position rather than their label, which is how
+// Android reports them for both Xbox-style and PlayStation-style controllers.
+static void GenerateAndroidGamepadConfig(const ciface::Core::Device& device,
+                                         Common::IniFile::Section* section)
+{
+  ciface::Core::DeviceQualifier qualifier;
+  qualifier.FromDevice(&device);
+  section->Set("Device", qualifier.ToString());
+
+  section->Set("Buttons/A", AnyOf(device, {"Button A"}));
+  section->Set("Buttons/B", AnyOf(device, {"Button X"}));
+  section->Set("Buttons/X", AnyOf(device, {"Button B"}));
+  section->Set("Buttons/Y", AnyOf(device, {"Button Y"}));
+  section->Set("Buttons/Z", AnyOf(device, {"Button R1"}));
+  section->Set("Buttons/Start", AnyOf(device, {"Start"}));
+
+  section->Set("Main Stick/Up", AnyOf(device, {AxisName(AMOTION_EVENT_AXIS_Y, true)}));
+  section->Set("Main Stick/Down", AnyOf(device, {AxisName(AMOTION_EVENT_AXIS_Y, false)}));
+  section->Set("Main Stick/Left", AnyOf(device, {AxisName(AMOTION_EVENT_AXIS_X, true)}));
+  section->Set("Main Stick/Right", AnyOf(device, {AxisName(AMOTION_EVENT_AXIS_X, false)}));
+  section->Set("Main Stick/Dead Zone", std::string(DEAD_ZONE));
+
+  // Which axes the right stick and the analog triggers use differs between controllers, and
+  // Android does not say which is which, because it decides whether an axis is centered from
+  // the axis alone. Controllers that follow Android's own layout put the right stick on
+  // AXIS_Z and AXIS_RZ and the triggers on axes of their own, while controllers that report
+  // themselves the way an Xbox controller does put the triggers on AXIS_Z and AXIS_RZ and the
+  // right stick on AXIS_RX and AXIS_RY. Having somewhere else for the triggers to be is what
+  // tells the two layouts apart.
+  const bool has_trigger_axes = HasOneWayAxis(device, AMOTION_EVENT_AXIS_LTRIGGER) ||
+                                HasOneWayAxis(device, AMOTION_EVENT_AXIS_RTRIGGER) ||
+                                HasOneWayAxis(device, AMOTION_EVENT_AXIS_BRAKE) ||
+                                HasOneWayAxis(device, AMOTION_EVENT_AXIS_GAS);
+  const bool has_trigger_buttons = HasInput(device, "Button L2") || HasInput(device, "Button R2");
+  const bool has_z_rz = HasCenteredAxis(device, AMOTION_EVENT_AXIS_Z) &&
+                        HasCenteredAxis(device, AMOTION_EVENT_AXIS_RZ);
+  const bool has_rx_ry = HasCenteredAxis(device, AMOTION_EVENT_AXIS_RX) &&
+                         HasCenteredAxis(device, AMOTION_EVENT_AXIS_RY);
+  const bool z_rz_are_triggers = has_z_rz && has_rx_ry && !has_trigger_axes && !has_trigger_buttons;
+
+  int c_stick_x = -1;
+  int c_stick_y = -1;
+  if (has_z_rz && !z_rz_are_triggers)
+  {
+    c_stick_x = AMOTION_EVENT_AXIS_Z;
+    c_stick_y = AMOTION_EVENT_AXIS_RZ;
+  }
+  else if (has_rx_ry)
+  {
+    c_stick_x = AMOTION_EVENT_AXIS_RX;
+    c_stick_y = AMOTION_EVENT_AXIS_RY;
+  }
+
+  if (c_stick_x >= 0)
+  {
+    section->Set("C-Stick/Up", fmt::format("`{}`", AxisName(c_stick_y, true)));
+    section->Set("C-Stick/Down", fmt::format("`{}`", AxisName(c_stick_y, false)));
+    section->Set("C-Stick/Left", fmt::format("`{}`", AxisName(c_stick_x, true)));
+    section->Set("C-Stick/Right", fmt::format("`{}`", AxisName(c_stick_x, false)));
+    section->Set("C-Stick/Dead Zone", std::string(DEAD_ZONE));
+  }
+
+  std::string l_analog =
+      FirstOneWayAxis(device, {AMOTION_EVENT_AXIS_LTRIGGER, AMOTION_EVENT_AXIS_BRAKE});
+  std::string r_analog =
+      FirstOneWayAxis(device, {AMOTION_EVENT_AXIS_RTRIGGER, AMOTION_EVENT_AXIS_GAS});
+  if (z_rz_are_triggers)
+  {
+    // A trigger on a centered axis rests at one end of it, so the whole of the axis is the
+    // travel of the trigger.
+    l_analog = fmt::format("`Full {}`", AxisName(AMOTION_EVENT_AXIS_Z, false));
+    r_analog = fmt::format("`Full {}`", AxisName(AMOTION_EVENT_AXIS_RZ, false));
+  }
+
+  // Controllers without analog triggers report them as buttons instead
+  const std::string l_button = AnyOf(device, {"Button L2"});
+  const std::string r_button = AnyOf(device, {"Button R2"});
+  if (l_analog.empty())
+    l_analog = l_button;
+  if (r_analog.empty())
+    r_analog = r_button;
+
+  section->Set("Triggers/L", l_button.empty() ? l_analog : l_button);
+  section->Set("Triggers/R", r_button.empty() ? r_analog : r_button);
+  section->Set("Triggers/L-Analog", l_analog);
+  section->Set("Triggers/R-Analog", r_analog);
+
+  // The d-pad arrives as buttons, as a hat, or as both
+  section->Set("D-Pad/Up", AnyOf(device, {"Up", AxisName(AMOTION_EVENT_AXIS_HAT_Y, true)}));
+  section->Set("D-Pad/Down", AnyOf(device, {"Down", AxisName(AMOTION_EVENT_AXIS_HAT_Y, false)}));
+  section->Set("D-Pad/Left", AnyOf(device, {"Left", AxisName(AMOTION_EVENT_AXIS_HAT_X, true)}));
+  section->Set("D-Pad/Right", AnyOf(device, {"Right", AxisName(AMOTION_EVENT_AXIS_HAT_X, false)}));
+
+  if (device.FindOutput("Motor 0") != nullptr)
+    section->Set("Rumble/Motor", std::string("`Motor 0`"));
+}
+
+// Whether a device can serve as a GameCube controller: Android's own markers of a gamepad,
+// plus the controls that a generated mapping needs.
+static bool IsUsableGamepad(const ciface::Core::Device& device,
+                            const ciface::Android::DeviceProperties& properties)
+{
+  return properties.is_gamepad && HasInput(device, "Button A") && HasInput(device, "Axis 0-") &&
+         HasInput(device, "Axis 0+") && HasInput(device, "Axis 1-") && HasInput(device, "Axis 1+");
+}
+
+// Gives the emulated controllers back the mappings the user configured. Called with the
+// setup lock held.
+static void RestoreControllerMappings()
+{
+  if (!s_mappings_applied)
+    return;
+
+  s_mappings_applied = false;
+  if (Pad::GetConfig()->GetControllerCount() >= NUM_GC_PORTS)
+    Pad::LoadConfig();
+}
+
+static void AutoSetupControllers()
+{
+  // Device changes and first inputs each run a setup on a thread of their own
+  const std::lock_guard setup_lock(s_controller_setup_mutex);
+
+  if (!Config::Get(Config::MAIN_AUTOMATIC_CONTROLLERS))
+  {
+    // Turning the setting off gives the ports back and starts the players over
+    RestoreControllerMappings();
+    if (!std::ranges::all_of(s_controller_ports, &std::string::empty))
+    {
+      s_controller_ports = {};
+      ciface::Android::ForgetDeliveredInput();
+      for (int port = 0; port < NUM_GC_PORTS; ++port)
+        Config::DeleteKey(Config::LayerType::CurrentRun, Config::GetInfoForSIDevice(port));
+    }
+    return;
+  }
+
+  struct Candidate
+  {
+    std::shared_ptr<ciface::Core::Device> device;
+    ciface::Android::DeviceProperties properties;
+  };
+
+  std::vector<Candidate> candidates;
+  for (const std::string& device_string : g_controller_interface.GetAllDeviceStrings())
+  {
+    ciface::Core::DeviceQualifier qualifier;
+    qualifier.FromString(device_string);
+
+    const std::shared_ptr<ciface::Core::Device> device =
+        g_controller_interface.FindDevice(qualifier);
+    if (!device)
+      continue;
+
+    const std::optional properties = ciface::Android::GetDeviceProperties(*device);
+    if (properties && IsUsableGamepad(*device, *properties))
+      candidates.emplace_back(device, *properties);
+  }
+
+  // Players claim their port by using their controller: the first controller to send input
+  // becomes player one, the next becomes player two, and so on. This is the only order that
+  // reflects what the players did, because Android reports the controllers that are already
+  // connected in a fixed order of its own. It also settles which of the devices Android
+  // reports for one controller to take the input from, since only the one a player is
+  // actually using ever sends any.
+  std::erase_if(candidates, [](const Candidate& c) { return !c.properties.input_order; });
+  std::ranges::sort(candidates, {}, [](const Candidate& c) { return *c.properties.input_order; });
+
+  // Ports are held by the controller rather than by the device it is reported as, because
+  // Android renames and renumbers those as controllers come and go.
+  const auto candidate_index = [&](const std::string& descriptor) {
+    if (descriptor.empty())
+      return -1;
+    const auto it = std::ranges::find(candidates, descriptor,
+                                      [](const Candidate& c) { return c.properties.descriptor; });
+    return it == candidates.end() ? -1 : static_cast<int>(it - candidates.begin());
+  };
+
+  const std::array previous_ports = s_controller_ports;
+
+  // A controller keeps its port until the setting is turned off or Dolphin is closed, so
+  // that leaving a game, or a controller running out of battery, does not shuffle the
+  // players around.
+  for (const Candidate& candidate : candidates)
+  {
+    if (candidate.properties.descriptor.empty() ||
+        Common::Contains(s_controller_ports, candidate.properties.descriptor))
+    {
+      continue;
+    }
+
+    const auto free_port = std::ranges::find(s_controller_ports, std::string{});
+    if (free_port == s_controller_ports.end())
+      break;
+    *free_port = candidate.properties.descriptor;
+  }
+
+  // Take over only the ports this feature has assigned, so that a port the user configured
+  // as something else, or left empty, keeps whatever they chose. The current-run layer keeps
+  // all of this out of their saved configuration, and while a game is running SerialInterface
+  // picks the change up on the CPU thread by itself.
+  for (int port = 0; port < NUM_GC_PORTS; ++port)
+  {
+    const auto& si_device = Config::GetInfoForSIDevice(port);
+    if (candidate_index(s_controller_ports[port]) >= 0)
+      Config::SetCurrent(si_device, SerialInterface::SIDEVICE_GC_CONTROLLER);
+    else
+      Config::DeleteKey(Config::LayerType::CurrentRun, si_device);
+  }
+
+  // The emulated controllers exist for as long as the process does, but a mapping cannot be
+  // applied before they have been created.
+  if (Pad::GetConfig()->GetControllerCount() < NUM_GC_PORTS)
+    return;
+
+  // Give every port back the mapping the user configured before handing out the generated
+  // ones, so that a port whose controller has left is usable again rather than left pointing
+  // at a controller that is no longer there. The mappings are handed out again on every pass
+  // because a Wii title change reloads them from disk behind our back.
+  Pad::LoadConfig();
+  s_mappings_applied = true;
+
+  for (int port = 0; port < NUM_GC_PORTS; ++port)
+  {
+    const int index = candidate_index(s_controller_ports[port]);
+    if (index < 0)
+      continue;
+
+    Common::IniFile ini;
+    Common::IniFile::Section* const section = ini.GetOrCreateSection("Generated");
+    GenerateAndroidGamepadConfig(*candidates[index].device, section);
+
+    ControllerEmu::EmulatedController* const controller = Pad::GetConfig()->GetController(port);
+    controller->LoadConfig(section);
+    controller->UpdateReferences(g_controller_interface);
+  }
+
+  if (s_controller_ports == previous_ports)
+    return;
+
+  // Tell the players which controller they ended up as, since nothing else says so while a
+  // game is running.
+  for (int port = 0; port < NUM_GC_PORTS; ++port)
+  {
+    const int index = candidate_index(s_controller_ports[port]);
+    if (index < 0)
+      continue;
+
+    const std::string& name = candidates[index].device->GetName();
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "GameCube controller {}: {}", port + 1, name);
+    OSD::AddMessage(fmt::format("GameCube controller {}: {}", port + 1, name));
+  }
+}
+
 static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivolution)
 {
   if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
@@ -558,6 +920,11 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
                                           riivolution_dir, volume.GetGameID(), volume.GetRevision(),
                                           volume.GetDiscNumber()));
   }
+
+  // Get the port configuration in place before the core reads it at boot. Players keep the
+  // ports they have already claimed, so that leaving a game and starting another one does
+  // not make everyone claim their place again.
+  AutoSetupControllers();
 
   s_need_nonblocking_alert_msg = true;
   std::unique_lock<std::mutex> surface_guard(s_surface_lock);
@@ -572,6 +939,20 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
     static constexpr int WAIT_STEP = 25;
     while (Core::GetState(Core::System::GetInstance()) == Core::State::Starting)
       std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_STEP));
+
+    AutoSetupControllers();
+
+    // Run the setup again whenever the set of controllers changes, and when a device first
+    // delivers input, which is what identifies it as a controller. The notifications arrive
+    // on the threads that handle input and hotplug, so the work is queued for the host.
+    const auto setup_on_change = [] {
+      if (Core::IsRunning(Core::System::GetInstance()))
+        Core::QueueHostJob([](Core::System&) { AutoSetupControllers(); });
+    };
+    static Common::EventHook devices_changed_hook =
+        g_controller_interface.RegisterDevicesChangedCallback(setup_on_change);
+    static Common::EventHook first_input_hook =
+        ciface::Android::RegisterFirstInputCallback(setup_on_change);
   }
 
   s_is_booting.Clear();
@@ -586,6 +967,11 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
 
   s_game_metadata_is_valid = false;
   Core::Shutdown(Core::System::GetInstance());
+
+  {
+    const std::lock_guard setup_lock(s_controller_setup_mutex);
+    RestoreControllerMappings();
+  }
 
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
                             IDCache::GetFinishEmulationActivity());
