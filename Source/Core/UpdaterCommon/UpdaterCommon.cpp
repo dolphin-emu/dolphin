@@ -9,7 +9,7 @@
 #include <optional>
 
 #include <cpp-optparse/OptionParser.h>
-#include <ed25519.h>
+#include <ed25519/ed25519.h>
 #include <fmt/format.h>
 #include <mbedtls/base64.h>
 #include <mbedtls/sha256.h>
