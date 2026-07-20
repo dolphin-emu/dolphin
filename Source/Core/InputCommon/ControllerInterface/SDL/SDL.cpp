@@ -23,6 +23,7 @@
 #include "Core/HW/SI/SI_Device.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/SDL/SDLDualSenseGamepad.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
 
 namespace ciface::SDL
@@ -277,9 +278,22 @@ void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
       // SDL tries parsing these as Joysticks
       return;
     }
-    auto gamepad = std::make_shared<Gamepad>(gc, js);
-    if (!gamepad->Inputs().empty() || !gamepad->Outputs().empty())
-      GetControllerInterface().AddDevice(std::move(gamepad));
+
+    const auto gamepad_type = SDL_GetGamepadType(gc);
+
+    std::shared_ptr<Core::Device> result;
+    switch (gamepad_type)
+    {
+    case SDL_GAMEPAD_TYPE_PS5:
+      result = std::make_shared<DualSenseGamepad>(gc, js);
+      break;
+    default:
+      result = std::make_shared<Gamepad>(gc, js);
+      break;
+    }
+
+    if (!result->Inputs().empty() || !result->Outputs().empty())
+      GetControllerInterface().AddDevice(std::move(result));
   }
 }
 

@@ -177,6 +177,8 @@ if(ENABLE_SDL)
   target_sources(inputcommon PRIVATE
     ControllerInterface/SDL/SDL.cpp
     ControllerInterface/SDL/SDL.h
+    ControllerInterface/SDL/SDLDualSenseGamepad.cpp
+    ControllerInterface/SDL/SDLDualSenseGamepad.h
     ControllerInterface/SDL/SDLGamepad.cpp
     ControllerInterface/SDL/SDLGamepad.h
   )
