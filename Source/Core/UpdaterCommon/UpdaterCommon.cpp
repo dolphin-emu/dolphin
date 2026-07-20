@@ -8,7 +8,7 @@
 #include <memory>
 #include <optional>
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 #include <ed25519.h>
 #include <fmt/format.h>
 #include <mbedtls/base64.h>
@@ -33,8 +33,9 @@
 #endif
 
 #ifdef _WIN32
-#include <windows.h>
 #include <filesystem>
+
+#include <windows.h>
 #endif
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process

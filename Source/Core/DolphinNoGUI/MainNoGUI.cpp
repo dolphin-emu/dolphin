@@ -3,7 +3,7 @@
 
 #include "DolphinNoGUI/Platform.h"
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 #include <csignal>
 #include <cstdio>
 #include <string>

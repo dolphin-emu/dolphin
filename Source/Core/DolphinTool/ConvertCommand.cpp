@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonTypes.h"

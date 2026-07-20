@@ -9,7 +9,7 @@
 #include <string>
 #include <tuple>
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"

@@ -13,7 +13,7 @@
 #include <cstdlib>
 #endif
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QObject>

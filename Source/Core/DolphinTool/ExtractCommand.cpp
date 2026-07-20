@@ -9,7 +9,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-#include <OptionParser.h>
+#include <cpp-optparse/OptionParser.h>
 
 #include "Common/FileUtil.h"
 
