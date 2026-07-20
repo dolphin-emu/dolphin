@@ -10,8 +10,8 @@
 
 // Does not compile if diskio.h is included first.
 // clang-format off
-#include "ff.h"
-#include "diskio.h"
+#include <FatFs/ff.h>
+#include <FatFs/diskio.h>
 // clang-format on
 
 #include "Common/Align.h"

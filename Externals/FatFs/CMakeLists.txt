@@ -1,9 +1,9 @@
 add_library(FatFs STATIC
-  ff.c
-  ffunicode.c
-  diskio.h
-  ff.h
-  ffconf.h
+  FatFs/ff.c
+  FatFs/ffunicode.c
+  FatFs/diskio.h
+  FatFs/ff.h
+  FatFs/ffconf.h
 )
 
 target_include_directories(FatFs
