@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
-#include <disasm.h>  // From Bochs, fallback included in Externals.
-#include <gtest/gtest.h>
 #include <memory>
 #include <vector>
+
+#include <bochs/disasm.h>
+#include <gtest/gtest.h>
 
 // gtest defines the TEST macro to generate test case functions. It conflicts
 // with the TEST method in the x64Emitter.

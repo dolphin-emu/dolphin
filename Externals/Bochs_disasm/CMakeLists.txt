@@ -1,15 +1,15 @@
 add_library(bdisasm STATIC
-  dis_decode.cc
-  dis_groups.cc
-  resolve.cc
-  syntax.cc
+  bochs/dis_decode.cc
+  bochs/dis_groups.cc
+  bochs/resolve.cc
+  bochs/syntax.cc
 )
 dolphin_disable_warnings(bdisasm)
 
 if (WIN32)
   target_sources(bdisasm
   PRIVATE
-    stdafx.cc
+    bochs/stdafx.cc
   )
 endif()
 

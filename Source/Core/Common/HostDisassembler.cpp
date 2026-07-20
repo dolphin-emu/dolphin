@@ -13,7 +13,7 @@
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
 #elif defined(_M_X86_64)
-#include <disasm.h>  // Bochs
+#include <bochs/disasm.h>
 #endif
 
 #if defined(HAVE_LLVM)
