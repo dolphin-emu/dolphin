@@ -3,13 +3,13 @@
 
 #include "DolphinQt/Config/FreeLookWindow.h"
 
+#include "DolphinQt/Config/FreeLookWidget.h"
+#include "DolphinQt/Config/HardcoreWarningWidget.h"
+
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
-
-#include "DolphinQt/Config/FreeLookWidget.h"
-#include "DolphinQt/Config/HardcoreWarningWidget.h"
 
 FreeLookWindow::FreeLookWindow(QWidget* parent) : QDialog(parent)
 {

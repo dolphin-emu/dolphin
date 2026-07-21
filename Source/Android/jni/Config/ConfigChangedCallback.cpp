@@ -1,11 +1,11 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <jni.h>
-
 #include "Common/Config/Config.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
 
 struct ConfigChangedCallbackContext
 {

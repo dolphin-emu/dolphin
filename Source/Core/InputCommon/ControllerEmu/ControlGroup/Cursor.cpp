@@ -3,19 +3,18 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <memory>
 #include <string>
-
-#include "Common/Common.h"
-#include "Common/MathUtil.h"
-
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {

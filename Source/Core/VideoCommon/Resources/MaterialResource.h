@@ -3,16 +3,8 @@
 
 #pragma once
 
-#include <atomic>
-#include <memory>
-#include <optional>
-#include <string_view>
-#include <variant>
-#include <vector>
-
 #include "Common/Buffer.h"
 #include "Common/SmallVector.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/TextureSamplerValue.h"
@@ -22,6 +14,13 @@
 #include "VideoCommon/Resources/Resource.h"
 #include "VideoCommon/Resources/ShaderResource.h"
 #include "VideoCommon/Resources/TextureAndSamplerResource.h"
+
+#include <atomic>
+#include <memory>
+#include <optional>
+#include <string_view>
+#include <variant>
+#include <vector>
 
 namespace VideoCommon
 {

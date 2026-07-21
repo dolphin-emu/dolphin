@@ -5,9 +5,22 @@
 
 #include "Core/PowerPC/GDBStub.h"
 
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+#include "Common/SocketContext.h"
+#include "Core/Core.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/Host.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCCache.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+
 #include <fmt/format.h>
-#include <optional>
-#include <string.h>
+
 #ifdef _WIN32
 #include <iphlpapi.h>
 #include <winsock2.h>
@@ -22,19 +35,8 @@ typedef SSIZE_T ssize_t;
 #include <unistd.h>
 #endif
 
-#include "Common/Assert.h"
-#include "Common/Logging/Log.h"
-#include "Common/SocketContext.h"
-#include "Core/Core.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
-#include "Core/Host.h"
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCCache.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
+#include <optional>
+#include <string.h>
 
 namespace GDBStub
 {

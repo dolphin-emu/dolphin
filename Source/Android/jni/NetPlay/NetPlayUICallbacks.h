@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <memory>
-#include <span>
-#include <string>
-#include <vector>
-
-#include <jni.h>
-
 #include "Common/HookableEvent.h"
 #include "Core/NetPlayClient.h"
 #include "UICommon/GameFile.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <memory>
+#include <span>
+#include <string>
+#include <vector>
 
 namespace NetPlay
 {

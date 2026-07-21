@@ -3,12 +3,13 @@
 
 #include "Common/GL/GLInterface/WGL.h"
 
-#include <windows.h>
-#include <array>
-#include <string>
-
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+
+#include <windows.h>
+
+#include <array>
+#include <string>
 
 // from wglext.h
 #ifndef WGL_ARB_pbuffer

@@ -3,22 +3,21 @@
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
-#include <fstream>
-#include <map>
-#include <string>
-
-#include <picojson.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Constants.h"
 #include "VideoCommon/HiresTextures.h"
+
+#include <picojson.h>
+
+#include <fstream>
+#include <map>
+#include <string>
 
 GraphicsModGroupConfig::GraphicsModGroupConfig(std::string game_id) : m_game_id(std::move(game_id))
 {

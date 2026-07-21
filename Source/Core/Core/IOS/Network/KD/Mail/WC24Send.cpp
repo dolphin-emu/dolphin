@@ -3,6 +3,16 @@
 
 #include "Core/IOS/Network/KD/Mail/WC24Send.h"
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Network/KD/VFF/VFFUtil.h"
+#include "Core/IOS/Uids.h"
+
+#include <fmt/chrono.h>
+
 #include <algorithm>
 #include <cstring>
 #include <ctime>
@@ -10,17 +20,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-#include <fmt/chrono.h>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
-
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/IOS/Network/KD/VFF/VFFUtil.h"
-#include "Core/IOS/Uids.h"
 
 namespace IOS::HLE::NWC24::Mail
 {

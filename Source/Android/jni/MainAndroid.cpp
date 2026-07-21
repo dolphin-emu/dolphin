@@ -1,23 +1,6 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <condition_variable>
-#include <cstdio>
-#include <cstdlib>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <thread>
-#include <utility>
-#include <vector>
-
-#include <EGL/egl.h>
-#include <android/log.h>
-#include <android/native_window_jni.h>
-#include <fmt/format.h>
-#include <jni.h>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -32,7 +15,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -49,23 +31,37 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "Core/System.h"
-#include "jni/NetPlay/NetPlayUICallbacks.h"
-
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
-
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
-
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/NetPlay/NetPlayUICallbacks.h"
+
+#include <fmt/format.h>
+
+#include <EGL/egl.h>
+#include <android/log.h>
+#include <android/native_window_jni.h>
+#include <jni.h>
+
+#include <condition_variable>
+#include <cstdio>
+#include <cstdlib>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
 
 namespace
 {

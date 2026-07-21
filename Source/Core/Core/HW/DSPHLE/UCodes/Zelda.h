@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+
+#include <algorithm>
+#include <array>
 
 namespace Core
 {

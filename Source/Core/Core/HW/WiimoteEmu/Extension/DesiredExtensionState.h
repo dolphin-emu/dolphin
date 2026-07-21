@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include <variant>
-
 #include "Common/BitUtils.h"
-
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -18,6 +15,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
+
+#include <variant>
 
 namespace WiimoteEmu
 {

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3DCommon/Shader.h"
+
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3DCommon/Shader.h"
 
 namespace DX11
 {

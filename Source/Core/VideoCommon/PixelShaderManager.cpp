@@ -3,14 +3,14 @@
 
 #include "VideoCommon/PixelShaderManager.h"
 
-#include <iterator>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <iterator>
 
 void PixelShaderManager::Init()
 {

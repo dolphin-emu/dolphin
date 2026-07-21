@@ -3,16 +3,16 @@
 
 #include "jni/Input/Control.h"
 
-#include <string>
-
-#include <jni.h>
-
 #include "Common/MsgHandler.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Input/ControlReference.h"
+
+#include <jni.h>
+
+#include <string>
 
 static ControllerEmu::Control* GetPointer(JNIEnv* env, jobject obj)
 {

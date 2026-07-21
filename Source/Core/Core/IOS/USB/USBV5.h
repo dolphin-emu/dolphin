@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <array>
-#include <functional>
-#include <memory>
-#include <mutex>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Host.h"
+
+#include <array>
+#include <functional>
+#include <memory>
+#include <mutex>
 
 class PointerWrap;
 

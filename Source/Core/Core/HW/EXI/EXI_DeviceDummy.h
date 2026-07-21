@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
+
+#include <string>
 
 namespace ExpansionInterface
 {

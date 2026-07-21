@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+#include "Common/CommonTypes.h"
+#include "Common/TypeUtils.h"
+
 #include <array>
 #include <cstddef>
 #include <map>
@@ -11,10 +15,6 @@
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/BitField.h"
-#include "Common/CommonTypes.h"
-#include "Common/TypeUtils.h"
 
 class PointerWrap;
 

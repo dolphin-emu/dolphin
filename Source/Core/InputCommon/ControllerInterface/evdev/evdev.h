@@ -3,11 +3,12 @@
 
 #pragma once
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <libevdev/libevdev.h>
+
 #include <string>
 #include <vector>
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::evdev
 {

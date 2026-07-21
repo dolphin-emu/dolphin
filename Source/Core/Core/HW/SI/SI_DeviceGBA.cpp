@@ -3,13 +3,6 @@
 
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
-#include <cstddef>
-#include <cstring>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -18,6 +11,13 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
+
+#include <cstddef>
+#include <cstring>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 namespace SerialInterface
 {

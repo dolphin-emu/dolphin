@@ -13,15 +13,15 @@
 // detect whether the file is a compressed blob, or just a big hunk of data, or a drive, and
 // automatically do the right thing.
 
+#include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+
 #include <array>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Swap.h"
 
 namespace DiscIO
 {

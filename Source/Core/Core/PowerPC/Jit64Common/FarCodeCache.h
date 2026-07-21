@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <cstddef>
 #include "Common/x64Emitter.h"
+
+#include <cstddef>
 
 // a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
 // mostly exception handling, so give it a whole bunch more space if the MMU is on.

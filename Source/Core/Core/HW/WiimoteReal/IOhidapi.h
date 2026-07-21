@@ -4,9 +4,9 @@
 #pragma once
 
 #ifdef HAVE_HIDAPI
-#include <hidapi.h>
-
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#include <hidapi.h>
 
 namespace WiimoteReal
 {

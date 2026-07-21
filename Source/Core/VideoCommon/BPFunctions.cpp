@@ -3,16 +3,11 @@
 
 #include "VideoCommon/BPFunctions.h"
 
-#include <algorithm>
-#include <cmath>
-#include <string_view>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/SmallVector.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/EFBInterface.h"
@@ -22,6 +17,10 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <cmath>
+#include <string_view>
 
 namespace BPFunctions
 {

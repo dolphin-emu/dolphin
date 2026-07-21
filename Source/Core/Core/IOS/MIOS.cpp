@@ -3,13 +3,10 @@
 
 #include "Core/IOS/MIOS.h"
 
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -24,6 +21,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <cstring>
 
 namespace IOS::HLE::MIOS
 {

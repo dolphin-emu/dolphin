@@ -3,25 +3,23 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+#include "Common/Timer.h"
+#include "Core/Config/MainSettings.h"
+#include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/TextureConfig.h"
+
+#include <fmt/format.h>
+#include <imgui.h>
+
 #include <algorithm>
 #include <atomic>
 #include <map>
 #include <mutex>
 #include <string>
-
-#include <fmt/format.h>
-#include <imgui.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Common/Timer.h"
-
-#include "Core/Config/MainSettings.h"
-
-#include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
-#include "VideoCommon/TextureConfig.h"
 
 namespace OSD
 {

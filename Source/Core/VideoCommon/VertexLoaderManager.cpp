@@ -3,24 +3,12 @@
 
 #include "VideoCommon/VertexLoaderManager.h"
 
-#include <algorithm>
-#include <iterator>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -32,6 +20,16 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace VertexLoaderManager
 {

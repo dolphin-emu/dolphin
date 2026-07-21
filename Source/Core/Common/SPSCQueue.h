@@ -6,10 +6,10 @@
 // a simple lockless thread-safe,
 // single producer, single consumer queue
 
+#include "Common/TypeUtils.h"
+
 #include <atomic>
 #include <cassert>
-
-#include "Common/TypeUtils.h"
 
 namespace Common
 {

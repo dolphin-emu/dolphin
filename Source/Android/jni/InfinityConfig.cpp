@@ -1,14 +1,15 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/System.h"
+
 #include <jni.h>
 
 #include <array>
 
 #include "AndroidCommon/AndroidCommon.h"
 #include "AndroidCommon/IDCache.h"
-#include "Core/IOS/USB/Emulated/Infinity.h"
-#include "Core/System.h"
 
 using FigureUIPosition = IOS::HLE::USB::FigureUIPosition;
 

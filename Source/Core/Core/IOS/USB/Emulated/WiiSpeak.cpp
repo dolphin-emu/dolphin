@@ -3,8 +3,6 @@
 
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
 
-#include <algorithm>
-
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"

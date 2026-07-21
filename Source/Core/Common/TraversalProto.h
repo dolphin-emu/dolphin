@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <cstddef>
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

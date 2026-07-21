@@ -1,20 +1,21 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <windows.h>
-#include <functional>
-#include <optional>
-#include <string>
-#include <vector>
-#include <winternl.h>
-
-#include <fmt/format.h>
-#include <fmt/xchar.h>
-
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
+
+#include <fmt/format.h>
+#include <fmt/xchar.h>
+
+#include <windows.h>
+#include <winternl.h>
+
+#include <functional>
+#include <optional>
+#include <string>
+#include <vector>
 
 typedef NTSTATUS(NTAPI* PRTL_HEAP_COMMIT_ROUTINE)(IN PVOID Base, IN OUT PVOID* CommitAddress,
                                                   IN OUT PSIZE_T CommitSize);

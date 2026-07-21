@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/BitField.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <array>
 
 namespace ControllerEmu
 {

@@ -3,10 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
-#include <memory>
-#include <optional>
-#include <string>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -19,6 +15,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace ExpansionInterface
 {

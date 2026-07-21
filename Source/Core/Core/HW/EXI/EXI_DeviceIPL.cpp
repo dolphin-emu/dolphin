@@ -3,9 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 
-#include <cstring>
-#include <string>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -17,7 +14,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Timer.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -28,8 +24,10 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
+
+#include <cstring>
+#include <string>
 
 namespace ExpansionInterface
 {

@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <algorithm>
-#include <cstddef>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/RangeSet.h"
 #include "Core/PowerPC/PPCTables.h"
+
+#include <cstddef>
+#include <vector>
 
 class PPCSymbolDB;
 

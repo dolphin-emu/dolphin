@@ -3,26 +3,23 @@
 
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
-#include <algorithm>
-#include <bit>
-#include <mutex>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
-
 #include "Core/System.h"
-
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
 #include "VideoBackends/Metal/MTLPipeline.h"
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
-
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <bit>
+#include <mutex>
 
 static constexpr u32 PERF_QUERY_BUFFER_SIZE = 512;
 

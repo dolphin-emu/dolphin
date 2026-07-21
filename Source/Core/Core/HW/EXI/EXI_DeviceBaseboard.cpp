@@ -3,24 +3,23 @@
 
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 
-#include <numeric>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/BitUtils.h"
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <numeric>
+#include <string>
 
 static bool s_interrupt_set = false;
 static u32 s_irq_timer = 0;

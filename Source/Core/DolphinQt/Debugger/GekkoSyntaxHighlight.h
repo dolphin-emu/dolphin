@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/Assembler/AssemblerShared.h"
+
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
 #include <optional>
-
-#include "Common/Assembler/AssemblerShared.h"
 
 enum class HighlightFormat
 {

@@ -3,19 +3,20 @@
 
 #include "Core/TitleDatabase.h"
 
-#include <cstddef>
-#include <fstream>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-
-#include <fmt/format.h>
-
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
+
+#include <fmt/format.h>
+
+#include <cstddef>
+#include <fstream>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 
 namespace Core
 {

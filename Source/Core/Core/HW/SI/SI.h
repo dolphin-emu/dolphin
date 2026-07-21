@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <memory>
-
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+
+#include <array>
+#include <memory>
 
 class PointerWrap;
 

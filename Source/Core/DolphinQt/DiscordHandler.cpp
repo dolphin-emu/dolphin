@@ -5,16 +5,14 @@
 
 #include "DolphinQt/DiscordHandler.h"
 
-#include <chrono>
+#include "Common/Thread.h"
+#include "DolphinQt/DiscordJoinRequestDialog.h"
+#include "DolphinQt/QtUtils/RunOnObject.h"
+#include "UICommon/DiscordPresence.h"
 
 #include <QApplication>
 
-#include "Common/Thread.h"
-
-#include "UICommon/DiscordPresence.h"
-
-#include "DolphinQt/DiscordJoinRequestDialog.h"
-#include "DolphinQt/QtUtils/RunOnObject.h"
+#include <chrono>
 
 DiscordHandler::DiscordHandler(QWidget* parent) : QObject{parent}, m_parent{parent}
 {

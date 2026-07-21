@@ -3,10 +3,10 @@
 
 #include "VideoBackends/OGL/OGLBoundingBox.h"
 
-#include <cstring>
-
 #include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoCommon/DriverDetails.h"
+
+#include <cstring>
 
 namespace OGL
 {

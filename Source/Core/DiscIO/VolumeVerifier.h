@@ -3,20 +3,20 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Core/IOS/ES/Formats.h"
+#include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Volume.h"
+
+#include <mbedtls/md5.h>
+
 #include <future>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include <mbedtls/md5.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Core/IOS/ES/Formats.h"
-#include "DiscIO/DiscScrubber.h"
-#include "DiscIO/Volume.h"
 
 // To be used as follows:
 //

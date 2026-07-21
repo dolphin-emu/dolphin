@@ -5,15 +5,16 @@
 
 #include "AudioCommon/OpenALStream.h"
 
-#include <windows.h>
-#include <climits>
-#include <cstring>
-#include <thread>
-
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
+
+#include <windows.h>
+
+#include <climits>
+#include <cstring>
+#include <thread>
 
 static HMODULE s_openal_dll = nullptr;
 

@@ -3,16 +3,16 @@
 
 #include "Core/IOS/USB/USBV4.h"
 
-#include <algorithm>
-#include <functional>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <functional>
+#include <string>
 
 namespace IOS::HLE::USB
 {

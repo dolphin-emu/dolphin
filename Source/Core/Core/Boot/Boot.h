@@ -3,21 +3,19 @@
 
 #pragma once
 
-#include <cstdlib>
+#include "Common/CommonTypes.h"
+#include "Core/IOS/IOSC.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionParser.h"
+#include "DiscIO/VolumeDisc.h"
+#include "DiscIO/VolumeWad.h"
+
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/IOSC.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/RiivolutionParser.h"
-#include "DiscIO/VolumeDisc.h"
-#include "DiscIO/VolumeWad.h"
 
 class PPCSymbolDB;
 

@@ -3,18 +3,12 @@
 
 #include "Core/PowerPC/PowerPC.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
 #include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -29,6 +23,11 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <cstring>
 
 namespace PowerPC
 {

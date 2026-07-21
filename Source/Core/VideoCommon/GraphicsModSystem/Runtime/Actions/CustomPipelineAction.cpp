@@ -6,7 +6,6 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/System.h"
-
 #include "VideoCommon/Resources/CustomResourceManager.h"
 
 std::unique_ptr<CustomPipelineAction>

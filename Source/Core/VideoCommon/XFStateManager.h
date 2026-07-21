@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/BitSet.h"
+
+#include <array>
 
 class PointerWrap;
 

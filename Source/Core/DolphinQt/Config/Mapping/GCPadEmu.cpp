@@ -3,13 +3,12 @@
 
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 
-#include <QGridLayout>
-#include <QGroupBox>
-
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
-
 #include "InputCommon/InputConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
 
 GCPadEmu::GCPadEmu(MappingWindow* window, SubType sub_type) : MappingWidget(window)
 {

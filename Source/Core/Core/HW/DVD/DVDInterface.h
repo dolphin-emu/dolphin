@@ -3,17 +3,16 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+#include "Common/CommonTypes.h"
+#include "Core/HW/StreamADPCM.h"
+
 #include <array>
 #include <memory>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/BitField.h"
-#include "Common/CommonTypes.h"
-
-#include "Core/HW/StreamADPCM.h"
 
 class PointerWrap;
 namespace Core

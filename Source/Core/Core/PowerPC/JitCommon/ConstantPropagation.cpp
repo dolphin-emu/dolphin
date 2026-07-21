@@ -3,11 +3,11 @@
 
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 
-#include <bit>
-
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PPCTables.h"
+
+#include <bit>
 
 namespace JitCommon
 {

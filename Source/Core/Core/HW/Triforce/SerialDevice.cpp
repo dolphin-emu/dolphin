@@ -3,10 +3,10 @@
 
 #include "Core/HW/Triforce/SerialDevice.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+
+#include <algorithm>
 
 namespace Triforce
 {

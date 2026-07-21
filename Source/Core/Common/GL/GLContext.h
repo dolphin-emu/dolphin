@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
+
 #include <array>
 #include <memory>
 #include <string>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "Common/WindowSystemInfo.h"
 
 class GLContext
 {

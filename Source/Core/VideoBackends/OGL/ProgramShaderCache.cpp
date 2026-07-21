@@ -3,14 +3,6 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
-#include <array>
-#include <atomic>
-#include <fstream>
-#include <memory>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -20,22 +12,27 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Version.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
-
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+
+#include <array>
+#include <atomic>
+#include <fstream>
+#include <memory>
+#include <string>
 
 namespace OGL
 {

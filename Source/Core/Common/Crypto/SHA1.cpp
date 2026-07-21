@@ -3,28 +3,28 @@
 
 #include "SHA1.h"
 
-#include <algorithm>
-#include <array>
-#include <memory>
-
-#include <fmt/ranges.h>
-#include <mbedtls/sha1.h>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+#include <fmt/ranges.h>
+#include <mbedtls/sha1.h>
 
 #ifdef _MSC_VER
 #include <intrin.h>
 #else
 #ifdef _M_X86_64
 #include <immintrin.h>
-#elif defined(_M_ARM_64)
+#elifdef _M_ARM_64
 #include <arm_acle.h>
 #include <arm_neon.h>
 #endif
 #endif
+
+#include <algorithm>
+#include <array>
+#include <memory>
 
 #ifdef _MSC_VER
 #define ATTRIBUTE_TARGET(x)

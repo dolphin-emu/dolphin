@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/Event.h"
+#include "Common/Functional.h"
+
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-
-#include "Common/Event.h"
-#include "Common/Functional.h"
 
 namespace Common
 {

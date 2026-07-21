@@ -3,14 +3,14 @@
 
 #include "DolphinQt/Config/GameConfigHighlighter.h"
 
+#include "DolphinQt/Settings.h"
+
 #include <QBrush>
 #include <QColor>
 #include <QRegularExpression>
 #include <QTextBlock>
 #include <QTextCharFormat>
 #include <QTextDocument>
-
-#include "DolphinQt/Settings.h"
 
 struct HighlightingRule
 {

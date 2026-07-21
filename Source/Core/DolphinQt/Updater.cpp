@@ -3,8 +3,9 @@
 
 #include "DolphinQt/Updater.h"
 
-#include <cstdlib>
-#include <utility>
+#include "Common/Version.h"
+#include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/Settings.h"
 
 #include <QCheckBox>
 #include <QDialog>
@@ -14,10 +15,8 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
-#include "Common/Version.h"
-
-#include "DolphinQt/QtUtils/RunOnObject.h"
-#include "DolphinQt/Settings.h"
+#include <cstdlib>
+#include <utility>
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 

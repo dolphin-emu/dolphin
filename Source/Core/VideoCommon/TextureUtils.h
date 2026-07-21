@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <string>
 #include <unordered_set>
-
-#include "Common/CommonTypes.h"
 
 class AbstractTexture;
 

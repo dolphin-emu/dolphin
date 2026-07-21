@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -13,7 +10,9 @@
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
-#include "VideoCommon/VideoEvents.h"
+
+#include <memory>
+#include <vector>
 
 struct CustomPixelShaderContents;
 class CustomShaderCache;

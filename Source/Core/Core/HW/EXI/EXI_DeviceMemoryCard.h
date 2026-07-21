@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Core/HW/EXI/EXI_Device.h"
+
 #include <array>
 #include <functional>
 #include <memory>
 #include <string>
 #include <utility>
-
-#include "Core/HW/EXI/EXI_Device.h"
 
 class MemoryCardBase;
 class PointerWrap;

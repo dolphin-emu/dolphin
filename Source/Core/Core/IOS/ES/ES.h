@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <array>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
+
+#include <array>
+#include <span>
+#include <string>
+#include <vector>
 
 class PointerWrap;
 

@@ -3,15 +3,15 @@
 
 #include "DiscIO/WiiSaveBanner.h"
 
-#include <iterator>
-#include <string>
-#include <vector>
-
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+
+#include <iterator>
+#include <string>
+#include <vector>
 
 namespace DiscIO
 {

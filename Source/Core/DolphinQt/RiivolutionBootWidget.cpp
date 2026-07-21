@@ -3,9 +3,13 @@
 
 #include "DolphinQt/RiivolutionBootWidget.h"
 
-#include <unordered_map>
-
-#include <fmt/format.h>
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/GameModDescriptor.h"
+#include "DiscIO/RiivolutionParser.h"
+#include "DiscIO/RiivolutionPatcher.h"
+#include "DolphinQt/Config/HardcoreWarningWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -20,14 +24,9 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
+#include <fmt/format.h>
 
-#include "Common/FileSearch.h"
-#include "Common/FileUtil.h"
-#include "DiscIO/GameModDescriptor.h"
-#include "DiscIO/RiivolutionParser.h"
-#include "DiscIO/RiivolutionPatcher.h"
-#include "DolphinQt/Config/HardcoreWarningWidget.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include <unordered_map>
 
 struct GuiRiivolutionPatchIndex
 {

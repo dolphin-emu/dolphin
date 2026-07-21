@@ -3,6 +3,13 @@
 
 #include "DolphinQt/NANDRepairDialog.h"
 
+#include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/TitleDatabase.h"
+#include "Core/WiiUtils.h"
+#include "DiscIO/WiiSaveBanner.h"
+#include "DolphinQt/Resources.h"
+
 #include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -13,15 +20,7 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QVBoxLayout>
-
 #include <fmt/format.h>
-
-#include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
-#include "Core/TitleDatabase.h"
-#include "Core/WiiUtils.h"
-#include "DiscIO/WiiSaveBanner.h"
-#include "DolphinQt/Resources.h"
 
 NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWidget* parent)
     : QDialog(parent)

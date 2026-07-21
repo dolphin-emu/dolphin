@@ -3,7 +3,11 @@
 
 #include "DolphinQt/ResourcePackManager.h"
 
-#include <string>
+#include "Common/FileUtil.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "UICommon/ResourcePack/Manager.h"
+#include "UICommon/ResourcePack/ResourcePack.h"
 
 #include <QDesktopServices>
 #include <QDialogButtonBox>
@@ -13,11 +17,7 @@
 #include <QTableWidget>
 #include <QUrl>
 
-#include "Common/FileUtil.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "UICommon/ResourcePack/Manager.h"
-#include "UICommon/ResourcePack/ResourcePack.h"
+#include <string>
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
 {

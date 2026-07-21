@@ -1,17 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
-
-#include <cstring>
 
 #ifndef _WIN32
 #include <unistd.h>
-#endif
-
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-
 #ifdef __linux__
 #include <fcntl.h>
 #include <linux/if_tun.h>
@@ -19,6 +14,9 @@
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #endif
+#endif
+
+#include <cstring>
 
 namespace ExpansionInterface
 {

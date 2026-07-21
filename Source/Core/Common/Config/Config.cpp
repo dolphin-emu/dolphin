@@ -3,6 +3,8 @@
 
 #include "Common/Config/Config.h"
 
+#include "Common/Projection.h"
+
 #include <algorithm>
 #include <atomic>
 #include <map>
@@ -10,8 +12,6 @@
 #include <shared_mutex>
 #include <utility>
 #include <vector>
-
-#include "Common/Projection.h"
 
 namespace Config
 {

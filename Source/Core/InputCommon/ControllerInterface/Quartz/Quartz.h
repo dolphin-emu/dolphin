@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string>
-
 #include "InputCommon/ControllerInterface/InputBackend.h"
+
+#include <string>
 
 namespace ciface::Quartz
 {

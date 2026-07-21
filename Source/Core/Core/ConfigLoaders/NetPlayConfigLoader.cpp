@@ -3,14 +3,8 @@
 
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 
-#include <memory>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -22,8 +16,12 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/NetPlayProto.h"
-
 #include "InputCommon/GCAdapter.h"
+
+#include <fmt/format.h>
+
+#include <memory>
+#include <utility>
 
 namespace ConfigLoaders
 {

@@ -3,12 +3,12 @@
 
 #include "VideoCommon/ShaderGenCommon.h"
 
-#include <fmt/format.h>
-
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
 
 ShaderHostConfig ShaderHostConfig::GetCurrent()
 {

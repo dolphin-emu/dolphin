@@ -3,15 +3,14 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <string>
-
-#include "Common/Common.h"
-#include "Common/CommonTypes.h"
-
-#include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu
 {

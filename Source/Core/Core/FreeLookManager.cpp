@@ -3,22 +3,19 @@
 
 #include "Core/FreeLookManager.h"
 
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Core.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/InputConfig.h"
-
 #include "VideoCommon/FreeLookCamera.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 namespace
 {

@@ -3,16 +3,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Flag.h"
+#include "Core/HW/EXI/EXI_Device.h"
+
 #include <SFML/Network.hpp>
+
 #include <deque>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
-
-#include "Common/CommonTypes.h"
-#include "Common/Flag.h"
-#include "Core/HW/EXI/EXI_Device.h"
 
 namespace ExpansionInterface
 {

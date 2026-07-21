@@ -3,9 +3,9 @@
 
 #include "Common/Matrix.h"
 
-#include <cmath>
-
 #include "Common/MathUtil.h"
+
+#include <cmath>
 
 namespace
 {

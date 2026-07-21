@@ -3,16 +3,15 @@
 
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
-#include <array>
-#include <string>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/NandPaths.h"
-
 #include "Core/HW/GCMemcard/GCMemcard.h"
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace Memcard
 {

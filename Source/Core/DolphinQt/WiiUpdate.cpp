@@ -3,22 +3,19 @@
 
 #include "DolphinQt/WiiUpdate.h"
 
-#include <future>
+#include "Common/Assert.h"
+#include "Common/Flag.h"
+#include "Core/WiiUtils.h"
+#include "DiscIO/NANDImporter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include <QCloseEvent>
 #include <QObject>
 #include <QProgressDialog>
 #include <QPushButton>
 
-#include "Common/Assert.h"
-#include "Common/Flag.h"
-
-#include "Core/WiiUtils.h"
-
-#include "DiscIO/NANDImporter.h"
-
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include <future>
 
 namespace WiiUpdate
 {

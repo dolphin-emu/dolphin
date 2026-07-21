@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include <jni.h>
+
+#include <memory>
 
 namespace ciface::Core
 {

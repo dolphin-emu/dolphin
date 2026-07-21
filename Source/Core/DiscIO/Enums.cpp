@@ -3,13 +3,13 @@
 
 #include "DiscIO/Enums.h"
 
-#include <map>
-#include <string>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+
+#include <map>
+#include <string>
 
 namespace DiscIO
 {

@@ -3,17 +3,16 @@
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <algorithm>
+#include <array>
+#include <cstring>
 
 namespace Vulkan
 {

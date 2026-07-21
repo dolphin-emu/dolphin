@@ -3,17 +3,16 @@
 
 #include "VideoCommon/VertexLoader_Position.h"
 
-#include <limits>
-#include <type_traits>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/Swap.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <limits>
+#include <type_traits>
 
 namespace
 {

@@ -3,6 +3,39 @@
 
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 
+#include "Common/Config/Config.h"
+#include "Common/Logging/Log.h"
+#include "Common/TraversalClient.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/NetplaySettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/NetPlayCommon.h"
+#include "Core/NetPlayServer.h"
+#include "Core/SyncIdentifier.h"
+#include "Core/System.h"
+#include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
+#include "DolphinQt/NetPlay/ClickBlurLabel.h"
+#include "DolphinQt/NetPlay/GameDigestDialog.h"
+#include "DolphinQt/NetPlay/GameListDialog.h"
+#include "DolphinQt/NetPlay/PadMappingDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/GameCubePane.h"
+#include "UICommon/DiscordPresence.h"
+#include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
+#include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#endif
+
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
@@ -21,50 +54,12 @@
 #include <QSplitter>
 #include <QTableWidget>
 #include <QTextBrowser>
-
-#include <algorithm>
-#include <utility>
-
 #ifdef HAS_LIBMGBA
 #include <fmt/ranges.h>
 #endif
 
-#include "Common/Config/Config.h"
-#include "Common/Logging/Log.h"
-#include "Common/TraversalClient.h"
-#include "Core/NetPlayCommon.h"
-
-#include "Core/Boot/Boot.h"
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/NetplaySettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#ifdef HAS_LIBMGBA
-#include "Core/HW/GBACore.h"
-#endif
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/NetPlayServer.h"
-#include "Core/SyncIdentifier.h"
-#include "Core/System.h"
-
-#include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
-#include "DolphinQt/NetPlay/ClickBlurLabel.h"
-#include "DolphinQt/NetPlay/GameDigestDialog.h"
-#include "DolphinQt/NetPlay/GameListDialog.h"
-#include "DolphinQt/NetPlay/PadMappingDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/QtUtils/RunOnObject.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/GameCubePane.h"
-
-#include "UICommon/DiscordPresence.h"
-#include "UICommon/GameFile.h"
-#include "UICommon/UICommon.h"
-
-#include "VideoCommon/NetPlayChatUI.h"
-#include "VideoCommon/NetPlayGolfUI.h"
+#include <algorithm>
+#include <utility>
 
 namespace
 {

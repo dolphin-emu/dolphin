@@ -3,17 +3,17 @@
 
 #include "Core/Debugger/BranchWatch.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdio>
-#include <functional>
-
 #include "Common/Assert.h"
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/MMU.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdio>
+#include <functional>
 
 namespace Core
 {

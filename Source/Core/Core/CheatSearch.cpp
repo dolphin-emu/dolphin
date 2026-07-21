@@ -3,6 +3,16 @@
 
 #include "Core/CheatSearch.h"
 
+#include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/StringUtil.h"
+#include "Core/AchievementManager.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+
 #include <bit>
 #include <expected>
 #include <functional>
@@ -12,17 +22,6 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
-
-#include "Common/Align.h"
-#include "Common/Assert.h"
-#include "Common/StringUtil.h"
-
-#include "Core/AchievementManager.h"
-#include "Core/Core.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
 Cheats::DataType Cheats::GetDataType(const Cheats::SearchValue& value)
 {

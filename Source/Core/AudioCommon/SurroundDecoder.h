@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/FixedSizeQueue.h"
+
+#include <array>
+#include <memory>
 
 class DPL2FSDecoder;
 

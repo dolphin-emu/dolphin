@@ -3,13 +3,13 @@
 
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 
-#include <cstddef>
-#include <cstring>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+
+#include <cstddef>
+#include <cstring>
+#include <string>
 
 namespace
 {

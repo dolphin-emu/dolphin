@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/TypeUtils.h"
+
 #include <charconv>
 #include <concepts>
 #include <cstdarg>
@@ -19,9 +22,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/TypeUtils.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 

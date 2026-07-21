@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <atomic>
-
 #include <QObject>
+
+#include <atomic>
 
 // Singleton that talks to the Core via the interface defined in Core/Host.h.
 // Because Host_* calls might come from different threads than the MainWindow,

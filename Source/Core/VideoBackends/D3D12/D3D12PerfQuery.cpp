@@ -3,17 +3,16 @@
 
 #include "VideoBackends/D3D12/D3D12PerfQuery.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
 
 namespace DX12
 {

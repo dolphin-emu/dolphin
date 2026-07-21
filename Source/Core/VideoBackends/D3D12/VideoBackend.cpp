@@ -3,13 +3,9 @@
 
 #include "VideoBackends/D3D12/VideoBackend.h"
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
-
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12BoundingBox.h"
 #include "VideoBackends/D3D12/D3D12Gfx.h"
@@ -17,12 +13,13 @@
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
 #include "VideoBackends/D3D12/D3D12VertexManager.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <string>
 
 namespace DX12
 {

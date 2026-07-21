@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Core/NetPlayProto.h"
+
+#include <QDialog>
 
 class QCheckBox;
 class QGridLayout;

@@ -3,21 +3,19 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <optional>
-#include <tuple>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
-
+#include "Common/HookableEvent.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
-#include "VideoCommon/VideoEvents.h"
+
+#include <array>
+#include <memory>
+#include <tuple>
 
 class NativeVertexFormat;
 class PointerWrap;

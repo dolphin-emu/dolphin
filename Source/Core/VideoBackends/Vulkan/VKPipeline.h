@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <memory>
-
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractPipeline.h"
+
+#include <memory>
 
 namespace Vulkan
 {

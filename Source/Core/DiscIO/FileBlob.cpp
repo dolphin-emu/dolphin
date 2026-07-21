@@ -3,15 +3,15 @@
 
 #include "DiscIO/FileBlob.h"
 
+#include "Common/Assert.h"
+#include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Common/Assert.h"
-#include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 
 namespace DiscIO
 {

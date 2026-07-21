@@ -3,14 +3,13 @@
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 
-#include <fmt/format.h>
-
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-
 #include "VideoCommon/GraphicsModSystem/Constants.h"
+
+#include <fmt/format.h>
 
 std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& file_path,
                                                            Source source)

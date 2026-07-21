@@ -4,16 +4,15 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <cstddef>
-#include <memory>
-#include <string>
-
 #include "Common/Event.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
+
+#include <array>
+#include <atomic>
+#include <cstddef>
+#include <memory>
 
 class PointerWrap;
 

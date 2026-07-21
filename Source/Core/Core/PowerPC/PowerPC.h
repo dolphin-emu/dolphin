@@ -3,15 +3,7 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <span>
-#include <tuple>
-#include <type_traits>
-#include <vector>
-
 #include "Common/CommonTypes.h"
-
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -20,6 +12,12 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+
+#include <array>
+#include <cstddef>
+#include <span>
+#include <tuple>
+#include <type_traits>
 
 class CPUCoreBase;
 class PointerWrap;

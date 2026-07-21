@@ -3,14 +3,14 @@
 
 #include "Core/IOS/STM/STM.h"
 
-#include <functional>
-#include <memory>
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <functional>
+#include <memory>
 
 namespace IOS::HLE
 {

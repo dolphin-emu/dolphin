@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/DirectIOFile.h"
-
 #include "Core/HW/Triforce/ICCardReader.h"
 #include "Core/HW/Triforce/SerialDevice.h"
 

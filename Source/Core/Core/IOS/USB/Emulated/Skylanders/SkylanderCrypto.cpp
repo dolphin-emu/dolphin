@@ -3,12 +3,12 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
 
-#include <array>
-#include <span>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+#include <array>
+#include <span>
 
 namespace IOS::HLE::USB::SkylanderCrypto
 {

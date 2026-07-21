@@ -3,6 +3,9 @@
 
 #include "DolphinQt/NetPlay/ClickBlurLabel.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Random.h"
+
 #include <QChar>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
@@ -10,9 +13,6 @@
 #include <QStackedWidget>
 #include <QString>
 #include <QWidget>
-
-#include "Common/CommonTypes.h"
-#include "Common/Random.h"
 
 ClickBlurLabel::ClickBlurLabel(QWidget* parent)
     : QStackedWidget(parent), m_normal_label(new QLabel(this)), m_blurred_label(new QLabel(this))

@@ -3,14 +3,9 @@
 
 #include "VideoBackends/Vulkan/VKGfx.h"
 
-#include <cstddef>
-#include <cstdio>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -19,12 +14,15 @@
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
-
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <cstddef>
+#include <cstdio>
+#include <utility>
 
 namespace Vulkan
 {

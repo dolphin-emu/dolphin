@@ -3,22 +3,20 @@
 
 #include "VideoBackends/Software/TransformUnit.h"
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "VideoBackends/Software/NativeVertexFormat.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
 
 namespace TransformUnit
 {

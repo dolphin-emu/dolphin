@@ -1,11 +1,11 @@
+#include "Common/BitUtils.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
+
 #include <gtest/gtest.h>
 
 #include <array>
 #include <string_view>
-
-#include "Common/BitUtils.h"
-#include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
-#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
 using namespace IOS::HLE::USB::SkylanderCrypto;
 

@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <utility>
+#include "Common/Flag.h"
 
 #include <QObject>
 #include <QProgressDialog>
 #include <QString>
 
-#include "Common/Flag.h"
+#include <utility>
 
 class ParallelProgressDialog final : public QObject
 {

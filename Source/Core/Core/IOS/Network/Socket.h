@@ -3,6 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/Network/IP/Top.h"
+#include "Core/IOS/Network/SSL.h"
+
 #ifdef _WIN32
 #include <iphlpapi.h>
 #include <winsock2.h>
@@ -14,8 +21,8 @@ typedef pollfd pollfd_t;
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or   \
-    defined(__OpenBSD__) or defined(__HAIKU__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) ||   \
+    defined(__OpenBSD__) || defined(__HAIKU__)
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <net/if.h>
@@ -40,13 +47,6 @@ typedef struct pollfd pollfd_t;
 #include <string_view>
 #include <unordered_map>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/Network/IP/Top.h"
-#include "Core/IOS/Network/SSL.h"
 
 namespace IOS::HLE
 {

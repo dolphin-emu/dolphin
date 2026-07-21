@@ -3,12 +3,6 @@
 
 #include "Core/WiiRoot.h"
 
-#include <optional>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -28,6 +22,12 @@
 #include "Core/NetPlayClient.h"
 #include "Core/SysConf.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace Core
 {

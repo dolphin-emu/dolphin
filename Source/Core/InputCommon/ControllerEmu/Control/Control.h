@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "InputCommon/ControlReference/ControlReference.h"
+
 #include <memory>
 #include <string>
-
-#include "InputCommon/ControlReference/ControlReference.h"
 
 namespace ControllerEmu
 {

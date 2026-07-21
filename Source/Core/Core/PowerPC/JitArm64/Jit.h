@@ -3,20 +3,18 @@
 
 #pragma once
 
-#include <cstddef>
-#include <map>
-#include <optional>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/RangeSizeSet.h"
-
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+#include <cstddef>
+#include <map>
+#include <optional>
 
 class HostDisassembler;
 

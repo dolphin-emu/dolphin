@@ -3,17 +3,10 @@
 
 #include "Core/GeckoCode.h"
 
-#include <algorithm>
-#include <iterator>
-#include <mutex>
-#include <tuple>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -21,6 +14,12 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <iterator>
+#include <mutex>
+#include <tuple>
+#include <vector>
 
 namespace Gecko
 {

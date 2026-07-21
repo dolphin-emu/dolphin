@@ -3,12 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <fmt/format.h>
-#include <string>
+
 #include <winerror.h>
 #include <winrt/base.h>
 
-#include "Common/CommonTypes.h"
+#include <string>
 
 namespace Common
 {

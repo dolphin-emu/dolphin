@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
+
 #include <array>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
 struct BootParameters;
 

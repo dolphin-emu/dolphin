@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <QDialog>
 
 class BreakpointWidget;
 class QCheckBox;

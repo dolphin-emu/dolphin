@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Debug/Threads.h"
+
 #include <cstddef>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Debug/Threads.h"
 
 namespace Common::Debug
 {

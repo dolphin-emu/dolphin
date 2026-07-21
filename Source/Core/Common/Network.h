@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
+#if defined(__linux__) || defined(__HAIKU__)
+#include <sys/socket.h>
+#endif
+
 #include <array>
 #include <initializer_list>
 #include <optional>
@@ -11,12 +17,6 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
-
-#if defined(__linux__) || defined(__HAIKU__)
-#include <sys/socket.h>
-#endif
-
-#include "Common/CommonTypes.h"
 
 struct sockaddr_in;
 

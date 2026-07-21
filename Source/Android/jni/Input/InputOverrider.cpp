@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <jni.h>
-
 #include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
+
+#include <jni.h>
 
 extern "C" {
 

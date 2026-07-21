@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
+
+#include <array>
 
 constexpr std::array<u64, 57> double_test_values{
     // Special values

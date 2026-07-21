@@ -3,15 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
+
 #include <map>
 #include <mutex>
 #include <queue>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
-#include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
 // The maximum possible characters the portal can handle.
 // The status array is 32 bits and every character takes 2 bits.

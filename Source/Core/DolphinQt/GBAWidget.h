@@ -5,19 +5,17 @@
 
 #ifdef HAS_LIBMGBA
 
-#include <memory>
-#include <optional>
-#include <span>
-#include <string>
-#include <string_view>
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Core/HW/GBACore.h"
 
 #include <QImage>
 #include <QPoint>
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
-#include "Core/HW/GBACore.h"
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
 
 class QCloseEvent;
 class QContextMenuEvent;

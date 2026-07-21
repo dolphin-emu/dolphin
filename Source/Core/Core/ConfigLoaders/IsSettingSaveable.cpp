@@ -3,11 +3,11 @@
 
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
-#include <algorithm>
-#include <array>
-
 #include "Common/Contains.h"
 #include "Core/Config/WiimoteSettings.h"
+
+#include <algorithm>
+#include <array>
 
 namespace ConfigLoaders
 {

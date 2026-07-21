@@ -3,22 +3,20 @@
 
 #include "VideoBackends/Metal/MTLObjectCache.h"
 
-#include <map>
-#include <mutex>
-#include <optional>
-
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Metal/MTLPipeline.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoBackends/Metal/MTLVertexFormat.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <map>
+#include <mutex>
+#include <optional>
 
 MRCOwned<id<MTLDevice>> Metal::g_device;
 MRCOwned<id<MTLCommandQueue>> Metal::g_queue;

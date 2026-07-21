@@ -3,21 +3,20 @@
 
 #pragma once
 
-#include <atomic>
-#include <limits>
-#include <memory>
-#include <mutex>
-#include <type_traits>
-#include <vector>
-
 #include "Common/CommonTypes.h"
-
 #ifdef HAVE_CUBEB
 #include "AudioCommon/CubebUtils.h"
 
 struct cubeb;
 struct cubeb_stream;
 #endif
+
+#include <atomic>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <type_traits>
+#include <vector>
 
 namespace IOS::HLE::USB
 {

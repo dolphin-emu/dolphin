@@ -3,22 +3,15 @@
 
 #include "Core/HW/DVD/DVDInterface.h"
 
-#include <algorithm>
-#include <array>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "AudioCommon/AudioCommon.h"
-
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/SoundStream.h"
 #include "Common/Align.h"
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -39,14 +32,19 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <algorithm>
+#include <array>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 // The minimum time it takes for the DVD drive to process a command (in microseconds)
 constexpr u64 MINIMUM_COMMAND_LATENCY_US = 300;

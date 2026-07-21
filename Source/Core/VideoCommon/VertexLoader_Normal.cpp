@@ -3,15 +3,14 @@
 
 #include "VideoCommon/VertexLoader_Normal.h"
 
-#include <array>
-#include <type_traits>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
+#include <array>
+#include <type_traits>
 
 // warning: mapping buffer should be disabled to use this
 #define LOG_NORM()  // PRIM_LOG("norm: {} {} {}, ", ((float*)g_vertex_manager_write_ptr)[-3],

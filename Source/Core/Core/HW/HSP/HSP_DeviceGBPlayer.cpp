@@ -3,23 +3,23 @@
 
 #include "Core/HW/HSP/HSP_DeviceGBPlayer.h"
 
-#include <cstring>
-
-#if defined(HAS_LIBMGBA)
-#include "Core/HW/GBACore.h"
-
-#include <mgba/internal/gba/gba.h>
-#endif
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#endif
+
+#ifdef HAS_LIBMGBA
+#include <mgba/internal/gba/gba.h>
+#endif
+
+#include <cstring>
 
 namespace
 {

@@ -3,14 +3,14 @@
 
 #include "Common/JitRegister.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+
+#include <fmt/format.h>
+#ifdef USE_VTUNE
+#include <jitprofiling.h>
+#pragma comment(lib, "jitprofiling.lib")
+#endif
 
 #ifdef _WIN32
 #include <process.h>
@@ -18,10 +18,9 @@
 #include <unistd.h>
 #endif
 
-#if defined USE_VTUNE
-#include <jitprofiling.h>
-#pragma comment(lib, "jitprofiling.lib")
-#endif
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
 static File::IOFile s_perf_map_file;
 

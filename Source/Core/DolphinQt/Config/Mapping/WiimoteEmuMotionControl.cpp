@@ -3,15 +3,14 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
 
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "InputCommon/InputConfig.h"
 
 WiimoteEmuMotionControl::WiimoteEmuMotionControl(MappingWindow* window) : MappingWidget(window)
 {

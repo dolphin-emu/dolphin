@@ -3,6 +3,18 @@
 
 #include "DolphinQt/Debugger/AssemblerWidget.h"
 
+#include "Common/Assert.h"
+#include "Common/FileUtil.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/AssemblyEditor.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
@@ -24,23 +36,9 @@
 #include <QTextEdit>
 #include <QToolBar>
 #include <QToolButton>
-
-#include <filesystem>
 #include <fmt/format.h>
 
-#include "Common/Assert.h"
-#include "Common/FileUtil.h"
-
-#include "Core/Core.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Debugger/AssemblyEditor.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
+#include <filesystem>
 
 namespace
 {

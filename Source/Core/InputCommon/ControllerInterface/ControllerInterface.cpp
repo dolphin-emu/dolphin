@@ -3,12 +3,9 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
 #endif
@@ -36,6 +33,8 @@
 #ifdef CIFACE_USE_STEAMDECK
 #include "InputCommon/ControllerInterface/SteamDeck/SteamDeck.h"
 #endif
+
+#include <algorithm>
 
 ControllerInterface g_controller_interface;
 

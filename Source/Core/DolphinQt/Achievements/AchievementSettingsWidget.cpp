@@ -4,25 +4,24 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QString>
-#include <QVBoxLayout>
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-#include "UICommon/DiscordPresence.h"
-
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+#include "UICommon/DiscordPresence.h"
+
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QString>
+#include <QVBoxLayout>
 
 AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(parent)
 {

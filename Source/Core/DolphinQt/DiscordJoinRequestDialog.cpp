@@ -5,15 +5,14 @@
 
 #include "DolphinQt/DiscordJoinRequestDialog.h"
 
+#include "Common/HttpRequest.h"
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QPixmap>
 #include <QPushButton>
-
 #include <discord_rpc.h>
 #include <fmt/format.h>
-
-#include "Common/HttpRequest.h"
 
 DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::string& id,
                                                    const std::string& discord_tag,

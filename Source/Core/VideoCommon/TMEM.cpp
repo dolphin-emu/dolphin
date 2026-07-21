@@ -4,10 +4,10 @@
 
 #include "VideoCommon/TMEM.h"
 
-#include <array>
-
 #include "Common/ChunkFile.h"
 #include "VideoCommon/BPMemory.h"
+
+#include <array>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //

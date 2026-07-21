@@ -3,11 +3,11 @@
 
 #include "DiscIO/SplitFileBlob.h"
 
+#include <fmt/format.h>
+
 #include <memory>
 #include <string_view>
 #include <vector>
-
-#include <fmt/format.h>
 
 namespace DiscIO
 {

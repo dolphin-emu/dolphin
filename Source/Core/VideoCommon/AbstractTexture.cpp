@@ -3,15 +3,15 @@
 
 #include "VideoCommon/AbstractTexture.h"
 
-#include <algorithm>
-
-#include <imgui.h>
-
 #include "Common/Assert.h"
 #include "Common/Image.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
+
+#include <imgui.h>
+
+#include <algorithm>
 
 static_assert(std::is_same_v<AbstractTexture::imgui_texture_id, ImTextureID>,
               "The typedef should match ImTextureID in imgui");

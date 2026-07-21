@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <windows.h>
-
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
+
+#include <windows.h>
 
 namespace ciface::DInput
 {

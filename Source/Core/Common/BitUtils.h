@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <bit>
 #include <climits>
@@ -12,8 +14,6 @@
 #include <span>
 #include <type_traits>
 #include <utility>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

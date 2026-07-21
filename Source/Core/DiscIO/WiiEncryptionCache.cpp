@@ -3,15 +3,15 @@
 
 #include "DiscIO/WiiEncryptionCache.h"
 
-#include <array>
-#include <cstring>
-#include <limits>
-#include <memory>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/VolumeWii.h"
+
+#include <array>
+#include <cstring>
+#include <limits>
+#include <memory>
 
 namespace DiscIO
 {

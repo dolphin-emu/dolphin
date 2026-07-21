@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/RenderState.h"
+
+#include <memory>
 
 namespace OGL
 {

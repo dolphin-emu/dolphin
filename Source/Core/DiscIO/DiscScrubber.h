@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include <vector>
 #include "Common/CommonTypes.h"
+
+#include <vector>
 
 namespace File
 {

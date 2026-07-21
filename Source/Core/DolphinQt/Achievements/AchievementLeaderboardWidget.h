@@ -4,9 +4,9 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-#include <QWidget>
-
 #include "Core/AchievementManager.h"
+
+#include <QWidget>
 
 class QGroupBox;
 class QGridLayout;

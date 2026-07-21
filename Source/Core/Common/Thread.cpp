@@ -3,6 +3,11 @@
 
 #include "Common/Thread.h"
 
+#include "Common/CommonTypes.h"
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <processthreadsapi.h>
@@ -24,11 +29,6 @@
 #ifdef USE_VTUNE
 #include <ittnotify.h>
 #pragma comment(lib, "libittnotify.lib")
-#endif
-
-#include "Common/CommonTypes.h"
-#ifdef _WIN32
-#include "Common/StringUtil.h"
 #endif
 
 namespace Common

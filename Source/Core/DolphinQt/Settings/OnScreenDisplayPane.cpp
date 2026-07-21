@@ -3,17 +3,16 @@
 
 #include "DolphinQt/Settings/OnScreenDisplayPane.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
-
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/MainSettings.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 
 OnScreenDisplayPane::OnScreenDisplayPane(QWidget* parent) : QWidget(parent)
 {

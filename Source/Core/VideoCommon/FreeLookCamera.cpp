@@ -3,13 +3,13 @@
 
 #include "VideoCommon/FreeLookCamera.h"
 
-#include <algorithm>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/Config/Config.h"
 #include "Core/Core.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
 
 FreeLookCamera g_freelook_camera;
 

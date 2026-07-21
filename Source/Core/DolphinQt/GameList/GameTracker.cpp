@@ -3,22 +3,17 @@
 
 #include "DolphinQt/GameList/GameTracker.h"
 
+#include "Common/Config/Config.h"
+#include "Core/Config/UISettings.h"
+#include "DiscIO/DirectoryBlob.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/GameFile.h"
+
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
-
-#include "Common/Config/Config.h"
-
-#include "Core/Config/UISettings.h"
-
-#include "DiscIO/DirectoryBlob.h"
-
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-
-#include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
 
 // NOTE: Qt likes to be case-sensitive here even though it shouldn't be thus this ugly regex hack
 static const QStringList game_filters{

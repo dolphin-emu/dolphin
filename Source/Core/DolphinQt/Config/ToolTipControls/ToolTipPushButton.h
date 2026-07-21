@@ -4,10 +4,9 @@
 #pragma once
 
 #include "DolphinQt/Config/ToolTipControls/ToolTipWidget.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include <QPushButton>
-
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 class ToolTipPushButton : public ToolTipWidget<NonDefaultQPushButton>
 {

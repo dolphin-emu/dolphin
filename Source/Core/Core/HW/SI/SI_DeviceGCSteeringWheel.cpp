@@ -3,11 +3,11 @@
 
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 
-#include <algorithm>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCPad.h"
+
+#include <algorithm>
 
 namespace SerialInterface
 {

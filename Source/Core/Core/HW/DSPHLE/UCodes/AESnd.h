@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+
+#include <array>
 
 namespace DSP
 {

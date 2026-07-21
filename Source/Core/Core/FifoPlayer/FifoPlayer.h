@@ -3,18 +3,16 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "Common/Assert.h"
 #include "Common/Config/Config.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
+
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 class FifoDataFile;
 struct MemoryUpdate;

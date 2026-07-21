@@ -3,14 +3,14 @@
 
 #include "DolphinQt/QtUtils/AnalyticsPrompt.h"
 
-#include <QMessageBox>
-#include <QObject>
-#include <QWidget>
-
 #include "Core/Config/MainSettings.h"
 #include "Core/DolphinAnalytics.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
+
+#include <QMessageBox>
+#include <QObject>
+#include <QWidget>
 
 void ShowAnalyticsPrompt(QWidget* parent)
 {

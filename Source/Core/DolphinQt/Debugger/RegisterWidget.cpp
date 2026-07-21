@@ -3,17 +3,6 @@
 
 #include "DolphinQt/Debugger/RegisterWidget.h"
 
-#include <utility>
-
-#include <QActionGroup>
-#include <QHeaderView>
-#include <QMenu>
-#include <QMessageBox>
-#include <QTableWidget>
-#include <QVBoxLayout>
-
-#include <fmt/format.h>
-
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -22,6 +11,16 @@
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
+
+#include <QActionGroup>
+#include <QHeaderView>
+#include <QMenu>
+#include <QMessageBox>
+#include <QTableWidget>
+#include <QVBoxLayout>
+#include <fmt/format.h>
+
+#include <utility>
 
 RegisterWidget::RegisterWidget(QWidget* parent)
     : QDockWidget(parent), m_system(Core::System::GetInstance())

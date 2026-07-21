@@ -1,21 +1,22 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <gtest/gtest.h>
-
-#include <array>
-#include <bitset>
-#include <string>
+#include "Core/Core.h"
 
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "UICommon/UICommon.h"
+
+#include <gtest/gtest.h>
+
+#include <array>
+#include <bitset>
+#include <string>
 
 // Numbers are chosen randomly to make sure the correct one is given.
 static constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};

@@ -4,9 +4,9 @@
 
 #include "Core/DSP/DSPCore.h"
 
-#include <cstddef>
-
 #include "Common/CommonTypes.h"
+
+#include <cstddef>
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 namespace DSP

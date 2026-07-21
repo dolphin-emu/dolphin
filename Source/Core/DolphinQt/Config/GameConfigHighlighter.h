@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include <QObject>
+
+#include <vector>
 
 struct HighlightingRule;
 

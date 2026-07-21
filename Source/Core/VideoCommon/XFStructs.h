@@ -3,10 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoCommon/CPMemory.h"
+
 #include <string>
 #include <utility>
-
-#include "VideoCommon/XFMemory.h"
 
 std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value);
 std::string GetXFMemName(u32 address);

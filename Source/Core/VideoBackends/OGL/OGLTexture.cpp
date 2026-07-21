@@ -7,10 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLGfx.h"
-
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL

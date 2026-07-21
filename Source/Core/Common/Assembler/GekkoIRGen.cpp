@@ -3,6 +3,12 @@
 
 #include "Common/Assembler/GekkoIRGen.h"
 
+#include "Common/Assembler/AssemblerShared.h"
+#include "Common/Assembler/GekkoParser.h"
+#include "Common/Assert.h"
+
+#include <fmt/format.h>
+
 #include <bit>
 #include <functional>
 #include <map>
@@ -11,12 +17,6 @@
 #include <stack>
 #include <variant>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/Assembler/AssemblerShared.h"
-#include "Common/Assembler/GekkoParser.h"
-#include "Common/Assert.h"
 
 namespace Common::GekkoAssembler::detail
 {

@@ -3,10 +3,6 @@
 
 #include "Core/HW/Triforce/ICCardReader.h"
 
-#include <numeric>
-
-#include <fmt/ranges.h>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/DirectIOFile.h"
@@ -14,9 +10,12 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVD/AMMediaboard.h"
+
+#include <fmt/ranges.h>
+
+#include <numeric>
 
 namespace
 {

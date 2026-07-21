@@ -3,16 +3,10 @@
 
 #include "DiscIO/Blob.h"
 
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <utility>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
 #include "Common/MsgHandler.h"
-
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DirectoryBlob.h"
@@ -22,6 +16,11 @@
 #include "DiscIO/TGCBlob.h"
 #include "DiscIO/WIABlob.h"
 #include "DiscIO/WbfsBlob.h"
+
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace DiscIO
 {

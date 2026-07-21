@@ -3,12 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
 
+#include "Common/Common.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+
 #include <algorithm>
 #include <string>
-
-#include "Common/Common.h"
-
-#include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu
 {

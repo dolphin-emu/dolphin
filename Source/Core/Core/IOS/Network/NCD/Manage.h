@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/NCD/WiiNetConfig.h"
+
+#include <string>
 
 namespace IOS::HLE
 {

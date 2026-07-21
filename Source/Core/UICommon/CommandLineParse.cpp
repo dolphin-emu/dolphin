@@ -3,18 +3,18 @@
 
 #include "UICommon/CommandLineParse.h"
 
+#include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
+#include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
+
+#include <cpp-optparse/OptionParser.h>
+
 #include <list>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
-
-#include <cpp-optparse/OptionParser.h>
-
-#include "Common/Config/Config.h"
-#include "Common/StringUtil.h"
-#include "Common/Version.h"
-#include "Core/Config/MainSettings.h"
 
 namespace CommandLineParse
 {

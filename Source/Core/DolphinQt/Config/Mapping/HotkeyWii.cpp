@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGroupBox>
 #include <QHBoxLayout>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyWii::HotkeyWii(MappingWindow* window) : MappingWidget(window)
 {

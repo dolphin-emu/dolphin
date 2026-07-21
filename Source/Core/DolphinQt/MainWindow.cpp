@@ -3,44 +3,11 @@
 
 #include "DolphinQt/MainWindow.h"
 
-#include <QApplication>
-#include <QCloseEvent>
-#include <QDateTime>
-#include <QDesktopServices>
-#include <QDir>
-#include <QDragEnterEvent>
-#include <QDropEvent>
-#include <QFileInfo>
-#include <QIcon>
-#include <QMimeData>
-#include <QStackedWidget>
-#include <QStyleHints>
-#include <QVBoxLayout>
-#include <QWindow>
-
-#include <fmt/format.h>
-
-#include <future>
-#include <optional>
-#include <utility>
-#include <variant>
-
-#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
-#include <signal.h>
-
-#include "QtUtils/SignalDaemon.h"
-#endif
-
-#ifndef _WIN32
-#include <qpa/qplatformnativeinterface.h>
-#endif
-
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -68,11 +35,9 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
-
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/RiivolutionPatcher.h"
-
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/CheatsManager.h"
@@ -125,21 +90,49 @@
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 #include "DolphinQt/ToolBar.h"
 #include "DolphinQt/WiiUpdate.h"
-
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/ResourcePack/Manager.h"
 #include "UICommon/ResourcePack/ResourcePack.h"
-
 #include "UICommon/UICommon.h"
-
 #include "VideoCommon/NetPlayChatUI.h"
-
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include "DolphinQt/QtUtils/SignalDaemon.h"
+#endif
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
 // This #define within X11/X.h conflicts with our WiimoteSource enum.
 #undef None
 #endif
+
+#include <QApplication>
+#include <QCloseEvent>
+#include <QDateTime>
+#include <QDesktopServices>
+#include <QDir>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QFileInfo>
+#include <QIcon>
+#include <QMimeData>
+#include <QStackedWidget>
+#include <QStyleHints>
+#include <QVBoxLayout>
+#include <QWindow>
+#include <fmt/format.h>
+#ifndef _WIN32
+#include <qpa/qplatformnativeinterface.h>
+#endif
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+
+#include <future>
+#include <optional>
+#include <utility>
+#include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 void MainWindow::OnSignal()

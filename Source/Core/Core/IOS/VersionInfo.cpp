@@ -3,12 +3,12 @@
 
 #include "Core/IOS/VersionInfo.h"
 
-#include <algorithm>
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/Formats.h"
+
+#include <algorithm>
+#include <array>
 
 namespace IOS::HLE
 {

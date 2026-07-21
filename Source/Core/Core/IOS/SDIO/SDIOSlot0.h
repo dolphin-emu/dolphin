@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+
+#include <array>
+#include <string>
 
 class PointerWrap;
 

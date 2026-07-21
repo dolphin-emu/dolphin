@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <utility>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoaderBase.h"
+
+#include <utility>
 
 enum class VertexComponentFormat;
 enum class ComponentFormat;

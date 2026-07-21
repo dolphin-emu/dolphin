@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
+
+#include <string>
+#include <vector>
 
 namespace Core
 {

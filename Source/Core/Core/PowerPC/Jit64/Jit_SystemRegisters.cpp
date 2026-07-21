@@ -8,10 +8,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/x64Emitter.h"
-
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"

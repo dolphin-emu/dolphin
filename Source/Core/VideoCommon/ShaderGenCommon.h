@@ -3,6 +3,15 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+#include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "Common/TypeUtils.h"
+#include "VideoCommon/AbstractShader.h"
+#include "VideoCommon/VideoCommon.h"
+
+#include <fmt/format.h>
+
 #include <cstring>
 #include <functional>
 #include <iterator>
@@ -10,17 +19,6 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/BitField.h"
-#include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
-#include "Common/StringUtil.h"
-#include "Common/TypeUtils.h"
-
-#include "VideoCommon/AbstractShader.h"
-#include "VideoCommon/VideoCommon.h"
 
 /**
  * Common interface for classes that need to go through the shader generation path

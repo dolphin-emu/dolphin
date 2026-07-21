@@ -1,24 +1,23 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
+#include "Core/IOS/Uids.h"
+
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <array>
 #include <string>
 #include <unordered_set>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
-#include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/FS/FileSystemProxy.h"
-#include "Core/IOS/Uids.h"
 
 namespace IOS::HLE
 {

@@ -4,12 +4,12 @@
 #include "VideoCommon/FrameDumper.h"
 
 #include "Common/Assert.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Image.h"
-
+#include "Common/Thread.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"

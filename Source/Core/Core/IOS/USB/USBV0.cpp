@@ -3,13 +3,13 @@
 
 #include "Core/IOS/USB/USBV0.h"
 
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/System.h"
+
+#include <vector>
 
 namespace IOS::HLE::USB
 {

@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+
 #include <chrono>
 #include <optional>
-
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 class CameraControllerInput;
 class InputConfig;

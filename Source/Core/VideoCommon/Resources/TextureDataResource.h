@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include "VideoCommon/Resources/Resource.h"
-
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/Resources/Resource.h"
 
 namespace VideoCommon
 {

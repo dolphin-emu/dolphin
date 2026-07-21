@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "Common/Flag.h"
+#include "Common/HttpRequest.h"
+#include "Common/SPSCQueue.h"
+
 #include <chrono>
 #include <memory>
 #include <shared_mutex>
@@ -11,12 +17,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
-#include "Common/HttpRequest.h"
-#include "Common/SPSCQueue.h"
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also

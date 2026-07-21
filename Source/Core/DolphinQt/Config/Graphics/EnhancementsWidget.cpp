@@ -3,18 +3,8 @@
 
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
-#include <utility>
-
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QVBoxLayout>
-
 #include "Common/CommonTypes.h"
-
 #include "Core/Config/GraphicsSettings.h"
-
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
@@ -24,11 +14,18 @@
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+
+#include <utility>
 
 EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
     : m_game_layer{gfx_pane->GetConfigLayer()}

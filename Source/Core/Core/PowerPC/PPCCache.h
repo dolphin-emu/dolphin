@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+
 #include <array>
 #include <optional>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 
 class JitInterface;
 namespace Memory

@@ -3,18 +3,18 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/USBScanner.h"
+
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/USBScanner.h"
 
 class PointerWrap;
 

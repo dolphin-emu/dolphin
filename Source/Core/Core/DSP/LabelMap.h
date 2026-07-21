@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace DSP
 {

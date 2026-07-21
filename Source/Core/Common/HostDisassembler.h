@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <cstddef>
 #include <iosfwd>
 #include <memory>
-
-#include "Common/CommonTypes.h"
 
 class HostDisassembler
 {

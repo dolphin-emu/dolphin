@@ -3,11 +3,11 @@
 
 #include "Core/Debugger/Dump.h"
 
-#include <cstdio>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+
+#include <cstdio>
+#include <string>
 
 CDump::CDump(const std::string& filename)
 {

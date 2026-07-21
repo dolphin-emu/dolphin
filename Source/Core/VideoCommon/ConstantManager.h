@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
+
+#include <array>
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 using float4 = std::array<float, 4>;

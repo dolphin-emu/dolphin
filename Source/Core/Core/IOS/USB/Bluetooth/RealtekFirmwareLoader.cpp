@@ -8,15 +8,14 @@
 
 #include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
 
-#include <algorithm>
-
 #include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
+
+#include <algorithm>
 
 namespace
 {

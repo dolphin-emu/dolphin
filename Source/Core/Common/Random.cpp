@@ -3,11 +3,11 @@
 
 #include "Common/Random.h"
 
-#include <mbedtls/entropy.h>
-#include <mbedtls/hmac_drbg.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+
+#include <mbedtls/entropy.h>
+#include <mbedtls/hmac_drbg.h>
 
 namespace Common::Random
 {

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Debug/Threads.h"
+
 #include <array>
 #include <string>
 #include <type_traits>
-
-#include "Common/CommonTypes.h"
-#include "Common/Debug/Threads.h"
 
 namespace Core
 {

@@ -3,14 +3,14 @@
 
 #include "Core/IOS/Network/KD/NetKDTime.h"
 
-#include <string>
-
-#include <fmt/chrono.h>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <fmt/chrono.h>
+
+#include <string>
 
 namespace IOS::HLE
 {

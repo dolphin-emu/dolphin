@@ -3,11 +3,6 @@
 
 #include "Core/Config/MainSettings.h"
 
-#include <sstream>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
@@ -21,19 +16,21 @@
 #include "Common/Version.h"
 #include "Core/AchievementManager.h"
 #include "Core/Config/DefaultLocale.h"
-#include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/HSP/HSP_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/IOS/Network/Socket.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 #include "Core/USBUtils.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <sstream>
 
 namespace Config
 {

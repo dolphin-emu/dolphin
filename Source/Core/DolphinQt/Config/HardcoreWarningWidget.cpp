@@ -4,15 +4,14 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 
+#include "Core/AchievementManager.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/Settings.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QStyle>
-
-#include "Core/AchievementManager.h"
-
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/Settings.h"
 
 HardcoreWarningWidget::HardcoreWarningWidget(QWidget* parent) : QWidget(parent)
 {

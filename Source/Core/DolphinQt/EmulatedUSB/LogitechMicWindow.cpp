@@ -3,7 +3,15 @@
 
 #include "DolphinQt/EmulatedUSB/LogitechMicWindow.h"
 
-#include <algorithm>
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#ifdef HAVE_CUBEB
+#include "AudioCommon/CubebUtils.h"
+#endif
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -13,15 +21,7 @@
 #include <QLabel>
 #include <QString>
 
-#ifdef HAVE_CUBEB
-#include "AudioCommon/CubebUtils.h"
-#endif
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/System.h"
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
+#include <algorithm>
 
 LogitechMicWindow::LogitechMicWindow(QWidget* parent) : QWidget(parent)
 {

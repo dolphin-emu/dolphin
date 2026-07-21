@@ -1,12 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/ES/Formats.h"
+
+#include "Core/CommonTitles.h"
+
 #include <gtest/gtest.h>
 
 #include <vector>
 
-#include "Core/CommonTitles.h"
-#include "Core/IOS/ES/Formats.h"
 #include "TestBinaryData.h"
 
 TEST(ESFormats, TitleType)

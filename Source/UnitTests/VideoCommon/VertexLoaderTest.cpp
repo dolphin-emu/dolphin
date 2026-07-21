@@ -1,20 +1,20 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <bit>
-#include <limits>
-#include <memory>
-#include <tuple>
-#include <unordered_set>
-
-#include <gtest/gtest.h>  // NOLINT
-
 #include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
+
+#include <gtest/gtest.h>  // NOLINT
+
+#include <bit>
+#include <limits>
+#include <memory>
+#include <tuple>
+#include <unordered_set>
 
 TEST(VertexLoaderUID, UniqueEnough)
 {

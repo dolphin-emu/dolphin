@@ -3,19 +3,6 @@
 
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <string>
-
-#include <fcntl.h>
-#include <libudev.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -25,6 +12,19 @@
 #include "Common/Thread.h"
 #include "Common/WorkQueueThread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include <fmt/format.h>
+#include <libudev.h>
+
+#include <fcntl.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <string>
 
 namespace ciface::evdev
 {

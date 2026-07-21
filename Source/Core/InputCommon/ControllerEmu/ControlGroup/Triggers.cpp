@@ -3,13 +3,13 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
 
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <optional>
 #include <string>
-
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {

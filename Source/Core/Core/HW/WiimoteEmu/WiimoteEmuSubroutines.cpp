@@ -3,19 +3,19 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include <iterator>
-#include <utility>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+
+#include <iterator>
+#include <utility>
 
 namespace WiimoteEmu
 {

@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyTAS.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGroupBox>
 #include <QHBoxLayout>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyTAS::HotkeyTAS(MappingWindow* window) : MappingWidget(window)
 {

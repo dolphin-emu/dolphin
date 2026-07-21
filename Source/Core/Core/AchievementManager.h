@@ -4,6 +4,24 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
+#include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+#include "Common/HookableEvent.h"
+#include "Common/Lazy.h"
+#include "Common/WorkQueueThread.h"
+#include "DiscIO/Volume.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
+
+#include <picojson.h>
+#include <rcheevos/include/rc_api_runtime.h>
+#include <rcheevos/include/rc_api_user.h>
+#include <rcheevos/include/rc_client.h>
+#include <rcheevos/include/rc_hash.h>
+#include <rcheevos/include/rc_runtime.h>
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif
+
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -17,26 +35,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include <picojson.h>
-
-#include <rcheevos/include/rc_api_runtime.h>
-#include <rcheevos/include/rc_api_user.h>
-#include <rcheevos/include/rc_client.h>
-#include <rcheevos/include/rc_hash.h>
-#include <rcheevos/include/rc_runtime.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Common/HookableEvent.h"
-#include "Common/Lazy.h"
-#include "Common/WorkQueueThread.h"
-#include "DiscIO/Volume.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
-
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-#include <rcheevos/include/rc_client_raintegration.h>
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 namespace Core
 {
@@ -294,11 +292,11 @@ private:
 
 #else  // USE_RETRO_ACHIEVEMENTS
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCode.h"
+
+#include <string>
 
 namespace DiscIO
 {

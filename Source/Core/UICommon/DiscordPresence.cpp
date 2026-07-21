@@ -9,17 +9,16 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
-#include <ctime>
-#include <string>
+#include "Common/Hash.h"
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
+#include "Core/System.h"
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
 
-#include "Common/Hash.h"
-
-#include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
-#include "Core/System.h"
+#include <ctime>
+#include <string>
 
 #endif
 

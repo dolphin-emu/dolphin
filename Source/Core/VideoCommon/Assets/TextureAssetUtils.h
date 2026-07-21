@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <filesystem>
-
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
-#include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <filesystem>
 
 namespace VideoCommon
 {

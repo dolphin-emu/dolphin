@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsTarget.h"
 
 #include <picojson.h>
 
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsTarget.h"
+#include <string>
+#include <vector>
 
 struct GraphicsTargetGroupConfig
 {

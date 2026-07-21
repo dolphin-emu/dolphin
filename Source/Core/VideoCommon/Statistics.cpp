@@ -3,20 +3,19 @@
 
 #include "VideoCommon/Statistics.h"
 
-#include <cstring>
-#include <utility>
-
-#include <imgui.h>
-
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
-
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <imgui.h>
+
+#include <cstring>
+#include <utility>
 
 Statistics g_stats;
 

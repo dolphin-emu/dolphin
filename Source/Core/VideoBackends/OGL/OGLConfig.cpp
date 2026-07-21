@@ -3,24 +3,22 @@
 
 #include "VideoBackends/OGL/OGLConfig.h"
 
-#include <cstdio>
-#include <ranges>
-#include <string>
-#include <string_view>
-
-#include <fmt/ranges.h>
-
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/OGL/OGLTexture.h"
-
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/ranges.h>
+
+#include <cstdio>
+#include <ranges>
+#include <string>
+#include <string_view>
 
 namespace OGL
 {

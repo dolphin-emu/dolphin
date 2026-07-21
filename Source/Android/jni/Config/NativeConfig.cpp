@@ -1,16 +1,16 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <memory>
-#include <string>
-
-#include <jni.h>
-
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+
+#include <jni.h>
+
+#include <memory>
+#include <string>
 
 constexpr jint LAYER_BASE_OR_CURRENT = 0;
 constexpr jint LAYER_BASE = 1;

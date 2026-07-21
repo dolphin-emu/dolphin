@@ -3,10 +3,21 @@
 
 #include "DolphinQt/Debugger/JITWidget.h"
 
-#include <algorithm>
-#include <optional>
-#include <ranges>
-#include <utility>
+#include "Common/CommonFuncs.h"
+#include "Common/GekkoDisassembler.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/JitBlockTableModel.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ClickableStatusBar.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/UICommon.h"
 
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -19,25 +30,12 @@
 #include <QSplitter>
 #include <QTableView>
 #include <QVBoxLayout>
-
 #include <fmt/ostream.h>
 
-#include "Common/CommonFuncs.h"
-#include "Common/GekkoDisassembler.h"
-#include "Core/Core.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Debugger/JitBlockTableModel.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/ClickableStatusBar.h"
-#include "DolphinQt/QtUtils/FromStdString.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Settings.h"
-#include "UICommon/UICommon.h"
+#include <algorithm>
+#include <optional>
+#include <ranges>
+#include <utility>
 
 class JitBlockProxyModel final : public QSortFilterProxyModel
 {

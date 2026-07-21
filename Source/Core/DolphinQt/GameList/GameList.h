@@ -3,11 +3,12 @@
 
 #pragma once
 
-#include <memory>
+#include "DolphinQt/GameList/GameListModel.h"
 
 #include <QStackedWidget>
 
-#include "DolphinQt/GameList/GameListModel.h"
+#include <memory>
+#include <string>
 
 class QAbstractItemView;
 class QLabel;

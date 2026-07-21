@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <memory>
 #include <span>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 class PointerWrap;
 

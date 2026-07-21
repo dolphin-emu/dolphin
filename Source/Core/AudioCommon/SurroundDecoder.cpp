@@ -4,6 +4,7 @@
 #include "AudioCommon/SurroundDecoder.h"
 
 #include <FreeSurround/FreeSurroundDecoder.h>
+
 #include <limits>
 
 namespace AudioCommon

@@ -3,19 +3,18 @@
 
 #include "Core/Debugger/Debugger_SymbolMap.h"
 
-#include <functional>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
-
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <functional>
+#include <string>
 
 namespace Dolphin_Debugger
 {

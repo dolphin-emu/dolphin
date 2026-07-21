@@ -1,12 +1,13 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <bit>
-
 #include "Common/Arm64Emitter.h"
+
 #include "Common/BitSet.h"
 
 #include <gtest/gtest.h>
+
+#include <bit>
 
 using namespace Arm64Gen;
 

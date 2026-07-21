@@ -3,6 +3,20 @@
 
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+#include "Common/Config/Layer.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
+#include "Core/ConfigManager.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/SysConf.h"
+
 #include <algorithm>
 #include <cstring>
 #include <functional>
@@ -11,22 +25,6 @@
 #include <mutex>
 #include <string>
 #include <variant>
-
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Common/Config/Layer.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigLoaders/IsSettingSaveable.h"
-#include "Core/ConfigManager.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
-#include "Core/SysConf.h"
-#include "Core/System.h"
 
 static bool s_sysconf_controlled_by_guest = false;
 static std::recursive_mutex s_sysconf_lock;

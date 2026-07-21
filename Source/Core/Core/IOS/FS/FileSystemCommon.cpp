@@ -3,14 +3,14 @@
 
 #include "Core/IOS/FS/FileSystem.h"
 
-#include <algorithm>
-#include <array>
-#include <expected>
-
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
+
+#include <algorithm>
+#include <array>
+#include <expected>
 
 namespace IOS::HLE::FS
 {

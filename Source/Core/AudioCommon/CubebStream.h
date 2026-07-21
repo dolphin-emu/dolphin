@@ -3,10 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <vector>
-
 #include "AudioCommon/SoundStream.h"
 #ifdef _WIN32
 #include "Common/WorkQueueThread.h"
@@ -15,6 +11,10 @@
 #ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>
 #endif
+
+#include <array>
+#include <memory>
+#include <vector>
 
 class CubebStream final : public SoundStream
 {

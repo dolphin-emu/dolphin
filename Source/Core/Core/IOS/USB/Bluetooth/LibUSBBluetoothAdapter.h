@@ -3,17 +3,16 @@
 
 #pragma once
 
+#include "Common/Buffer.h"
+#include "Common/Timer.h"
+#include "Common/WorkQueueThread.h"
+#include "Core/IOS/USB/Bluetooth/hci.h"
+#include "Core/LibusbUtils.h"
+
 #include <map>
 #include <queue>
 #include <span>
 #include <string>
-
-#include "Common/Buffer.h"
-#include "Common/Timer.h"
-#include "Common/WorkQueueThread.h"
-
-#include "Core/IOS/USB/Bluetooth/hci.h"
-#include "Core/LibusbUtils.h"
 
 struct libusb_device_handle;
 struct libusb_device_descriptor;

@@ -3,12 +3,11 @@
 
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 
-#include <fmt/format.h>
-
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-
 #include "UICommon/UICommon.h"
+
+#include <fmt/format.h>
 
 namespace VideoCommon
 {

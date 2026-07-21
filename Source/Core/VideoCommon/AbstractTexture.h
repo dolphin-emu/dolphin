@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <cstddef>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <cstddef>
+#include <string>
 
 struct ImTextureRef;
 

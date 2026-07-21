@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <QuartzCore/QuartzCore.h>
-
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <QuartzCore/QuartzCore.h>
 
 #ifdef __OBJC__
 @class DolWindowPositionObserver;

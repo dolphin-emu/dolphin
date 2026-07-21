@@ -3,20 +3,10 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <regex>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/Contains.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -28,6 +18,15 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <regex>
+#include <string>
+#include <vector>
 
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
                       bool store_existing_value)

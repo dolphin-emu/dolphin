@@ -3,28 +3,24 @@
 
 #include "Core/MemTools.h"
 
-#include <cstdlib>
-
 #include "Common/CommonFuncs.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
+#ifdef _WIN32
+#include "Common/Assert.h"
+#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+#include "Common/Thread.h"
+#endif
 
 #if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <signal.h>
-#endif
-#ifndef _WIN32
+#elifndef _WIN32
 #include <unistd.h>  // Needed for _POSIX_VERSION
 #endif
 
-#ifdef _WIN32
-#include "Common/Assert.h"
-#endif
-#if defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
-#include "Common/Thread.h"
-#endif
+#include <cstdlib>
 
 #if defined(__APPLE__)
 #ifdef _M_X86_64

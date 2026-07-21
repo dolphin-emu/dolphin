@@ -1,16 +1,15 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 #include <algorithm>
 #include <expected>
 #include <memory>
-
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 
 namespace IOS::HLE::FS
 {

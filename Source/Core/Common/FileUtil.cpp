@@ -3,31 +3,21 @@
 
 #include "Common/FileUtil.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-#include <fcntl.h>
-#include <filesystem>
-#include <limits.h>
-#include <stack>
-#include <string>
-#include <system_error>
-#include <vector>
-
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#ifdef ANDROID
-#include "Common/Assert.h"
-#endif
-#ifdef __APPLE__
-#include "Common/DynamicLibrary.h"
-#endif
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#ifdef ANDROID
+#include "Common/Assert.h"
+#elifdef __APPLE__
+#include "Common/DynamicLibrary.h"
+#elifdef ANDROID
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
 
+#include <fcntl.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <commdlg.h>  // for GetSaveFileName
@@ -38,24 +28,30 @@
 #include <shlwapi.h>
 #else
 #include <libgen.h>
-#include <stdlib.h>
 #include <unistd.h>
-#endif
-
-#if defined(__APPLE__)
+#ifdef __APPLE__
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
 #include <mach-o/dyld.h>
 #include <sys/param.h>
-#endif
-
-#ifdef ANDROID
-#include "jni/AndroidCommon/AndroidCommon.h"
-#endif
-
-#if defined(__FreeBSD__)
+#elifdef __FreeBSD__
 #include <sys/sysctl.h>
+#endif
+#endif
+
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <limits.h>
+#include <stack>
+#include <string>
+#include <system_error>
+#include <vector>
+#ifndef _WIN32
+#include <stdlib.h>
 #endif
 
 namespace fs = std::filesystem;

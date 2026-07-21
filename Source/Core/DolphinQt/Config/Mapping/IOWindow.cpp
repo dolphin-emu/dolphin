@@ -3,8 +3,17 @@
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 
-#include <array>
-#include <optional>
+#include "DolphinQt/Config/Mapping/MappingCommon.h"
+#include "DolphinQt/Config/Mapping/MappingIndicator.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/MappingCommon.h"
 
 #include <QBrush>
 #include <QColor>
@@ -24,18 +33,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-#include "DolphinQt/Config/Mapping/MappingCommon.h"
-#include "DolphinQt/Config/Mapping/MappingIndicator.h"
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Settings.h"
-
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/MappingCommon.h"
+#include <array>
+#include <optional>
 
 namespace
 {

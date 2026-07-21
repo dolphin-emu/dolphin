@@ -35,17 +35,12 @@ Make AA apply instantly during gameplay if possible
 
 #include "VideoBackends/OGL/VideoBackend.h"
 
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "Common/Common.h"
+#include "Common/Config/Config.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/Config/GraphicsSettings.h"
-
 #include "VideoBackends/OGL/OGLBoundingBox.h"
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLGfx.h"
@@ -53,10 +48,13 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace OGL
 {

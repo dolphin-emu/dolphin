@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/Config/ConfigInfo.h"
+#include "Common/Config/Enums.h"
+#include "Common/Config/Layer.h"
+
 #include <functional>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <string>
-
-#include "Common/Config/ConfigInfo.h"
-#include "Common/Config/Enums.h"
-#include "Common/Config/Layer.h"
 
 namespace Config
 {

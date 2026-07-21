@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
+
+#include <memory>
+#include <string>
 
 class PointerWrap;
 

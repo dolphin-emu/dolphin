@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <cstddef>
-#include <memory>
-#include <optional>
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
 
 #include <bzlib.h>
 #include <lzma.h>
 #include <zstd.h>
 
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "DiscIO/LaggedFibonacciGenerator.h"
+#include <cstddef>
+#include <memory>
+#include <optional>
+#include <vector>
 
 namespace DiscIO
 {

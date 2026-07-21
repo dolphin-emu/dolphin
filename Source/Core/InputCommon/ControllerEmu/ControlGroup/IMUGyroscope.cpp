@@ -3,13 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 
-#include <algorithm>
-
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+
+#include <algorithm>
 
 namespace ControllerEmu
 {

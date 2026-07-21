@@ -3,11 +3,11 @@
 
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 
-#include <QGridLayout>
-#include <QGroupBox>
-
 #include "Core/FreeLookManager.h"
 #include "InputCommon/InputConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
 
 FreeLookGeneral::FreeLookGeneral(MappingWindow* window) : MappingWidget(window)
 {

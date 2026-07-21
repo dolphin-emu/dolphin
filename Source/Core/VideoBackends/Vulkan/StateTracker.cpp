@@ -4,7 +4,6 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 
 #include "Common/Assert.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKGfx.h"

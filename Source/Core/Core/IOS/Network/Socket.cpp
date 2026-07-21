@@ -4,18 +4,6 @@
 // No Wii socket support while using NetPlay or TAS
 #include "Core/IOS/Network/Socket.h"
 
-#include <algorithm>
-#include <numeric>
-
-#include <mbedtls/error.h>
-#ifndef _WIN32
-#include <arpa/inet.h>
-#include <unistd.h>
-#endif
-#ifdef __HAIKU__
-#include <sys/select.h>
-#endif
-
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Network.h"
@@ -27,6 +15,19 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/WC24PatchEngine.h"
+
+#include <mbedtls/error.h>
+
+#ifndef _WIN32
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif
+#ifdef __HAIKU__
+#include <sys/select.h>
+#endif
+
+#include <algorithm>
+#include <numeric>
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA##name

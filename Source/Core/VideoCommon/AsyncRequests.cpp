@@ -4,7 +4,6 @@
 #include "VideoCommon/AsyncRequests.h"
 
 #include "Core/System.h"
-
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
+
+#include <memory>
 
 class PointerWrap;
 

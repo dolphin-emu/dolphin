@@ -3,10 +3,10 @@
 
 #include "VideoCommon/Assets/TextureSamplerValue.h"
 
-#include <optional>
-
 #include "Common/JsonUtil.h"
 #include "Common/StringUtil.h"
+
+#include <optional>
 
 namespace VideoCommon
 {

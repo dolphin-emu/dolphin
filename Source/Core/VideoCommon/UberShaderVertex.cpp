@@ -3,14 +3,14 @@
 
 #include "VideoCommon/UberShaderVertex.h"
 
-#include <utility>
-
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <utility>
 
 namespace UberShader
 {

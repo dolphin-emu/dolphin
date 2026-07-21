@@ -3,6 +3,21 @@
 
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 
+#include "Common/BitUtils.h"
+#include "Common/ChunkFile.h"
+#include "Common/Network.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/USB/Host.h"
+#include "Core/System.h"
+#include "VideoCommon/OnScreenDisplay.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -10,23 +25,6 @@
 #include <ranges>
 #include <string>
 #include <utility>
-
-#include <fmt/format.h>
-
-#include "Common/BitUtils.h"
-#include "Common/ChunkFile.h"
-#include "Common/Network.h"
-#include "Common/StringUtil.h"
-#include "Common/Swap.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/USB/Host.h"
-#include "Core/System.h"
-
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace IOS::HLE
 {

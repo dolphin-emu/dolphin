@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoBackends/Vulkan/VulkanLoader.h"
+
 #include <cstddef>
 #include <deque>
 #include <memory>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan
 {

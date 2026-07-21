@@ -6,6 +6,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IOSC.h"
+#include "DiscIO/Enums.h"
+
 #include <array>
 #include <cstddef>
 #include <map>
@@ -13,11 +18,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/IOSC.h"
-#include "DiscIO/Enums.h"
 
 class PointerWrap;
 

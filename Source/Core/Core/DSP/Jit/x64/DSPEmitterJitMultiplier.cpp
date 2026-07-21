@@ -7,11 +7,10 @@
 
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
-#include <cstddef>
-
 #include "Common/CommonTypes.h"
-
 #include "Core/DSP/DSPCore.h"
+
+#include <cstddef>
 
 using namespace Gen;
 

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/Functional.h"
+#include "Common/SPSCQueue.h"
+
 #include <concepts>
 #include <functional>
 #include <future>
-
-#include "Common/Functional.h"
-#include "Common/SPSCQueue.h"
 
 struct EfbPokeData;
 class PointerWrap;

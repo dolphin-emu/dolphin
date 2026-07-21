@@ -7,7 +7,6 @@
 #include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/BPMemory.h"
 
 namespace TMEM

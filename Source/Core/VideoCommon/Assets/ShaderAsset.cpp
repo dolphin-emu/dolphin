@@ -3,15 +3,15 @@
 
 #include "VideoCommon/Assets/ShaderAsset.h"
 
-#include <algorithm>
-#include <utility>
-
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 #include "VideoCommon/ShaderGenCommon.h"
+
+#include <algorithm>
+#include <utility>
 
 namespace VideoCommon
 {

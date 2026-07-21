@@ -5,6 +5,8 @@
 
 #ifdef _WIN32
 
+#include "Common/Functional.h"
+
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -20,8 +22,6 @@
 #include <cfgmgr32.h>
 #include <devpropdef.h>
 #include <setupapi.h>
-
-#include "Common/Functional.h"
 
 namespace Common
 {

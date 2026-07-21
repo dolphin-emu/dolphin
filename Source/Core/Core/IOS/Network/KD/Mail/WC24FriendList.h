@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Network/KD/NWC24Config.h"
+
 #include <array>
 #include <memory>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonPaths.h"
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Network/KD/NWC24Config.h"
 
 namespace IOS::HLE
 {

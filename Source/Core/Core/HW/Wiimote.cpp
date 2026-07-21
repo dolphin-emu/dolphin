@@ -3,12 +3,9 @@
 
 #include "Core/HW/Wiimote.h"
 
-#include <optional>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -20,9 +17,10 @@
 #include "Core/Movie.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
+
+#include <optional>
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
 static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;

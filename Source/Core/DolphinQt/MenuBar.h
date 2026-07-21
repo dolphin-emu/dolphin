@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <QMenuBar>
-#include <QPointer>
-
 #include "Common/CommonTypes.h"
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
 #include "Common/HookableEvent.h"
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
+#include <QMenuBar>
+#include <QPointer>
+
+#include <array>
+#include <memory>
+#include <string>
+#include <vector>
 
 class QMenu;
 class ParallelProgressDialog;

@@ -3,10 +3,17 @@
 
 #include "UpdaterCommon/UpdaterCommon.h"
 
-#include <algorithm>
-#include <array>
-#include <memory>
-#include <optional>
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
+#include "Common/IOFile.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
+#include "UpdaterCommon/Platform.h"
+#include "UpdaterCommon/UI.h"
+#ifdef _WIN32
+#include "Common/CommonFuncs.h"
+#endif
 
 #include <cpp-optparse/OptionParser.h>
 #include <ed25519/ed25519.h>
@@ -16,26 +23,18 @@
 #include <zlib.h>
 
 #ifdef _WIN32
-#include "Common/CommonFuncs.h"
-#endif
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
-#include "Common/HttpRequest.h"
-#include "Common/IOFile.h"
-#include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
-#include "UpdaterCommon/Platform.h"
-#include "UpdaterCommon/UI.h"
-
-#ifndef _WIN32
+#include <windows.h>
+#else
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
 
+#include <algorithm>
+#include <array>
+#include <memory>
+#include <optional>
 #ifdef _WIN32
 #include <filesystem>
-
-#include <windows.h>
 #endif
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process

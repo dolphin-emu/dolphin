@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <string>
-#include <utility>
+#include "Common/Logging/Log.h"
 
 #include <fmt/format.h>
 
-#include "Common/Logging/Log.h"
+#include <string>
+#include <utility>
 
 namespace Common
 {

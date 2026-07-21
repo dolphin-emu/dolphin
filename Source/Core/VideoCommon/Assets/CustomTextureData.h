@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <span>
-#include <string>
-
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <span>
+#include <string>
 
 namespace VideoCommon
 {

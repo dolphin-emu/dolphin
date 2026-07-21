@@ -3,21 +3,20 @@
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
-#include <algorithm>
-#include <deque>
-#include <memory>
-
-#include <QTimer>
-
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
 #include "InputCommon/InputConfig.h"
+
+#include <QTimer>
+
+#include <algorithm>
+#include <deque>
+#include <memory>
 
 namespace MappingCommon
 {

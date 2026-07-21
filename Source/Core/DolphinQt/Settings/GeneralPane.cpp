@@ -3,6 +3,24 @@
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
+#include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/AutoUpdate.h"
+#ifdef USE_DISCORD_PRESENCE
+#include "UICommon/DiscordPresence.h"
+#endif
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -12,26 +30,6 @@
 #include <QSlider>
 #include <QVBoxLayout>
 #include <QWidget>
-
-#include "Core/AchievementManager.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/UISettings.h"
-#include "Core/Core.h"
-#include "Core/DolphinAnalytics.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
-
-#include "UICommon/AutoUpdate.h"
-#ifdef USE_DISCORD_PRESENCE
-#include "UICommon/DiscordPresence.h"
-#endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_RELEASE_INDEX = 1;

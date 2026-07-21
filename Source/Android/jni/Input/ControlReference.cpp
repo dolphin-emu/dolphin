@@ -3,13 +3,13 @@
 
 #include "jni/Input/ControlReference.h"
 
-#include <string>
-
-#include <jni.h>
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <string>
 
 ControlReference* ControlReferenceFromJava(JNIEnv* env, jobject control_reference)
 {

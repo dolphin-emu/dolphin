@@ -1,15 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Logging/Log.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
+#include "Core/System.h"
 
 #include <cstdio>
 #include <vector>
-
-#include "Common/Logging/Log.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/ES/Formats.h"
-#include "Core/System.h"
 
 namespace IOS::HLE
 {

@@ -3,15 +3,14 @@
 
 #include "Core/IOS/Network/NCD/Manage.h"
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 #include "Core/System.h"
+
+#include <string>
 
 namespace IOS::HLE
 {

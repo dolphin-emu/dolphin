@@ -3,13 +3,13 @@
 
 #include "Core/TimePlayed.h"
 
-#include <chrono>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
+
+#include <chrono>
+#include <string>
 
 TimePlayed::TimePlayed() : m_ini_path(File::GetUserPath(D_CONFIG_IDX) + "TimePlayed.ini")
 {

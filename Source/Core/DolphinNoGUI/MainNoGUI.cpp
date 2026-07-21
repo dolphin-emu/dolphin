@@ -1,20 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinNoGUI/Platform.h"
-
-#include <cpp-optparse/OptionParser.h>
-#include <csignal>
-#include <cstdio>
-#include <string>
-#include <vector>
-
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif
-
 #include "Common/ScopeGuard.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -22,12 +8,26 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/Host.h"
 #include "Core/System.h"
-
+#include "DiscIO/Blob.h"
+#include "DolphinNoGUI/Platform.h"
 #include "UICommon/CommandLineParse.h"
+#include "UICommon/UICommon.h"
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
-#include "UICommon/UICommon.h"
+
+#include <cpp-optparse/OptionParser.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#include <csignal>
+#include <cstdio>
+#include <string>
+#include <vector>
 
 static std::unique_ptr<Platform> s_platform;
 

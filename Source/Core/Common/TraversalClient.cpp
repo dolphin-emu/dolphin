@@ -2,16 +2,16 @@
 
 #include "Common/TraversalClient.h"
 
-#include <cstddef>
-#include <cstring>
-#include <string>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Random.h"
 #include "Core/NetPlayProto.h"
+
+#include <cstddef>
+#include <cstring>
+#include <string>
+#include <utility>
 
 namespace Common
 {

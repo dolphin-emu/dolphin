@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <cstdio>
+#include "Common/SymbolDB.h"
 
 #include <QAbstractTableModel>
 #include <QFont>
 #include <QList>
 #include <QVariant>
 
-#include "Common/SymbolDB.h"
+#include <cstdio>
 
 namespace Core
 {

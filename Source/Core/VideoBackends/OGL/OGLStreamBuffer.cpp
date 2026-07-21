@@ -6,9 +6,7 @@
 #include "Common/Align.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
-
 #include "VideoBackends/OGL/OGLConfig.h"
-
 #include "VideoCommon/DriverDetails.h"
 
 namespace OGL

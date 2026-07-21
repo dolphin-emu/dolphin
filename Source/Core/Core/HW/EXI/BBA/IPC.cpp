@@ -1,12 +1,12 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
+#include "Common/Logging/Log.h"
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 #include <libipc/ipc.h>
 
-#include "Common/Logging/Log.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include <cstring>
 
 namespace ExpansionInterface
 {

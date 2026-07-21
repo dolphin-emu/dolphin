@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include <jni.h>
+
 #include <memory>
 #include <string>
-
-#include <jni.h>
 
 namespace UICommon
 {

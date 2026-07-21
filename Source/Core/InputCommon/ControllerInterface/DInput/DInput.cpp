@@ -6,7 +6,6 @@
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"

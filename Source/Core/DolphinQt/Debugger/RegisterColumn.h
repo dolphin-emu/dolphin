@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <QTableWidgetItem>
 
 #include <functional>
-
-#include "Common/CommonTypes.h"
 
 enum class RegisterType
 {

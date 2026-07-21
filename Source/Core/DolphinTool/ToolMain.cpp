@@ -1,22 +1,21 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinTool/ConvertCommand.h"
+#include "DolphinTool/ExtractCommand.h"
+#include "DolphinTool/HeaderCommand.h"
+#include "DolphinTool/VerifyCommand.h"
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#endif
+
+#include <fmt/ostream.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <fmt/ostream.h>
-
-#include "DolphinTool/ConvertCommand.h"
-#include "DolphinTool/ExtractCommand.h"
-#include "DolphinTool/HeaderCommand.h"
-#include "DolphinTool/VerifyCommand.h"
-
-#ifdef _WIN32
-#include "Common/StringUtil.h"
-#endif
 
 static void PrintUsage()
 {

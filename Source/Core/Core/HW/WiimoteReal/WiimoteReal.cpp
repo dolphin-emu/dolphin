@@ -3,17 +3,10 @@
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-#include <algorithm>
-#include <mutex>
-#include <unordered_set>
-
-#include <SFML/Network/UdpSocket.hpp>
-
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
@@ -26,9 +19,14 @@
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 #include "Core/System.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
+
+#include <SFML/Network/UdpSocket.hpp>
+
+#include <algorithm>
+#include <mutex>
+#include <unordered_set>
 
 namespace WiimoteReal
 {

@@ -3,13 +3,12 @@
 
 #include "VideoCommon/DriverDetails.h"
 
-#include <map>
-
 #include "Core/DolphinAnalytics.h"
-
 #ifdef __APPLE__
 #include "Common/CommonFuncs.h"
 #endif
+
+#include <map>
 
 namespace DriverDetails
 {

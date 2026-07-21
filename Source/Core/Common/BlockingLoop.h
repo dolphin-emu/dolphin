@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <atomic>
-#include <mutex>
-#include <thread>
-
 #include "Common/Event.h"
 #include "Common/Flag.h"
+
+#include <atomic>
+#include <mutex>
 
 namespace Common
 {

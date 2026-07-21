@@ -5,7 +5,6 @@
 
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -15,7 +14,6 @@
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKVertexManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 

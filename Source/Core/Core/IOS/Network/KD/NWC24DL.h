@@ -3,11 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Network/KD/WC24File.h"
+
 #include <memory>
 #include <optional>
 #include <string>
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Network/KD/WC24File.h"
 
 namespace IOS::HLE
 {

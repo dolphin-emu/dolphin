@@ -7,15 +7,16 @@
 
 #include "Common/Logging/Log.h"
 
+#include <miniupnpc.h>
+#include <miniwget.h>
+#include <upnpcommands.h>
+#include <upnperrors.h>
+
 #include <array>
 #include <cstdlib>
 #include <cstring>
-#include <miniupnpc.h>
-#include <miniwget.h>
 #include <string>
 #include <thread>
-#include <upnpcommands.h>
-#include <upnperrors.h>
 
 static UPNPUrls s_urls;
 static IGDdatas s_data;

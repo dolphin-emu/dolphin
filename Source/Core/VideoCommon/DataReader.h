@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/Inline.h"
 #include "Common/Swap.h"
+
+#include <cstring>
 
 class DataReader
 {

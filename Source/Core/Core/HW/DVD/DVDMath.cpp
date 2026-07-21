@@ -3,10 +3,10 @@
 
 #include "Core/HW/DVD/DVDMath.h"
 
-#include <cmath>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
+#include <cmath>
 
 namespace DVDMath
 {

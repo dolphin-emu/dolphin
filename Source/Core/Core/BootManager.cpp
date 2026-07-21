@@ -17,12 +17,9 @@
 
 #include "Core/BootManager.h"
 
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -39,8 +36,9 @@
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
-
 #include "DiscIO/Enums.h"
+
+#include <fmt/format.h>
 
 namespace BootManager
 {

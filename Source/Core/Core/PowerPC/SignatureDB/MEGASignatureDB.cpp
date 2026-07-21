@@ -3,6 +3,12 @@
 
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>
@@ -10,13 +16,6 @@
 #include <sstream>
 #include <string>
 #include <utility>
-
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
 
 namespace
 {

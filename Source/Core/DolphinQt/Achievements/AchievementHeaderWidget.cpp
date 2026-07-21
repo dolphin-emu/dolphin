@@ -4,19 +4,17 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
+
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QProgressBar>
 #include <QString>
 #include <QVBoxLayout>
-
 #include <rcheevos/include/rc_client.h>
-
-#include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
-
-#include "DolphinQt/QtUtils/FromStdString.h"
 
 AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(parent)
 {

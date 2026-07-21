@@ -3,21 +3,21 @@
 
 #include "VideoBackends/D3D12/DX12Context.h"
 
-#include <algorithm>
-#include <array>
-#include <dxgi1_6.h>
-#include <queue>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/StringUtil.h"
-
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <dxgi1_6.h>
+
+#include <algorithm>
+#include <array>
+#include <queue>
+#include <vector>
 
 namespace DX12
 {

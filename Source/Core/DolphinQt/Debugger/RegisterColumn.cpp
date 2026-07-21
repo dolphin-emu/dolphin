@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Debugger/RegisterColumn.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+
 #include <cstring>
 #include <utility>
-
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 RegisterColumn::RegisterColumn(RegisterType type, std::function<u64()> get,
                                std::function<void(u64)> set)

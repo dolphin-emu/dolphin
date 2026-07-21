@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include <cstddef>
-#include <optional>
-#include <string_view>
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
 
 #include <glslang/Public/ShaderLang.h>
 
-#include "Common/CommonTypes.h"
-#include "VideoCommon/VideoCommon.h"
+#include <optional>
+#include <string_view>
+#include <vector>
 
 namespace SPIRV
 {

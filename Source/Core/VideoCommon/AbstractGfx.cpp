@@ -4,7 +4,6 @@
 #include "VideoCommon/AbstractGfx.h"
 
 #include "Common/Assert.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPFunctions.h"

@@ -3,19 +3,19 @@
 
 #pragma once
 
+#include "Common/Analytics.h"
+#include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+
 #include <array>
 #include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/Analytics.h"
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-
 #if defined(ANDROID)
 #include <functional>
 #endif
+
 // Non generic part of the Dolphin Analytics framework. See Common/Analytics.h
 // for the main documentation.
 

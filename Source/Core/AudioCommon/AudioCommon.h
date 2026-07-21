@@ -3,12 +3,11 @@
 
 #pragma once
 
+#include "AudioCommon/Enums.h"
+
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "AudioCommon/Enums.h"
-#include "AudioCommon/SoundStream.h"
 
 class Mixer;
 

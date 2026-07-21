@@ -3,10 +3,15 @@
 
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
 
-#include <algorithm>
-#include <bit>
-#include <ranges>
-#include <utility>
+#include "Common/Assert.h"
+#include "Common/Swap.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/Settings.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/XFStructs.h"
 
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -20,17 +25,10 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 
-#include "Common/Assert.h"
-#include "Common/Swap.h"
-#include "Core/FifoPlayer/FifoPlayer.h"
-
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/Settings.h"
-
-#include "VideoCommon/BPMemory.h"
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/XFStructs.h"
+#include <algorithm>
+#include <bit>
+#include <ranges>
+#include <utility>
 
 // Values range from 0 to number of frames - 1
 constexpr int FRAME_ROLE = Qt::UserRole;

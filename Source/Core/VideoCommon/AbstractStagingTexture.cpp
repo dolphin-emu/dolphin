@@ -3,11 +3,11 @@
 
 #include "VideoCommon/AbstractStagingTexture.h"
 
-#include <algorithm>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "VideoCommon/AbstractTexture.h"
+
+#include <algorithm>
+#include <cstring>
 
 AbstractStagingTexture::AbstractStagingTexture(StagingTextureType type, const TextureConfig& c)
     : m_type(type), m_config(c), m_texel_size(AbstractTexture::GetTexelSizeForFormat(c.format))

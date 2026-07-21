@@ -3,12 +3,11 @@
 
 #pragma once
 
+#include "Common/GL/GLExtensions/GLExtensions.h"
+#include "VideoCommon/PerfQueryBase.h"
+
 #include <array>
 #include <memory>
-
-#include "Common/GL/GLExtensions/GLExtensions.h"
-
-#include "VideoCommon/PerfQueryBase.h"
 
 namespace OGL
 {

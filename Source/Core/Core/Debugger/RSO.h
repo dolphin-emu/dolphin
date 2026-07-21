@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <array>
+#include "Common/CommonTypes.h"
+
 #include <cstddef>
 #include <list>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 class PPCSymbolDB;
 

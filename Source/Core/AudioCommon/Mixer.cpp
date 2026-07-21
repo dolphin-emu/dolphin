@@ -3,11 +3,6 @@
 
 #include "AudioCommon/Mixer.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include <span>
-
 #include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -17,6 +12,11 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <span>
 
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {

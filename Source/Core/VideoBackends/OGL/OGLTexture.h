@@ -3,16 +3,15 @@
 
 #pragma once
 
+#include "Common/GL/GLExtensions/GLExtensions.h"
+#include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractStagingTexture.h"
+#include "VideoCommon/AbstractTexture.h"
+
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/GL/GLExtensions/GLExtensions.h"
-
-#include "VideoCommon/AbstractFramebuffer.h"
-#include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/AbstractTexture.h"
 
 namespace OGL
 {

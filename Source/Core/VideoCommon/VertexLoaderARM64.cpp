@@ -3,11 +3,11 @@
 
 #include "VideoCommon/VertexLoaderARM64.h"
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoaderManager.h"
+
+#include <array>
 
 using namespace Arm64Gen;
 

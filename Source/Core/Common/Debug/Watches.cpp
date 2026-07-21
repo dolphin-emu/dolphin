@@ -3,11 +3,11 @@
 
 #include "Common/Debug/Watches.h"
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <locale>
 #include <sstream>
-
-#include <fmt/format.h>
 
 namespace Common::Debug
 {

@@ -3,7 +3,13 @@
 
 #include "DolphinQt/Debugger/ThreadWidget.h"
 
-#include <bit>
+#include "Core/Core.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
+#include "DolphinQt/Settings.h"
 
 #include <QGroupBox>
 #include <QHeaderView>
@@ -13,13 +19,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Core/Core.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/FromStdString.h"
-#include "DolphinQt/Settings.h"
+#include <bit>
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 {

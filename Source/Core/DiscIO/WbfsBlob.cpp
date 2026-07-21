@@ -3,6 +3,13 @@
 
 #include "DiscIO/WbfsBlob.h"
 
+#include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -10,13 +17,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Common/Align.h"
-#include "Common/Assert.h"
-#include "Common/BitUtils.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 
 namespace DiscIO
 {

@@ -3,14 +3,14 @@
 
 #include "Core/HW/AddressSpace.h"
 
-#include <algorithm>
-#include <bit>
-
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <bit>
 
 namespace AddressSpace
 {

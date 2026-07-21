@@ -3,17 +3,17 @@
 
 #include "Common/NandPaths.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace Common
 {

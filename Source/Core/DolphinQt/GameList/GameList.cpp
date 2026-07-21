@@ -1,26 +1,35 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef _WIN32
-#include <QCoreApplication>
-#include <shlobj.h>
-#include <wil/com.h>
-
-// This file uses some identifiers which are defined as macros in Windows headers.
-// Include and undefine the macros first thing we do to solve build errors.
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
-#ifdef interface
-#undef interface
-#endif
-#endif
-
 #include "DolphinQt/GameList/GameList.h"
 
-#include <algorithm>
-#include <cmath>
-#include <utility>
+#include "Common/FileUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/WiiSave.h"
+#include "Core/System.h"
+#include "Core/WiiUtils.h"
+#include "DiscIO/Enums.h"
+#include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/ConvertDialog.h"
+#include "DolphinQt/GameList/GridProxyModel.h"
+#include "DolphinQt/GameList/ListProxyModel.h"
+#include "DolphinQt/MenuBar.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/WiiUpdate.h"
+#include "UICommon/GameFile.h"
+#ifdef _WIN32
+#include "Common/Contains.h"
+#endif
 
 #include <QDesktopServices>
 #include <QDir>
@@ -39,38 +48,30 @@
 #include <QSortFilterProxyModel>
 #include <QTableView>
 #include <QUrl>
+#ifdef _WIN32
+#include <QCoreApplication>
+#include <wil/com.h>
+#include <wil/resource.h>
+#endif
 
 #ifdef _WIN32
-#include "Common/Contains.h"
+#include <shlobj.h>
+// This file uses some identifiers which are defined as macros in Windows headers.
+// Include and undefine the macros to solve build errors.
+#ifdef DeleteFile
+#undef DeleteFile
 #endif
-#include "Common/FileUtil.h"
+#ifdef interface
+#undef interface
+#endif
+#endif
 
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/EXI/EXI.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/WiiSave.h"
-#include "Core/System.h"
-#include "Core/WiiUtils.h"
-
-#include "DiscIO/Enums.h"
-
-#include "DolphinQt/Config/PropertiesDialog.h"
-#include "DolphinQt/ConvertDialog.h"
-#include "DolphinQt/GameList/GridProxyModel.h"
-#include "DolphinQt/GameList/ListProxyModel.h"
-#include "DolphinQt/MenuBar.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-#include "DolphinQt/WiiUpdate.h"
-
-#include "UICommon/GameFile.h"
+#include <algorithm>
+#include <cmath>
+#include <filesystem>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace
 {

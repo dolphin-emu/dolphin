@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
-#include <unordered_map>
-
 #include "Common/CommonTypes.h"
 #include "Common/Lazy.h"
+
+#include <string>
+#include <unordered_map>
 
 namespace DiscIO
 {

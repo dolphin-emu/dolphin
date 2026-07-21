@@ -34,8 +34,9 @@
 #pragma once
 
 #include <windows.h>
-#include <stdlib.h>
 #include <winioctl.h>
+
+#include <stdlib.h>
 constexpr int TAP_WIN32_MIN_MAJOR = 9;
 constexpr int TAP_WIN32_MIN_MINOR = 0;
 

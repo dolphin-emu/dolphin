@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "DolphinQt/GameList/GameListModel.h"
+
+#include <QDialog>
 
 class QCheckBox;
 class QComboBox;

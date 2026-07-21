@@ -9,13 +9,11 @@
 #include "VideoBackends/Null/VideoBackend.h"
 
 #include "Common/Common.h"
-
 #include "VideoBackends/Null/NullBoundingBox.h"
 #include "VideoBackends/Null/NullGfx.h"
 #include "VideoBackends/Null/NullVertexManager.h"
 #include "VideoBackends/Null/PerfQuery.h"
 #include "VideoBackends/Null/TextureCache.h"
-
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

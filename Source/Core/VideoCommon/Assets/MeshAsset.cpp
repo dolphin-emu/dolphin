@@ -3,14 +3,14 @@
 
 #include "VideoCommon/Assets/MeshAsset.h"
 
-#include <array>
-#include <utility>
-
-#include <tinygltf/tiny_gltf.h>
-
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+
+#include <tinygltf/tiny_gltf.h>
+
+#include <array>
+#include <utility>
 
 namespace VideoCommon
 {

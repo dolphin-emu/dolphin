@@ -3,19 +3,17 @@
 
 #include "Core/HW/WiimoteEmu/Speaker.h"
 
-#include <cassert>
-
 #include "AudioCommon/AudioCommon.h"
-
+#include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/System.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <cassert>
 
 namespace WiimoteEmu
 {

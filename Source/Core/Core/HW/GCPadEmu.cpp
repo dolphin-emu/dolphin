@@ -3,19 +3,17 @@
 
 #include "Core/HW/GCPadEmu.h"
 
-#include <array>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/GCPad.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/GCPadStatus.h"
+
+#include <array>
 
 static const u16 button_bitmasks[] = {
     PAD_BUTTON_A,

@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <queue>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/SocketContext.h"
 #include "Common/WorkQueueThread.h"
@@ -14,6 +11,9 @@
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #endif
+
+#include <queue>
+#include <string>
 
 // WSAPoll doesn't support POLLPRI and POLLWRBAND flags
 #ifdef _WIN32

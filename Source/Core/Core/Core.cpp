@@ -3,25 +3,7 @@
 
 #include "Core/Core.h"
 
-#include <algorithm>
-#include <atomic>
-#include <functional>
-#include <future>
-#include <mutex>
-#include <optional>
-#include <queue>
-#include <utility>
-#include <variant>
-
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "AudioCommon/AudioCommon.h"
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -30,13 +12,11 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/OneShotEvent.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
 #include "Common/Version.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -72,17 +52,10 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
-
-#ifdef USE_MEMORYWATCHER
-#include "Core/MemoryWatcher.h"
-#endif
-
 #include "DiscIO/RiivolutionPatcher.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
-
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
@@ -90,6 +63,26 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoEvents.h"
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
+#endif
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <algorithm>
+#include <atomic>
+#include <functional>
+#include <future>
+#include <mutex>
+#include <optional>
+#include <queue>
+#include <utility>
+#include <variant>
 
 namespace Core
 {

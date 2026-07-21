@@ -3,17 +3,17 @@
 
 #include "VideoCommon/Assets/CustomTextureData.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-#include <functional>
-
 #include "Common/Align.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <functional>
 
 namespace
 {

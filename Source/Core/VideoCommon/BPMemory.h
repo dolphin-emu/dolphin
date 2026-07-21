@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <utility>
-
 #include "Common/BitField.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Common/EnumMap.h"
 #include "Common/Inline.h"
+
+#include <array>
+#include <string>
+#include <utility>
 
 // X.h defines None to be 0 and Always to be 2, which causes problems with some of the enums
 #undef None

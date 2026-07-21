@@ -3,17 +3,16 @@
 
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
 
-#include <fmt/format.h>
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientEditServerDialog.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
-
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientEditServerDialog.h"
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include <fmt/format.h>
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
 {

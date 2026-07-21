@@ -3,19 +3,12 @@
 
 #include "Core/HW/DVD/DVDThread.h"
 
-#include <map>
-#include <memory>
-#include <optional>
-#include <utility>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -25,9 +18,14 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+
+#include <map>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace DVD
 {

@@ -3,7 +3,9 @@
 
 #include "DolphinQt/Config/LogConfigWidget.h"
 
-#include <array>
+#include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
+#include "DolphinQt/Settings.h"
 
 #include <QCheckBox>
 #include <QGroupBox>
@@ -12,10 +14,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "Common/Logging/Log.h"
-#include "Common/Logging/LogManager.h"
-
-#include "DolphinQt/Settings.h"
+#include <array>
 
 LogConfigWidget::LogConfigWidget(QWidget* parent) : QDockWidget(parent)
 {

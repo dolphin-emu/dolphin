@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -13,6 +10,9 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Sram.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <array>
+#include <string>
 
 namespace DiscIO
 {

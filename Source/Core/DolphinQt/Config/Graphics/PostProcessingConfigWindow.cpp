@@ -3,8 +3,9 @@
 
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 
-#include <cmath>
-#include <vector>
+#include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
+#include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/Present.h"
 
 #include <QCheckBox>
 #include <QDialog>
@@ -18,10 +19,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
-
-#include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/Present.h"
+#include <cmath>
+#include <vector>
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;

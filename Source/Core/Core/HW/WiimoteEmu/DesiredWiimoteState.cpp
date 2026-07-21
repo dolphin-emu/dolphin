@@ -3,16 +3,15 @@
 
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
+#include "Common/VariantUtil.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
+
 #include <cstring>
 #include <optional>
 #include <type_traits>
 #include <variant>
-
-#include "Common/BitUtils.h"
-#include "Common/CommonTypes.h"
-#include "Common/VariantUtil.h"
-
-#include "Core/HW/WiimoteEmu/MotionPlus.h"
 
 namespace WiimoteEmu
 {

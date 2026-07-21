@@ -3,12 +3,12 @@
 
 #include "Core/PowerPC/Jit64Common/ConstantPool.h"
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+
 #include <cstring>
 #include <memory>
 #include <utility>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
 
 ConstantPool::ConstantPool() = default;
 

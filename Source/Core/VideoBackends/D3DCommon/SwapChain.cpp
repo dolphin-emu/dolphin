@@ -3,16 +3,15 @@
 
 #include "VideoBackends/D3DCommon/SwapChain.h"
 
-#include <algorithm>
-#include <cstdint>
-
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <cstdint>
 
 static bool IsTearingSupported(IDXGIFactory2* dxgi_factory)
 {

@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <variant>
-
-#include <picojson.h>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <picojson.h>
+
+#include <optional>
+#include <string>
+#include <variant>
 
 struct TextureTarget
 {

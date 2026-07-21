@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <string>
-
 #include <QString>
 #include <QWidget>
+
+#include <string>
 namespace UICommon
 {
 class GameFile;

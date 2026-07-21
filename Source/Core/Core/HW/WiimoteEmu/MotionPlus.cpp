@@ -3,20 +3,19 @@
 
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 
-#include <algorithm>
-#include <cmath>
-#include <iterator>
-
-#include <mbedtls/bignum.h>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
+
+#include <mbedtls/bignum.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iterator>
 
 namespace
 {

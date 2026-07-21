@@ -3,21 +3,20 @@
 
 #include "VideoBackends/Software/SWEfbInterface.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <vector>
-
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/Config/GraphicsSettings.h"
-
 #include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <vector>
 
 namespace EfbInterface
 {

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/TypeUtils.h"
+
+#include <array>
 
 template <std::size_t position, std::size_t bits, typename T, typename StorageType>
 struct BitField;

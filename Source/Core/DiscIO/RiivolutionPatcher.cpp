@@ -3,13 +3,6 @@
 
 #include "DiscIO/RiivolutionPatcher.h"
 
-#include <algorithm>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
@@ -21,6 +14,13 @@
 #include "Core/System.h"
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/RiivolutionParser.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace DiscIO::Riivolution
 {

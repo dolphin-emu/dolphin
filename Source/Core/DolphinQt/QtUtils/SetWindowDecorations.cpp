@@ -5,13 +5,13 @@
 
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
+#include "DolphinQt/Settings.h"
+
 #include <QApplication>
 #include <QEvent>
 #include <QWidget>
 
 #include <dwmapi.h>
-
-#include "DolphinQt/Settings.h"
 
 namespace
 {

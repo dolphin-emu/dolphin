@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 class PointerWrap;

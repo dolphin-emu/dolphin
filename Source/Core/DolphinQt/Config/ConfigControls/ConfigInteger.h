@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <QLabel>
-#include <QPointer>
-
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSpinBox.h"
 
-#include "Common/Config/ConfigInfo.h"
+#include <QLabel>
+#include <QPointer>
 
 class ConfigInteger final : public ConfigControl<ToolTipSpinBox>
 {

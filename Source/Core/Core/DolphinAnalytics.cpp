@@ -3,28 +3,6 @@
 
 #include "Core/DolphinAnalytics.h"
 
-#include <array>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
-#if defined(_WIN32)
-#include <windows.h>
-#include "Common/WindowsRegistry.h"
-#endif
-
-#if defined(ANDROID)
-#include <functional>
-#endif
-
-#if defined(__APPLE__)
-#include "Common/CommonFuncs.h"
-#endif
-
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -44,6 +22,27 @@
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#ifdef _WIN32
+#include "Common/WindowsRegistry.h"
+#elifdef __APPLE__
+#include "Common/CommonFuncs.h"
+#endif
+
+#include <fmt/format.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <array>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
+#ifdef ANDROID
+#include <functional>
+#endif
 
 namespace
 {

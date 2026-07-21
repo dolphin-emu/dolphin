@@ -3,9 +3,9 @@
 
 #include "DolphinQt/QtUtils/ImageConverter.h"
 
-#include <QPixmap>
-
 #include "UICommon/GameFile.h"
+
+#include <QPixmap>
 
 QPixmap ToQPixmap(const UICommon::GameBanner& banner)
 {

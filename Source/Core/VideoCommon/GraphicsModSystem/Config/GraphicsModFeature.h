@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string>
-
 #include <picojson.h>
+
+#include <string>
 
 struct GraphicsModFeatureConfig
 {

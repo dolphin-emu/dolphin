@@ -17,8 +17,6 @@
 // ----------
 #pragma once
 
-#include <optional>
-
 #include "Common/CommonTypes.h"
 #include "Common/RangeSizeSet.h"
 #include "Common/x64Emitter.h"
@@ -32,6 +30,8 @@
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+
+#include <optional>
 
 class HostDisassembler;
 namespace PPCAnalyst

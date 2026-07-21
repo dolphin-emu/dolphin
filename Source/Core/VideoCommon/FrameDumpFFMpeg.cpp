@@ -2,17 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
-#include "Common/TimeUtil.h"
-
 #if defined(__FreeBSD__)
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
-#include <array>
-#include <string>
-
 #include <fmt/chrono.h>
 #include <fmt/format.h>
+
+#include <array>
+#include <string>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -31,14 +29,13 @@ extern "C" {
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/TimeUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
 
 struct FrameDumpContext

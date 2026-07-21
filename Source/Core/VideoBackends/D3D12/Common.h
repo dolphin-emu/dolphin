@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#include <d3d12.h>
-#include <wrl/client.h>
-
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
+
+#include <d3d12.h>
+#include <wrl/client.h>
 
 namespace DX12
 {

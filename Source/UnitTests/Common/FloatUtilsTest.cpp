@@ -1,14 +1,14 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/FloatUtils.h"
+
+#include <gtest/gtest.h>
+
 #include <array>
 #include <bit>
 #include <limits>
 #include <random>
-
-#include <gtest/gtest.h>
-
-#include "Common/FloatUtils.h"
 
 #include "../Core/PowerPC/TestValues.h"
 

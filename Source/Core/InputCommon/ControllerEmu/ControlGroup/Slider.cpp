@@ -3,11 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
 
-#include <string>
-
 #include "Common/Common.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

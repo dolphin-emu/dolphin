@@ -3,6 +3,17 @@
 
 #include "DolphinQt/Config/GamecubeControllersWidget.h"
 
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/NetPlayProto.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -12,18 +23,6 @@
 
 #include <optional>
 #include <utility>
-
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/SI/SI_Device.h"
-#include "Core/NetPlayProto.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
 
 using SIDeviceName = std::pair<SerialInterface::SIDevices, const char*>;
 static constexpr std::array s_gc_types = {

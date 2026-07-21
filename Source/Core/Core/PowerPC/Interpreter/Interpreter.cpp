@@ -3,11 +3,6 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include <array>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
@@ -23,6 +18,11 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <array>
+#include <string>
 
 namespace
 {

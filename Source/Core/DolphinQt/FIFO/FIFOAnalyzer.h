@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <vector>
+#include "Common/CommonTypes.h"
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
+#include <vector>
 
 class FifoPlayer;
 class QFont;

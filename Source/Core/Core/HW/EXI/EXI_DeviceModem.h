@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
+
+#include <mutex>
 
 class PointerWrap;
 

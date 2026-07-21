@@ -3,19 +3,6 @@
 
 #include "Core/HW/WiimoteReal/IOLinux.h"
 
-#include <ranges>
-#include <vector>
-
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/hci_lib.h>
-#include <bluetooth/l2cap.h>
-
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-
-#include <unistd.h>
-
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -23,6 +10,17 @@
 #include "Common/ScopeGuard.h"
 #include "Common/UnixUtil.h"
 #include "Core/Config/MainSettings.h"
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+#include <bluetooth/l2cap.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
+#include <unistd.h>
+
+#include <ranges>
+#include <vector>
 
 namespace WiimoteReal
 {

@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/Common.h"
-
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
+
+#include <array>
 
 namespace ControllerEmu
 {

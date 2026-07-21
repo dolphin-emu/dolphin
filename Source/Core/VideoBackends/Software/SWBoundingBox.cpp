@@ -3,10 +3,10 @@
 
 #include "VideoBackends/Software/SWBoundingBox.h"
 
+#include "Common/CommonTypes.h"
+
 #include <algorithm>
 #include <array>
-
-#include "Common/CommonTypes.h"
 
 namespace BBoxManager
 {

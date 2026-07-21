@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <cstring>
-#include <memory>
-
 #include "Common/CommonTypes.h"
+
+#include <memory>
 
 namespace Memory
 {

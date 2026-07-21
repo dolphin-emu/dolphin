@@ -3,11 +3,10 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomPipeline.h"
 
-#include <memory>
-#include <span>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+
+#include <span>
 
 void CustomPipeline::UpdatePixelData(const VideoCommon::CustomAssetLibrary*, std::span<const u32>,
                                      const VideoCommon::CustomAssetLibrary::AssetID&)

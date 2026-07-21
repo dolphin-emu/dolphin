@@ -1,13 +1,13 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/ranges.h>
-
-#include <gtest/gtest.h>
-
 #include "Common/BitField.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+
+#include <fmt/ranges.h>
+#include <gtest/gtest.h>
 
 enum class TestEnum : u64
 {

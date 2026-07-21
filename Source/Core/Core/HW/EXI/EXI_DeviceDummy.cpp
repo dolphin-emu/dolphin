@@ -3,11 +3,11 @@
 
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 
-#include <string>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
+#include <string>
+#include <utility>
 
 namespace ExpansionInterface
 {

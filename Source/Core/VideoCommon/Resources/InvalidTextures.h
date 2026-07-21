@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "VideoCommon/AbstractTexture.h"
+
+#include <memory>
 
 namespace VideoCommon
 {

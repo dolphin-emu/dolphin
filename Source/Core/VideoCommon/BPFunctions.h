@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <utility>
-#include <vector>
-
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
+
+#include <utility>
+#include <vector>
 
 class FramebufferManager;
 struct Viewport;

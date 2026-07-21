@@ -4,11 +4,12 @@
 #pragma once
 
 #ifdef ANDROID
-#include <jni.h>
-#include <string>
-
 #include "Common/StringUtil.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#include <jni.h>
+
+#include <string>
 
 namespace WiimoteReal
 {

@@ -3,15 +3,6 @@
 
 #include "Common/MemArena.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdlib>
-#include <string>
-
-#include <fmt/format.h>
-
-#include <windows.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
@@ -20,6 +11,15 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+
+#include <fmt/format.h>
+
+#include <windows.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
+#include <string>
 
 using PVirtualAlloc2 = PVOID(WINAPI*)(HANDLE Process, PVOID BaseAddress, SIZE_T Size,
                                       ULONG AllocationType, ULONG PageProtection,

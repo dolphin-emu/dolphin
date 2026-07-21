@@ -3,18 +3,17 @@
 
 #include "DolphinQt/Config/CommonControllersWidget.h"
 
-#include <QCheckBox>
-#include <QGroupBox>
-#include <QPushButton>
-#include <QVBoxLayout>
-
 #include "Core/Config/MainSettings.h"
-
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/SDLHints/SDLHintsWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QWidget(parent)
 {

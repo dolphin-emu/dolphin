@@ -3,15 +3,15 @@
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
+#include "InputCommon/GCAdapter.h"
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
-
-#include "Core/Config/MainSettings.h"
-
-#include "InputCommon/GCAdapter.h"
 
 GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
     : QDialog(parent), m_port{port}

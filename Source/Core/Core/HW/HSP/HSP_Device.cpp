@@ -3,12 +3,12 @@
 
 #include "Core/HW/HSP/HSP_Device.h"
 
-#include <memory>
-
 #include "Core/HW/HSP/HSP_DeviceARAMExpansion.h"
 #include "Core/HW/HSP/HSP_DeviceGBPlayer.h"
 #include "Core/HW/HSP/HSP_DeviceNull.h"
 #include "Core/System.h"
+
+#include <memory>
 
 namespace HSP
 {

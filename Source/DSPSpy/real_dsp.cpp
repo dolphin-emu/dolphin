@@ -1,6 +1,8 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "real_dsp.h"
+
 #include <gccore.h>
 #include <ogc/dsp.h>
 #include <ogc/irq.h>
@@ -9,7 +11,6 @@
 #include <ogcsys.h>
 
 #include "dsp_interface.h"
-#include "real_dsp.h"
 
 static vu16* const _dspReg = (u16*)0xCC005000;
 

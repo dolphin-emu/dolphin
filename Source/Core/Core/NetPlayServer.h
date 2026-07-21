@@ -3,6 +3,15 @@
 
 #pragma once
 
+#include "Common/Event.h"
+#include "Common/QoSSession.h"
+#include "Common/SPSCQueue.h"
+#include "Common/Timer.h"
+#include "Common/TraversalClient.h"
+#include "Core/NetPlayProto.h"
+#include "Core/SyncIdentifier.h"
+#include "UICommon/NetPlayIndex.h"
+
 #include <SFML/Network/Packet.hpp>
 
 #include <map>
@@ -12,15 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-
-#include "Common/Event.h"
-#include "Common/QoSSession.h"
-#include "Common/SPSCQueue.h"
-#include "Common/Timer.h"
-#include "Common/TraversalClient.h"
-#include "Core/NetPlayProto.h"
-#include "Core/SyncIdentifier.h"
-#include "UICommon/NetPlayIndex.h"
 
 namespace NetPlay
 {

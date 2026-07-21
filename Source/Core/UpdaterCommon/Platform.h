@@ -3,14 +3,10 @@
 
 #pragma once
 
-#include <map>
-#include <optional>
-#include <sstream>
-
-#include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
-
 #include "UpdaterCommon/UpdaterCommon.h"
+
+#include <string>
+#include <vector>
 
 namespace Platform
 {

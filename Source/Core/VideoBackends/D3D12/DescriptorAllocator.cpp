@@ -4,7 +4,6 @@
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
 
 #include "Common/Assert.h"
-
 #include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12

@@ -3,23 +3,20 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#elifdef ANDROID
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
+#include <sys/stat.h>
+
 #include <filesystem>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <sys/stat.h>
-
-#include "Common/CommonTypes.h"
-
-#ifdef _WIN32
-#include "Common/StringUtil.h"
-#endif
-
-#ifdef ANDROID
-#include "Common/StringUtil.h"
-#include "jni/AndroidCommon/AndroidCommon.h"
-#endif
 
 // User directory indices for GetUserPath
 enum

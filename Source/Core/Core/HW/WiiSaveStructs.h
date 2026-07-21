@@ -8,15 +8,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Lazy.h"
+#include "Common/Swap.h"
+
 #include <array>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Lazy.h"
-#include "Common/Swap.h"
 
 namespace WiiSave
 {

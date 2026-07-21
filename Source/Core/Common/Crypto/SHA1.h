@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <limits>
 #include <memory>
@@ -10,9 +13,6 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
 
 namespace Common::SHA1
 {

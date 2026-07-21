@@ -1,16 +1,17 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/FileUtil.h"
+
+#include "Common/BitUtils.h"
+#include "Common/DirectIOFile.h"
+
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <array>
 #include <latch>
 #include <thread>
-
-#include <gtest/gtest.h>
-
-#include "Common/BitUtils.h"
-#include "Common/DirectIOFile.h"
-#include "Common/FileUtil.h"
 
 class FileUtilTest : public testing::Test
 {

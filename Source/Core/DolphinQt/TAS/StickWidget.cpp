@@ -3,13 +3,13 @@
 
 #include "DolphinQt/TAS/StickWidget.h"
 
-#include <algorithm>
-#include <cmath>
+#include "Common/CommonTypes.h"
 
 #include <QMouseEvent>
 #include <QPainter>
 
-#include "Common/CommonTypes.h"
+#include <algorithm>
+#include <cmath>
 
 constexpr int PADDING = 1;
 

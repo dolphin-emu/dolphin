@@ -4,11 +4,12 @@
 // Copyright 2024 Luke Street <luke@street.dev>
 // SPDX-License-Identifier: CC0-1.0
 
+#include "Common/CWDemangler.h"
+
 #include <gtest/gtest.h>
+
 #include <optional>
 #include <string>
-
-#include "Common/CWDemangler.h"
 
 using namespace CWDemangler;
 

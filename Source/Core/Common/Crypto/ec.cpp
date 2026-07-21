@@ -4,11 +4,11 @@
 
 #include "Common/Crypto/ec.h"
 
-#include <algorithm>
-#include <cstring>
-
 #include "Common/Crypto/bn.h"
 #include "Common/Random.h"
+
+#include <algorithm>
+#include <cstring>
 
 namespace Common::ec
 {

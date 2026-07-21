@@ -3,21 +3,19 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
 
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
-#include "InputCommon/InputConfig.h"
 
 WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
     : MappingWidget(window), m_extension_widget(extension)

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <atomic>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
+
+#include <atomic>
 
 class PointerWrap;
 namespace MMIO

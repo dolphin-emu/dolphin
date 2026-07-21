@@ -3,9 +3,9 @@
 
 #include "UpdaterCommon/UI.h"
 
-#include <cstdlib>
-#include <string>
-#include <thread>
+#include "Common/Event.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include <windows.h>
 #include <commctrl.h>
@@ -14,9 +14,9 @@
 #include <shobjidl.h>
 #include <wrl/client.h>
 
-#include "Common/Event.h"
-#include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
+#include <cstdlib>
+#include <string>
+#include <thread>
 
 namespace
 {

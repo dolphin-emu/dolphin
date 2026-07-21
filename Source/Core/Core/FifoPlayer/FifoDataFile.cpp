@@ -3,18 +3,19 @@
 
 #include "Core/FifoPlayer/FifoDataFile.h"
 
-#include <algorithm>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <vector>
-
+#include "Common/Config/Config.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
 
 constexpr u32 FILE_ID = 0x0d01f1f0;
 constexpr u32 VERSION_NUMBER = 6;

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/Common.h"
-
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 struct GCPadStatus;

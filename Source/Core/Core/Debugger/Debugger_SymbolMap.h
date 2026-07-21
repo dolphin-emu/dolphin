@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 
 namespace Core
 {

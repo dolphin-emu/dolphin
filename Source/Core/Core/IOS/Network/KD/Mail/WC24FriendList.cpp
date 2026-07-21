@@ -3,17 +3,16 @@
 
 #include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Uids.h"
+
 #include <algorithm>
 #include <memory>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Swap.h"
-
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/IOS/Uids.h"
 
 namespace IOS::HLE::NWC24::Mail
 {

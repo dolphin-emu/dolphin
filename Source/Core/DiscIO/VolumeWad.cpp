@@ -3,15 +3,6 @@
 
 #include "DiscIO/VolumeWad.h"
 
-#include <algorithm>
-#include <map>
-#include <memory>
-#include <optional>
-#include <span>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -24,6 +15,15 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
+
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace DiscIO
 {

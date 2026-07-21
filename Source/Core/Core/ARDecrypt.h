@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Core/ActionReplay.h"
+
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Core/ActionReplay.h"
 
 namespace ActionReplay
 {

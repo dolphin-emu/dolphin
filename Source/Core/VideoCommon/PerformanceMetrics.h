@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <atomic>
-#include <deque>
-
 #include "Common/CommonTypes.h"
 #include "Common/HookableEvent.h"
 #include "VideoCommon/PerformanceTracker.h"
+
+#include <atomic>
+#include <deque>
 
 namespace Core
 {

@@ -3,11 +3,6 @@
 
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
-#include <optional>
-#include <string>
-
-#include <picojson.h>
-
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
@@ -15,6 +10,11 @@
 #include "Core/ConfigManager.h"
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 #include "InputCommon/ImageOperations.h"
+
+#include <picojson.h>
+
+#include <optional>
+#include <string>
 
 namespace InputCommon::DynamicInputTextures
 {

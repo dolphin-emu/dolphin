@@ -6,6 +6,7 @@
 #include "Common/EnumMap.h"
 
 #include <fmt/format.h>
+
 #include <type_traits>
 
 /*

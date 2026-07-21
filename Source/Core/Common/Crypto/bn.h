@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include "Common/CommonTypes.h"
+
+#include <cstddef>
 
 // bignum arithmetic
 

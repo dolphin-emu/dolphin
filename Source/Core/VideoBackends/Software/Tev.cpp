@@ -3,23 +3,20 @@
 
 #include "VideoBackends/Software/Tev.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/System.h"
-
 #include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/TextureSampler.h"
-
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
 
 static inline s16 Clamp255(s16 in)
 {

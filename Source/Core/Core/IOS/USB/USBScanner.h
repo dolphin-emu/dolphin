@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-#include <mutex>
-#include <set>
-#include <thread>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/WaitableFlag.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/LibusbUtils.h"
+
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <thread>
 
 class PointerWrap;
 

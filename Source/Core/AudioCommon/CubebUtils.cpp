@@ -3,10 +3,6 @@
 
 #include "AudioCommon/CubebUtils.h"
 
-#include <cstdarg>
-#include <cstring>
-#include <string_view>
-
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
@@ -16,6 +12,10 @@
 #ifdef _WIN32
 #include <objbase.h>
 #endif
+
+#include <cstdarg>
+#include <cstring>
+#include <string_view>
 
 static void LogCallback(const char* format, ...)
 {

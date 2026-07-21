@@ -3,10 +3,6 @@
 
 #include "Core/FifoPlayer/FifoPlayer.h"
 
-#include <algorithm>
-#include <cstring>
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -26,11 +22,12 @@
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/TextureDecoder.h"  // We need to include TextureDecoder.h for the texMem array. TODO: Move texMem somewhere else so this isn't an issue.
 #include "VideoCommon/VideoCommon.h"
 
-// We need to include TextureDecoder.h for the texMem array.
-// TODO: Move texMem somewhere else so this isn't an issue.
-#include "VideoCommon/TextureDecoder.h"
+#include <algorithm>
+#include <cstring>
+#include <type_traits>
 
 namespace
 {

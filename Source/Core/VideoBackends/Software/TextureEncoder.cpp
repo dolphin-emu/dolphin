@@ -8,10 +8,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/SWTexture.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureCacheBase.h"

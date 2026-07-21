@@ -3,17 +3,17 @@
 
 #include "DolphinTool/HeaderCommand.h"
 
-#include <cstdlib>
-#include <optional>
-#include <string>
-#include <vector>
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
 
 #include <cpp-optparse/OptionParser.h>
 #include <fmt/ostream.h>
 #include <picojson.h>
 
-#include "DiscIO/Blob.h"
-#include "DiscIO/Volume.h"
+#include <cstdlib>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace DolphinTool
 {

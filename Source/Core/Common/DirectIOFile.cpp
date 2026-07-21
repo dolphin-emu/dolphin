@@ -3,34 +3,34 @@
 
 #include "Common/DirectIOFile.h"
 
-#include <utility>
-
-#if defined(_WIN32)
-#include <windows.h>
-
-#include <cstring>
-
+#include "Common/Assert.h"
+#ifdef _WIN32
 #include "Common/Buffer.h"
 #include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #else
-#include <string>
+#include "Common/FileUtil.h"
+#ifdef ANDROID
+#include "Common/Lazy.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+#endif
 
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#ifdef ANDROID
-#include "jni/AndroidCommon/AndroidCommon.h"
-
-#include "Common/Lazy.h"
 #endif
 
-#include "Common/FileUtil.h"
+#include <utility>
+#ifdef _WIN32
+#include <cstring>
+#else
+#include <string>
 #endif
-
-#include "Common/Assert.h"
 
 namespace File
 {

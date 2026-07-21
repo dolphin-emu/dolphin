@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <span>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+
+#include <span>
+#include <string>
 
 namespace File
 {

@@ -3,10 +3,6 @@
 
 #include "Core/HW/CPU.h"
 
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Event.h"
 #include "Common/Thread.h"
@@ -21,6 +17,10 @@
 #include "Core/System.h"
 #include "Core/TimePlayed.h"
 #include "VideoCommon/Fifo.h"
+
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 
 namespace CPU
 {

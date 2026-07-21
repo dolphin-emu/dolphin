@@ -3,9 +3,6 @@
 
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
-#include <array>
-#include <utility>
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
@@ -16,6 +13,9 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+
+#include <array>
+#include <utility>
 
 #define QUANTIZED_REGS_TO_SAVE                                                                     \
   (ABI_ALL_CALLER_SAVED & ~BitSet32{RSCRATCH, RSCRATCH2, RSCRATCH_EXTRA, XMM0 + 16, XMM1 + 16})

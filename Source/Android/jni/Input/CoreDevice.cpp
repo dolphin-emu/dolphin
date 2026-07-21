@@ -3,15 +3,15 @@
 
 #include "jni/Input/CoreDevice.h"
 
-#include <memory>
-#include <utility>
-#include <vector>
-
-#include <jni.h>
-
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <memory>
+#include <utility>
+#include <vector>
 
 static ciface::Core::Device::Control* GetControlPointer(JNIEnv* env, jobject obj)
 {

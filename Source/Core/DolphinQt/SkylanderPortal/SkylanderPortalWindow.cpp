@@ -6,6 +6,16 @@
 
 #include "DolphinQt/SkylanderPortal/SkylanderPortalWindow.h"
 
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/SkylanderPortal/SkylanderModifyDialog.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
@@ -26,18 +36,6 @@
 #include <QStringList>
 #include <QThread>
 #include <QVBoxLayout>
-
-#include "Common/IOFile.h"
-
-#include "Common/FileUtil.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-#include "SkylanderModifyDialog.h"
 
 SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 {

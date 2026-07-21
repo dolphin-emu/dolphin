@@ -3,10 +3,8 @@
 
 #include "VideoCommon/FramebufferManager.h"
 
-#include <fmt/format.h>
-#include <memory>
-
 #include "Common/ChunkFile.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -25,6 +23,10 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+
+#include <memory>
 
 // Maximum number of pixels poked in one batch * 6
 constexpr size_t MAX_POKE_VERTICES = 32768;

@@ -3,6 +3,10 @@
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
+#include "Common/MathUtil.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -10,10 +14,6 @@
 #include <string>
 #include <tuple>
 #include <utility>
-
-#include <fmt/format.h>
-
-#include "Common/MathUtil.h"
 
 namespace ciface::Core
 {

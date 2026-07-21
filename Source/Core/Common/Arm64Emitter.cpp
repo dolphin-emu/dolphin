@@ -3,29 +3,26 @@
 
 #include "Common/Arm64Emitter.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-#include <cstring>
-#include <optional>
-#include <tuple>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 
+#include <fmt/format.h>
+
 #ifdef _WIN32
 #include <windows.h>
-#endif
-#ifdef __APPLE__
+#elifdef __APPLE__
 #include <libkern/OSCacheControl.h>
 #endif
+
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <cstring>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace Arm64Gen
 {

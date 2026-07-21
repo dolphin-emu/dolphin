@@ -3,21 +3,6 @@
 
 #include "Core/WiiUtils.h"
 
-#include <algorithm>
-#include <bitset>
-#include <cstddef>
-#include <map>
-#include <memory>
-#include <optional>
-#include <sstream>
-#include <string_view>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-#include <pugixml.hpp>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -48,6 +33,21 @@
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeWad.h"
+
+#include <fmt/format.h>
+#include <pugixml.hpp>
+
+#include <algorithm>
+#include <bitset>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <optional>
+#include <sstream>
+#include <string_view>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace WiiUtils
 {

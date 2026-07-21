@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <string_view>
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 
 #include <picojson.h>
 
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
+#include <memory>
+#include <string>
+#include <string_view>
 
 class CustomPipelineAction final : public GraphicsModAction
 {

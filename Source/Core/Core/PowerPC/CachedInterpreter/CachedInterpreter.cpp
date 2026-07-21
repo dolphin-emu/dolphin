@@ -3,12 +3,6 @@
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 
-#include <span>
-#include <sstream>
-#include <utility>
-
-#include <fmt/ostream.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
@@ -24,6 +18,12 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/ostream.h>
+
+#include <span>
+#include <sstream>
+#include <utility>
 
 CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system), m_block_cache(*this)
 {

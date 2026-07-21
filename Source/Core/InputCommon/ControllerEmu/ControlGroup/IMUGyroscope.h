@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <chrono>
-#include <optional>
-#include <string>
-
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <chrono>
+#include <optional>
+#include <string>
 
 namespace ControllerEmu
 {

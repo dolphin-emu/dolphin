@@ -3,23 +3,6 @@
 
 #include "DolphinQt/ConvertDialog.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <future>
-#include <memory>
-#include <utility>
-
-#include <QCheckBox>
-#include <QComboBox>
-#include <QFormLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QList>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QString>
-#include <QVBoxLayout>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -32,6 +15,23 @@
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QList>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QVBoxLayout>
+
+#include <algorithm>
+#include <filesystem>
+#include <future>
+#include <memory>
+#include <utility>
 
 ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> files,
                              QWidget* parent)

@@ -3,10 +3,24 @@
 
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 
-#include <algorithm>
-#include <optional>
-#include <ranges>
-#include <utility>
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/BranchWatch.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/BranchWatchTableModel.h"
+#include "DolphinQt/Debugger/CodeWidget.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -29,24 +43,10 @@
 #include <QVariant>
 #include <fmt/format.h>
 
-#include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Debugger/BranchWatch.h"
-#include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-#include "DolphinQt/Debugger/BranchWatchTableModel.h"
-#include "DolphinQt/Debugger/CodeWidget.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
+#include <algorithm>
+#include <optional>
+#include <ranges>
+#include <utility>
 
 class BranchWatchProxyModel final : public QSortFilterProxyModel
 {

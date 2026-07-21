@@ -3,30 +3,11 @@
 
 #include "DolphinQt/Config/ARCodeWidget.h"
 
-#include <algorithm>
-#include <functional>
-#include <utility>
-
-#include <QCursor>
-#include <QHBoxLayout>
-#ifdef USE_RETRO_ACHIEVEMENTS
-#include <QIcon>
-#endif  // USE_RETRO_ACHIEVEMENTS
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
-#ifdef USE_RETRO_ACHIEVEMENTS
-#include <QStyle>
-#endif  // USE_RETRO_ACHIEVEMENTS
-#include <QVBoxLayout>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
@@ -34,6 +15,21 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Settings.h"
 #endif  // USE_RETRO_ACHIEVEMENTS
+
+#include <QCursor>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QMenu>
+#include <QPushButton>
+#include <QVBoxLayout>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QIcon>
+#include <QStyle>
+#endif  // USE_RETRO_ACHIEVEMENTS
+
+#include <algorithm>
+#include <functional>
+#include <utility>
 
 ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),

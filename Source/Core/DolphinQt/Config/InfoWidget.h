@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
+#include "UICommon/GameFile.h"
 
 #include <QWidget>
 
-#include "UICommon/GameFile.h"
+#include <memory>
+#include <string>
 
 namespace DiscIO
 {

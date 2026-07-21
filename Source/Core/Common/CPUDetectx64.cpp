@@ -3,9 +3,22 @@
 
 #include "Common/CPUDetect.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+#ifdef _WIN32
+#include "Common/MsgHandler.h"
+#endif
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #include <processthreadsapi.h>
+#elifdef __FreeBSD__
+#include <machine/cpufunc.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 #include <algorithm>
@@ -13,24 +26,7 @@
 #include <string>
 #include <thread>
 
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
-#ifdef _WIN32
-#include "Common/MsgHandler.h"
-#endif
-
 #ifndef _WIN32
-
-#ifdef __FreeBSD__
-#include <unistd.h>
-
-#include <machine/cpufunc.h>
-#include <sys/types.h>
-#endif
-
 static inline void __cpuidex(int info[4], int function_id, int subfunction_id)
 {
 #ifdef __FreeBSD__

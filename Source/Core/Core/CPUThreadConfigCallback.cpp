@@ -3,11 +3,11 @@
 
 #include "Core/CPUThreadConfigCallback.h"
 
-#include <atomic>
-
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
 #include "Core/Core.h"
+
+#include <atomic>
 
 namespace
 {

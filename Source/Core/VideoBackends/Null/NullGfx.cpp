@@ -4,7 +4,6 @@
 #include "VideoBackends/Null/NullGfx.h"
 
 #include "VideoBackends/Null/NullTexture.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/NativeVertexFormat.h"

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string_view>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/HookableEvent.h"
+
+#include <string_view>
+#include <vector>
 
 namespace Core
 {

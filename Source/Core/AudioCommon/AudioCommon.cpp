@@ -3,9 +3,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
 #include "AudioCommon/AlsaSoundStream.h"
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
@@ -20,6 +17,9 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 
 namespace AudioCommon
 {

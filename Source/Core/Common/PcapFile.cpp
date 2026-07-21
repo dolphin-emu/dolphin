@@ -3,10 +3,10 @@
 
 #include "Common/PcapFile.h"
 
-#include <chrono>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+
+#include <chrono>
 
 namespace Common
 {

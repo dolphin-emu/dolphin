@@ -3,11 +3,11 @@
 
 #include "VideoBackends/OGL/SamplerCache.h"
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
 
 namespace OGL
 {

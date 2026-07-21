@@ -7,13 +7,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/System.h"
-
 #include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/PixelShaderManager.h"

@@ -3,10 +3,6 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
-#include <array>
-#include <cmath>
-#include <memory>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
@@ -14,11 +10,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
-
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
@@ -43,6 +37,10 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <array>
+#include <cmath>
+#include <memory>
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 

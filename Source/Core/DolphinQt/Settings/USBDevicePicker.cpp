@@ -3,7 +3,8 @@
 
 #include "DolphinQt/Settings/USBDevicePicker.h"
 
-#include <optional>
+#include "Core/USBUtils.h"
+#include "DolphinQt/Settings/WiiPane.h"
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -17,12 +18,9 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
-
 #include <fmt/format.h>
 
-#include "Core/USBUtils.h"
-
-#include "DolphinQt/Settings/WiiPane.h"
+#include <optional>
 
 USBDevicePicker::USBDevicePicker(QWidget* parent, FilterFunctionType filter)
     : QDialog(parent), m_filter(std::move(filter))

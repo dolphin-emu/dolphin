@@ -1,19 +1,20 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <fmt/format.h>
-#include <jni.h>
-
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <fmt/format.h>
+
+#include <jni.h>
+
+#include <string>
+#include <string_view>
+#include <vector>
 
 static std::vector<DiscIO::Riivolution::Disc>* GetPointer(JNIEnv* env, jobject obj)
 {

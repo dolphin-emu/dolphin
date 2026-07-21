@@ -3,14 +3,14 @@
 
 #include "Core/IOS/Network/NCD/WiiNetConfig.h"
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
+
+#include <cstring>
 
 namespace IOS::HLE::Net
 {

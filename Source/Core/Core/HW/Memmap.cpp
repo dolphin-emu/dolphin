@@ -8,16 +8,6 @@
 
 #include "Core/HW/Memmap.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <set>
-#include <span>
-#include <tuple>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -42,6 +32,16 @@
 #include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
+
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <set>
+#include <span>
+#include <tuple>
 
 namespace Memory
 {

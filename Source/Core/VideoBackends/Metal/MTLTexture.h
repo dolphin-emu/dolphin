@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-
+#include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
-#include "VideoBackends/Metal/MRCHelpers.h"
+#include <Metal/Metal.h>
 
 namespace Metal
 {

@@ -3,16 +3,16 @@
 
 #include "DiscIO/GameModDescriptor.h"
 
+#include "Common/IOFile.h"
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
+
+#include <picojson.h>
+
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <picojson.h>
-
-#include "Common/IOFile.h"
-#include "Common/MathUtil.h"
-#include "Common/StringUtil.h"
 
 namespace DiscIO
 {

@@ -4,8 +4,6 @@
 #pragma once
 
 #include "Common/Arm64Emitter.h"
-#include "Common/Common.h"
-
 #include "Core/HW/MMIO.h"
 
 namespace Core

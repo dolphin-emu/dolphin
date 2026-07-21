@@ -3,15 +3,14 @@
 
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPDisassembler.h"
 
 namespace DSP::Symbols
 {

@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <string>
 #include "Common/CommonTypes.h"
+
+#include <string>
 
 enum class EFBReinterpretType;
 enum class TextureFormat;

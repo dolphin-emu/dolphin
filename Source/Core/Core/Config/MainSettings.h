@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <array>
-#include <set>
-#include <string>
-#include <utility>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Core/USBUtils.h"
 #include "DiscIO/Enums.h"
+
+#include <array>
+#include <set>
+#include <span>
+#include <string>
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")

@@ -3,12 +3,12 @@
 
 #include "Common/x64Emitter.h"
 
-#include <cstring>
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/x64Reg.h"
+
+#include <cstring>
 
 namespace Gen
 {

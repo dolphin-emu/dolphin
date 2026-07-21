@@ -3,10 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 
-#include <algorithm>
-#include <cmath>
-#include <optional>
-
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -16,6 +12,10 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+
+#include <algorithm>
+#include <cmath>
+#include <optional>
 
 namespace
 {

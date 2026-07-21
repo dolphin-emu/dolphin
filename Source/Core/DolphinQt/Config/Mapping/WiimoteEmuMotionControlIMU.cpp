@@ -3,6 +3,12 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -10,14 +16,6 @@
 #include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
-#include "DolphinQt/QtUtils/QtUtils.h"
-
-#include "InputCommon/InputConfig.h"
 
 WiimoteEmuMotionControlIMU::WiimoteEmuMotionControlIMU(MappingWindow* window)
     : MappingWidget(window)

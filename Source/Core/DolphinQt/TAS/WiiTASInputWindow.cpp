@@ -3,7 +3,26 @@
 
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 
-#include <cmath>
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+#include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/TAS/IRWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
+#include "DolphinQt/TAS/TASSpinBox.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/InputConfig.h"
 
 #include <QCheckBox>
 #include <QGridLayout>
@@ -13,32 +32,9 @@
 #include <QSpinBox>
 #include <QStyle>
 #include <QVBoxLayout>
-
 #include <fmt/format.h>
 
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/MathUtil.h"
-
-#include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Extension.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/MotionPlus.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/AspectRatioWidget.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/TAS/IRWidget.h"
-#include "DolphinQt/TAS/TASCheckBox.h"
-#include "DolphinQt/TAS/TASSpinBox.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
-#include "InputCommon/InputConfig.h"
+#include <cmath>
 
 using namespace WiimoteCommon;
 

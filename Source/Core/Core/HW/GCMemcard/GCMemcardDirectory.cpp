@@ -3,17 +3,6 @@
 
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 
-#include <algorithm>
-#include <chrono>
-#include <cstring>
-#include <mutex>
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -24,9 +13,9 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -36,6 +25,17 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <chrono>
+#include <cstring>
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 

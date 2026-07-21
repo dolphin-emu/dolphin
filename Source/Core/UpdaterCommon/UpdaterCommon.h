@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <cstdio>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 

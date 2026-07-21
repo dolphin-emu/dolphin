@@ -3,19 +3,10 @@
 
 #include "Core/HW/VideoInterface.h"
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstddef>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PerformanceMetrics.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -30,12 +21,17 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
-
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstddef>
 
 namespace VideoInterface
 {

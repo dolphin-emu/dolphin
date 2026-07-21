@@ -3,11 +3,10 @@
 
 #pragma once
 
+#include "Common/IniFile.h"
+
 #include <chrono>
 #include <string>
-
-#include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
 
 class TimePlayed
 {

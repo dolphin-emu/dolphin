@@ -3,19 +3,18 @@
 
 #include "VideoBackends/D3D/D3DState.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <array>
+#include <bit>
 
 namespace DX11
 {

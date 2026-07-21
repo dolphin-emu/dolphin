@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <type_traits>
+#include "Common/Matrix.h"
 
 #include <picojson.h>
 
-#include "Common/Matrix.h"
+#include <optional>
+#include <string>
+#include <type_traits>
 
 // Ideally this would use a concept like, 'template <std::ranges::range Range>' to constrain it,
 // but unfortunately we'd need to require clang 15 for that, since the ranges library isn't

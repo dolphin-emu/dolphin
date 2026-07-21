@@ -3,17 +3,17 @@
 
 #include "DolphinQt/ToolBar.h"
 
-#include <algorithm>
-#include <vector>
-
-#include <QAction>
-#include <QIcon>
-
 #include "Core/Core.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include <QAction>
+#include <QIcon>
+
+#include <algorithm>
+#include <vector>
 
 static QSize ICON_SIZE(32, 32);
 

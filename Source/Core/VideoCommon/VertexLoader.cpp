@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VertexLoader_Color.h"

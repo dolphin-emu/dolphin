@@ -7,9 +7,6 @@
 
 #include "Core/HW/MagCard/MagneticCardReader.h"
 
-#include <algorithm>
-#include <numeric>
-
 #include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Lazy.h"
@@ -17,6 +14,9 @@
 #include "Common/SmallVector.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
+
+#include <algorithm>
+#include <numeric>
 
 namespace
 {

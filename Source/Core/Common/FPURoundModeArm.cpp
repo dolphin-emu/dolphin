@@ -3,13 +3,13 @@
 
 #include "Common/FPURoundMode.h"
 
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 namespace Common::FPU
 {

@@ -3,10 +3,6 @@
 
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
-#include <vector>
-
-#include <fmt/std.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -21,6 +17,10 @@
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
+
+#include <fmt/std.h>
+
+#include <vector>
 
 namespace VideoCommon
 {

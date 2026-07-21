@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <atomic>
-#include <mutex>
-#include <thread>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSPEmulator.h"
+
+#include <atomic>
+#include <mutex>
+#include <thread>
 
 class PointerWrap;
 

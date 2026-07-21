@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyGraphics.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyGraphics::HotkeyGraphics(MappingWindow* window) : MappingWidget(window)
 {

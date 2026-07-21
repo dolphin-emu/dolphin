@@ -3,19 +3,21 @@
 
 #include "Common/MsgHandler.h"
 
-#include <cstdlib>
-#include <string>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <fmt/format.h>
-#endif
-
 #include "Common/Logging/Log.h"
 #ifdef _WIN32
 #include "Common/StringUtil.h"
 #endif
+
+#ifndef _WIN32
+#include <fmt/format.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <cstdlib>
+#include <string>
 
 namespace Common
 {

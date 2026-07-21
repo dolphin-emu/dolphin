@@ -3,23 +3,16 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <optional>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/SmallVector.h"
-#include "Common/StringUtil.h"
-
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
+
+#include <optional>
 
 using namespace Arm64Gen;
 

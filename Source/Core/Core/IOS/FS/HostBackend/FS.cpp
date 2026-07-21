@@ -3,16 +3,6 @@
 
 #include "Core/IOS/FS/HostBackend/FS.h"
 
-#include <algorithm>
-#include <expected>
-#include <optional>
-#include <string_view>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -26,6 +16,16 @@
 #include "Core/Movie.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <expected>
+#include <optional>
+#include <string_view>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 namespace IOS::HLE::FS
 {

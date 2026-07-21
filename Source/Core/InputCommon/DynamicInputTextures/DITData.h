@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "InputCommon/ImageOperations.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "InputCommon/ImageOperations.h"
 
 namespace InputCommon::DynamicInputTextures
 {

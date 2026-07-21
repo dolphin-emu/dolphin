@@ -3,17 +3,16 @@
 
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
 
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QSignalBlocker>
-
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-
-#include "DolphinQt/Settings.h"
 
 PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
 {

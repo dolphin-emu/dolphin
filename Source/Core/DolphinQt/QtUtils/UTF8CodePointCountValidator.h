@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include <QString>
 #include <QValidator>
+
+#include <cstddef>
 
 class UTF8CodePointCountValidator : public QValidator
 {

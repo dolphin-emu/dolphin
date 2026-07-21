@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <QDialog>
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include <QDialog>
 
 class QDialogButtonBox;
 class QGroupBox;

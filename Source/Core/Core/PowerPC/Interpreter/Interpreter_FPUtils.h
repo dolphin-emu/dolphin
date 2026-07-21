@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <bit>
-#include <cmath>
-#include <limits>
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <bit>
+#include <cmath>
+#include <limits>
 
 constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
 

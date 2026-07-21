@@ -3,20 +3,6 @@
 
 #include "Core/Boot/Boot.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <fstream>
-#include <memory>
-#include <numeric>
-#include <optional>
-#include <string>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
-#include <fmt/ranges.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -25,8 +11,8 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
@@ -53,13 +39,26 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
+
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <fstream>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)

@@ -3,19 +3,6 @@
 
 #include "DolphinQt/Host.h"
 
-#include <functional>
-
-#include <QAbstractEventDispatcher>
-#include <QApplication>
-#include <QLocale>
-#include <QThread>
-
-#include <imgui.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -24,21 +11,29 @@
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"
-
-#ifdef HAS_LIBMGBA
-#include "DolphinQt/GBAWidget.h"
-#endif
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 #include "UICommon/DiscordPresence.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
+#ifdef HAS_LIBMGBA
+#include "DolphinQt/GBAWidget.h"
+#endif
+
+#include <QAbstractEventDispatcher>
+#include <QApplication>
+#include <QLocale>
+#include <QThread>
+#include <imgui.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <functional>
 
 Host::Host()
 {

@@ -3,17 +3,16 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "Common/Matrix.h"
+#include "Common/WindowSystemInfo.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
+
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
-
-#include "Common/HookableEvent.h"
-#include "Common/Matrix.h"
-#include "Common/WindowSystemInfo.h"
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
-#include "InputCommon/ControllerInterface/InputBackend.h"
 
 // enable disable sources
 #ifdef _WIN32

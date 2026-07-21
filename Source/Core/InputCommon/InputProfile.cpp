@@ -3,22 +3,20 @@
 
 #include "InputCommon/InputProfile.h"
 
-#include <algorithm>
-#include <iterator>
-
-#include <fmt/format.h>
-
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
-
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <iterator>
 
 namespace InputProfile
 {

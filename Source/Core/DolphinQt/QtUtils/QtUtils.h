@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string_view>
-
 #include <QStyle>
+
+#include <string_view>
 
 class QDateTimeEdit;
 class QLabel;

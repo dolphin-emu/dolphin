@@ -4,28 +4,25 @@
 
 #include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
 
-#include <array>
-#include <map>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <utility>
-
 #include "Common/Assert.h"
-
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
+
+#include <array>
+#include <map>
+#include <optional>
+#include <string_view>
+#include <utility>
 
 namespace ciface::Touch
 {

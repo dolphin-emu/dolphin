@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyDebugging.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyDebugging::HotkeyDebugging(MappingWindow* window) : MappingWidget(window)
 {

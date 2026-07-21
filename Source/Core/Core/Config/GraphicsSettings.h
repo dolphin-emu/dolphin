@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string>
+#include "Common/Config/ConfigInfo.h"
 
-#include "Common/Config/Config.h"
+#include <string>
 
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;

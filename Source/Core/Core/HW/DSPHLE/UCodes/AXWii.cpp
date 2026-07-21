@@ -5,8 +5,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 
-#include <array>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -17,6 +15,8 @@
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
+
+#include <array>
 
 namespace DSP::HLE
 {

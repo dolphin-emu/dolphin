@@ -6,12 +6,13 @@
 #include "AudioCommon/SoundStream.h"
 
 #ifdef _WIN32
+#include "Common/Event.h"
+
 #include <al.h>
 #include <alc.h>
 #include <alext.h>
-#include <thread>
 
-#include "Common/Event.h"
+#include <thread>
 
 // OpenAL requires a minimum of two buffers, three or more recommended
 #define OAL_BUFFERS 3

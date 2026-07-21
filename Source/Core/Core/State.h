@@ -5,12 +5,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <cstddef>
 #include <functional>
 #include <string>
 #include <type_traits>
-
-#include "Common/CommonTypes.h"
 
 namespace Core
 {

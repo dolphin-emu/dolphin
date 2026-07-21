@@ -3,6 +3,10 @@
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
 
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControlReference/FunctionExpression.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -13,11 +17,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
-
-#include "InputCommon/ControlReference/FunctionExpression.h"
 
 namespace ciface::ExpressionParser
 {

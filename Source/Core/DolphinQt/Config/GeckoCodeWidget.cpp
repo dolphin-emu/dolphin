@@ -3,35 +3,12 @@
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 
-#include <algorithm>
-#include <functional>
-#include <utility>
-
-#include <QCursor>
-#include <QFontDatabase>
-#include <QFormLayout>
-#include <QHBoxLayout>
-#ifdef USE_RETRO_ACHIEVEMENTS
-#include <QIcon>
-#endif  // USE_RETRO_ACHIEVEMENTS
-#include <QLabel>
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
-#ifdef USE_RETRO_ACHIEVEMENTS
-#include <QStyle>
-#endif  // USE_RETRO_ACHIEVEMENTS
-#include <QTextEdit>
-#include <QVBoxLayout>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
-
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
@@ -42,6 +19,25 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Settings.h"
 #endif  // USE_RETRO_ACHIEVEMENTS
+
+#include <QCursor>
+#include <QFontDatabase>
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QListWidget>
+#include <QMenu>
+#include <QPushButton>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QIcon>
+#include <QStyle>
+#endif  // USE_RETRO_ACHIEVEMENTS
+
+#include <algorithm>
+#include <functional>
+#include <utility>
 
 GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
                                  bool restart_required)

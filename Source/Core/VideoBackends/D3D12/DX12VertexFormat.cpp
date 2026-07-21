@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/EnumMap.h"
-
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 

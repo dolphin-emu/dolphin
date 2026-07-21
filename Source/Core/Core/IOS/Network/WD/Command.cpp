@@ -3,9 +3,6 @@
 
 #include "Core/IOS/Network/WD/Command.h"
 
-#include <cstring>
-#include <string>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -15,6 +12,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 #include "Core/System.h"
+
+#include <cstring>
+#include <string>
 
 namespace IOS::HLE
 {

@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
-
 #include "Common/GL/GLExtensions/AMD_pinned_memory.h"
 #include "Common/GL/GLExtensions/ARB_ES2_compatibility.h"
 #include "Common/GL/GLExtensions/ARB_ES3_compatibility.h"
@@ -55,6 +52,8 @@
 #include "Common/GL/GLExtensions/gl_4_3.h"
 #include "Common/GL/GLExtensions/gl_4_4.h"
 #include "Common/GL/GLExtensions/gl_4_5.h"
+
+#include <string>
 
 class GLContext;
 

@@ -3,6 +3,16 @@
 
 #include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
 
+#include "Common/BitUtils.h"
+#include "Common/Config/Config.h"
+#include "Common/MsgHandler.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
+#include "Core/IOS/USB/Bluetooth/hci.h"
+
+#include <libusb.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -10,16 +20,6 @@
 #include <ranges>
 #include <thread>
 #include <utility>
-
-#include <libusb.h>
-
-#include "Common/BitUtils.h"
-#include "Common/MsgHandler.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
-#include "Core/IOS/USB/Bluetooth/hci.h"
 
 namespace
 {

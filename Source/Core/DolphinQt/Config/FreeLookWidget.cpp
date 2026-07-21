@@ -3,19 +3,18 @@
 
 #include "DolphinQt/Config/FreeLookWidget.h"
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QVBoxLayout>
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/FreeLookSettings.h"
-
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
+
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 FreeLookWidget::FreeLookWidget(QWidget* parent) : QWidget(parent)
 {

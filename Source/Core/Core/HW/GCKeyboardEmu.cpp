@@ -5,9 +5,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/GCKeyboard.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"

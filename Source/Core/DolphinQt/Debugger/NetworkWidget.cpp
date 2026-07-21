@@ -3,6 +3,17 @@
 
 #include "DolphinQt/Debugger/NetworkWidget.h"
 
+#include "Common/FileUtil.h"
+#include "Common/Network.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/HW/DVD/AMMediaboard.h"
+#include "Core/IOS/Network/SSL.h"
+#include "Core/IOS/Network/Socket.h"
+#include "Core/System.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDesktopServices>
@@ -22,17 +33,6 @@
 #endif
 
 #include <bit>
-
-#include "Common/FileUtil.h"
-#include "Common/Network.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/HW/DVD/AMMediaboard.h"
-#include "Core/IOS/Network/SSL.h"
-#include "Core/IOS/Network/Socket.h"
-#include "Core/System.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/Settings.h"
 
 namespace
 {

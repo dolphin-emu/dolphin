@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
+#include "UICommon/AutoUpdate.h"
 
 #include <QThread>
 
-#include "UICommon/AutoUpdate.h"
+#include <string>
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 

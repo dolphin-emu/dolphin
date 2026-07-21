@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
+
+#include <QDialog>
 
 class IRWidget : public QWidget
 {

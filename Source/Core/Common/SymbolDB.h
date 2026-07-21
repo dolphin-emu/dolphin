@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+
 #include <map>
 #include <mutex>
 #include <set>
@@ -13,9 +16,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
 
 namespace Core
 {

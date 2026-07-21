@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <concepts>
-#include <functional>
-#include <optional>
+#include "Common/OneShotEvent.h"
 
 #include <QMetaObject>
 
-#include "Common/OneShotEvent.h"
+#include <concepts>
+#include <functional>
+#include <optional>
 
 // QWidget and subclasses are not thread-safe! This helper takes arbitrary code from any thread,
 // safely runs it on the appropriate GUI thread, waits for it to finish, and returns the result.

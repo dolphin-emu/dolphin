@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <optional>
-#include <vector>
-
 #include "Common/Matrix.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <optional>
+#include <vector>
 
 namespace ControllerEmu
 {

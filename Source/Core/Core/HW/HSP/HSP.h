@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <span>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/HSP/HSP_Device.h"
+
+#include <memory>
+#include <span>
 
 class PointerWrap;
 

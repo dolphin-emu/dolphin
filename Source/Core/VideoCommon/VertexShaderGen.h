@@ -5,7 +5,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
-
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 

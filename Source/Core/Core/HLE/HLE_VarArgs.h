@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/PowerPC/MMU.h"
+
+#include <type_traits>
 
 namespace Core
 {

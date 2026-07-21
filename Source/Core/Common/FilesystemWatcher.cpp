@@ -3,10 +3,10 @@
 
 #include "Common/FilesystemWatcher.h"
 
-#include <wtr/watcher.hpp>
-
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+
+#include <wtr/watcher.hpp>
 
 namespace Common
 {

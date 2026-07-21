@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/HSP/HSP_Device.h"
+
 #include <array>
 #include <memory>
 #include <span>
-
-#include "Common/CommonTypes.h"
-#include "Core/HW/HSP/HSP_Device.h"
 
 namespace Core
 {

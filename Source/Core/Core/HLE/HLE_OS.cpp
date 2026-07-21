@@ -3,14 +3,6 @@
 
 #include "Core/HLE/HLE_OS.h"
 
-#include <cinttypes>
-#include <memory>
-#include <string>
-#include <string_view>
-
-#include <fmt/format.h>
-#include <fmt/printf.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -20,6 +12,14 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+#include <fmt/printf.h>
+
+#include <cinttypes>
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace HLE_OS
 {

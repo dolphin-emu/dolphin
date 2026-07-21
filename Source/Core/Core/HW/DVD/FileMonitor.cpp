@@ -3,19 +3,18 @@
 
 #include "Core/HW/DVD/FileMonitor.h"
 
-#include <memory>
-#include <string>
-#include <unordered_set>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
-
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+
+#include <fmt/format.h>
+
+#include <memory>
+#include <string>
+#include <unordered_set>
 
 namespace FileMonitor
 {

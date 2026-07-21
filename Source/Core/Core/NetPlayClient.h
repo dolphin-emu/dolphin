@@ -3,7 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "Common/SPSCQueue.h"
+#include "Common/TraversalClient.h"
+#include "Core/NetPlayProto.h"
+#include "Core/SyncIdentifier.h"
+#include "InputCommon/GCPadStatus.h"
+
 #include <SFML/Network/Packet.hpp>
+
 #include <array>
 #include <chrono>
 #include <map>
@@ -14,14 +23,6 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/SPSCQueue.h"
-#include "Common/TraversalClient.h"
-#include "Core/NetPlayProto.h"
-#include "Core/SyncIdentifier.h"
-#include "InputCommon/GCPadStatus.h"
 
 class BootSessionData;
 

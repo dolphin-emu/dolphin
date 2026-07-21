@@ -3,17 +3,11 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <optional>
-#include <vector>
-
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 #include "Core/CheatSearch.h"
-#include "DolphinQt/GameList/GameListModel.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <QDialog>
 
 class ARCodeWidget;
 class GeckoCodeWidget;

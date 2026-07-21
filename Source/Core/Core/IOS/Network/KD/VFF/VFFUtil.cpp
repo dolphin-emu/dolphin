@@ -3,10 +3,12 @@
 
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 
-#include <algorithm>
-#include <limits>
-#include <utility>
-#include <vector>
+#include "Common/Align.h"
+#include "Common/FatFsUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+#include "Common/Swap.h"
+#include "Core/IOS/Uids.h"
 
 // Does not compile if diskio.h is included first.
 // clang-format off
@@ -14,13 +16,10 @@
 #include <FatFs/diskio.h>
 // clang-format on
 
-#include "Common/Align.h"
-#include "Common/FatFsUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
-#include "Common/Swap.h"
-
-#include "Core/IOS/Uids.h"
+#include <algorithm>
+#include <limits>
+#include <utility>
+#include <vector>
 
 static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
 {

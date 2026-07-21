@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
+
+#include <array>
 
 namespace IOS::HLE
 {

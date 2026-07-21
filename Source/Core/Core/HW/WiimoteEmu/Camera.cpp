@@ -3,13 +3,13 @@
 
 #include "Core/HW/WiimoteEmu/Camera.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace WiimoteEmu
 {

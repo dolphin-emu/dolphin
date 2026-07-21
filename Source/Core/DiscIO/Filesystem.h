@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "DiscIO/Volume.h"
+
 #include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

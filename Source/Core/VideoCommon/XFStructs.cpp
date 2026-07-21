@@ -3,16 +3,12 @@
 
 #include "VideoCommon/XFStructs.h"
 
-#include <bit>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -21,6 +17,8 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <bit>
 
 static void XFMemWritten(XFStateManager& xf_state_manager, u32 transferSize, u32 baseAddress)
 {

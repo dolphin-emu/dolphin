@@ -3,11 +3,8 @@
 
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
 
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
@@ -15,6 +12,8 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <cstring>
 
 namespace Vulkan
 {

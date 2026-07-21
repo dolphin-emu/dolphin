@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <cstddef>
-#include <string_view>
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Common/DynamicLibrary.h"
 
 #ifdef __APPLE__
 #include <mach/mach.h>
 #endif
 
-#include "Common/CommonTypes.h"
-#include "Common/DynamicLibrary.h"
+#include <cstddef>
+#include <string_view>
+#include <vector>
 
 namespace Common
 {

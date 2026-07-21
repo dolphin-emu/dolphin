@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "DiscIO/VolumeWii.h"
+
+#include <array>
+#include <memory>
 
 namespace DiscIO
 {

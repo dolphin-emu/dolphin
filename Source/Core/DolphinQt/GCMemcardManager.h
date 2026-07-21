@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "Core/HW/EXI/EXI.h"
+
+#include <QDialog>
+
 #include <map>
 #include <memory>
 #include <span>
 #include <vector>
-
-#include <QDialog>
-
-#include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
-#include "Core/HW/EXI/EXI.h"
 
 namespace Memcard
 {

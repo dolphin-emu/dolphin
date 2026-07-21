@@ -3,27 +3,26 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
-#include <span>
-#include <thread>
-#include <vector>
+#include "Common/Config/Config.h"
+#include "Common/Event.h"
+#include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+#include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
+
+#include <SDL3/SDL.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include <SDL3/SDL.h>
-
-#include "Common/Event.h"
-#include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_Device.h"
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
+#include <span>
+#include <thread>
+#include <vector>
 
 namespace ciface::SDL
 {

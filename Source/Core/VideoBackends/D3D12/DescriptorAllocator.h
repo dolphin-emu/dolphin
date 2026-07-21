@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <map>
-
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/Constants.h"
+
+#include <map>
 
 namespace DX12
 {

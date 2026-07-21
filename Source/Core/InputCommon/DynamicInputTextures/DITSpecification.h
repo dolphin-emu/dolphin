@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "InputCommon/DynamicInputTextures/DITData.h"
 
 #include <picojson.h>
 
-#include "InputCommon/DynamicInputTextures/DITData.h"
+#include <string>
+#include <vector>
 
 namespace InputCommon::DynamicInputTextures
 {

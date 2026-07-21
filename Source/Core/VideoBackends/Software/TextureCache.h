@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-#include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/TextureEncoder.h"
 #include "VideoCommon/TextureCacheBase.h"
 

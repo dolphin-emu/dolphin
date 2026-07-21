@@ -4,9 +4,7 @@
 #include "Core/HW/GCKeyboard.h"
 
 #include "Common/Common.h"
-
 #include "Core/HW/GCKeyboardEmu.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"

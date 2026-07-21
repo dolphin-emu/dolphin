@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"

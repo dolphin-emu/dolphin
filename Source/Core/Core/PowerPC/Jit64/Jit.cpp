@@ -3,20 +3,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <map>
-#include <span>
-#include <sstream>
-#include <string>
-#include <utility>
-
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-
-// for the PROFILER stuff
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/HostDisassembler.h"
@@ -47,6 +33,20 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+// for the PROFILER stuff
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <map>
+#include <span>
+#include <sstream>
+#include <string>
+#include <utility>
 
 using namespace Gen;
 using namespace PowerPC;

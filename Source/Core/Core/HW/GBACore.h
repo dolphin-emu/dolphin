@@ -5,24 +5,24 @@
 
 #ifdef HAS_LIBMGBA
 
+#include "Common/CommonTypes.h"
+#include "Common/WorkQueueThread.h"
+
+#include <mgba/core/core.h>
+#include <mgba/core/interface.h>
+#include <mgba/gba/interface.h>
+
 #include <array>
 #include <memory>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <mgba/core/core.h>
-#include <mgba/core/interface.h>
-#if !defined(_WIN32)
+#ifndef _WIN32
 #define USE_PTHREADS  // Required for Mutex/Condition in mCoreSync.
 #endif
 #include <mgba/core/sync.h>
 #undef USE_PTHREADS
-#include <mgba/gba/interface.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/WorkQueueThread.h"
 
 class GBAHostInterface;
 class Mixer;

@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <string>
-#include <utility>
-#include <vector>
-
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 
-#include "Common/Config/ConfigInfo.h"
+#include <string>
+#include <utility>
+#include <vector>
 
 class ConfigChoice final : public ConfigControl<ToolTipComboBox>
 {

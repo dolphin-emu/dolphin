@@ -3,20 +3,18 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <array>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
-
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <array>
 
 using namespace Arm64Gen;
 

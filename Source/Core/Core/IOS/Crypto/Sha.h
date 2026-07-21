@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <array>
-
-#include "Common/Crypto/SHA1.h"
 #include "Core/IOS/Device.h"
+
+#include <array>
 
 namespace IOS::HLE
 {

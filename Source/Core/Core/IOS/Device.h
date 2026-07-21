@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/IOS/IOS.h"
+
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace Core
 {

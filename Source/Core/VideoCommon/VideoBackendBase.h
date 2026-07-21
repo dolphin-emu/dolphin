@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
+#include "VideoCommon/PerfQueryBase.h"
+
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/WindowSystemInfo.h"
-#include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO
 {

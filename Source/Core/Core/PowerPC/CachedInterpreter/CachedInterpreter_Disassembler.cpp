@@ -3,14 +3,14 @@
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 
+#include "Core/HLE/HLE.h"
+
+#include <fmt/ostream.h>
+
 #include <algorithm>
 #include <array>
 #include <mutex>
 #include <utility>
-
-#include <fmt/ostream.h>
-
-#include "Core/HLE/HLE.h"
 
 s32 CachedInterpreterEmitter::PoisonCallback(std::ostream& stream, const void* operands)
 {

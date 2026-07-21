@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <string>
 #include <utility>
-
-#include "Common/CommonTypes.h"
 
 enum class APIType;
 enum class TextureFormat;

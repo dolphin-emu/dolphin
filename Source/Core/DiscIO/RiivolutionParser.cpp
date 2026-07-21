@@ -3,21 +3,21 @@
 
 #include "DiscIO/RiivolutionParser.h"
 
-#include <algorithm>
-#include <sstream>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <fmt/format.h>
-#include <pugixml.hpp>
-
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionPatcher.h"
+
+#include <fmt/format.h>
+#include <pugixml.hpp>
+
+#include <algorithm>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace DiscIO::Riivolution
 {

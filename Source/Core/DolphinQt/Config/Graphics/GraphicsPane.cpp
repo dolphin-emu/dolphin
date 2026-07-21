@@ -3,16 +3,8 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 
-#include <QDialogButtonBox>
-#include <QEvent>
-#include <QGroupBox>
-#include <QLabel>
-#include <QTabWidget>
-#include <QVBoxLayout>
-
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
@@ -20,8 +12,14 @@
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
-
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <QDialogButtonBox>
+#include <QEvent>
+#include <QGroupBox>
+#include <QLabel>
+#include <QTabWidget>
+#include <QVBoxLayout>
 
 GraphicsPane::GraphicsPane(MainWindow* main_window, Config::Layer* config_layer)
     : m_main_window(main_window), m_config_layer{config_layer}

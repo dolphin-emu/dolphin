@@ -3,18 +3,6 @@
 
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
-#include <mutex>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <string_view>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -28,6 +16,18 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstring>
+#include <map>
+#include <mutex>
+#include <ranges>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
 
 PPCSymbolDB::PPCSymbolDB() = default;
 

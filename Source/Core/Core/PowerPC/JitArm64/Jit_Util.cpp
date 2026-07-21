@@ -4,10 +4,8 @@
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 
 #include "Common/Arm64Emitter.h"
-#include "Common/Common.h"
-
 #include "Core/HW/MMIO.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/System.h"
 
 using namespace Arm64Gen;

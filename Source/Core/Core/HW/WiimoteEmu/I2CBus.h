@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <algorithm>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace WiimoteEmu
 {

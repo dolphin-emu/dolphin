@@ -4,17 +4,16 @@
 
 #include "Core/DSP/DSPDisassembler.h"
 
-#include <limits>
-#include <string>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-
 #include "Core/DSP/DSPTables.h"
+
+#include <fmt/format.h>
+
+#include <limits>
+#include <string>
+#include <utility>
 
 namespace DSP
 {

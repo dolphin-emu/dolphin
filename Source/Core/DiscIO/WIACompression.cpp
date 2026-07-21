@@ -3,22 +3,22 @@
 
 #include "DiscIO/WIACompression.h"
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
+#include "Common/Swap.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
+
+#include <bzlib.h>
+#include <lzma.h>
+#include <zstd.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <memory>
 #include <optional>
 #include <vector>
-
-#include <bzlib.h>
-#include <lzma.h>
-#include <zstd.h>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
-#include "Common/Swap.h"
-#include "DiscIO/LaggedFibonacciGenerator.h"
 
 namespace DiscIO
 {

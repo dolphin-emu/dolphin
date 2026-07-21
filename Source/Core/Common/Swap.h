@@ -3,22 +3,22 @@
 
 #pragma once
 
-#include <cstring>
-#include <type_traits>
-
-#ifdef __APPLE__
-#include <libkern/OSByteOrder.h>
-#elif defined(__linux__)
-#include <byteswap.h>
-#elif defined(__FreeBSD__)
-#include <sys/endian.h>
-#elif defined(__OpenBSD__)
-#include <endian.h>
-#endif
+#include "Common/CommonTypes.h"
 
 #include <fmt/format.h>
 
-#include "Common/CommonTypes.h"
+#ifdef __APPLE__
+#include <libkern/OSByteOrder.h>
+#elifdef __linux__
+#include <byteswap.h>
+#elifdef __FreeBSD__
+#include <sys/endian.h>
+#elifdef __OpenBSD__
+#include <endian.h>
+#endif
+
+#include <cstring>
+#include <type_traits>
 
 namespace Common
 {

@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CodeBlock.h"
+#include "Common/CommonTypes.h"
+
 #include <bit>
 #include <cstddef>
 #include <iosfwd>
 #include <type_traits>
-
-#include "Common/CodeBlock.h"
-#include "Common/CommonTypes.h"
 
 namespace PowerPC
 {

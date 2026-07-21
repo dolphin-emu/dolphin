@@ -3,14 +3,13 @@
 
 #include "VideoBackends/Software/SWOGLWindow.h"
 
-#include <memory>
-
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Software/SWTexture.h"
+
+#include <memory>
 
 SWOGLWindow::SWOGLWindow() = default;
 SWOGLWindow::~SWOGLWindow() = default;

@@ -3,20 +3,17 @@
 
 #pragma once
 
-#include <algorithm>
+#include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+#include "Core/HW/Sram.h"
+
 #include <array>
 #include <bitset>
 #include <limits>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/NandPaths.h"
-#include "Common/Swap.h"
-#include "Common/Timer.h"
-
-#include "Core/HW/EXI/EXI_DeviceIPL.h"
-#include "Core/HW/Sram.h"
 
 namespace File
 {

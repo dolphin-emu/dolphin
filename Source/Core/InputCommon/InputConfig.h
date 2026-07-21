@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "InputCommon/DynamicInputTextureManager.h"
+
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/DynamicInputTextureManager.h"
 
 namespace Common
 {

@@ -3,17 +3,17 @@
 
 #include "VideoCommon/PerformanceTracker.h"
 
-#include <algorithm>
-#include <cmath>
-#include <iomanip>
-#include <utility>
-
-#include <implot.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <implot.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <utility>
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
 static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;

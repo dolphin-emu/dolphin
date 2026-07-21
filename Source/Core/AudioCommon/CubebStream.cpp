@@ -3,13 +3,13 @@
 
 #include "AudioCommon/CubebStream.h"
 
-#include <cubeb/cubeb.h>
-
 #include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/System.h"
+
+#include <cubeb/cubeb.h>
 
 #ifdef _WIN32
 #include <objbase.h>

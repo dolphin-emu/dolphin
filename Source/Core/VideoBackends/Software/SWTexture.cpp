@@ -3,10 +3,10 @@
 
 #include "VideoBackends/Software/SWTexture.h"
 
-#include <cstring>
-
 #include "VideoBackends/Software/CopyRegion.h"
 #include "VideoBackends/Software/SWGfx.h"
+
+#include <cstring>
 
 namespace SW
 {

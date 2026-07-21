@@ -3,14 +3,10 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/Assets/CustomTextureData.h"
+
+#include <string>
 
 namespace OSD
 {

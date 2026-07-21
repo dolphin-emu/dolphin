@@ -3,9 +3,6 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 
-#include <algorithm>
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/Logging/Log.h"
@@ -17,6 +14,9 @@
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <array>
 
 namespace DX11
 {

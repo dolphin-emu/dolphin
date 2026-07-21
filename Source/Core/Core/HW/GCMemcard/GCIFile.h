@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+
+#include <string>
+#include <vector>
 
 class PointerWrap;
 

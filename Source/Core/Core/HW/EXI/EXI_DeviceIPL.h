@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/BitUtils.h"
 #include "Core/HW/EXI/EXI_Device.h"
+
+#include <string>
 
 class PointerWrap;
 

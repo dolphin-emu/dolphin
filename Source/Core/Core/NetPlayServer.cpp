@@ -3,34 +3,16 @@
 
 #include "Core/NetPlayServer.h"
 
-#include <algorithm>
-#include <chrono>
-#include <cstddef>
-#include <cstdio>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <ranges>
-#include <string>
-#include <string_view>
-#include <thread>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/ENet.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
@@ -45,9 +27,6 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
-#ifdef HAS_LIBMGBA
-#include "Core/HW/GBACore.h"
-#endif
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 #include "Core/HW/Sram.h"
@@ -61,29 +40,47 @@
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "Core/NetPlayCommon.h"
 #include "Core/SyncIdentifier.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
-
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
-
 #include "UICommon/GameFile.h"
-
-#if !defined(_WIN32)
-#include <sys/socket.h>
-#ifdef __HAIKU__
-#define _BSD_SOURCE
-#include <bsd/ifaddrs.h>
-#elif !defined ANDROID
-#include <ifaddrs.h>
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
 #endif
-#include <arpa/inet.h>
-#else
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#ifdef _WIN32
 #include <iphlpapi.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#ifndef ANDROID
+#include <ifaddrs.h>
+#elifdef __HAIKU__
+#define _BSD_SOURCE
+#include <bsd/ifaddrs.h>
 #endif
+#endif
+
+#include <algorithm>
+#include <chrono>
+#include <cstddef>
+#include <cstdio>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <ranges>
+#include <string>
+#include <string_view>
+#include <thread>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace NetPlay
 {

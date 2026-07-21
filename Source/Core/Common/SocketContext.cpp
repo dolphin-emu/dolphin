@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/SocketContext.h"
+
 #ifdef _WIN32
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"

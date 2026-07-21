@@ -3,15 +3,15 @@
 
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 
+#include "Common/Assembler/GekkoAssembler.h"
+#include "Common/GekkoDisassembler.h"
+#include "Common/Swap.h"
+
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include "Common/Assembler/GekkoAssembler.h"
-#include "Common/GekkoDisassembler.h"
-#include "Common/Swap.h"
 
 PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32 value)
     : QDialog(parent), m_address(address)

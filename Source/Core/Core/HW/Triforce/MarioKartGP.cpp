@@ -3,16 +3,14 @@
 
 #include "Core/HW/Triforce/MarioKartGP.h"
 
-#include <fmt/ranges.h>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-
 #include "Core/HW/GCPad.h"
-
 #include "InputCommon/GCPadStatus.h"
+
+#include <fmt/ranges.h>
 
 namespace
 {

@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Common/Config/ConfigInfo.h"
+#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
 #include <QLabel>
 #include <QPointer>
 
-#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
-
-#include "Common/CommonTypes.h"
-#include "Common/Config/ConfigInfo.h"
+#include <vector>
 
 class ConfigSlider final : public ConfigControl<ToolTipSlider>
 {

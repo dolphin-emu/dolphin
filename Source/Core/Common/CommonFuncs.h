@@ -3,13 +3,13 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <optional>
-#endif
-#include <string>
-
 #ifdef __APPLE__
 #include "Common/CommonTypes.h"
+#endif
+
+#include <string>
+#ifdef _WIN32
+#include <optional>
 #endif
 
 #ifndef _WIN32

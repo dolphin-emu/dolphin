@@ -3,15 +3,16 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 
-#include <map>
-#include <mutex>
-#include <vector>
-
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/SoundStream.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <map>
+#include <mutex>
+#include <vector>
 
 namespace IOS::HLE::USB
 {

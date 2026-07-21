@@ -4,12 +4,10 @@
 #include "VideoBackends/Software/SWGfx.h"
 
 #include "Common/GL/GLContext.h"
-
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"

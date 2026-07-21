@@ -4,7 +4,6 @@
 #include "VideoCommon/XFStateManager.h"
 
 #include "Common/ChunkFile.h"
-
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/XFMemory.h"

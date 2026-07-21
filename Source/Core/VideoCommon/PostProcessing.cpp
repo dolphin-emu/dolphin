@@ -3,12 +3,6 @@
 
 #include "VideoCommon/PostProcessing.h"
 
-#include <sstream>
-#include <string>
-#include <string_view>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -18,7 +12,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
@@ -30,6 +23,12 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+
+#include <sstream>
+#include <string>
+#include <string_view>
 
 namespace VideoCommon
 {

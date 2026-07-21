@@ -4,7 +4,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"

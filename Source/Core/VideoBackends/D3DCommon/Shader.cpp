@@ -3,15 +3,6 @@
 
 #include "VideoBackends/D3DCommon/Shader.h"
 
-#include <fstream>
-#include <optional>
-#include <string_view>
-
-#include <fmt/format.h>
-#include <glslang/SPIRV/disassemble.h>
-#include <wrl/client.h>
-#include "spirv_hlsl.hpp"
-
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/HRWrap.h"
@@ -19,11 +10,21 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
-
 #include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+#include <glslang/SPIRV/disassemble.h>
+
+#include <wrl/client.h>
+
+#include <fstream>
+#include <optional>
+#include <string_view>
+
+#include "spirv_hlsl.hpp"
 
 namespace
 {

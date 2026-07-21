@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <array>
-#include <cstring>
-#include <optional>
-
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
+
+#include <array>
+#include <cstring>
+#include <optional>
 
 namespace ciface::DualShockUDPClient::Proto
 {

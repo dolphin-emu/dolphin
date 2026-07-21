@@ -3,18 +3,16 @@
 
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
-#include <memory>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-
-// Format Handlers
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
+
+#include <memory>
+#include <string>
 
 namespace
 {

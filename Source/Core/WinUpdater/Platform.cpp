@@ -1,8 +1,4 @@
-#include <windows.h>
-
-#include <filesystem>
-#include <map>
-#include <optional>
+#include "UpdaterCommon/Platform.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -11,10 +7,14 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/WindowsRegistry.h"
-
-#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
 #include "UpdaterCommon/UpdaterCommon.h"
+
+#include <windows.h>
+
+#include <filesystem>
+#include <map>
+#include <optional>
 
 namespace Platform
 {

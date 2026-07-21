@@ -3,14 +3,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/TextureConfig.h"
+
+#include <tuple>
+#include <vector>
 
 class AbstractShader;
 class NativeVertexFormat;

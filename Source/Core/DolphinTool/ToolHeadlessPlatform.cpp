@@ -1,10 +1,10 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/Host.h"
+
 #include <memory>
 #include <string>
-
-#include "Core/Host.h"
 
 // Begin stubs needed to satisfy Core dependencies
 

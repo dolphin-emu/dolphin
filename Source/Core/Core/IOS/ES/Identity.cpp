@@ -1,11 +1,6 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/ES/ES.h"
-
-#include <utility>
-#include <vector>
-
 #include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
 #include "Common/Logging/Log.h"
@@ -13,10 +8,14 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/System.h"
+
+#include <utility>
+#include <vector>
 
 namespace IOS::HLE
 {

@@ -3,20 +3,9 @@
 
 #include "DolphinQt/HotkeyScheduler.h"
 
-#include <algorithm>
-#include <cmath>
-#include <thread>
-
-#include <fmt/format.h>
-
-#include <QApplication>
-#include <QCoreApplication>
-
 #include "AudioCommon/AudioCommon.h"
-
 #include "Common/Config/Config.h"
 #include "Common/Thread.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -29,18 +18,23 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
-
+#include "DolphinQt/Settings.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 #ifdef HAS_LIBMGBA
 #include "DolphinQt/GBAWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #endif
-#include "DolphinQt/Settings.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include <QApplication>
+#include <QCoreApplication>
+#include <fmt/format.h>
 
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
+#include <algorithm>
+#include <cmath>
+#include <thread>
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 

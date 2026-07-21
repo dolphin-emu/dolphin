@@ -3,12 +3,12 @@
 
 #include "DolphinQt/TAS/TASCheckBox.h"
 
-#include <QMouseEvent>
-
 #include "Core/Movie.h"
 #include "Core/System.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/TASInputWindow.h"
+
+#include <QMouseEvent>
 
 TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
     : QCheckBox(text, parent), m_parent(parent)

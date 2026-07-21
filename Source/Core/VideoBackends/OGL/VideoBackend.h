@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <string>
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <string>
 
 class GLContext;
 

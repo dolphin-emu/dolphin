@@ -11,20 +11,6 @@
 #define GCADAPTER_USE_ANDROID_IMPLEMENTATION true
 #endif
 
-#include <array>
-#include <chrono>
-#include <mutex>
-#include <optional>
-#include <utility>
-
-using namespace std::chrono_literals;
-
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-#include <libusb.h>
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-#include <jni.h>
-#endif
-
 #include "Common/BitUtils.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
@@ -39,13 +25,26 @@ using namespace std::chrono_literals;
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 #include "InputCommon/GCPadStatus.h"
-
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #include "Common/ScopeGuard.h"
 #include "Core/LibusbUtils.h"
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
 #include "jni/AndroidCommon/IDCache.h"
 #endif
+
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
+#include <libusb.h>
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+#include <jni.h>
+#endif
+
+#include <array>
+#include <chrono>
+#include <mutex>
+#include <optional>
+#include <utility>
+
+using namespace std::chrono_literals;
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if defined(LIBUSB_API_VERSION)

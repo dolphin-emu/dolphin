@@ -3,14 +3,10 @@
 
 #include "VideoBackends/D3D/VideoBackend.h"
 
-#include <memory>
-#include <string>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBoundingBox.h"
 #include "VideoBackends/D3D/D3DGfx.h"
@@ -18,13 +14,15 @@
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
+#include <string>
 
 namespace DX11
 {

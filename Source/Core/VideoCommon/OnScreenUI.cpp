@@ -8,7 +8,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -16,7 +15,6 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -31,11 +29,11 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include <inttypes.h>
-#include <mutex>
-
 #include <imgui.h>
 #include <implot.h>
+
+#include <inttypes.h>
+#include <mutex>
 
 namespace VideoCommon
 {

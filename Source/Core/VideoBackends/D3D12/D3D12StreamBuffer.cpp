@@ -3,14 +3,13 @@
 
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 
-#include <algorithm>
-#include <functional>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/D3D12/DX12Context.h"
+
+#include <algorithm>
+#include <functional>
 
 namespace DX12
 {

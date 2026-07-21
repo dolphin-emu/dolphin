@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <cstddef>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
+
+#include <cstddef>
+#include <vector>
 
 namespace Common
 {

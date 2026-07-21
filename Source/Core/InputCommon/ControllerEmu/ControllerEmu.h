@@ -3,13 +3,6 @@
 
 #pragma once
 
-#include <cmath>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <type_traits>
-#include <vector>
-
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/IniFile.h"
@@ -17,6 +10,13 @@
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <cmath>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 class ControllerInterface;
 class InputConfig;

@@ -3,12 +3,12 @@
 
 #include "VideoBackends/OGL/OGLPipeline.h"
 
-#include <utility>
-
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <utility>
 
 namespace OGL
 {

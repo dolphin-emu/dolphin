@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <memory>
 #include <string>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

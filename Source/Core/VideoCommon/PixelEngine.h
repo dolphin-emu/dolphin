@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+
+#include <mutex>
 
 class PointerWrap;
 

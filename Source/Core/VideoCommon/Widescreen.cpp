@@ -4,12 +4,13 @@
 #include "VideoCommon/Widescreen.h"
 
 #include "Common/ChunkFile.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/System.h"
-
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 std::unique_ptr<WidescreenManager> g_widescreen;
 

@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoBackends/Vulkan/VulkanLoader.h"
+#include "VideoCommon/AbstractShader.h"
+
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/VulkanLoader.h"
-#include "VideoCommon/AbstractShader.h"
 
 namespace Vulkan
 {

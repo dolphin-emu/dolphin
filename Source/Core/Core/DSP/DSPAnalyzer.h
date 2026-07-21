@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <array>
 #include "Common/CommonTypes.h"
+
+#include <array>
 
 // The update SR analysis is not perfect: it does not properly handle modified SR values if SR is
 // only read within a function call, and it's possible that a previous instruction sets SR (e.g. the

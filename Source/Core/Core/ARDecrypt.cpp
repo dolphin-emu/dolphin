@@ -7,6 +7,15 @@
 
 #include "Core/ARDecrypt.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <array>
 #include <bit>
 #include <cassert>
@@ -15,15 +24,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 namespace ActionReplay
 {

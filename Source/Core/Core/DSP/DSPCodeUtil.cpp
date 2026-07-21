@@ -3,21 +3,20 @@
 
 #include "Core/DSP/DSPCodeUtil.h"
 
-#include <algorithm>
-#include <span>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "Core/DSP/DSPAssembler.h"
 #include "Core/DSP/DSPDisassembler.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <span>
+#include <string>
+#include <vector>
 
 namespace DSP
 {

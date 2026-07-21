@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/IniFile.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+
 #include <algorithm>
 #include <atomic>
 #include <functional>
@@ -10,11 +13,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {

@@ -3,9 +3,9 @@
 
 #include "Common/Version.h"
 
-#include <string>
-
 #include "Common/scmrev.h"
+
+#include <string>
 
 namespace Common
 {

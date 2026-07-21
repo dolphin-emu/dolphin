@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyUSBEmu.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGroupBox>
 #include <QHBoxLayout>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyUSBEmu::HotkeyUSBEmu(MappingWindow* window) : MappingWidget(window)
 {

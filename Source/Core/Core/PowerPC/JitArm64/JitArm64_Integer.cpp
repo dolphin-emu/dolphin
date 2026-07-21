@@ -3,17 +3,16 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <bit>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/ArmCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCTables.h"
+
+#include <bit>
 
 using namespace Arm64Gen;
 using namespace JitCommon;

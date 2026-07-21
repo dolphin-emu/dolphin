@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <QDockWidget>
-#include <QString>
-
 #include "Common/CommonTypes.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
+
+#include <QDockWidget>
+#include <QString>
 
 class BranchWatchDialog;
 class QCloseEvent;

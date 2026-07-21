@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "DiscIO/DirectoryBlob.h"
+#include "DiscIO/RiivolutionParser.h"
+
 #include <optional>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "DiscIO/DirectoryBlob.h"
-#include "DiscIO/RiivolutionParser.h"
 
 namespace Core
 {

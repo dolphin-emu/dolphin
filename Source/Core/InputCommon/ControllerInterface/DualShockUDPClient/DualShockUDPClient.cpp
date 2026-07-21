@@ -3,15 +3,6 @@
 
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <tuple>
-
-#include <SFML/Network/SocketSelector.hpp>
-#include <SFML/Network/UdpSocket.hpp>
-#include <fmt/format.h>
-
 #include "Common/Config/Config.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -22,7 +13,16 @@
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
-#include "SFML/Network/IpAddress.hpp"
+
+#include <SFML/Network/IpAddress.hpp>
+#include <SFML/Network/SocketSelector.hpp>
+#include <SFML/Network/UdpSocket.hpp>
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <tuple>
 
 namespace ciface::DualShockUDPClient
 {

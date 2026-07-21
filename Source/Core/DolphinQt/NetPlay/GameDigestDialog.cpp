@@ -3,8 +3,9 @@
 
 #include "DolphinQt/NetPlay/GameDigestDialog.h"
 
-#include <algorithm>
-#include <functional>
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+#include "DolphinQt/Settings.h"
 
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -13,10 +14,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-
-#include "DolphinQt/Settings.h"
+#include <algorithm>
+#include <functional>
 
 static QString GetPlayerNameFromPID(int pid)
 {

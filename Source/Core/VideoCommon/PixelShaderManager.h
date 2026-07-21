@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <span>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
+
+#include <span>
 
 class PointerWrap;
 

@@ -3,13 +3,13 @@
 
 #include "Core/HW/HSP/HSP_DeviceARAMExpansion.h"
 
-#include <cstring>
-
 #include "Common/ChunkFile.h"
+#include "Common/Config/Config.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
-
 #include "Core/Config/MainSettings.h"
+
+#include <cstring>
 
 namespace HSP
 {

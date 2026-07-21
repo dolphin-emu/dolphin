@@ -3,6 +3,11 @@
 
 #include "DolphinQt/Debugger/BreakpointDialog.h"
 
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/Expression.h"
+#include "DolphinQt/Debugger/BreakpointWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -14,11 +19,6 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QVBoxLayout>
-
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/Expression.h"
-#include "DolphinQt/Debugger/BreakpointWidget.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 BreakpointDialog::BreakpointDialog(BreakpointWidget* parent)
     : QDialog(parent), m_parent(parent), m_open_mode(OpenMode::New)

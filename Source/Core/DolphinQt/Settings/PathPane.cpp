@@ -3,6 +3,17 @@
 
 #include "DolphinQt/Settings/PathPane.h"
 
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigText.h"
+#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QDir>
 #include <QGroupBox>
@@ -10,19 +21,6 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/UISettings.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigText.h"
-#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/Settings.h"
 
 PathPane::PathPane(QWidget* parent) : QWidget(parent)
 {

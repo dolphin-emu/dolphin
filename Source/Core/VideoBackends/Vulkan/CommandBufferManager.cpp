@@ -3,14 +3,14 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 
+#include "Common/Assert.h"
+#include "Common/MsgHandler.h"
+#include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
+
 #include <array>
 #include <cstdint>
 
-#include "Common/Assert.h"
-#include "Common/MsgHandler.h"
-
-#include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoCommon/Constants.h"
 #include "vulkan/vulkan_core.h"
 
 namespace Vulkan

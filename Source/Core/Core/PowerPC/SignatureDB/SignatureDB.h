@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <map>
 #include <memory>
 #include <string>
-
-#include "Common/CommonTypes.h"
 
 // You're not meant to keep around SignatureDB objects persistently. Use 'em, throw them away.
 

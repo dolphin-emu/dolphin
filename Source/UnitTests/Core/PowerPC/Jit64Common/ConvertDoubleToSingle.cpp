@@ -11,9 +11,9 @@
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/System.h"
 
-#include "../TestValues.h"
-
 #include <gtest/gtest.h>
+
+#include "../TestValues.h"
 
 namespace
 {

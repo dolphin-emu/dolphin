@@ -3,6 +3,45 @@
 
 #include "Core/IOS/Network/IP/Top.h"
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Network.h"
+#include "Common/ScopeGuard.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IOS/Network/ICMP.h"
+#include "Core/IOS/Network/MACUtils.h"
+#include "Core/IOS/Network/Socket.h"
+#include "Core/System.h"
+#include "Core/WC24PatchEngine.h"
+#ifdef __ANDROID__
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
+#include <fmt/format.h>
+
+#ifdef _WIN32
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
+
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+#else
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <resolv.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#ifdef __linux__
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#endif
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -11,52 +50,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#ifndef _WIN32
-#include <netdb.h>
-#include <poll.h>
-#endif
-
-#include <fmt/format.h>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Network.h"
-#include "Common/ScopeGuard.h"
-
-#include "Core/Core.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/Network/ICMP.h"
-#include "Core/IOS/Network/MACUtils.h"
-#include "Core/IOS/Network/Socket.h"
-#include "Core/System.h"
-#include "Core/WC24PatchEngine.h"
-
-#ifdef _WIN32
-#include <iphlpapi.h>
-#include <ws2tcpip.h>
-
-#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
-#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
-
-#else
-#include <arpa/inet.h>
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <resolv.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#endif
-
-#ifdef __ANDROID__
-#include "jni/AndroidCommon/AndroidCommon.h"
-#endif
-
-#ifdef __linux__
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#endif
 
 auto format_as(addrinfo hints)
 {

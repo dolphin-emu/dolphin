@@ -3,10 +3,6 @@
 
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 
-#include <jni.h>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -14,8 +10,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <fmt/format.h>
+
+#include <jni.h>
 
 namespace WiimoteReal
 {

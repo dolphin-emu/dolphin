@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <span>
-
-#include "Common/CommonTypes.h"
 
 namespace IOS::HLE::USB::SkylanderCrypto
 {

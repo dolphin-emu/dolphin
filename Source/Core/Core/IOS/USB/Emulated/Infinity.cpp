@@ -3,12 +3,6 @@
 
 #include "Core/IOS/USB/Emulated/Infinity.h"
 
-#include <array>
-#include <bit>
-#include <mutex>
-#include <span>
-#include <vector>
-
 #include "Common/BitUtils.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
@@ -17,6 +11,12 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <array>
+#include <bit>
+#include <mutex>
+#include <span>
+#include <vector>
 
 namespace IOS::HLE::USB
 {

@@ -3,12 +3,12 @@
 
 #include "Common/MemArena.h"
 
-#include <cerrno>
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#include <set>
-#include <string>
+#include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include <fmt/format.h>
 
@@ -19,12 +19,12 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
+#include <cerrno>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <set>
+#include <string>
 
 namespace Common
 {

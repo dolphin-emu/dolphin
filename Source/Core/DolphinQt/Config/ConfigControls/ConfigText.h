@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <QLineEdit>
-
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 
-#include "Common/Config/ConfigInfo.h"
+#include <QLineEdit>
 
 class ConfigText : public ConfigControl<QLineEdit>
 {

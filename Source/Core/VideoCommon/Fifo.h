@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <atomic>
-#include <cstddef>
-#include <optional>
-
 #include "Common/BlockingLoop.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
+
+#include <atomic>
+#include <cstddef>
+#include <optional>
 
 class PointerWrap;
 

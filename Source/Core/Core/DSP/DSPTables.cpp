@@ -5,17 +5,16 @@
 
 #include "Core/DSP/DSPTables.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/DSP/DSPCore.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdio>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/DSP/DSPCore.h"
 
 namespace DSP
 {

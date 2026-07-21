@@ -3,9 +3,6 @@
 
 #include "VideoCommon/Fifo.h"
 
-#include <atomic>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/BlockingLoop.h"
 #include "Common/ChunkFile.h"
@@ -13,7 +10,6 @@
 #include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -21,7 +17,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -31,6 +26,9 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <atomic>
+#include <cstring>
 
 namespace Fifo
 {

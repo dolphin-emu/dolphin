@@ -1,9 +1,11 @@
 #include "Common/WindowsRegistry.h"
 
+#include "Common/StringUtil.h"
+
 #include <windows.h>
+
 #include <string>
 #include <type_traits>
-#include "Common/StringUtil.h"
 
 namespace WindowsRegistry
 {

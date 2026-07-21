@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string_view>
-
 #include "Common/CommonTypes.h"
+
+#include <string_view>
 
 namespace Core
 {

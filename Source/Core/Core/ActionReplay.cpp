@@ -20,6 +20,19 @@
 
 #include "Core/ActionReplay.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Core/ARDecrypt.h"
+#include "Core/AchievementManager.h"
+#include "Core/CheatCodes.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/PowerPC/MMU.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <atomic>
 #include <bit>
@@ -29,20 +42,6 @@
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-
-#include "Core/ARDecrypt.h"
-#include "Core/AchievementManager.h"
-#include "Core/CheatCodes.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/PowerPC/MMU.h"
 
 namespace ActionReplay
 {

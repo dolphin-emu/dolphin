@@ -3,8 +3,6 @@
 
 #include "Core/System.h"
 
-#include <memory>
-
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
@@ -26,13 +24,13 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/IOS/USB/USBScanner.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "IOS/USB/Emulated/Infinity.h"
-#include "IOS/USB/Emulated/Skylanders/Skylander.h"
-#include "IOS/USB/USBScanner.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -43,6 +41,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <memory>
 
 namespace Core
 {

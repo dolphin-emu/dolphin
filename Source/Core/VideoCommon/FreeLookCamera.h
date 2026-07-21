@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <optional>
-
 #include "Common/Matrix.h"
 #include "Core/Config/FreeLookSettings.h"
+
+#include <memory>
+#include <optional>
 
 class PointerWrap;
 

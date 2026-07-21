@@ -3,15 +3,15 @@
 
 #include "Core/GeckoCodeConfig.h"
 
-#include <optional>
-#include <sstream>
-#include <string>
-#include <vector>
-
 #include "Common/HttpRequest.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
+
+#include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace Gecko
 {

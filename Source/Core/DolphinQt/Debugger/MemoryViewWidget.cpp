@@ -3,22 +3,6 @@
 
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 
-#include <bit>
-#include <cmath>
-
-#include <QApplication>
-#include <QClipboard>
-#include <QColorDialog>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QLineEdit>
-#include <QMenu>
-#include <QMouseEvent>
-#include <QScrollBar>
-#include <QStyledItemDelegate>
-#include <QTableWidget>
-#include <QtGlobal>
-
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
@@ -33,6 +17,22 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include <QApplication>
+#include <QClipboard>
+#include <QColorDialog>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QScrollBar>
+#include <QStyledItemDelegate>
+#include <QTableWidget>
+#include <QtGlobal>
+
+#include <bit>
+#include <cmath>
 
 // "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)

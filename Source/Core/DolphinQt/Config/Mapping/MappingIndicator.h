@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+
 #include <QToolButton>
 #include <QWidget>
 
 #include <chrono>
 #include <deque>
-
-#include "Core/HW/WiimoteEmu/Dynamics.h"
-#include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
 {

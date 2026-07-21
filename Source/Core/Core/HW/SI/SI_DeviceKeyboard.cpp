@@ -3,14 +3,14 @@
 
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 
-#include <array>
-#include <cstring>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"
+
+#include <array>
+#include <cstring>
 
 namespace SerialInterface
 {

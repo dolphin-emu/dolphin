@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "Common/Flag.h"
 #include "Common/WindowSystemInfo.h"
+
+#include <memory>
+#include <string>
 
 class Platform
 {

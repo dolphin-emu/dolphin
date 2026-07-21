@@ -3,19 +3,19 @@
 
 #include "Core/PowerPC/PPCTables.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstdio>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Projection.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdio>
 
 namespace PPCTables
 {

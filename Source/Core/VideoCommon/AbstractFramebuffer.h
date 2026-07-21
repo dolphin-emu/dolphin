@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <vector>
 
 class AbstractTexture;
 

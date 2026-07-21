@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <array>
-#include <initializer_list>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Core/CoreTiming.h"
+
+#include <array>
+#include <initializer_list>
+#include <memory>
 
 class PointerWrap;
 struct Sram;

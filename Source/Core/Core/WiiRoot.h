@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "DiscIO/RiivolutionPatcher.h"
+
 #include <optional>
 #include <vector>
-
-#include "DiscIO/RiivolutionPatcher.h"
 
 class BootSessionData;
 

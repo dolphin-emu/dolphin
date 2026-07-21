@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <utility>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+
+#include <utility>
+#include <vector>
 
 class JitBase;
 

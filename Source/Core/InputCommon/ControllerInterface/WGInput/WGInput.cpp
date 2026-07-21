@@ -3,6 +3,13 @@
 
 #include "InputCommon/ControllerInterface/WGInput/WGInput.h"
 
+#include "Common/HRWrap.h"
+#include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
+#include "Common/WorkQueueThread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <array>
 #include <map>
 #include <string_view>
@@ -23,13 +30,6 @@
 #pragma comment(lib, "windowsapp")
 
 #include <fmt/format.h>
-
-#include "Common/HRWrap.h"
-#include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
-#include "Common/WorkQueueThread.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace WGI = winrt::Windows::Gaming::Input;
 namespace Haptics = winrt::Windows::Devices::Haptics;

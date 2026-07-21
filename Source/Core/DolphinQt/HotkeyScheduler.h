@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <thread>
-
-#include <QObject>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "InputCommon/InputProfile.h"
+
+#include <QObject>
+
+#include <thread>
 
 class HotkeyScheduler : public QObject
 {

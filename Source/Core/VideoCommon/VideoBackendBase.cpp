@@ -3,19 +3,10 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
-#include <algorithm>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -24,11 +15,12 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
-
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
 #include "VideoBackends/D3D12/VideoBackend.h"
+#elifdef __APPLE__
+#include "VideoBackends/Metal/VideoBackend.h"
 #endif
 #include "VideoBackends/Null/VideoBackend.h"
 #ifdef HAS_OPENGL
@@ -37,9 +29,6 @@
 #endif
 #ifdef HAS_VULKAN
 #include "VideoBackends/Vulkan/VideoBackend.h"
-#endif
-#ifdef __APPLE__
-#include "VideoBackends/Metal/VideoBackend.h"
 #endif
 
 #include "VideoCommon/AbstractGfx.h"
@@ -68,6 +57,14 @@
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/Widescreen.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
 
 VideoBackendBase* g_video_backend = nullptr;
 

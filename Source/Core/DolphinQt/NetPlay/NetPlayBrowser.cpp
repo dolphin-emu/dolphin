@@ -3,6 +3,12 @@
 
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 
+#include "Common/Version.h"
+#include "Core/Config/NetplaySettings.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -18,14 +24,6 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
-
-#include "Common/Version.h"
-
-#include "Core/Config/NetplaySettings.h"
-
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 {

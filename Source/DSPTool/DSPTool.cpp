@@ -1,12 +1,6 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -14,6 +8,12 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
+
+#include <fmt/format.h>
+
+#include <string>
+#include <utility>
+#include <vector>
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSP::Host::ReadHostMemory(u32 addr)

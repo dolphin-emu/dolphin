@@ -3,19 +3,8 @@
 
 #include "VideoBackends/Metal/VideoBackend.h"
 
-// This must be included before we use any TARGET_OS_* macros.
-#include <TargetConditionals.h>
-
-#if TARGET_OS_OSX
-#include <AppKit/AppKit.h>
-#endif
-
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
-
 #include "Common/Common.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Metal/MTLBoundingBox.h"
 #include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
@@ -23,11 +12,18 @@
 #include "VideoBackends/Metal/MTLStateTracker.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoBackends/Metal/MTLVertexManager.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+// This must be included before we use any TARGET_OS_* macros.
+#include <TargetConditionals.h>
+#if TARGET_OS_OSX
+#include <AppKit/AppKit.h>
+#endif
+#include <Metal/Metal.h>
+#include <QuartzCore/QuartzCore.h>
 
 std::string Metal::VideoBackend::GetConfigName() const
 {

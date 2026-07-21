@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QSpinBox>
-
 #include "DolphinQt/TAS/TASControlState.h"
+
+#include <QSpinBox>
 
 class TASInputWindow;
 

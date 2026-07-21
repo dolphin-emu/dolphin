@@ -3,14 +3,14 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
+#endif
+
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
-
-#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
-#endif
 
 ControllerInterfaceWindow::ControllerInterfaceWindow(QWidget* parent) : QDialog(parent)
 {

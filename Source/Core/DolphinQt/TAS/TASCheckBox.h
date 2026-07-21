@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QCheckBox>
-
 #include "DolphinQt/TAS/TASControlState.h"
+
+#include <QCheckBox>
 
 class QMouseEvent;
 class TASInputWindow;

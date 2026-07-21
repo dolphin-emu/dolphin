@@ -5,10 +5,10 @@
 
 #if defined(__linux__) && HAVE_BLUEZ
 
-#include <atomic>
-
 #include "Common/Network.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#include <atomic>
 
 namespace WiimoteReal
 {

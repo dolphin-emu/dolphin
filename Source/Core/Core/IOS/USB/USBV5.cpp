@@ -3,11 +3,6 @@
 
 #include "Core/IOS/USB/USBV5.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-#include <ranges>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
@@ -15,6 +10,11 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <ranges>
 
 namespace IOS::HLE
 {

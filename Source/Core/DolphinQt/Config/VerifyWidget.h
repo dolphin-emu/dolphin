@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <utility>
-
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -13,6 +10,9 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QWidget>
+
+#include <memory>
+#include <utility>
 
 namespace Core
 {

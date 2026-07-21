@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <string>
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 #include <picojson.h>
 
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include <string>
 
 namespace VideoCommon
 {

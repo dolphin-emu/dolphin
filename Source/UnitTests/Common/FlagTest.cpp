@@ -1,11 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-#include <gtest/gtest.h>
-#include <thread>
-
 #include "Common/Flag.h"
+
+#include <gtest/gtest.h>
+
+#include <array>
+#include <thread>
 
 using Common::Flag;
 

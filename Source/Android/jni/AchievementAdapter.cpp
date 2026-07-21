@@ -1,14 +1,15 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <jni.h>
-
-#include <latch>
 #include "Common/Event.h"
 #include "Common/HookableEvent.h"
 #include "Core/AchievementManager.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <latch>
 
 extern "C" {
 

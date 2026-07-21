@@ -1,17 +1,12 @@
 // Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <bit>
-#include <set>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
@@ -20,9 +15,14 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-#include "../StubJit.h"
-
+#include <fmt/format.h>
 #include <gtest/gtest.h>
+
+#include <bit>
+#include <set>
+#include <utility>
+
+#include "../StubJit.h"
 
 // All guest addresses used in this unit test are arbitrary, aside from alignment requirements
 static constexpr u32 ALIGNED_PAGE_TABLE_BASE = 0x00020000;

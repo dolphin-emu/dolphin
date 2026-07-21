@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
+
+#include <QDialog>
 
 class QVBoxLayout;
 class QDialogButtonBox;

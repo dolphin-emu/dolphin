@@ -3,12 +3,6 @@
 
 #include "Core/IOS/Network/KD/NetKDRequest.h"
 
-#include <algorithm>
-#include <array>
-#include <string>
-#include <string_view>
-#include <utility>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -16,11 +10,10 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/Projection.h"
-#include "Common/SettingsHandler.h"
-#include "Common/StringUtil.h"
-
 #include "Common/Random.h"
 #include "Common/ScopeGuard.h"
+#include "Common/SettingsHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -30,6 +23,12 @@
 #include "Core/IOS/Uids.h"
 #include "Core/System.h"
 #include "Core/WC24PatchEngine.h"
+
+#include <algorithm>
+#include <array>
+#include <string>
+#include <string_view>
+#include <utility>
 
 namespace IOS::HLE
 {

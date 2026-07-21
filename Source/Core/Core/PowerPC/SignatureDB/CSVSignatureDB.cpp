@@ -3,15 +3,15 @@
 
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 
-#include <cstdio>
-#include <fstream>
-#include <sstream>
-
-#include <fmt/format.h>
-
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+
+#include <fmt/format.h>
+
+#include <cstdio>
+#include <fstream>
+#include <sstream>
 
 // CSV separated with tabs
 // Checksum | Size | Symbol | [Object Location |] Object Name

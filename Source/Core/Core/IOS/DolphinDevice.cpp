@@ -3,9 +3,6 @@
 
 #include "Core/IOS/DolphinDevice.h"
 
-#include <algorithm>
-#include <cstring>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -18,6 +15,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cstring>
 
 namespace IOS::HLE
 {

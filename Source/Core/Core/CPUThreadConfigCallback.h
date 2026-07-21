@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <limits>
-
 #include "Common/Config/Config.h"
+
+#include <limits>
 
 // This file lets you register callbacks like in Common/Config/Config.h, with the difference that
 // callbacks registered here are guaranteed to run on the CPU thread. Callbacks registered here may

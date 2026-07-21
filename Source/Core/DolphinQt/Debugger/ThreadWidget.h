@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <QDockWidget>
-
 #include "Common/CommonTypes.h"
 #include "Common/Debug/Threads.h"
+
+#include <QDockWidget>
 
 class QCloseEvent;
 class QGroupBox;

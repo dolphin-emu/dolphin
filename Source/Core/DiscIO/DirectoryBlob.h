@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/WiiEncryptionCache.h"
+
 #include <array>
 #include <cstddef>
 #include <functional>
@@ -13,11 +18,6 @@
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/WiiEncryptionCache.h"
 
 namespace File
 {

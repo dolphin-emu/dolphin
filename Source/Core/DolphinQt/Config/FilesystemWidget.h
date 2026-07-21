@@ -5,6 +5,7 @@
 
 #include <QDialog>
 #include <QIcon>
+
 #include <memory>
 
 class QStandardItem;

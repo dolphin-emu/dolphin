@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <QAbstractTableModel>
-#include <QList>
-#include <QVariant>
-
 #include "Common/CommonTypes.h"
 #include "Common/Lazy.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+
+#include <QAbstractTableModel>
+#include <QList>
+#include <QVariant>
 
 namespace Core
 {

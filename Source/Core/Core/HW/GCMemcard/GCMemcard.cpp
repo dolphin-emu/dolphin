@@ -3,11 +3,6 @@
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
-#include <algorithm>
-#include <cstring>
-#include <utility>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/ColorUtil.h"
@@ -16,8 +11,12 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
+
+#include <algorithm>
+#include <cstring>
+#include <utility>
+#include <vector>
 
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {

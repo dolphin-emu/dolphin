@@ -7,16 +7,15 @@
 
 #pragma once
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Core/HW/Triforce/SerialDevice.h"
+
 #include <array>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
-
-#include "Core/HW/Triforce/SerialDevice.h"
 
 namespace MagCard
 {

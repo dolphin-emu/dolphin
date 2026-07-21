@@ -3,10 +3,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <cmath>
-#include <limits>
-#include <optional>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -17,6 +13,10 @@
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+#include <cmath>
+#include <limits>
+#include <optional>
 
 using namespace Gen;
 

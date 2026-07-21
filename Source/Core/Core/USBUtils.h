@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 struct libusb_device_descriptor;
 

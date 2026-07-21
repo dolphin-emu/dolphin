@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-
 #include "VideoBackends/Metal/MRCHelpers.h"
-
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <Metal/Metal.h>
 
 namespace Metal
 {

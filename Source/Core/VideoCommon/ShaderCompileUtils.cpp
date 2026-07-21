@@ -3,11 +3,11 @@
 
 #include "VideoCommon/ShaderCompileUtils.h"
 
-#include <ranges>
-#include <utility>
-
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+
+#include <ranges>
+#include <utility>
 
 namespace VideoCommon
 {

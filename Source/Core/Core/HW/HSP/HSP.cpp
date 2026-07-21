@@ -3,13 +3,14 @@
 
 #include "Core/HW/HSP/HSP.h"
 
-#include <memory>
+#include "Common/ChunkFile.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/HSP/HSP_Device.h"
 
 #include <fmt/ranges.h>
 
-#include "Common/ChunkFile.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/HW/HSP/HSP_Device.h"
+#include <memory>
 
 namespace HSP
 {

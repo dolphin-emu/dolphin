@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <memory>
+#include <vector>
 
 namespace Vulkan
 {

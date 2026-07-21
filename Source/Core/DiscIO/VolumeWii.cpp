@@ -3,6 +3,21 @@
 
 #include "DiscIO/VolumeWii.h"
 
+#include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/Logging/Log.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/WiiSaveBanner.h"
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -16,22 +31,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "Common/Align.h"
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/AES.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/Logging/Log.h"
-
-#include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/FileSystemGCWii.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/WiiSaveBanner.h"
 
 namespace DiscIO
 {

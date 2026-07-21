@@ -5,10 +5,11 @@
 
 #include "Common/CommonTypes.h"
 
-#include <map>
-#include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
+
+#include <map>
+#include <string>
 #include <vector>
 
 namespace Core

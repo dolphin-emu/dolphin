@@ -1,16 +1,19 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "MacUpdater/ViewController.h"
-
-#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
+
+#include "MacUpdater/ViewController.h"
+#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UpdaterCommon.h"
 
 #include <Cocoa/Cocoa.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <functional>
+#include <string>
+#include <vector>
 
 // When we call from the main thread, we are not allowed to use
 // dispatch_sync(dispatch_get_main_queue() as it will cause crashes) To prevent this check if we're

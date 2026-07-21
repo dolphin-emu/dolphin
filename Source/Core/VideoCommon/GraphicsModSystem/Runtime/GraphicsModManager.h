@@ -3,18 +3,17 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
+#include "VideoCommon/XFMemory.h"
+
 #include <list>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "Common/HookableEvent.h"
-
-#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
-#include "VideoCommon/XFMemory.h"
 
 class GraphicsModGroupConfig;
 class GraphicsModManager

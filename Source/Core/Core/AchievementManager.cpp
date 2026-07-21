@@ -5,10 +5,6 @@
 
 #include "Core/AchievementManager.h"
 
-#include <memory>
-
-#include <fmt/format.h>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -18,7 +14,6 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/AchievementApprovedHash.h"
@@ -41,11 +36,17 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
+#include <fmt/format.h>
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif
+
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
 #include <libloaderapi.h>
-#include <rcheevos/include/rc_client_raintegration.h>
 #include <shlwapi.h>
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+#endif
+
+#include <memory>
 
 #ifdef ANDROID
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {

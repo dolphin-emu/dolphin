@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Core/PowerPC/PowerPC.h"
+
 #include <QPushButton>
 #include <QWidget>
-
-#include "Core/PowerPC/PowerPC.h"
 
 class ConfigBool;
 template <typename T>

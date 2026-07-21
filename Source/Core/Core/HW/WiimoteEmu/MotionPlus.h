@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "Common/Swap.h"
-#include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
+
+#include <array>
 
 namespace WiimoteEmu
 {

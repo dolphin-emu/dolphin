@@ -3,14 +3,13 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
-
-#include "Common/Assert.h"
-#include "Common/HookableEvent.h"
-#include "Core/FifoPlayer/FifoDataFile.h"
 
 namespace Core
 {

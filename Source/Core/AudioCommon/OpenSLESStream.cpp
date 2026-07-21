@@ -4,17 +4,17 @@
 #ifdef HAVE_OPENSL_ES
 #include "AudioCommon/OpenSLESStream.h"
 
-#include <cmath>
-
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
-#include <jni.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
+#include <jni.h>
+
+#include <cmath>
 
 void OpenSLESStream::BQPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {

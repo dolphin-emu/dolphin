@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <chrono>
 #include <limits>
 #include <memory>
@@ -12,8 +14,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 // idk in case I wanted to change it to double or something, idk what's best
 typedef double ControlState;

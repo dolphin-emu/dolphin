@@ -4,10 +4,10 @@
 // Stub implementation of the Host_* callbacks for DSPTool. These implementations
 // do nothing except return default values when required.
 
+#include "Core/Host.h"
+
 #include <string>
 #include <vector>
-
-#include "Core/Host.h"
 
 std::vector<std::string> Host_GetPreferredLocales()
 {

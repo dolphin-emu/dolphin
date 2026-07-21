@@ -3,13 +3,8 @@
 
 #include "VideoBackends/Software/Rasterizer.h"
 
-#include <algorithm>
-#include <cstring>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/Tev.h"
@@ -19,6 +14,10 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <cstring>
+#include <vector>
 
 namespace Rasterizer
 {

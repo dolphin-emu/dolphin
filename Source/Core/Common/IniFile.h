@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/StringUtil.h"
+
 #include <list>
 #include <map>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/StringUtil.h"
 
 namespace Common
 {

@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/ConfigManager.h"
+#include "VideoCommon/XFMemory.h"
+
 #include <array>
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/ConfigManager.h"
-#include "VideoCommon/XFMemory.h"
 
 namespace File
 {

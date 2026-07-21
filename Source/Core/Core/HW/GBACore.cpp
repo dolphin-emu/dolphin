@@ -5,19 +5,9 @@
 
 #include "Core/HW/GBACore.h"
 
-#include <mgba-util/vfs.h>
-#include <mgba/core/log.h>
-#include <mgba/core/timing.h>
-#include <mgba/internal/gb/gb.h>
-#include <mgba/internal/gba/gba.h>
-
-#include <mz.h>
-#include <mz_strm.h>
-#include <mz_zip.h>
-#include <mz_zip_rw.h>
-
 #include "AudioCommon/AudioCommon.h"
-
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/SoundStream.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -27,7 +17,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -35,10 +24,19 @@
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
-
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
+
+#include <mgba-util/vfs.h>
+#include <mgba/core/log.h>
+#include <mgba/core/timing.h>
+#include <mgba/internal/gb/gb.h>
+#include <mgba/internal/gba/gba.h>
+#include <mz.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
 
 namespace HW::GBA
 {

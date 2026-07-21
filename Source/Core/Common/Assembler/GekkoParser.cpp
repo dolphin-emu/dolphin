@@ -3,14 +3,14 @@
 
 #include "Common/Assembler/GekkoParser.h"
 
-#include <array>
-
-#include <fmt/format.h>
-
 #include "Common/Assembler/AssemblerShared.h"
 #include "Common/Assembler/AssemblerTables.h"
 #include "Common/Assembler/GekkoLexer.h"
 #include "Common/Assert.h"
+
+#include <fmt/format.h>
+
+#include <array>
 
 namespace Common::GekkoAssembler::detail
 {

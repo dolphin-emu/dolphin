@@ -3,14 +3,10 @@
 
 #include "Common/Hash.h"
 
-#include <algorithm>
-#include <bit>
-#include <cstring>
-
-#include <zlib.h>
-
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
+
+#include <zlib.h>
 
 #ifdef _M_ARM_64
 #ifdef _MSC_VER
@@ -19,6 +15,10 @@
 #include <arm_acle.h>
 #endif
 #endif
+
+#include <algorithm>
+#include <bit>
+#include <cstring>
 
 namespace Common
 {

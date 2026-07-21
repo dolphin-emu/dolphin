@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"

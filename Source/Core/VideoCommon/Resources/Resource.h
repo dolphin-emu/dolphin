@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/WorkQueueThread.h"
-
 #include "VideoCommon/Assets/AssetListener.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 

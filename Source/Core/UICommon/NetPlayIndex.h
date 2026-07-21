@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/Event.h"
+
 #include <functional>
 #include <map>
 #include <optional>
@@ -11,8 +13,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "Common/Event.h"
 
 struct NetPlaySession
 {

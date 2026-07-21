@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <chrono>
 #include <functional>
 #include <map>
@@ -12,8 +14,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

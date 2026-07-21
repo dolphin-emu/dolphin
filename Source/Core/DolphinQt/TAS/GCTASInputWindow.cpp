@@ -3,6 +3,13 @@
 
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 
+#include "Core/HW/GCPad.h"
+#include "Core/HW/GCPadEmu.h"
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -11,16 +18,6 @@
 #include <QSpinBox>
 #include <QStyle>
 #include <QVBoxLayout>
-
-#include "Core/HW/GCPad.h"
-#include "Core/HW/GCPadEmu.h"
-
-#include "DolphinQt/TAS/TASCheckBox.h"
-
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/InputConfig.h"
-
-#include "DolphinQt/QtUtils/AspectRatioWidget.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)

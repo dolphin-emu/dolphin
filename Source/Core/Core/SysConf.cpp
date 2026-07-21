@@ -3,15 +3,15 @@
 
 #include "Core/SysConf.h"
 
-#include <algorithm>
-#include <array>
-#include <cstdio>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
+
+#include <algorithm>
+#include <array>
+#include <cstdio>
 
 constexpr size_t SYSCONF_SIZE = 0x4000;
 

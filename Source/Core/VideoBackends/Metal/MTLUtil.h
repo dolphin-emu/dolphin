@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <AppKit/NSScreen.h>
-#include <Metal/Metal.h>
-
-#include <vector>
-
+#include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include "VideoBackends/Metal/MRCHelpers.h"
+#include <AppKit/NSScreen.h>
+#include <Metal/Metal.h>
+
+#include <vector>
 
 namespace Metal
 {

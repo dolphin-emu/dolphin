@@ -3,9 +3,9 @@
 
 #include "Common/GL/GLInterface/EGLX11.h"
 
-#include <cstdlib>
-
 #include "Common/StringUtil.h"
+
+#include <cstdlib>
 
 GLContextEGLX11::GLContextEGLX11()
 {

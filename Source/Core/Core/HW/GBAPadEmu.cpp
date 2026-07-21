@@ -3,12 +3,11 @@
 
 #include "Core/HW/GBAPadEmu.h"
 
-#include <fmt/format.h>
-
 #include "Core/HW/GBAPad.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/GCPadStatus.h"
+
+#include <fmt/format.h>
 
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};

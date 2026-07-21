@@ -3,19 +3,18 @@
 
 #include "Core/Boot/ElfReader.h"
 
-#include <cstring>
-#include <string>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
+
+#include <cstring>
+#include <string>
+#include <utility>
 
 static void bswap(u32& w)
 {

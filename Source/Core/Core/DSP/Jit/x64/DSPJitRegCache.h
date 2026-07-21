@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/x64Emitter.h"
+
+#include <array>
 
 namespace DSP::JIT::x64
 {

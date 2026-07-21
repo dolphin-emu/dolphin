@@ -3,13 +3,8 @@
 
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 
-#include <cstring>
-#include <memory>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -19,6 +14,10 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
+
+#include <cstring>
+#include <memory>
+#include <string>
 
 namespace PowerPC
 {

@@ -3,15 +3,14 @@
 
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <vector>
 
 using namespace Arm64Gen;
 

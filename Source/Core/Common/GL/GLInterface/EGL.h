@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include "Common/GL/GLContext.h"
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
 #include <string>
 #include <vector>
-
-#include "Common/GL/GLContext.h"
 
 class GLContextEGL : public GLContext
 {

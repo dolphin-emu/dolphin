@@ -3,15 +3,16 @@
 
 #include "VideoCommon/PerformanceMetrics.h"
 
-#include <algorithm>
-
-#include <imgui.h>
-#include <implot.h>
-
+#include "Common/Config/Config.h"
 #include "Common/HookableEvent.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <imgui.h>
+#include <implot.h>
+
+#include <algorithm>
 
 PerformanceMetrics::PerformanceMetrics()
 {

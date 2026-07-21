@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 // Host - defines an interface for the emulator core to communicate back to the
 // OS-specific layer

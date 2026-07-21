@@ -3,7 +3,14 @@
 
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 
-#include <memory>
+#include "Core/Config/NetplaySettings.h"
+#include "Core/NetPlayProto.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/GameFile.h"
+#include "UICommon/NetPlayIndex.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -17,16 +24,7 @@
 #include <QSpinBox>
 #include <QTabWidget>
 
-#include "Core/Config/NetplaySettings.h"
-#include "Core/NetPlayProto.h"
-
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
-#include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
-#include "UICommon/NetPlayIndex.h"
+#include <memory>
 
 NetPlaySetupDialog::NetPlaySetupDialog(const GameListModel& game_list_model, QWidget* parent)
     : QDialog(parent), m_game_list_model(game_list_model)

@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <array>
-#include <map>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/RenderState.h"
+
+#include <array>
+#include <map>
+#include <memory>
 
 namespace OGL
 {

@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <functional>
 #include "VideoCommon/PixelShaderGen.h"
+
+#include <functional>
 
 namespace UberShader
 {

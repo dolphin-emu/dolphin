@@ -3,14 +3,6 @@
 
 #include "Core/IOS/USB/Host.h"
 
-#include <functional>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <utility>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -18,10 +10,17 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBScanner.h"
 #include "Core/System.h"
-
 #ifdef _WIN32
 #include "Common/WindowsDevice.h"
 #endif
+
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+#include <utility>
 
 namespace IOS::HLE
 {

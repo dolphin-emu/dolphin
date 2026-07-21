@@ -3,20 +3,15 @@
 
 #include "VideoBackends/D3D/D3DVertexManager.h"
 
-#include <d3d11_4.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/System.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBoundingBox.h"
 #include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
-
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -26,6 +21,8 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <d3d11_4.h>
 
 namespace DX11
 {

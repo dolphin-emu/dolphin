@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "VideoCommon/PerfQueryBase.h"
+
 #include <condition_variable>
 #include <mutex>
-
-#include "VideoCommon/PerfQueryBase.h"
 
 namespace Metal
 {
