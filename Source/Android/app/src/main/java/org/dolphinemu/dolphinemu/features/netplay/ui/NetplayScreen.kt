@@ -972,7 +972,6 @@ private fun PlayersTable(
 ) {
     rows.zipWithNext { a, b -> if (a.size != b.size) throw IllegalArgumentException("Rows must all contain the same number of elements.") }
     val maxWidths = remember { List(rows.first().size) { mutableIntStateOf(0) } }
-    val density = LocalDensity.current
 
     Column(
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -984,23 +983,21 @@ private fun PlayersTable(
             ) {
                 row.forEachIndexed { itemIndex, text ->
                     Box(
-                        modifier = Modifier
-                            .then(
-                                when {
-                                    itemIndex == 0 -> Modifier.weight(1f)
-
-                                    maxWidths[itemIndex].intValue > 0 -> Modifier
-                                        .width(with(density) { maxWidths[itemIndex].intValue.toDp() })
-
-                                    else -> Modifier
+                        modifier = if (itemIndex == 0) {
+                            Modifier.weight(1f)
+                        } else {
+                            val maxWidth = maxWidths[itemIndex]
+                            Modifier.layout { measurable, constraints ->
+                                val placeable =
+                                    measurable.measure(constraints.copy(maxWidth = Constraints.Infinity))
+                                if (placeable.width > maxWidth.intValue) {
+                                    maxWidth.intValue = placeable.width
                                 }
-                            )
-                            .onGloballyPositioned { coordinates ->
-                                val width = coordinates.size.width
-                                if (width > maxWidths[itemIndex].intValue) {
-                                    maxWidths[itemIndex].intValue = width
+                                layout(maxWidth.intValue, placeable.height) {
+                                    placeable.place(x = 0, y = 0)
                                 }
                             }
+                        }
                     ) {
                         Text(
                             text = text,
