@@ -23,6 +23,13 @@ Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerWii(J
 }
 
 JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerGba(JNIEnv*, jclass,
+                                                                               int controller_index)
+{
+  ciface::Touch::RegisterGBAInputOverrider(controller_index);
+}
+
+JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_unregisterGameCube(
     JNIEnv*, jclass, int controller_index)
 {
@@ -34,6 +41,27 @@ Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_unregisterWii
     JNIEnv*, jclass, int controller_index)
 {
   ciface::Touch::UnregisterWiiInputOverrider(controller_index);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_unregisterGba(
+    JNIEnv*, jclass, int controller_index)
+{
+  ciface::Touch::UnregisterGBAInputOverrider(controller_index);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_setGbaInputEnabled(
+    JNIEnv*, jclass, int controller_index, jboolean enabled)
+{
+  ciface::Touch::SetGBAInputEnabled(controller_index, enabled == JNI_TRUE);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_setGameCubeInputEnabled(
+    JNIEnv*, jclass, int controller_index, jboolean enabled)
+{
+  ciface::Touch::SetGameCubeInputEnabled(controller_index, enabled == JNI_TRUE);
 }
 
 JNIEXPORT void JNICALL

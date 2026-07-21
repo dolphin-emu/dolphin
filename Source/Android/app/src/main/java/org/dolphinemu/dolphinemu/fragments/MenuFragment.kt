@@ -56,11 +56,27 @@ class MenuFragment : Fragment(), View.OnClickListener {
             binding.menuOverlayControls.visibility = View.GONE
         }
 
-        if (!requireArguments().getBoolean(KEY_WII, true)) {
+        val activity = requireActivity() as EmulationActivity
+        val isWii = requireArguments().getBoolean(KEY_WII, true)
+        if (!isWii) {
             binding.menuRefreshWiimotes.visibility = View.GONE
             binding.menuSkylanders.visibility = View.GONE
             binding.menuInfinityBase.visibility = View.GONE
+            binding.menuToggleGbaScreen.visibility =
+                if (activity.shouldShowInternalGbaScreenMenu()) View.VISIBLE else View.GONE
+            binding.menuGbaPacks.visibility =
+                if (activity.shouldShowGbaPacksMenu()) View.VISIBLE else View.GONE
+        } else {
+            binding.menuToggleGbaScreen.visibility = View.GONE
+            binding.menuGbaPacks.visibility = View.GONE
         }
+
+        binding.menuToggleGbaScreen.text =
+            if (activity.isInternalGbaScreenVisible) {
+                getString(R.string.emulation_show_gamecube_screen)
+            } else {
+                getString(R.string.emulation_show_gba_screen)
+            }
 
         if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.boolean) {
             binding.menuSkylanders.visibility = View.GONE
@@ -189,6 +205,14 @@ class MenuFragment : Fragment(), View.OnClickListener {
             buttonsActionsMap.append(
                 R.id.menu_overlay_controls,
                 EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS
+            )
+            buttonsActionsMap.append(
+                R.id.menu_toggle_gba_screen,
+                EmulationActivity.MENU_ACTION_TOGGLE_GBA_SCREEN
+            )
+            buttonsActionsMap.append(
+                R.id.menu_gba_packs,
+                EmulationActivity.MENU_ACTION_GBA_PACKS
             )
             buttonsActionsMap.append(
                 R.id.menu_refresh_wiimotes,

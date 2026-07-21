@@ -16,12 +16,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.BuildConfig
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaBootManager
+import org.dolphinemu.dolphinemu.features.netplay.ui.NetplaySetupActivity
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel
-import org.dolphinemu.dolphinemu.features.netplay.ui.NetplaySetupActivity
 import org.dolphinemu.dolphinemu.fragments.AboutDialogFragment
 import org.dolphinemu.dolphinemu.model.GameFileCache
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
@@ -61,7 +62,14 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         if (uri != null) {
             FileBrowserHelper.runAfterExtensionCheck(
                 activity, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
-            ) { EmulationActivity.launch(activity, uri.toString(), false) }
+            ) {
+                val path = uri.toString()
+                if (GbaBootManager.isGbaRomPath(path)) {
+                    GbaBootManager.launchGameBoyPlayer(activity, path)
+                } else {
+                    EmulationActivity.launch(activity, path, false)
+                }
+            }
         } else {
             skipRescanningLibrary()
         }
@@ -113,6 +121,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         mainView.setVersionString(versionName)
 
         GameFileCacheManager.getGameFiles().observe(activity) { mainView.showGames() }
+        GameFileCacheManager.getGbaGameFilesLiveData().observe(activity) { mainView.showGames() }
         val refreshObserver =
             Observer<Boolean> { _: Boolean? -> mainView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning()) }
         GameFileCacheManager.isLoading().observe(activity, refreshObserver)
@@ -123,7 +132,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         val intent = if (DirectoryInitialization.preferOldFolderPicker(activity)) {
             FileBrowserHelper.createDirectoryPickerIntent(
                 activity,
-                FileBrowserHelper.GAME_EXTENSIONS,
+                FileBrowserHelper.GAME_LIKE_EXTENSIONS,
             )
         } else {
             Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
@@ -231,7 +240,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         val recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
         val childNames = ContentHandler.getChildNames(uri, recursive)
         if (Arrays.stream(childNames).noneMatch {
-                FileBrowserHelper.GAME_EXTENSIONS.contains(
+                FileBrowserHelper.GAME_LIKE_EXTENSIONS.contains(
                     FileBrowserHelper.getExtension(
                         it, false
                     )
@@ -240,7 +249,9 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             MaterialAlertDialogBuilder(activity).setMessage(
                 activity.getString(
                     R.string.wrong_file_extension_in_directory,
-                    FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)
+                    FileBrowserHelper.setToSortedDelimitedString(
+                        FileBrowserHelper.GAME_LIKE_EXTENSIONS
+                    )
                 )
             ).setPositiveButton(android.R.string.ok, null).show()
         }

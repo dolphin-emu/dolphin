@@ -183,6 +183,9 @@ std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices
 
   case SIDEVICE_GC_GBA_EMULATED:
 #ifdef HAS_LIBMGBA
+    if (system.IsWii())
+      return std::make_unique<CSIDevice_Null>(system, SIDEVICE_NONE, port_number);
+
     return std::make_unique<CSIDevice_GBAEmu>(system, device, port_number);
 #else
     PanicAlertFmtT("Error: This build does not support emulated GBA controllers");

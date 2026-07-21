@@ -465,13 +465,16 @@ static void ReadAudioBufferIntoMixer(mAudioBuffer* audio_buffer, Mixer* mixer,
                                      std::size_t device_number)
 {
   std::array<s16, AUDIO_BUFFER_SIZE> sample_buffer;
+  const bool mute_link_audio =
+      device_number != Config::GBPLAYER_GBA_INDEX && Config::Get(Config::MAIN_GBA_LINK_MUTED);
   const auto read_size = sample_buffer.size() / audio_buffer->channels;
   while (true)
   {
     const auto sample_count = mAudioBufferRead(audio_buffer, sample_buffer.data(), read_size);
     if (sample_count == 0)
       break;
-    mixer->PushGBASamples(device_number, sample_buffer.data(), sample_count);
+    if (!mute_link_audio)
+      mixer->PushGBASamples(device_number, sample_buffer.data(), sample_count);
   }
 }
 

@@ -10,6 +10,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.ConfigChangedCallback
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.model.GameFileCache
+import org.dolphinemu.dolphinemu.model.GbaGameFile
 import org.dolphinemu.dolphinemu.ui.platform.Platform
 import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors
 object GameFileCacheManager {
     private var gameFileCache: GameFileCache? = null
     private val gameFiles = MutableLiveData(emptyArray<GameFile>())
+    private val gbaGameFiles = MutableLiveData(emptyArray<GbaGameFile>())
     private var firstLoadDone = false
     private var runRescanAfterLoad = false
     private var recursiveScanEnabled = false
@@ -37,7 +39,16 @@ object GameFileCacheManager {
     }
 
     @JvmStatic
+    fun getGbaGameFilesLiveData(): LiveData<Array<GbaGameFile>> {
+        return gbaGameFiles
+    }
+
+    @JvmStatic
     fun getGameFilesForPlatformTab(platformTab: PlatformTab): List<GameFile> {
+        if (platformTab == PlatformTab.GBA) {
+            return emptyList()
+        }
+
         val allGames = gameFiles.value!!
         val platformTabGames = ArrayList<GameFile>()
         for (game in allGames) {
@@ -46,6 +57,11 @@ object GameFileCacheManager {
             }
         }
         return platformTabGames
+    }
+
+    @JvmStatic
+    fun getGbaGameFiles(): List<GbaGameFile> {
+        return gbaGameFiles.value!!.toList()
     }
 
     @JvmStatic
@@ -173,6 +189,7 @@ object GameFileCacheManager {
             if (gameFileCache!!.getSize() != 0) {
                 updateGameFileArray()
             }
+            loadCachedGbaGameFiles()
         }
 
         if (runRescanAfterLoad) {
@@ -186,6 +203,8 @@ object GameFileCacheManager {
         if (runRescanAfterLoad) {
             runRescanAfterLoad = false
             rescan()
+        } else {
+            updateGbaGameFiles()
         }
     }
 
@@ -200,6 +219,7 @@ object GameFileCacheManager {
             runRescanAfterLoad = true
         } else {
             val gamePaths = GameFileCache.getAllGamePaths()
+            updateGbaGameFiles()
 
             val changed = gameFileCache!!.update(gamePaths)
             if (changed) {
@@ -225,6 +245,17 @@ object GameFileCacheManager {
             lhs.getTitle().compareTo(rhs.getTitle(), ignoreCase = true)
         }
         gameFiles.postValue(gameFilesTemp)
+    }
+
+    private fun updateGbaGameFiles() {
+        val recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
+        val gbaFiles = GbaGameFileCache.scan(GameFileCache.getIsoPaths(), recursiveScan)
+        gbaGameFiles.postValue(gbaFiles)
+        GbaGameFileCache.save(gbaFiles)
+    }
+
+    private fun loadCachedGbaGameFiles() {
+        GbaGameFileCache.load()?.let(gbaGameFiles::postValue)
     }
 
     private fun createGameFileCacheIfNeeded() {

@@ -18,6 +18,11 @@ jmethodID GetUpdateTouchPointer();
 jmethodID GetOnTitleChanged();
 jmethodID GetFinishEmulationActivity();
 
+jclass GetGbaHostBridgeClass();
+jmethodID GetGbaHostBridgeOnGameChanged();
+jmethodID GetGbaHostBridgeOnCoreStopped();
+jmethodID GetGbaHostBridgeOnFrame();
+
 jclass GetAnalyticsClass();
 jmethodID GetAnalyticsValue();
 

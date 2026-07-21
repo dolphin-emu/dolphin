@@ -70,6 +70,10 @@ enum class StringSetting(
     ),
     MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
     MAIN_GBA_BIOS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "BIOS", ""),
+    MAIN_GBA_ROM_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom1", ""),
+    MAIN_GBA_ROM_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom2", ""),
+    MAIN_GBA_ROM_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom3", ""),
+    MAIN_GBA_ROM_4(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Rom4", ""),
     MAIN_GB_PLAYER_ROM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "GBPlayerRom", ""),
     MAIN_GBA_SAVES_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "SavesPath", ""),
     MAIN_TRIFORCE_IP_REDIRECTIONS(

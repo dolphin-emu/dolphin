@@ -66,6 +66,7 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/GBA/AndroidGBAHost.h"
 
 namespace
 {
@@ -198,7 +199,7 @@ void Host_TitleChanged()
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
-  return nullptr;
+  return CreateAndroidGBAHost(std::move(core));
 }
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)

@@ -11,4 +11,10 @@
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
+    <org.dolphinemu.dolphinemu.features.dualscreen.GbaScreenView
+        android:id="@+id/surface_gba_screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </FrameLayout>

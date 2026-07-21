@@ -5,6 +5,8 @@
 #include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
 
 #include <array>
+#include <atomic>
+#include <cmath>
 #include <map>
 #include <optional>
 #include <string>
@@ -13,6 +15,8 @@
 
 #include "Common/Assert.h"
 
+#include "Core/HW/GBAPad.h"
+#include "Core/HW/GBAPadEmu.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
@@ -34,14 +38,16 @@ namespace
 struct InputState
 {
   ControlState normal_state = 0;
-  ControlState override_state = 0;
-  bool overriding = false;
+  std::atomic<ControlState> override_state = 0;
+  std::atomic_bool overriding = false;
 };
 
 using ControlsMap = std::map<std::pair<std::string_view, std::string_view>, ControlID>;
 using StateArray = std::array<InputState, ControlID::NUMBER_OF_CONTROLS>;
 
 std::array<StateArray, 4> s_state_arrays;
+std::array<std::atomic_bool, 4> s_gamecube_input_enabled = {true, true, true, true};
+std::array<std::atomic_bool, 4> s_gba_input_enabled;
 
 const ControlsMap s_gcpad_controls_map = {{
     {{GCPad::BUTTONS_GROUP, GCPad::A_BUTTON}, ControlID::GCPAD_A_BUTTON},
@@ -145,26 +151,55 @@ const ControlsMap s_classic_controls_map = {{
      ControlID::CLASSIC_RIGHT_STICK_Y},
 }};
 
-ControllerEmu::InputOverrideFunction GetInputOverrideFunction(const ControlsMap& controls_map,
-                                                              size_t i)
-{
-  StateArray& state_array = s_state_arrays[i];
+const ControlsMap s_gba_controls_map = {{
+    {{GBAPad::BUTTONS_GROUP, GBAPad::B_BUTTON}, ControlID::GBA_B_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::A_BUTTON}, ControlID::GBA_A_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::L_BUTTON}, ControlID::GBA_L_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::R_BUTTON}, ControlID::GBA_R_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::SELECT_BUTTON}, ControlID::GBA_SELECT_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::START_BUTTON}, ControlID::GBA_START_BUTTON},
+    {{GBAPad::DPAD_GROUP, DIRECTION_UP}, ControlID::GBA_DPAD_UP},
+    {{GBAPad::DPAD_GROUP, DIRECTION_DOWN}, ControlID::GBA_DPAD_DOWN},
+    {{GBAPad::DPAD_GROUP, DIRECTION_LEFT}, ControlID::GBA_DPAD_LEFT},
+    {{GBAPad::DPAD_GROUP, DIRECTION_RIGHT}, ControlID::GBA_DPAD_RIGHT},
+}};
 
-  return [&](std::string_view group_name, std::string_view control_name,
-             ControlState controller_state) -> std::optional<ControlState> {
+bool InputStatesDiffer(ControlState lhs, ControlState rhs)
+{
+  return lhs != rhs && !(std::isnan(lhs) && std::isnan(rhs));
+}
+
+std::optional<ControlState> GetOverrideState(const InputState& input_state)
+{
+  if (!input_state.overriding.load(std::memory_order_acquire))
+    return std::nullopt;
+
+  return input_state.override_state.load(std::memory_order_acquire);
+}
+
+ControllerEmu::InputOverrideFunction
+GetInputOverrideFunction(const ControlsMap& controls_map, size_t i,
+                         const std::atomic_bool* input_enabled = nullptr)
+{
+  return [&controls_map, i,
+          input_enabled](std::string_view group_name, std::string_view control_name,
+                         ControlState controller_state) -> std::optional<ControlState> {
     const auto it = controls_map.find(std::make_pair(group_name, control_name));
     if (it == controls_map.end())
       return std::nullopt;
 
     const ControlID control = it->second;
-    InputState& input_state = state_array[control];
-    if (input_state.normal_state != controller_state)
+    InputState& input_state = s_state_arrays[i][control];
+    if (InputStatesDiffer(input_state.normal_state, controller_state))
     {
       input_state.normal_state = controller_state;
-      input_state.overriding = false;
+      input_state.overriding.store(false, std::memory_order_release);
     }
 
-    return input_state.overriding ? std::make_optional(input_state.override_state) : std::nullopt;
+    if (input_enabled && !input_enabled->load(std::memory_order_relaxed))
+      return 0.0;
+
+    return GetOverrideState(input_state);
   };
 }
 
@@ -174,7 +209,8 @@ void RegisterGameCubeInputOverrider(int controller_index)
 {
   Pad::GetConfig()
       ->GetController(controller_index)
-      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gcpad_controls_map, controller_index));
+      ->SetInputOverrideFunction(GetInputOverrideFunction(
+          s_gcpad_controls_map, controller_index, &s_gamecube_input_enabled[controller_index]));
 }
 
 void RegisterWiiInputOverrider(int controller_index)
@@ -195,12 +231,22 @@ void RegisterWiiInputOverrider(int controller_index)
       GetInputOverrideFunction(s_classic_controls_map, controller_index));
 }
 
+void RegisterGBAInputOverrider(int controller_index)
+{
+  s_gba_input_enabled[controller_index].store(false);
+  Pad::GetGBAConfig()
+      ->GetController(controller_index)
+      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gba_controls_map, controller_index,
+                                                          &s_gba_input_enabled[controller_index]));
+}
+
 void UnregisterGameCubeInputOverrider(int controller_index)
 {
   Pad::GetConfig()->GetController(controller_index)->ClearInputOverrideFunction();
+  s_gamecube_input_enabled[controller_index].store(true);
 
   for (size_t i = ControlID::FIRST_GC_CONTROL; i <= ControlID::LAST_GC_CONTROL; ++i)
-    s_state_arrays[controller_index][i].overriding = false;
+    s_state_arrays[controller_index][i].overriding.store(false, std::memory_order_release);
 }
 
 void UnregisterWiiInputOverrider(int controller_index)
@@ -218,22 +264,41 @@ void UnregisterWiiInputOverrider(int controller_index)
   attachments[WiimoteEmu::ExtensionNumber::CLASSIC]->ClearInputOverrideFunction();
 
   for (size_t i = ControlID::FIRST_WII_CONTROL; i <= ControlID::LAST_WII_CONTROL; ++i)
-    s_state_arrays[controller_index][i].overriding = false;
+    s_state_arrays[controller_index][i].overriding.store(false, std::memory_order_release);
+}
+
+void UnregisterGBAInputOverrider(int controller_index)
+{
+  Pad::GetGBAConfig()->GetController(controller_index)->ClearInputOverrideFunction();
+  s_gba_input_enabled[controller_index].store(false);
+
+  for (size_t i = ControlID::FIRST_GBA_CONTROL; i <= ControlID::LAST_GBA_CONTROL; ++i)
+    s_state_arrays[controller_index][i].overriding.store(false, std::memory_order_release);
+}
+
+void SetGBAInputEnabled(int controller_index, bool enabled)
+{
+  s_gba_input_enabled[controller_index].store(enabled);
+}
+
+void SetGameCubeInputEnabled(int controller_index, bool enabled)
+{
+  s_gamecube_input_enabled[controller_index].store(enabled);
 }
 
 void SetControlState(int controller_index, ControlID control, double state)
 {
   InputState& input_state = s_state_arrays[controller_index][control];
 
-  input_state.override_state = state;
-  input_state.overriding = true;
+  input_state.override_state.store(state, std::memory_order_release);
+  input_state.overriding.store(true, std::memory_order_release);
 }
 
 void ClearControlState(int controller_index, ControlID control)
 {
   InputState& input_state = s_state_arrays[controller_index][control];
 
-  input_state.overriding = false;
+  input_state.overriding.store(false, std::memory_order_release);
 }
 
 double GetGateRadiusAtAngle(int controller_index, ControlID stick, double angle)

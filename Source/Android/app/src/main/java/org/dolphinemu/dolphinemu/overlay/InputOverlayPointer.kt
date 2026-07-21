@@ -14,7 +14,9 @@ class InputOverlayPointer(
     private val doubleTapControl: Int,
     private var mode: Int,
     private var recenter: Boolean,
-    private val controllerIndex: Int
+    private val controllerIndex: Int,
+    private val adjustForGameAspectRatio: Boolean = true,
+    private val clampToGameBounds: Boolean = false
 ) {
     var x = 0.0f
     var y = 0.0f
@@ -39,15 +41,17 @@ class InputOverlayPointer(
         var gameWidth = (surfacePosition.right - surfacePosition.left).toFloat()
         var gameHeight = (surfacePosition.bottom - surfacePosition.top).toFloat()
 
-        // Adjusting for device's black bars.
-        val surfaceAR = gameWidth / gameHeight
-        val gameAR = NativeLibrary.GetGameAspectRatio()
-        if (gameAR <= surfaceAR) {
-            // Black bars on left/right
-            gameWidth = gameHeight * gameAR
-        } else {
-            // Black bars on top/bottom
-            gameHeight = gameWidth / gameAR
+        if (adjustForGameAspectRatio) {
+            // Adjusting for device's black bars.
+            val surfaceAR = gameWidth / gameHeight
+            val gameAR = NativeLibrary.GetGameAspectRatio()
+            if (gameAR <= surfaceAR) {
+                // Black bars on left/right
+                gameWidth = gameHeight * gameAR
+            } else {
+                // Black bars on top/bottom
+                gameHeight = gameWidth / gameAR
+            }
         }
 
         gameWidthHalfInv = 1f / (gameWidth * 0.5f)
@@ -70,9 +74,13 @@ class InputOverlayPointer(
             }
 
             MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_POINTER_UP -> {
-                if (trackId == event.getPointerId(pointerIndex))
+            MotionEvent.ACTION_POINTER_UP,
+            MotionEvent.ACTION_CANCEL -> {
+                if (action == MotionEvent.ACTION_CANCEL ||
+                    trackId == event.getPointerId(pointerIndex)
+                ) {
                     trackId = -1
+                }
                 if (mode == MODE_DRAG)
                     updateOldAxes()
                 if (recenter)
@@ -90,6 +98,11 @@ class InputOverlayPointer(
         } else if (mode == MODE_DRAG) {
             x = oldX + (event.getX(eventPointerIndex) - touchStartX) * gameWidthHalfInv
             y = oldY + (event.getY(eventPointerIndex) - touchStartY) * gameHeightHalfInv
+        }
+
+        if (clampToGameBounds) {
+            x = x.coerceIn(-1f, 1f)
+            y = y.coerceIn(-1f, 1f)
         }
     }
 

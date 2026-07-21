@@ -35,14 +35,15 @@ object FileBrowserHelper {
     )
 
     @JvmField
-    val GAME_LIKE_EXTENSIONS: HashSet<String> = HashSet(GAME_EXTENSIONS).apply {
-        add("dff")
-    }
-
-    @JvmField
     val GBA_ROM_EXTENSIONS: HashSet<String> = hashSetOf(
         "gba", "gbc", "gb", "agb", "mb", "rom", "bin"
     )
+
+    @JvmField
+    val GAME_LIKE_EXTENSIONS: HashSet<String> = HashSet(GAME_EXTENSIONS).apply {
+        add("dff")
+        addAll(GBA_ROM_EXTENSIONS)
+    }
 
     @JvmField
     val BIN_EXTENSION: HashSet<String> = hashSetOf("bin")

@@ -26,12 +26,17 @@ enum class MenuTag {
     STATISTICS("statistics"),
     ADVANCED_GRAPHICS("advanced_graphics"),
     GCPAD_TYPE("gc_pad_type"),
+    GBA_LINK("gba_link"),
     WIIMOTE("wiimote"),
     WIIMOTE_EXTENSION("wiimote_extension"),
     GCPAD_1("gcpad", 0),
     GCPAD_2("gcpad", 1),
     GCPAD_3("gcpad", 2),
     GCPAD_4("gcpad", 3),
+    GBA_1("gba", 0),
+    GBA_2("gba", 1),
+    GBA_3("gba", 2),
+    GBA_4("gba", 3),
     WIIMOTE_1("wiimote", 0),
     WIIMOTE_2("wiimote", 1),
     WIIMOTE_3("wiimote", 2),
@@ -75,15 +80,22 @@ enum class MenuTag {
     }
 
     val correspondingEmulatedController: EmulatedController
-        get() = if (isGCPadMenu) EmulatedController.getGcPad(subType) else if (isWiimoteMenu) EmulatedController.getWiimote(
-            subType
-        ) else throw UnsupportedOperationException()
+        get() = if (isGCPadMenu) {
+            EmulatedController.getGcPad(subType)
+        } else if (isGBAPadMenu) {
+            EmulatedController.getGbaPad(subType)
+        } else if (isWiimoteMenu) {
+            EmulatedController.getWiimote(subType)
+        } else throw UnsupportedOperationException()
 
     val isSerialPort1Menu: Boolean
         get() = this == CONFIG_SERIALPORT1
 
     val isGCPadMenu: Boolean
         get() = this == GCPAD_1 || this == GCPAD_2 || this == GCPAD_3 || this == GCPAD_4
+
+    val isGBAPadMenu: Boolean
+        get() = this == GBA_1 || this == GBA_2 || this == GBA_3 || this == GBA_4
 
     val isWiimoteMenu: Boolean
         get() = this == WIIMOTE_1 || this == WIIMOTE_2 || this == WIIMOTE_3 || this == WIIMOTE_4
@@ -103,6 +115,11 @@ enum class MenuTag {
         @JvmStatic
         fun getGCPadMenuTag(subtype: Int): MenuTag {
             return getMenuTag("gcpad", subtype)
+        }
+
+        @JvmStatic
+        fun getGBAPadMenuTag(subtype: Int): MenuTag {
+            return getMenuTag("gba", subtype)
         }
 
         @JvmStatic
