@@ -89,7 +89,10 @@ ElfReader::~ElfReader() = default;
 bool ElfReader::Initialize()
 {
   if (m_bytes.size() < sizeof(Elf32_Ehdr))
+  {
+    ERROR_LOG_FMT(BOOT, "ELF file is too small.");
     return false;
+  }
 
   base = reinterpret_cast<char*>(m_bytes.data());
   base32 = reinterpret_cast<u32*>(m_bytes.data());
@@ -98,6 +101,7 @@ bool ElfReader::Initialize()
       header->e_ident[EI_MAG2] != ELFMAG2 || header->e_ident[EI_MAG3] != ELFMAG3 ||
       header->e_ident[EI_CLASS] != ELFCLASS32 || header->e_ident[EI_DATA] != ELFDATA2MSB)
   {
+    ERROR_LOG_FMT(BOOT, "Invalid ELF header.");
     return false;
   }
 
@@ -113,6 +117,7 @@ bool ElfReader::Initialize()
       !is_range_valid(header->e_shoff, sizeof(Elf32_Shdr) * header->e_shnum) ||
       (header->e_shstrndx != SHN_UNDEF && header->e_shstrndx >= header->e_shnum))
   {
+    ERROR_LOG_FMT(BOOT, "Invalid ELF header table.");
     return false;
   }
 
@@ -125,6 +130,7 @@ bool ElfReader::Initialize()
     if (!is_range_valid(segments[i].p_offset, segments[i].p_filesz) ||
         segments[i].p_filesz > segments[i].p_memsz)
     {
+      ERROR_LOG_FMT(BOOT, "Invalid ELF program header {}.", i);
       return false;
     }
   }
@@ -135,6 +141,7 @@ bool ElfReader::Initialize()
     if (sections[i].sh_type != SHT_NOBITS &&
         !is_range_valid(sections[i].sh_offset, sections[i].sh_size))
     {
+      ERROR_LOG_FMT(BOOT, "Invalid ELF section header {}.", i);
       return false;
     }
   }
@@ -237,17 +244,26 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
   {
     const u32 string_section_index = sections[sec].sh_link;
     if (string_section_index >= header->e_shnum)
+    {
+      ERROR_LOG_FMT(BOOT, "Invalid ELF symbol string table.");
       return false;
+    }
 
     const Elf32_Shdr& string_section = sections[string_section_index];
     const char* stringBase = (const char*)GetSectionDataPtr(string_section_index);
     if (!stringBase)
+    {
+      ERROR_LOG_FMT(BOOT, "ELF symbol string table has no data.");
       return false;
+    }
 
     // We have a symbol table!
     Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
     if (!symtab)
+    {
+      ERROR_LOG_FMT(BOOT, "ELF symbol table has no data.");
       return false;
+    }
 
     int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
     for (int sym = 0; sym < numSymbols; sym++)
@@ -264,6 +280,7 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
       if (name_offset >= string_section.sh_size ||
           !std::memchr(stringBase + name_offset, '\0', string_section.sh_size - name_offset))
       {
+        ERROR_LOG_FMT(BOOT, "Invalid ELF symbol name {}.", sym);
         return false;
       }
       const char* name = stringBase + name_offset;
