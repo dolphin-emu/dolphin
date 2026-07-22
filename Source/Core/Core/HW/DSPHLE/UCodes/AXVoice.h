@@ -59,8 +59,6 @@ PBUpdateData LoadPBUpdates(Memory::MemoryManager& memory, const PB_TYPE& pb)
 // Apply updates to a PB.
 void ApplyUpdatesForMs(int curr_ms, PB_TYPE& pb, u16* num_updates, const PBUpdateData& updates)
 {
-  auto pb_mem = Common::BitCastToArray<u16>(pb);
-
   u32 start_idx = 0;
   for (int i = 0; i < curr_ms; ++i)
     start_idx += num_updates[i];
@@ -76,13 +74,11 @@ void ApplyUpdatesForMs(int curr_ms, PB_TYPE& pb, u16* num_updates, const PBUpdat
         const u16 update_off = updates[i].pb_offset;
         const u16 update_val = updates[i].new_value;
 
-        if (update_off < pb_mem.size())
-          pb_mem[update_off] = update_val;
+        if (update_off < (sizeof(pb) / sizeof(u16)))
+          Common::BitCastPtr<u16>(&pb)[update_off] = update_val;
       }
     }
   }
-
-  pb = std::bit_cast<PB_TYPE>(pb_mem);
 }
 
 // Used to pass a large amount of buffers to the mixing function.
