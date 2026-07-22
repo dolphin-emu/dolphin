@@ -27,10 +27,7 @@ interface SettingsActivityView {
      * @param addToStack Whether or not this fragment should replace a previous one.
      */
     fun showSettingsFragment(
-        menuTag: MenuTag,
-        extras: Bundle?,
-        addToStack: Boolean,
-        gameId: String
+        menuTag: MenuTag, extras: Bundle?, addToStack: Boolean, gameId: String
     )
 
     /**

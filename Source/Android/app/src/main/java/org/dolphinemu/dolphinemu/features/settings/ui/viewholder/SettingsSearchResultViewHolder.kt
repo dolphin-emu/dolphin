@@ -9,8 +9,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsSearchResu
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 
 class SettingsSearchResultViewHolder(
-    private val binding: ListItemSearchResultBinding,
-    adapter: SettingsAdapter
+    private val binding: ListItemSearchResultBinding, adapter: SettingsAdapter
 ) : SettingViewHolder(binding.root, adapter) {
     private lateinit var result: SettingsSearchResult
 

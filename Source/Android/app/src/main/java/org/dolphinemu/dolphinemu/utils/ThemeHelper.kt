@@ -1,20 +1,20 @@
 package org.dolphinemu.dolphinemu.utils
 
-import androidx.appcompat.app.AppCompatActivity
-import org.dolphinemu.dolphinemu.R
-import android.os.Build
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.WindowCompat
-import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import android.content.res.Configuration
-import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.elevation.ElevationOverlayProvider
-import com.google.android.material.color.MaterialColors
+import android.os.Build
 import androidx.annotation.ColorInt
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.preference.PreferenceManager
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.elevation.ElevationOverlayProvider
+import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 
 object ThemeHelper {
 
@@ -52,8 +52,7 @@ object ThemeHelper {
             .getInt(CURRENT_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         activity.delegate.localNightMode = themeMode
         val windowController = WindowCompat.getInsetsController(
-            activity.window,
-            activity.window.decorView
+            activity.window, activity.window.decorView
         )
         val systemReportedThemeMode =
             activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -62,6 +61,7 @@ object ThemeHelper {
                 Configuration.UI_MODE_NIGHT_NO -> setLightModeSystemBars(windowController)
                 Configuration.UI_MODE_NIGHT_YES -> setDarkModeSystemBars(windowController)
             }
+
             AppCompatDelegate.MODE_NIGHT_NO -> setLightModeSystemBars(windowController)
             AppCompatDelegate.MODE_NIGHT_YES -> setDarkModeSystemBars(windowController)
         }
@@ -83,66 +83,50 @@ object ThemeHelper {
 
     @JvmStatic
     fun saveTheme(activity: AppCompatActivity, themeValue: Int) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .putInt(CURRENT_THEME, themeValue)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .putInt(CURRENT_THEME, themeValue).apply()
         activity.recreate()
     }
 
     @JvmStatic
     fun deleteThemeKey(activity: AppCompatActivity) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .remove(CURRENT_THEME)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .remove(CURRENT_THEME).apply()
         activity.recreate()
     }
 
     @JvmStatic
     fun saveThemeMode(activity: AppCompatActivity, themeModeValue: Int) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .putInt(CURRENT_THEME_MODE, themeModeValue)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .putInt(CURRENT_THEME_MODE, themeModeValue).apply()
         setThemeMode(activity)
     }
 
     @JvmStatic
     fun deleteThemeModeKey(activity: AppCompatActivity) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .remove(CURRENT_THEME_MODE)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .remove(CURRENT_THEME_MODE).apply()
         setThemeMode(activity)
     }
 
     @JvmStatic
     fun saveBackgroundSetting(activity: AppCompatActivity, backgroundValue: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .putBoolean(USE_BLACK_BACKGROUNDS, backgroundValue)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .putBoolean(USE_BLACK_BACKGROUNDS, backgroundValue).apply()
         activity.recreate()
     }
 
     @JvmStatic
     fun deleteBackgroundSetting(activity: AppCompatActivity) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .remove(USE_BLACK_BACKGROUNDS)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .remove(USE_BLACK_BACKGROUNDS).apply()
         activity.recreate()
     }
 
     @JvmStatic
     fun resetThemePreferences(activity: AppCompatActivity, applyImmediately: Boolean = false) {
-        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .edit()
-            .remove(CURRENT_THEME)
-            .remove(CURRENT_THEME_MODE)
-            .remove(USE_BLACK_BACKGROUNDS)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).edit()
+            .remove(CURRENT_THEME).remove(CURRENT_THEME_MODE).remove(USE_BLACK_BACKGROUNDS).apply()
         activity.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         activity.delegate.applyDayNight()
         if (applyImmediately) {
@@ -170,10 +154,7 @@ object ThemeHelper {
         activity: AppCompatActivity, toolbar: MaterialToolbar, appBarLayout: AppBarLayout
     ) {
         appBarLayout.addOnOffsetChangedListener { layout: AppBarLayout, verticalOffset: Int ->
-            if (
-                layout.totalScrollRange > 0 &&
-                -verticalOffset >= layout.totalScrollRange / 2
-            ) {
+            if (layout.totalScrollRange > 0 && -verticalOffset >= layout.totalScrollRange / 2) {
                 @ColorInt val color =
                     ElevationOverlayProvider(appBarLayout.context).compositeOverlay(
                         MaterialColors.getColor(appBarLayout, R.attr.colorSurface),
@@ -183,8 +164,7 @@ object ThemeHelper {
                 setStatusBarColor(activity, color)
             } else {
                 @ColorInt val statusBarColor = ContextCompat.getColor(
-                    activity.applicationContext,
-                    android.R.color.transparent
+                    activity.applicationContext, android.R.color.transparent
                 )
                 @ColorInt val appBarColor = MaterialColors.getColor(toolbar, R.attr.colorSurface)
                 toolbar.setBackgroundColor(appBarColor)
@@ -201,8 +181,7 @@ object ThemeHelper {
                 setStatusBarColor(activity, color)
             } else {
                 @ColorInt val statusBarColor = ContextCompat.getColor(
-                    activity.applicationContext,
-                    android.R.color.transparent
+                    activity.applicationContext, android.R.color.transparent
                 )
                 setStatusBarColor(activity, statusBarColor)
             }

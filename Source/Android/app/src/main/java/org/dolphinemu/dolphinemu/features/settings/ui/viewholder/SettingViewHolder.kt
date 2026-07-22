@@ -4,11 +4,11 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder
 
 import android.animation.ValueAnimator
 import android.content.DialogInterface
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
-import android.graphics.Paint
-import android.graphics.Typeface
 import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.animation.DecelerateInterpolator

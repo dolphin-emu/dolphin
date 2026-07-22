@@ -127,15 +127,13 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         }
 
         refreshToolbarState()
-        val focusDelay =
-            if (areSystemAnimationsEnabled()) SEARCH_FOCUS_DELAY_MS else 0L
+        val focusDelay = if (areSystemAnimationsEnabled()) SEARCH_FOCUS_DELAY_MS else 0L
         searchView.postDelayed({
             if (!isSettingsSearchActive) {
                 return@postDelayed
             }
             searchView.requestFocus()
-            WindowCompat.getInsetsController(window, searchView)
-                .show(WindowInsetsCompat.Type.ime())
+            WindowCompat.getInsetsController(window, searchView).show(WindowInsetsCompat.Type.ime())
         }, focusDelay)
     }
 
@@ -153,18 +151,14 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     private fun refreshToolbarState() {
         val title = currentToolbarTitle ?: getString(R.string.settings)
         setToolbarState(
-            title,
-            currentToolbarShowsHeadline,
-            currentToolbarShowsSearch
+            title, currentToolbarShowsHeadline, currentToolbarShowsSearch
         )
     }
 
     private fun setUpBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (supportFragmentManager.backStackEntryCount == 0 &&
-                    isSettingsSearchActive
-                ) {
+                if (supportFragmentManager.backStackEntryCount == 0 && isSettingsSearchActive) {
                     exitSettingsSearch()
                     return
                 }

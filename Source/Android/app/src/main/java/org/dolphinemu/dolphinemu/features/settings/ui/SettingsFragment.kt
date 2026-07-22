@@ -39,8 +39,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder
 import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.EnumMap
 
 class SettingsFragment : Fragment(), SettingsFragmentView {
     private lateinit var presenter: SettingsFragmentPresenter
@@ -93,9 +92,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding!!.root
@@ -161,15 +158,15 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
 
         val position = arguments?.getInt(
-            ARGUMENT_SCROLL_TO_SETTING_POSITION,
-            RecyclerView.NO_POSITION
+            ARGUMENT_SCROLL_TO_SETTING_POSITION, RecyclerView.NO_POSITION
         ) ?: RecyclerView.NO_POSITION
         if (!hasScrolledToSearchResult && position in settingsList.indices) {
             hasScrolledToSearchResult = true
             binding?.listSettings?.post {
                 val recyclerView = binding?.listSettings ?: return@post
-                (recyclerView.layoutManager as? LinearLayoutManager)
-                    ?.scrollToPositionWithOffset(position, 0)
+                (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
+                    position, 0
+                )
                 highlightSearchResult(position, settingsList[position])
             }
         }
@@ -231,19 +228,13 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
 
         activityView!!.showSettingsFragment(
-            menuKey,
-            null,
-            true,
-            requireArguments().getString(ARGUMENT_GAME_ID)!!
+            menuKey, null, true, requireArguments().getString(ARGUMENT_GAME_ID)!!
         )
     }
 
     override fun loadSearchResult(menuKey: MenuTag, settingPosition: Int, extras: Bundle?) {
         activityView!!.showSearchResult(
-            menuKey,
-            settingPosition,
-            requireArguments().getString(ARGUMENT_GAME_ID)!!,
-            extras
+            menuKey, settingPosition, requireArguments().getString(ARGUMENT_GAME_ID)!!, extras
         )
     }
 
@@ -331,17 +322,13 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
         val msg = "${presenter.gpuDriver!!.name} ${presenter.gpuDriver!!.driverVersion}"
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.gpu_driver_dialog_title))
-            .setMessage(msg)
-            .setNegativeButton(android.R.string.cancel, null)
+        MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.gpu_driver_dialog_title))
+            .setMessage(msg).setNegativeButton(android.R.string.cancel, null)
             .setNeutralButton(R.string.gpu_driver_dialog_system) { _: DialogInterface?, _: Int ->
                 presenter.useSystemDriver()
-            }
-            .setPositiveButton(R.string.gpu_driver_dialog_install) { _: DialogInterface?, _: Int ->
+            }.setPositiveButton(R.string.gpu_driver_dialog_install) { _: DialogInterface?, _: Int ->
                 askForDriverFile()
-            }
-            .show()
+            }.show()
     }
 
     override fun getFragmentLifecycle(): Lifecycle {
@@ -358,16 +345,12 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun onDriverInstallDone(result: GpuDriverInstallResult) {
         val view = binding?.root ?: return
-        Snackbar
-            .make(view, resolveInstallResultString(result), Snackbar.LENGTH_LONG)
-            .show()
+        Snackbar.make(view, resolveInstallResultString(result), Snackbar.LENGTH_LONG).show()
     }
 
     override fun onDriverUninstallDone() {
         Toast.makeText(
-            requireContext(),
-            R.string.gpu_driver_dialog_uninstall_done,
-            Toast.LENGTH_SHORT
+            requireContext(), R.string.gpu_driver_dialog_uninstall_done, Toast.LENGTH_SHORT
         ).show()
     }
 

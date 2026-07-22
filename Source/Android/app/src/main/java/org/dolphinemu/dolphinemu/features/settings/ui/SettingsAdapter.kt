@@ -27,14 +27,46 @@ import com.google.android.material.slider.Slider
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import org.dolphinemu.dolphinemu.R
-import org.dolphinemu.dolphinemu.databinding.*
+import org.dolphinemu.dolphinemu.databinding.DialogAdvancedMappingBinding
+import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding
+import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemSearchResultBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting
 import org.dolphinemu.dolphinemu.features.input.ui.AdvancedMappingDialog
 import org.dolphinemu.dolphinemu.features.input.ui.MotionAlertDialog
 import org.dolphinemu.dolphinemu.features.input.ui.viewholder.InputMappingControlSettingViewHolder
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
-import org.dolphinemu.dolphinemu.features.settings.model.view.*
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.*
+import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.DirectoryPicker
+import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker
+import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
+import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsSearchResult
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions
+import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting
+import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.DateTimeSettingViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputStringSettingViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingsSearchResultViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SwitchSettingViewHolder
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.Log
@@ -42,14 +74,13 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 import kotlin.math.roundToInt
 
 class SettingsAdapter(
-    private val fragmentView: SettingsFragmentView,
-    private val context: Context
-) :
-    RecyclerView.Adapter<SettingViewHolder>(), DialogInterface.OnClickListener,
+    private val fragmentView: SettingsFragmentView, private val context: Context
+) : RecyclerView.Adapter<SettingViewHolder>(), DialogInterface.OnClickListener,
     Slider.OnChangeListener {
     private var settingsList: ArrayList<SettingsItem>? = null
     private var clickedItem: SettingsItem? = null
@@ -68,53 +99,53 @@ class SettingsAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             SettingsItem.TYPE_HEADER -> HeaderViewHolder(
-                ListItemHeaderBinding.inflate(inflater, parent, false),
-                this
+                ListItemHeaderBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_SWITCH -> SwitchSettingViewHolder(
-                ListItemSettingSwitchBinding.inflate(inflater, parent, false),
-                this
+                ListItemSettingSwitchBinding.inflate(inflater, parent, false), this
             )
-            SettingsItem.TYPE_STRING_SINGLE_CHOICE,
-            SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS,
-            SettingsItem.TYPE_SINGLE_CHOICE -> SingleChoiceViewHolder(
-                ListItemSettingBinding.inflate(inflater, parent, false),
-                this
+
+            SettingsItem.TYPE_STRING_SINGLE_CHOICE, SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS, SettingsItem.TYPE_SINGLE_CHOICE -> SingleChoiceViewHolder(
+                ListItemSettingBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_SLIDER -> SliderViewHolder(
-                ListItemSettingBinding.inflate(inflater, parent, false),
-                this,
-                context
+                ListItemSettingBinding.inflate(inflater, parent, false), this, context
             )
+
             SettingsItem.TYPE_SUBMENU -> SubmenuViewHolder(
-                ListItemSubmenuBinding.inflate(inflater, parent, false),
-                this
+                ListItemSubmenuBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_INPUT_MAPPING_CONTROL -> InputMappingControlSettingViewHolder(
-                ListItemMappingBinding.inflate(inflater, parent, false),
-                this
+                ListItemMappingBinding.inflate(inflater, parent, false), this
             )
-            SettingsItem.TYPE_FILE_PICKER,
-            SettingsItem.TYPE_DIRECTORY_PICKER -> FilePickerViewHolder(
-                ListItemSettingBinding.inflate(inflater, parent, false),
-                this
+
+            SettingsItem.TYPE_FILE_PICKER, SettingsItem.TYPE_DIRECTORY_PICKER -> FilePickerViewHolder(
+                ListItemSettingBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_RUN_RUNNABLE -> RunRunnableViewHolder(
-                ListItemSettingBinding.inflate(inflater, parent, false),
-                this, context
+                ListItemSettingBinding.inflate(inflater, parent, false), this, context
             )
+
             SettingsItem.TYPE_STRING -> InputStringSettingViewHolder(
                 ListItemSettingBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_HYPERLINK_HEADER -> HeaderHyperLinkViewHolder(
                 ListItemHeaderBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_DATETIME_CHOICE -> DateTimeSettingViewHolder(
                 ListItemSettingBinding.inflate(inflater, parent, false), this
             )
+
             SettingsItem.TYPE_SEARCH_RESULT -> SettingsSearchResultViewHolder(
                 ListItemSearchResultBinding.inflate(inflater, parent, false), this
             )
+
             else -> throw IllegalArgumentException("Invalid view type: $viewType")
         }
     }
@@ -165,8 +196,7 @@ class SettingsAdapter(
         val binding = DialogInputStringBinding.inflate(inflater)
         val input = binding.input
         input.setText(item.selectedValue)
-        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-            .setView(binding.root)
+        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setView(binding.root)
             .setMessage(item.description)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 val editTextInput = input.text.toString()
@@ -175,19 +205,15 @@ class SettingsAdapter(
                     fragmentView.onSettingChanged(item)
                 }
                 item.setSelectedValue(fragmentView.settings!!, editTextInput)
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+            }.setNegativeButton(R.string.cancel, null).show()
     }
 
     fun onSingleChoiceClick(item: SingleChoiceSetting, position: Int) {
         clickedItem = item
         clickedPosition = position
         val value = getSelectionForSingleChoiceValue(item)
-        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-            .setTitle(item.name)
-            .setSingleChoiceItems(item.choicesId, value, this)
-            .show()
+        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setTitle(item.name)
+            .setSingleChoiceItems(item.choicesId, value, this).show()
     }
 
     fun onStringSingleChoiceClick(item: StringSingleChoiceSetting, position: Int) {
@@ -197,35 +223,26 @@ class SettingsAdapter(
         val choices = item.choices
         val noChoicesAvailableString = item.noChoicesAvailableString
         dialog = if (noChoicesAvailableString != 0 && choices.isEmpty()) {
-            MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-                .setTitle(item.name)
-                .setMessage(noChoicesAvailableString)
-                .setPositiveButton(R.string.ok, null)
-                .show()
+            MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setTitle(item.name)
+                .setMessage(noChoicesAvailableString).setPositiveButton(R.string.ok, null).show()
         } else {
-            MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-                .setTitle(item.name)
+            MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setTitle(item.name)
                 .setSingleChoiceItems(
-                    item.choices, item.selectedValueIndex,
-                    this
-                )
-                .show()
+                    item.choices, item.selectedValueIndex, this
+                ).show()
         }
     }
 
     fun onSingleChoiceDynamicDescriptionsClick(
-        item: SingleChoiceSettingDynamicDescriptions,
-        position: Int
+        item: SingleChoiceSettingDynamicDescriptions, position: Int
     ) {
         clickedItem = item
         clickedPosition = position
 
         val value = getSelectionForSingleChoiceDynamicDescriptionsValue(item)
 
-        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-            .setTitle(item.name)
-            .setSingleChoiceItems(item.choicesId, value, this)
-            .show()
+        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setTitle(item.name)
+            .setSingleChoiceItems(item.choicesId, value, this).show()
     }
 
     fun onSliderClick(item: SliderSetting, position: Int) {
@@ -255,6 +272,7 @@ class SettingsAdapter(
                 slider.valueTo = item.max
                 slider.stepSize = item.stepSize
             }
+
             is IntSliderSetting -> {
                 slider.valueFrom = item.min.toFloat()
                 slider.valueTo = item.max.toFloat()
@@ -264,11 +282,8 @@ class SettingsAdapter(
         slider.value = (seekbarProgress / slider.stepSize).roundToInt() * slider.stepSize
         slider.addOnChangeListener(this)
 
-        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-            .setTitle(item.name)
-            .setView(binding.root)
-            .setPositiveButton(R.string.ok, this)
-            .show()
+        dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setTitle(item.name)
+            .setView(binding.root).setPositiveButton(R.string.ok, this).show()
     }
 
     fun onSubmenuClick(item: SubmenuSetting) {
@@ -281,16 +296,13 @@ class SettingsAdapter(
 
     fun onInputMappingClick(item: InputMappingControlSetting, position: Int) {
         if (item.controller.getDefaultDevice().isEmpty() && !fragmentView.isMappingAllDevices) {
-            MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
-                .setMessage(R.string.input_binding_no_device)
-                .setPositiveButton(R.string.ok, this)
-                .show()
+            MaterialAlertDialogBuilder(fragmentView.fragmentActivity).setMessage(R.string.input_binding_no_device)
+                .setPositiveButton(R.string.ok, this).show()
             return
         }
 
         val dialog = MotionAlertDialog(
-            fragmentView.fragmentActivity, item,
-            fragmentView.isMappingAllDevices
+            fragmentView.fragmentActivity, item, fragmentView.isMappingAllDevices
         )
 
         val background = ContextCompat.getDrawable(context, R.drawable.dialog_round)
@@ -304,14 +316,12 @@ class SettingsAdapter(
         dialog.setTitle(R.string.input_binding)
         dialog.setMessage(
             String.format(
-                context.getString(R.string.input_binding_description),
-                item.name
+                context.getString(R.string.input_binding_description), item.name
             )
         )
         dialog.setButton(AlertDialog.BUTTON_NEGATIVE, context.getString(R.string.cancel), this)
         dialog.setButton(
-            AlertDialog.BUTTON_NEUTRAL,
-            context.getString(R.string.clear)
+            AlertDialog.BUTTON_NEUTRAL, context.getString(R.string.clear)
         ) { _: DialogInterface?, _: Int -> item.clearValue() }
         dialog.setOnDismissListener {
             notifyItemChanged(position)
@@ -325,10 +335,7 @@ class SettingsAdapter(
         val inflater = LayoutInflater.from(context)
         val binding = DialogAdvancedMappingBinding.inflate(inflater)
         val dialog = AdvancedMappingDialog(
-            context,
-            binding,
-            item.controlReference,
-            item.controller
+            context, binding, item.controlReference, item.controller
         )
 
         val background = ContextCompat.getDrawable(context, R.drawable.dialog_round)
@@ -350,8 +357,7 @@ class SettingsAdapter(
         }
         dialog.setButton(AlertDialog.BUTTON_NEGATIVE, context.getString(R.string.cancel), this)
         dialog.setButton(
-            AlertDialog.BUTTON_NEUTRAL,
-            context.getString(R.string.clear)
+            AlertDialog.BUTTON_NEUTRAL, context.getString(R.string.clear)
         ) { _: DialogInterface?, _: Int -> }
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
@@ -369,14 +375,12 @@ class SettingsAdapter(
         val directoryPicker = item as DirectoryPicker
 
         if (!PermissionsHandler.isExternalStorageLegacy()) {
-            MaterialAlertDialogBuilder(context)
-                .setMessage(R.string.path_not_changeable_scoped_storage)
+            MaterialAlertDialogBuilder(context).setMessage(R.string.path_not_changeable_scoped_storage)
                 .setPositiveButton(R.string.ok) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                 .show()
         } else {
             val intent = FileBrowserHelper.createDirectoryPickerIntent(
-                fragmentView.fragmentActivity,
-                FileBrowserHelper.GAME_EXTENSIONS
+                fragmentView.fragmentActivity, FileBrowserHelper.GAME_EXTENSIONS
             )
             directoryPicker.launcher.launch(intent)
         }
@@ -408,32 +412,24 @@ class SettingsAdapter(
         calendar.timeZone = TimeZone.getTimeZone("UTC")
 
         // Start and end epoch times available for the Wii's date picker
-        val calendarConstraints = CalendarConstraints.Builder()
-            .setStart(946684800000L)
-            .setEnd(2082672000000L)
-            .build()
+        val calendarConstraints =
+            CalendarConstraints.Builder().setStart(946684800000L).setEnd(2082672000000L).build()
 
         var timeFormat = TimeFormat.CLOCK_12H
         if (DateFormat.is24HourFormat(fragmentView.fragmentActivity)) {
             timeFormat = TimeFormat.CLOCK_24H
         }
 
-        val datePicker = MaterialDatePicker.Builder.datePicker()
-            .setSelection(storedTime)
-            .setTitleText(R.string.select_rtc_date)
-            .setCalendarConstraints(calendarConstraints)
+        val datePicker = MaterialDatePicker.Builder.datePicker().setSelection(storedTime)
+            .setTitleText(R.string.select_rtc_date).setCalendarConstraints(calendarConstraints)
             .build()
-        val timePicker = MaterialTimePicker.Builder()
-            .setTimeFormat(timeFormat)
-            .setHour(calendar[Calendar.HOUR_OF_DAY])
-            .setMinute(calendar[Calendar.MINUTE])
-            .setTitleText(R.string.select_rtc_time)
-            .build()
+        val timePicker = MaterialTimePicker.Builder().setTimeFormat(timeFormat)
+            .setHour(calendar[Calendar.HOUR_OF_DAY]).setMinute(calendar[Calendar.MINUTE])
+            .setTitleText(R.string.select_rtc_time).build()
 
         datePicker.addOnPositiveButtonClickListener {
             timePicker.show(
-                fragmentView.fragmentActivity.supportFragmentManager,
-                "TimePicker"
+                fragmentView.fragmentActivity.supportFragmentManager, "TimePicker"
             )
         }
         timePicker.addOnPositiveButtonClickListener {
@@ -484,6 +480,7 @@ class SettingsAdapter(
 
                 closeDialog()
             }
+
             is SingleChoiceSettingDynamicDescriptions -> {
                 val scSetting = clickedItem as SingleChoiceSettingDynamicDescriptions
 
@@ -494,6 +491,7 @@ class SettingsAdapter(
 
                 closeDialog()
             }
+
             is StringSingleChoiceSetting -> {
                 val scSetting = clickedItem as StringSingleChoiceSetting
 
@@ -504,6 +502,7 @@ class SettingsAdapter(
 
                 closeDialog()
             }
+
             is IntSliderSetting -> {
                 val sliderSetting = clickedItem as IntSliderSetting
                 if (sliderSetting.selectedValue != seekbarProgress.toInt()) {
@@ -512,6 +511,7 @@ class SettingsAdapter(
                 sliderSetting.setSelectedValue(settings!!, seekbarProgress.toInt())
                 closeDialog()
             }
+
             is FloatSliderSetting -> {
                 val sliderSetting = clickedItem as FloatSliderSetting
 
@@ -598,8 +598,7 @@ class SettingsAdapter(
     }
 
     private fun getValueForSingleChoiceDynamicDescriptionsSelection(
-        item: SingleChoiceSettingDynamicDescriptions,
-        which: Int
+        item: SingleChoiceSettingDynamicDescriptions, which: Int
     ): Int {
         val valuesId = item.valuesId
         return if (valuesId > 0) {

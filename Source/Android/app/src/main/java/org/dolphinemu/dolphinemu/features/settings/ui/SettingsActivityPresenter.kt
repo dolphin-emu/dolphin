@@ -10,8 +10,7 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.Log
 
 class SettingsActivityPresenter(
-    private val activityView: SettingsActivityView,
-    var settings: Settings?
+    private val activityView: SettingsActivityView, var settings: Settings?
 ) {
     private var menuTag: MenuTag? = null
     private var gameId: String? = null
@@ -141,34 +140,25 @@ class SettingsActivityPresenter(
     private fun getMenuTagAction(menuTag: MenuTag, value: Int): MenuTagAction? {
         return when {
             // Not disabled or dummy
-            menuTag.isSerialPort1Menu && value != 0 && value != 255 ->
-                MenuTagAction(
-                    menuTag,
-                    Bundle().apply {
-                        putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value)
-                    }
-                )
+            menuTag.isSerialPort1Menu && value != 0 && value != 255 -> MenuTagAction(
+                menuTag, Bundle().apply {
+                    putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value)
+                })
 
             // Not disabled
-            menuTag.isGCPadMenu && value != 0 ->
-                MenuTagAction(
-                    menuTag,
-                    Bundle().apply {
-                        putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value)
-                    }
-                )
+            menuTag.isGCPadMenu && value != 0 -> MenuTagAction(
+                menuTag, Bundle().apply {
+                    putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value)
+                })
 
             // Emulated Wii Remote
             menuTag.isWiimoteMenu && value == 1 -> MenuTagAction(menuTag, null)
 
             // Not disabled
-            menuTag.isWiimoteExtensionMenu && value != 0 ->
-                MenuTagAction(
-                    menuTag,
-                    Bundle().apply {
-                        putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value)
-                    }
-                )
+            menuTag.isWiimoteExtensionMenu && value != 0 -> MenuTagAction(
+                menuTag, Bundle().apply {
+                    putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value)
+                })
 
             else -> null
         }
