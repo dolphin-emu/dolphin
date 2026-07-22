@@ -947,6 +947,12 @@ enum class BooleanSetting(
         "ProgressEnabled",
         false
     ),
+    ACHIEVEMENTS_SOUND_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "SoundFeedback",
+        true
+    ),
     NETPLAY_USE_UPNP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "UseUPNP", false);
 
     override val isOverridden: Boolean

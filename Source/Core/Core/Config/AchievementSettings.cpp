@@ -28,6 +28,7 @@ const Info<bool> RA_DISCORD_PRESENCE_ENABLED{
     {System::Achievements, "Achievements", "DiscordPresenceEnabled"}, false};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
                                      false};
+const Info<bool> RA_SOUND_ENABLED{{System::Achievements, "Achievements", "SoundFeedback"}, true};
 }  // namespace Config
 
 #endif  // USE_RETRO_ACHIEVEMENTS
