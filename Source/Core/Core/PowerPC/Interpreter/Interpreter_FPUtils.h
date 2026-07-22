@@ -9,7 +9,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -59,11 +59,11 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 
     constexpr u64 smallest_normal_single = 0x3810000000000000;
     const u64 value_without_sign =
-        std::bit_cast<u64>(value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+        std::bit_cast<u64>(value) & (Core::DOUBLE_EXP | Core::DOUBLE_FRAC);
 
     if (value_without_sign < smallest_normal_single)
     {
-      const u64 flushed_double = std::bit_cast<u64>(value) & Common::DOUBLE_SIGN;
+      const u64 flushed_double = std::bit_cast<u64>(value) & Core::DOUBLE_SIGN;
       const u32 flushed_single = static_cast<u32>(flushed_double >> 32);
       return std::bit_cast<float>(flushed_single);
     }
@@ -74,7 +74,7 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
   float x = static_cast<float>(value);
   if (!cpu_info.bFlushToZero && fpscr.NI)
   {
-    x = Common::FlushToZero(x);
+    x = Core::FlushToZero(x);
   }
   return x;
 }
@@ -83,7 +83,7 @@ inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 {
   if (!cpu_info.bFlushToZero && fpscr.NI)
   {
-    d = Common::FlushToZero(d);
+    d = Core::FlushToZero(d);
   }
   return d;
 }
@@ -92,8 +92,8 @@ inline double Force25Bit(double d)
 {
   u64 integral = std::bit_cast<u64>(d);
 
-  u64 exponent = integral & Common::DOUBLE_EXP;
-  u64 fraction = integral & Common::DOUBLE_FRAC;
+  u64 exponent = integral & Core::DOUBLE_EXP;
+  u64 fraction = integral & Core::DOUBLE_FRAC;
 
   if (exponent == 0 && fraction != 0)
   {
@@ -108,7 +108,7 @@ inline double Force25Bit(double d)
     // the fraction is "normal"
     // That is to say shifting it until the MSB of the fraction
     // would escape into the exponent
-    u32 shift = std::countl_zero(fraction) - (63 - Common::DOUBLE_FRAC_WIDTH);
+    u32 shift = std::countl_zero(fraction) - (63 - Core::DOUBLE_FRAC_WIDTH);
     keep_mask >>= shift;
     round >>= shift;
 
@@ -146,7 +146,7 @@ inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
 
   if (std::isnan(result.value))
   {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    if (Core::IsSNAN(a) || Core::IsSNAN(b))
     {
       result.SetException(ppc_state, FPSCR_VXSNAN);
     }
@@ -155,12 +155,12 @@ inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
 
     if (std::isnan(a))
     {
-      result.value = Common::MakeQuiet(a);
+      result.value = Core::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = Common::MakeQuiet(b);
+      result.value = Core::MakeQuiet(b);
       return result;
     }
 
@@ -186,19 +186,19 @@ inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
   }
   else if (std::isnan(result.value))
   {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    if (Core::IsSNAN(a) || Core::IsSNAN(b))
       result.SetException(ppc_state, FPSCR_VXSNAN);
 
     ppc_state.fpscr.ClearFIFR();
 
     if (std::isnan(a))
     {
-      result.value = Common::MakeQuiet(a);
+      result.value = Core::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = Common::MakeQuiet(b);
+      result.value = Core::MakeQuiet(b);
       return result;
     }
 
@@ -220,19 +220,19 @@ inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
 
   if (std::isnan(result.value))
   {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    if (Core::IsSNAN(a) || Core::IsSNAN(b))
       result.SetException(ppc_state, FPSCR_VXSNAN);
 
     ppc_state.fpscr.ClearFIFR();
 
     if (std::isnan(a))
     {
-      result.value = Common::MakeQuiet(a);
+      result.value = Core::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = Common::MakeQuiet(b);
+      result.value = Core::MakeQuiet(b);
       return result;
     }
 
@@ -253,19 +253,19 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 
   if (std::isnan(result.value))
   {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    if (Core::IsSNAN(a) || Core::IsSNAN(b))
       result.SetException(ppc_state, FPSCR_VXSNAN);
 
     ppc_state.fpscr.ClearFIFR();
 
     if (std::isnan(a))
     {
-      result.value = Common::MakeQuiet(a);
+      result.value = Core::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = Common::MakeQuiet(b);
+      result.value = Core::MakeQuiet(b);
       return result;
     }
 
@@ -493,24 +493,24 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
 
   if (std::isnan(result.value))
   {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+    if (Core::IsSNAN(a) || Core::IsSNAN(b) || Core::IsSNAN(c))
       result.SetException(ppc_state, FPSCR_VXSNAN);
 
     ppc_state.fpscr.ClearFIFR();
 
     if (std::isnan(a))
     {
-      result.value = Common::MakeQuiet(a);
+      result.value = Core::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = Common::MakeQuiet(b);  // !
+      result.value = Core::MakeQuiet(b);  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = Common::MakeQuiet(c);
+      result.value = Core::MakeQuiet(c);
       return result;
     }
 
@@ -542,13 +542,13 @@ inline u32 ConvertToSingle(u64 x)
 {
   const u32 exp = u32((x >> 52) & 0x7ff);
 
-  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Core::DOUBLE_SIGN) == 0)
   {
     return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
   else if (exp >= 874)
   {
-    u32 t = u32(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
+    u32 t = u32(0x80000000 | ((x & Core::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
     t |= u32((x >> 32) & 0x80000000);
     return t;
@@ -566,7 +566,7 @@ inline u32 ConvertToSingleFTZ(u64 x)
 {
   const u32 exp = u32((x >> 52) & 0x7ff);
 
-  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Core::DOUBLE_SIGN) == 0)
   {
     return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }

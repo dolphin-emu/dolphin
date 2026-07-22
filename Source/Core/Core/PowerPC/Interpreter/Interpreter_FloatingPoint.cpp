@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -85,7 +85,7 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
 
   if (std::isnan(b))
   {
-    if (Common::IsSNAN(b))
+    if (Core::IsSNAN(b))
       SetFPException(ppc_state, FPSCR_VXSNAN);
 
     value = 0x80000000;
@@ -152,7 +152,7 @@ void Interpreter::Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state,
   if (std::isnan(fa) || std::isnan(fb))
   {
     compare_result = FPCC::FU;
-    if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
+    if (Core::IsSNAN(fa) || Core::IsSNAN(fb))
     {
       SetFPException(ppc_state, FPSCR_VXSNAN);
       if (ppc_state.fpscr.VE == 0)
@@ -195,7 +195,7 @@ void Interpreter::Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state,
   {
     compare_result = FPCC::FU;
 
-    if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
+    if (Core::IsSNAN(fa) || Core::IsSNAN(fb))
     {
       SetFPException(ppc_state, FPSCR_VXSNAN);
     }
@@ -316,7 +316,7 @@ void Interpreter::frspx(Interpreter& interpreter, UGeckoInstruction inst)  // ro
 
   if (std::isnan(b))
   {
-    const bool is_snan = Common::IsSNAN(b);
+    const bool is_snan = Core::IsSNAN(b);
 
     if (is_snan)
       SetFPException(ppc_state, FPSCR_VXSNAN);
@@ -516,7 +516,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
 
   const auto compute_result = [&ppc_state, inst](double value) {
-    const double result = Common::ApproximateReciprocal(value);
+    const double result = Core::ApproximateReciprocal(ppc_state.fpscr, value);
     ppc_state.ps[inst.FD].Fill(result);
     ppc_state.UpdateFPRFSingle(float(result));
   };
@@ -529,7 +529,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
     if (ppc_state.fpscr.ZE == 0)
       compute_result(b);
   }
-  else if (Common::IsSNAN(b))
+  else if (Core::IsSNAN(b))
   {
     SetFPException(ppc_state, FPSCR_VXSNAN);
     ppc_state.fpscr.ClearFIFR();
@@ -555,7 +555,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
 
   const auto compute_result = [&ppc_state, inst](double value) {
-    const double result = Common::ApproximateReciprocalSquareRoot(value);
+    const double result = Core::ApproximateReciprocalSquareRoot(value);
     ppc_state.ps[inst.FD].SetPS0(result);
     ppc_state.UpdateFPRFDouble(result);
   };
@@ -576,7 +576,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
     if (ppc_state.fpscr.ZE == 0)
       compute_result(b);
   }
-  else if (Common::IsSNAN(b))
+  else if (Core::IsSNAN(b))
   {
     SetFPException(ppc_state, FPSCR_VXSNAN);
     ppc_state.fpscr.ClearFIFR();
