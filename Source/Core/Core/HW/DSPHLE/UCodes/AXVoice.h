@@ -65,12 +65,21 @@ void ApplyUpdatesForMs(int curr_ms, PB_TYPE& pb, u16* num_updates, const PBUpdat
   for (int i = 0; i < curr_ms; ++i)
     start_idx += num_updates[i];
 
-  for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
+  if (start_idx < updates.size())
   {
-    u16 update_off = updates[i].pb_offset;
-    u16 update_val = updates[i].new_value;
+    const u16 count = num_updates[curr_ms];
+    if (count <= updates.size() - start_idx)
+    {
+      const u32 end_idx = start_idx + count;
+      for (u32 i = start_idx; i < end_idx; ++i)
+      {
+        const u16 update_off = updates[i].pb_offset;
+        const u16 update_val = updates[i].new_value;
 
-    pb_mem[update_off] = update_val;
+        if (update_off < pb_mem.size())
+          pb_mem[update_off] = update_val;
+      }
+    }
   }
 
   pb = std::bit_cast<PB_TYPE>(pb_mem);
