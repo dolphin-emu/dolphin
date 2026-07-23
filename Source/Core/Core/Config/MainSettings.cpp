@@ -631,6 +631,9 @@ const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
 const Info<bool> MAIN_EMULATE_INFINITY_BASE{
     {System::Main, "EmulatedUSBDevices", "EmulateInfinityBase"}, false};
 
+const Info<bool> MAIN_EMULATE_SKATEBOARD{{System::Main, "EmulatedUSBDevices", "EmulateSkatebord"},
+                                         false};
+
 const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
                                         false};
 

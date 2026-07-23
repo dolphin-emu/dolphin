@@ -119,6 +119,7 @@
     <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
     <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
     <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
+    <ClCompile Include="Config\Mapping\SkateboardWidget.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionInput.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.cpp" />
@@ -353,6 +354,7 @@
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
+    <QtMoc Include="Config\Mapping\SkateboardWidget.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuExtension.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionInput.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.h" />

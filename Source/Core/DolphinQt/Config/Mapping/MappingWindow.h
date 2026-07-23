@@ -47,6 +47,8 @@ public:
     MAPPING_FREELOOK,
     // Triforce
     MAPPING_AM_BASEBOARD,
+    // Tony Hawk Ride/Shred Skateboard
+    MAPPING_USB_SKATEBOARD,
   };
 
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
