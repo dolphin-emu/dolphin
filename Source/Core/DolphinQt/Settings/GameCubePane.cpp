@@ -44,6 +44,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
 #endif
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipLabel.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -204,11 +205,40 @@ void GameCubePane::CreateWidgets()
   gba_box->setLayout(gba_layout);
   int gba_row = 0;
 
-  m_gba_bios_edit = new ConfigUserPath(F_GBABIOS_IDX, Config::MAIN_GBA_BIOS_PATH);
+  m_gba_bios_edit = new ConfigUserPath(F_GBABIOS_IDX, Config::MAIN_GBA_BIOS_PATH,
+                                       File::GetUserPath(D_GBAUSER_IDX) + GBA_BIOS);
   m_gba_browse_bios = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_gba_bios_reset = new NonDefaultQPushButton(QStringLiteral("Reset"));
   gba_layout->addWidget(new QLabel(tr("BIOS:")), gba_row, 0);
   gba_layout->addWidget(m_gba_bios_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_bios, gba_row, 2);
+  gba_layout->addWidget(m_gba_bios_reset, gba_row, 3);
+  gba_row++;
+
+  m_gba_cgb_boot_rom_edit =
+      new ConfigUserPath(F_GBACGBBOOTROM_IDX, Config::MAIN_GBA_CGB_BOOT_ROM_PATH,
+                         File::GetUserPath(D_GBAUSER_IDX) + GBA_CGB_BOOT_ROM);
+  m_gba_browse_cgb_boot_rom = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_gba_cgb_boot_rom_reset = new NonDefaultQPushButton(QStringLiteral("Reset"));
+  auto* gba_cgb_boot_rom_label = new ToolTipLabel(tr("Game Boy Color Boot ROM:"));
+  gba_cgb_boot_rom_label->SetDescription(tr(
+      "(Optional) Search path for the <i>Game Boy Color</i> boot ROM.<br>"
+      "This file gets loaded when a <i>Game Boy</i> or <i>Game Boy Color</i> game is run by the "
+      "<b>Game Boy Player</b>.<br><br>"
+      "If this file is not found, the boot ROM gets skipped. "
+      "This means the <i>Game Boy Color</i> boot animation and color palette selection for <i>Game "
+      "Boy</i> games will be missing, otherwise there is no functional difference.<br><br>"
+      "At this time there is no known method to dump the <i>Game Boy Color</i>-mode boot ROM from "
+      "a <i>Game Boy Advance</i> or <i>Game Boy Player</i>.<br>"
+      "The boot ROM dumped from a <i>Game Boy Color</i> works and the emulator makes sure that the "
+      "system appears as a <i>Game Boy Advance</i> to games, meaning that features like the "
+      "\"Advance Shop\" in the TLoZ Oracle games are available.<br><br>"
+      "<dolphin_emphasis>If unsure, do not change.</dolphin_emphasis>"));
+
+  gba_layout->addWidget(gba_cgb_boot_rom_label, gba_row, 0);
+  gba_layout->addWidget(m_gba_cgb_boot_rom_edit, gba_row, 1);
+  gba_layout->addWidget(m_gba_browse_cgb_boot_rom, gba_row, 2);
+  gba_layout->addWidget(m_gba_cgb_boot_rom_reset, gba_row, 3);
   gba_row++;
 
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
@@ -278,7 +308,12 @@ void GameCubePane::ConnectWidgets()
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
+  connect(m_gba_bios_reset, &QPushButton::clicked, m_gba_bios_edit, &ConfigUserPath::Reset);
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
+  connect(m_gba_cgb_boot_rom_reset, &QPushButton::clicked, m_gba_cgb_boot_rom_edit,
+          &ConfigUserPath::Reset);
+  connect(m_gba_browse_cgb_boot_rom, &QPushButton::clicked, this,
+          &GameCubePane::BrowseGBACGBBootRom);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(m_gba_save_rom_path, &QCheckBox::checkStateChanged, this,
           &GameCubePane::SaveRomPathChanged);
@@ -694,6 +729,16 @@ void GameCubePane::BrowseGBABios()
       tr("All Files (*)")));
   if (!file.isEmpty())
     m_gba_bios_edit->SetTextAndUpdate(file);
+}
+
+void GameCubePane::BrowseGBACGBBootRom()
+{
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+      this, tr("Select GBC boot ROM"),
+      QString::fromStdString(Config::Get(Config::MAIN_GBA_CGB_BOOT_ROM_PATH)),
+      tr("All Files (*)")));
+  if (!file.isEmpty())
+    m_gba_cgb_boot_rom_edit->SetTextAndUpdate(file);
 }
 
 void GameCubePane::BrowseGBARom(size_t index)

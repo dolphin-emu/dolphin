@@ -123,6 +123,7 @@ private:
   void HandleEvent(SyncEvent event);
 
   bool LoadBIOS(const char* bios_path);
+  bool LoadCGBBootROM(const char* boot_rom_path);
   bool LoadSave(const char* save_path);
 
   void SetSIODriver();
