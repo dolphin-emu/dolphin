@@ -41,6 +41,20 @@ constexpr libusb_transfer_cb_fn LibUSBMemFunCallback()
   };
 }
 
+template <typename EventType>
+std::optional<EventType> GetTypedEvent(std::span<const u8> buffer)
+{
+  if (buffer.size() < sizeof(hci_event_hdr_t) + sizeof(EventType)) [[unlikely]]
+  {
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized HCI event");
+    return std::nullopt;
+  }
+
+  EventType ev;
+  std::memcpy(&ev, buffer.data() + sizeof(hci_event_hdr_t), sizeof(ev));
+  return ev;
+}
+
 }  // namespace
 
 bool LibUSBBluetoothAdapter::IsBluetoothDevice(const libusb_device_descriptor& descriptor)
@@ -215,14 +229,10 @@ void LibUSBBluetoothAdapter::Update()
   while (!m_unacknowledged_commands.empty() &&
          m_unacknowledged_commands.front().submit_time < expired_time)
   {
-    WARN_LOG_FMT(IOS_WIIMOTE, "HCI command 0x{:04x} timed out.",
+    WARN_LOG_FMT(IOS_WIIMOTE, "Acknowledgement of HCI command 0x{:04x} timed out.",
                  m_unacknowledged_commands.front().opcode);
     m_unacknowledged_commands.pop_front();
   }
-
-  // Allow sending commands if none are pending acknowledgement.
-  if (m_unacknowledged_commands.empty())
-    m_num_hci_command_packets = 1;
 
   // Push queued commands when the controller is ready for them.
   if (!m_pending_hci_transfers.empty() && IsControllerReadyForCommand())
@@ -253,11 +263,22 @@ auto LibUSBBluetoothAdapter::ReceiveHCIEvent() -> BufferType
   const auto event = buffer[0];
   if (event == HCI_EVENT_COMMAND_COMPL)
   {
-    AcknowledgeCommand<hci_command_compl_ep>(buffer);
+    auto ev = GetTypedEvent<hci_command_compl_ep>(buffer);
+    if (ev)
+    {
+      AcknowledgeCommand(*ev);
+    }
   }
   else if (event == HCI_EVENT_COMMAND_STATUS)
   {
-    AcknowledgeCommand<hci_command_status_ep>(buffer);
+    auto ev = GetTypedEvent<hci_command_status_ep>(buffer);
+    if (ev)
+    {
+      AcknowledgeCommand(*ev);
+
+      if (ev->status != 0x00)
+        WARN_LOG_FMT(IOS_WIIMOTE, "HCI_EVENT 0x{:04x} status: 0x{:02x}", ev->opcode, ev->status);
+    }
   }
 
   Update();
@@ -277,17 +298,8 @@ bool LibUSBBluetoothAdapter::IsControllerReadyForCommand() const
 }
 
 template <typename EventType>
-void LibUSBBluetoothAdapter::AcknowledgeCommand(std::span<const u8> buffer)
+void LibUSBBluetoothAdapter::AcknowledgeCommand(const EventType& ev)
 {
-  if (buffer.size() < sizeof(hci_event_hdr_t) + sizeof(EventType)) [[unlikely]]
-  {
-    WARN_LOG_FMT(IOS_WIIMOTE, "Undersized HCI event");
-    return;
-  }
-
-  EventType ev;
-  std::memcpy(&ev, buffer.data() + sizeof(hci_event_hdr_t), sizeof(ev));
-
   const auto it =
       std::ranges::find(m_unacknowledged_commands, ev.opcode, &OutstandingCommand::opcode);
   if (it != m_unacknowledged_commands.end())
