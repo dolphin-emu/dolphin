@@ -11,15 +11,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping.Companion.emptyControllerMapping
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -57,6 +58,9 @@ class NetplayViewModel(
 
     val players = netplaySession.players
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    val controllerMapping = netplaySession.controllerMapping
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyControllerMapping())
 
     val messages = netplaySession.messages
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -146,6 +150,18 @@ class NetplayViewModel(
     fun changeGame(gameFile: GameFile) {
         StringSetting.NETPLAY_GAME.setString(NativeConfig.LAYER_BASE, gameFile.getGameId())
         netplaySession.changeGame(gameFile)
+    }
+
+    fun setGamecubePort(portNumber: Int, player: Player?) {
+        netplaySession.setControllerMapping(
+            controllerMapping.value.withGamecubePort(portNumber, player)
+        )
+    }
+
+    fun setWiiRemote(remoteNumber: Int, player: Player?) {
+        netplaySession.setControllerMapping(
+            controllerMapping.value.withWiiRemote(remoteNumber, player)
+        )
     }
 
     private fun getLocalIp(): JoinAddress {
