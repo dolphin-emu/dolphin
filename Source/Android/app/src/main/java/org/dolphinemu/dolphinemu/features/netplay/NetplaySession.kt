@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
@@ -86,6 +87,12 @@ class NetplaySession(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val players = _players.asSharedFlow().distinctUntilChanged()
+
+    private val _controllerMapping = MutableSharedFlow<ControllerMapping>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val controllerMapping = _controllerMapping.asSharedFlow().distinctUntilChanged()
 
     private val _chatMessages = MutableSharedFlow<String>(
         extraBufferCapacity = 32,
@@ -185,6 +192,11 @@ class NetplaySession(
 
     fun reconnectTraversal() = nativeReconnectTraversal()
 
+    fun setControllerMapping(mapping: ControllerMapping) {
+        nativeSetPadMapping(mapping.gamecubePorts.map { it?.pid ?: 0 }.toIntArray())
+        nativeSetWiimoteMapping(mapping.wiiRemotes.map { it?.pid ?: 0 }.toIntArray())
+    }
+
     fun consumeBootSessionData(): Long {
         return bootSessionDataPointer.also {
             bootSessionDataPointer = 0
@@ -278,6 +290,14 @@ class NetplaySession(
 
     private external fun nativeReconnectTraversal()
 
+    private external fun nativeGetPadMapping(): IntArray
+
+    private external fun nativeGetWiimoteMapping(): IntArray
+
+    private external fun nativeSetPadMapping(mapping: IntArray)
+
+    private external fun nativeSetWiimoteMapping(mapping: IntArray)
+
     // NetPlayUI callbacks
 
     @Keep
@@ -304,7 +324,16 @@ class NetplaySession(
 
     @Keep
     fun onUpdate(players: Array<Player>) {
-        _players.tryEmit(players.toList())
+        val playersList = players.toList()
+        _players.tryEmit(playersList)
+
+        fun findPlayer(playerId: Int) = playersList.find { it.pid == playerId }
+        _controllerMapping.tryEmit(
+            ControllerMapping(
+                gamecubePorts = nativeGetPadMapping().map(::findPlayer).toList(),
+                wiiRemotes = nativeGetWiimoteMapping().map(::findPlayer).toList(),
+            )
+        )
     }
 
     @Keep
