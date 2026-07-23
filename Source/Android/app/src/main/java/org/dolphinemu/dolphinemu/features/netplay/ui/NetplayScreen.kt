@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.features.netplay.ui
 
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -38,7 +40,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Share
@@ -79,10 +80,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -92,6 +91,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass
@@ -100,6 +100,7 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinAddress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinInfoType
@@ -149,6 +150,9 @@ fun NetplayScreen(
     saveTransferProgress: SaveTransferProgress?,
     gameDigestProgress: GameDigestProgress?,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiiRemoteChanged: (port: Int, player: Player?) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -179,6 +183,7 @@ fun NetplayScreen(
         // State which must live above the landscape/portrait split.
         var showChat by rememberSaveable { mutableStateOf(false) }
         var showGamePicker by rememberSaveable { mutableStateOf(false) }
+        var showControllerMapping by rememberSaveable { mutableStateOf(false) }
         var selectedJoinInfoType by rememberSaveable {
             mutableStateOf(joinAddresses.keys.firstOrNull() ?: JoinInfoType.EXTERNAL)
         }
@@ -202,6 +207,11 @@ fun NetplayScreen(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiiRemoteChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = { showControllerMapping = it },
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -229,6 +239,11 @@ fun NetplayScreen(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiiRemoteChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = { showControllerMapping = it },
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -368,6 +383,11 @@ private fun PortraitContent(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -407,6 +427,11 @@ private fun PortraitContent(
             showGamePicker = showGamePicker,
             onShowGamePickerChanged = onShowGamePickerChanged,
             players = players,
+            controllerMapping = controllerMapping,
+            onGamecubePortChanged = onGamecubePortChanged,
+            onWiimotePortChanged = onWiimotePortChanged,
+            showControllerMapping = showControllerMapping,
+            onShowControllerMappingChanged = onShowControllerMappingChanged,
             hostInputAuthorityEnabled = hostInputAuthorityEnabled,
             networkMode = networkMode,
             onNetworkModeChanged = onNetworkModeChanged,
@@ -441,6 +466,11 @@ private fun LandscapeContent(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -473,7 +503,6 @@ private fun LandscapeContent(
                 .fillMaxHeight()
         )
 
-        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -492,6 +521,11 @@ private fun LandscapeContent(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = onShowGamePickerChanged,
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiimotePortChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = onShowControllerMappingChanged,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -513,6 +547,7 @@ private fun LandscapeContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayersAndSettings(
     game: String,
@@ -521,6 +556,11 @@ private fun PlayersAndSettings(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -558,25 +598,15 @@ private fun PlayersAndSettings(
 
         MenuSpacer()
 
-        OutlinedBox(
-            label = { Text(stringResource(R.string.netplay_players_label)) },
-        ) {
-            PlayersTable(
-                rows = buildList {
-                    add(
-                        listOf(
-                            stringResource(R.string.netplay_players_name),
-                            stringResource(R.string.netplay_players_ping),
-                            stringResource(R.string.netplay_players_mapping),
-                        )
-                    )
-                    addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
-                    repeat(4 - players.size) { add(listOf("", "", "")) }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
+        Players(
+            players = players,
+            isHosting = isHosting,
+            controllerMapping = controllerMapping,
+            onGamecubePortChanged = onGamecubePortChanged,
+            onWiimotePortChanged = onWiimotePortChanged,
+            showControllerMapping = showControllerMapping,
+            onShowControllerMappingChanged = onShowControllerMappingChanged,
+        )
 
         if (isHosting) {
             MenuSpacer()
@@ -960,6 +990,64 @@ private fun AddressRow(
     )
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun Players(
+    players: List<Player>,
+    isHosting: Boolean,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (Int, Player?) -> Unit,
+    onWiimotePortChanged: (Int, Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
+) {
+    val sheetState = rememberSheetState(
+        skipPartiallyExpanded = true,
+        initialValue = if (showControllerMapping) SheetValue.Expanded else SheetValue.Hidden,
+    )
+
+    if (showControllerMapping) {
+        ModalBottomSheet(
+            onDismissRequest = { onShowControllerMappingChanged(false) },
+            sheetState = sheetState,
+            modifier = Modifier
+                .statusBarsPadding()
+        ) {
+            ControllerMapping(
+                mapping = controllerMapping,
+                players = players,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiimotePortChanged,
+            )
+        }
+    }
+
+    OutlinedBox(
+        label = { Text(stringResource(R.string.netplay_players_label)) },
+        onClick = if (isHosting) {
+            { onShowControllerMappingChanged(true) }
+        } else {
+            null
+        },
+    ) {
+        PlayersTable(
+            rows = buildList {
+                add(
+                    listOf(
+                        stringResource(R.string.netplay_players_name),
+                        stringResource(R.string.netplay_players_ping),
+                        stringResource(R.string.netplay_players_mapping),
+                    )
+                )
+                addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
+                repeat(4 - players.size) { add(listOf("", "", "")) }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+
 /**
  * A table arranged into columns sized to wrap the largest item. Except the
  * first column which takes up the remaining space left by the other columns.
@@ -1009,6 +1097,150 @@ private fun PlayersTable(
             }
             if (rowIndex == 0) {
                 HorizontalDivider()
+            }
+        }
+    }
+}
+
+private val PORT_DROPDOWN_MIN_WIDTH = 140.dp
+private val PORT_DROPDOWN_SPACING = 10.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ControllerMapping(
+    mapping: ControllerMapping,
+    players: List<Player>,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = DolphinTheme.scaffoldPadding)
+            .padding(bottom = 24.dp)
+            .navigationBarsPadding()
+    ) {
+        val columns =
+            ((maxWidth + PORT_DROPDOWN_SPACING) / (PORT_DROPDOWN_MIN_WIDTH + PORT_DROPDOWN_SPACING))
+                .toInt()
+                .coerceAtLeast(1)
+                .let { if (it == 3) 2 else it } // Three per row would look strange so bump down to two.
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            PortsSection(
+                titleId = R.string.netplay_controllers_gamecube,
+                portLabelId = R.string.netplay_controllers_port,
+                mapping = mapping.gamecubePorts,
+                players = players,
+                onPortChanged = onGamecubePortChanged,
+                columns = columns,
+            )
+
+            HorizontalDivider()
+
+            PortsSection(
+                titleId = R.string.netplay_controllers_wii_remotes,
+                portLabelId = R.string.netplay_controllers_remote,
+                mapping = mapping.wiiRemotes,
+                players = players,
+                onPortChanged = onWiimotePortChanged,
+                columns = columns,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PortsSection(
+    @StringRes titleId: Int,
+    @StringRes portLabelId: Int,
+    mapping: List<Player?>,
+    players: List<Player>,
+    onPortChanged: (port: Int, player: Player?) -> Unit,
+    columns: Int,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(PORT_DROPDOWN_SPACING),
+    ) {
+        Text(
+            text = stringResource(titleId),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        mapping.indices.chunked(columns).forEach { row ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(PORT_DROPDOWN_SPACING),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                row.forEach { port ->
+                    PortDropdown(
+                        label = stringResource(portLabelId, port + 1),
+                        selectedPlayer = mapping[port],
+                        players = players,
+                        onPlayerSelected = { onPortChanged(port, it) },
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PortDropdown(
+    label: String,
+    selectedPlayer: Player?,
+    players: List<Player>,
+    onPlayerSelected: (player: Player?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    fun Player.displayName() = "$name ($pid)"
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = selectedPlayer?.displayName()
+                ?: stringResource(R.string.netplay_controllers_none),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.netplay_controllers_none)) },
+                onClick = {
+                    onPlayerSelected(null)
+                    expanded = false
+                },
+            )
+            players.forEach { player ->
+                DropdownMenuItem(
+                    text = { Text(player.displayName()) },
+                    onClick = {
+                        onPlayerSelected(player)
+                        expanded = false
+                    },
+                )
             }
         }
     }
@@ -1470,6 +1702,9 @@ private fun PreviewNetplayScreen() {
             JoinInfoType.EXTERNAL to JoinAddress.Loaded("203.0.113.1:2626"),
             JoinInfoType.LOCAL to JoinAddress.Loaded("192.168.1.5:2626"),
         ),
+        controllerMapping = ControllerMapping.emptyControllerMapping(),
+        onGamecubePortChanged = { _, _ -> },
+        onWiiRemoteChanged = { _, _ -> },
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,

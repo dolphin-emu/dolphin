@@ -4,6 +4,8 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include <jni.h>
@@ -43,7 +45,7 @@ static jintArray PadMappingArrayToJIntArray(JNIEnv* env, const NetPlay::PadMappi
 {
   const jsize size = static_cast<jsize>(mapping.size());
   jintArray jmapping = env->NewIntArray(size);
-  std::array<jint, 4> values;
+  std::array<jint, std::tuple_size_v<std::decay_t<decltype(mapping)>>> values;
   for (size_t i = 0; i < mapping.size(); i++)
     values[i] = static_cast<jint>(mapping[i]);
   env->SetIntArrayRegion(jmapping, 0, size, values.data());
@@ -56,7 +58,7 @@ static bool JIntArrayToPadMappingArray(JNIEnv* env, jintArray jmapping,
   if (env->GetArrayLength(jmapping) != static_cast<jsize>(mapping->size()))
     return false;
 
-  std::array<jint, 4> values;
+  std::array<jint, std::tuple_size_v<std::decay_t<decltype(*mapping)>>> values;
   env->GetIntArrayRegion(jmapping, 0, static_cast<jsize>(values.size()), values.data());
   for (size_t i = 0; i < mapping->size(); i++)
     (*mapping)[i] = static_cast<NetPlay::PlayerId>(values[i]);

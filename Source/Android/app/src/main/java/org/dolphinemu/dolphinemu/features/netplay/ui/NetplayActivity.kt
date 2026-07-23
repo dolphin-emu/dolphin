@@ -73,6 +73,9 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
                     gameDigestProgress = viewModel.gameDigestProgress.collectAsState().value,
                     joinAddresses = viewModel.joinAddresses.collectAsState().value,
+                    controllerMapping = viewModel.controllerMapping.collectAsState().value,
+                    onGamecubePortChanged = viewModel::setGamecubePort,
+                    onWiiRemoteChanged = viewModel::setWiiRemote,
                 )
             }
         }

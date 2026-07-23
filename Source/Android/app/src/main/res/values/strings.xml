@@ -1030,6 +1030,11 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_players_name">Name</string>
     <string name="netplay_players_ping">Ping</string>
     <string name="netplay_players_mapping">Mapping</string>
+    <string name="netplay_controllers_gamecube">GameCube</string>
+    <string name="netplay_controllers_wii_remotes">Wii Remotes</string>
+    <string name="netplay_controllers_port">Port %1$d</string>
+    <string name="netplay_controllers_remote">Remote %1$d</string>
+    <string name="netplay_controllers_none">None</string>
     <string name="netplay_network_mode_label">Input mode</string>
     <string name="netplay_network_mode_fair_input_delay">Fair Input Delay</string>
     <string name="netplay_network_mode_host_input_authority">Host Input Authority</string>
