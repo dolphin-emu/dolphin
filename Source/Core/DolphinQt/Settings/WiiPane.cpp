@@ -90,6 +90,12 @@ void WiiPane::CreateLayout()
 
 void WiiPane::ConnectLayout()
 {
+  // Emulate USB keyboard
+  connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
+          m_connect_keyboard_checkbox, &QCheckBox::setChecked);
+  connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::SetUSBKeyboardConnected);
+
   // Whitelisted USB Passthrough Devices
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
           &WiiPane::PopulateUSBPassthroughListWidget);
