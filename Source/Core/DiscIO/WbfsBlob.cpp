@@ -4,19 +4,31 @@
 #include "DiscIO/WbfsBlob.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <mbedtls/md5.h>
+#include <xxhash.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
+#include "DiscIO/NKitHeader.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeWii.h"
 
 namespace DiscIO
 {
@@ -25,7 +37,7 @@ static constexpr u64 WII_SECTOR_COUNT = 143432 * 2;
 static constexpr u64 WII_DISC_HEADER_SIZE = 256;
 
 WbfsFileReader::WbfsFileReader(File::DirectIOFile file, const std::string& path)
-    : m_size(0), m_good(false)
+    : m_size(0), m_good(false), m_encryption_cache(this)
 {
   if (!AddFileToList(std::move(file)))
     return;
@@ -35,13 +47,25 @@ WbfsFileReader::WbfsFileReader(File::DirectIOFile file, const std::string& path)
     return;
   m_good = true;
 
+  // Read disc header copy for disc_id and disc_num (needed for junk reconstruction)
+  m_files[0].file.Seek(m_hd_sector_size, File::SeekOrigin::Begin);
+  u8 disc_header_buf[7];
+  if (m_files[0].file.Read(disc_header_buf, sizeof(disc_header_buf)))
+  {
+    std::memcpy(m_disc_id, disc_header_buf, 4);
+    m_disc_num = disc_header_buf[6];
+  }
+
   // Grab disc info (assume slot 0, checked in ReadHeader())
+  // TODO: Multi-disc WBFS support (disc_table can hold up to 500 entries).
+  // Offset would be: m_hd_sector_size + WII_DISC_HEADER_SIZE + i * m_disc_info_size
   m_wlba_table.resize(m_blocks_per_disc);
-  m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
-                       File::SeekOrigin::Begin);
+  m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE, File::SeekOrigin::Begin);
   m_files[0].file.Read(Common::AsWritableU8Span(m_wlba_table));
   for (size_t i = 0; i < m_blocks_per_disc; i++)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
+
+  ReadNKitHeader();
 }
 
 WbfsFileReader::~WbfsFileReader() = default;
@@ -56,6 +80,8 @@ std::unique_ptr<BlobReader> WbfsFileReader::CopyReader() const
 
 u64 WbfsFileReader::GetDataSize() const
 {
+  if (m_has_nkit_header && m_nkit_info.digests.disc_size > 0)
+    return m_nkit_info.digests.disc_size;
   return WII_SECTOR_COUNT * WII_SECTOR_SIZE;
 }
 
@@ -106,7 +132,6 @@ bool WbfsFileReader::ReadHeader()
 
   // Read wbfs cluster info
   m_wbfs_sector_size = 1ull << m_header.wbfs_sector_shift;
-  m_wbfs_sector_count = m_size / m_wbfs_sector_size;
 
   if (m_wbfs_sector_size < WII_SECTOR_SIZE)
     return false;
@@ -119,6 +144,131 @@ bool WbfsFileReader::ReadHeader()
   return m_header.disc_table[0] != 0;
 }
 
+bool WbfsFileReader::ReadNKitHeader()
+{
+  const u64 gap_type_blocks = (DL_DVD_SIZE + m_wbfs_sector_size - 1) / m_wbfs_sector_size;
+  m_nkit_info = NKit::ReadHeaderFromFile(m_files[0].file, NKit::HEADER_OFFSET, gap_type_blocks);
+  if (!m_nkit_info.valid)
+    return false;
+
+  m_has_nkit_header = true;
+  return true;
+}
+
+bool WbfsFileReader::IsBlockStored(u64 block_index) const
+{
+  return block_index < m_blocks_per_disc && m_wlba_table[block_index] != 0;
+}
+
+bool WbfsFileReader::IsGapJunk(u64 block_index) const
+{
+  return NKit::IsGapJunk(m_nkit_info.gap_type, block_index);
+}
+
+void WbfsFileReader::GenerateJunkData(u64 disc_offset, std::span<u8> out) const
+{
+  LaggedFibonacciGenerator::FillJunkData(out, disc_offset, m_disc_id, m_disc_num);
+}
+
+void WbfsFileReader::ReadPartitionInfo()
+{
+  std::unique_ptr<VolumeDisc> volume = CreateDisc(CopyReader());
+  if (!volume)
+    return;
+
+  for (const Partition& partition : volume->GetPartitions())
+  {
+    const auto& ticket = volume->GetTicket(partition);
+
+    u8 data_info[8];
+    if (!Read(partition.offset + 0x2B8, 8, data_info))
+      continue;
+
+    PartitionEntry entry;
+    entry.data_offset = partition.offset + (static_cast<u64>(Common::swap32(data_info)) << 2);
+    entry.data_size = static_cast<u64>(Common::swap32(data_info + 4)) << 2;
+    entry.key = ticket.GetTitleKey();
+    m_partitions.push_back(entry);
+  }
+}
+
+const WbfsFileReader::PartitionEntry* WbfsFileReader::FindPartition(u64 disc_offset) const
+{
+  for (const auto& p : m_partitions)
+  {
+    if (disc_offset >= p.data_offset && disc_offset < p.data_offset + p.data_size)
+      return &p;
+  }
+  return nullptr;
+}
+
+bool WbfsFileReader::SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const
+{
+  if (!m_has_nkit_header)
+    return false;
+
+  const u64 block_in_partition = offset / VolumeWii::BLOCK_DATA_SIZE;
+  const u64 disc_offset = partition_data_offset + block_in_partition * VolumeWii::BLOCK_TOTAL_SIZE;
+  const u64 wbfs_block = disc_offset >> m_header.wbfs_sector_shift;
+
+  return wbfs_block < m_blocks_per_disc && !IsBlockStored(wbfs_block);
+}
+
+bool WbfsFileReader::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
+                                      Common::AES::Context* aes_context)
+{
+  std::vector<u8> encrypted(VolumeWii::BLOCK_TOTAL_SIZE);
+
+  while (size > 0)
+  {
+    const u64 block_in_partition = offset / VolumeWii::BLOCK_DATA_SIZE;
+    const u64 offset_in_block = offset % VolumeWii::BLOCK_DATA_SIZE;
+    const u64 bytes_in_block = VolumeWii::BLOCK_DATA_SIZE - offset_in_block;
+    const size_t read_size = static_cast<size_t>(std::min(bytes_in_block, size));
+
+    const u64 disc_offset =
+        partition_data_offset + block_in_partition * VolumeWii::BLOCK_TOTAL_SIZE;
+    const u64 wbfs_block = disc_offset >> m_header.wbfs_sector_shift;
+
+    if (IsBlockStored(wbfs_block))
+    {
+      // Stored blocks need decryption. This path is reachable even with standard 2MiB
+      // WBFS sectors because partition data may not start at a sector-aligned offset,
+      // causing an encryption group to straddle two WBFS blocks.
+      u64 available;
+      auto& file = SeekToCluster(disc_offset, &available);
+      if (available < VolumeWii::BLOCK_TOTAL_SIZE ||
+          !file.Read(encrypted.data(), VolumeWii::BLOCK_TOTAL_SIZE))
+        return false;
+      if (offset_in_block == 0 && read_size == VolumeWii::BLOCK_DATA_SIZE)
+      {
+        VolumeWii::DecryptBlockData(encrypted.data(), out_ptr, aes_context);
+      }
+      else
+      {
+        u8 decrypted[VolumeWii::BLOCK_DATA_SIZE];
+        VolumeWii::DecryptBlockData(encrypted.data(), decrypted, aes_context);
+        std::memcpy(out_ptr, decrypted + offset_in_block, read_size);
+      }
+    }
+    else if (IsGapJunk(wbfs_block))
+    {
+      const u64 junk_offset = block_in_partition * VolumeWii::BLOCK_DATA_SIZE + offset_in_block;
+      LaggedFibonacciGenerator::FillJunkData({out_ptr, read_size}, junk_offset, m_disc_id,
+                                             m_disc_num);
+    }
+    else
+    {
+      std::memset(out_ptr, 0, read_size);
+    }
+
+    out_ptr += read_size;
+    offset += read_size;
+    size -= read_size;
+  }
+  return true;
+}
+
 bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
   if (offset + nbytes > GetDataSize())
@@ -126,15 +276,52 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
   while (nbytes)
   {
-    u64 read_size;
-    auto& data_file = SeekToCluster(offset, &read_size);
-    if (read_size == 0)
-      return false;
-    read_size = std::min(read_size, nbytes);
+    const u64 base_cluster = offset >> m_header.wbfs_sector_shift;
+    const u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
+    const u64 bytes_in_cluster = m_wbfs_sector_size - cluster_offset;
+    u64 read_size = std::min(bytes_in_cluster, nbytes);
 
-    if (!data_file.Read(out_ptr, read_size))
+    if (base_cluster >= m_blocks_per_disc || !IsBlockStored(base_cluster))
     {
-      return false;
+      if (m_has_nkit_header && base_cluster < m_blocks_per_disc)
+      {
+        const PartitionEntry* pe = FindPartition(offset);
+        if (pe)
+        {
+          // Non-stored partition sectors need re-encryption via WiiEncryptionCache
+          const u64 partition_offset = offset - pe->data_offset;
+          const u64 partition_data_decrypted_size =
+              pe->data_size / VolumeWii::BLOCK_TOTAL_SIZE * VolumeWii::BLOCK_DATA_SIZE;
+          if (!m_encryption_cache.EncryptGroups(partition_offset, read_size, out_ptr,
+                                                pe->data_offset, partition_data_decrypted_size,
+                                                pe->key))
+          {
+            std::memset(out_ptr, 0, static_cast<size_t>(read_size));
+          }
+        }
+        else if (IsGapJunk(base_cluster))
+        {
+          GenerateJunkData(offset, {out_ptr, read_size});
+        }
+        else
+        {
+          std::memset(out_ptr, 0, static_cast<size_t>(read_size));
+        }
+      }
+      else
+      {
+        std::memset(out_ptr, 0, static_cast<size_t>(read_size));
+      }
+    }
+    else
+    {
+      u64 available;
+      auto& data_file = SeekToCluster(offset, &available);
+      if (available == 0)
+        return false;
+      read_size = std::min(read_size, available);
+      if (!data_file.Read(out_ptr, read_size))
+        return false;
     }
 
     out_ptr += read_size;
@@ -186,7 +373,11 @@ std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(File::DirectIOFile file,
   if (!reader->IsGood())
     reader.reset();
 
+  if (reader && reader->m_has_nkit_header)
+    reader->ReadPartitionInfo();
+
   return reader;
 }
+
 
 }  // namespace DiscIO

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstddef>
+#include <span>
 
 #include "Common/CommonTypes.h"
 
@@ -22,6 +23,10 @@ public:
   // Generates a disc-level junk seed from disc ID, disc number, and sector index.
   // Based on: https://github.com/encounter/nod/blob/d10d376/nod/src/util/lfg.rs#L62
   static void GenerateSeed(u32 seed_out[SEED_SIZE], const u8 disc_id[4], u8 disc_num, u32 sector);
+
+  // Fills a buffer with the expected disc-level junk pattern.
+  // Re-seeds per 0x8000-byte sector boundary.
+  static void FillJunkData(std::span<u8> out, u64 disc_offset, const u8 disc_id[4], u8 disc_num);
 
   // Checks if a block of data matches the expected disc-level junk pattern.
   // Re-seeds per 0x8000-byte sector boundary. Returns true if the entire block is junk.

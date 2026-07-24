@@ -23,6 +23,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
+namespace Common::AES
+{
+class Context;
+}
+
 namespace DiscIO
 {
 enum class WIARVZCompressionType : u32;
@@ -92,7 +97,8 @@ public:
     return false;
   }
 
-  virtual bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset)
+  virtual bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
+                                Common::AES::Context* aes_context = nullptr)
   {
     return false;
   }
@@ -206,5 +212,4 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
                        const std::string& outfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
                        int chunk_size, const CompressCB& callback);
-
 }  // namespace DiscIO
