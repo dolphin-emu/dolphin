@@ -53,6 +53,8 @@ modules:
       - -DENABLE_SDL=ON
       - -DENABLE_EVDEV=ON
       - -DDISTRIBUTOR=dolphin-emu.org
+      # Use the vendored-in SDL since the one from the SDK usually lags far behind
+      - -DUSE_SYSTEM_SDL3=OFF
     cleanup:
       - /share/man
     post-install:
