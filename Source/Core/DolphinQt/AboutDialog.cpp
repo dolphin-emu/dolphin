@@ -7,6 +7,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QtGlobal>
+#include <SDL3/SDL_version.h>
 
 #include "Common/Version.h"
 
@@ -26,6 +27,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
         tr("%1 commit(s) ahead of %2").arg(commits_ahead).arg(QStringLiteral("master")));
   }
 
+  const int sdl_version = SDL_GetVersion();
+  QString sdl_str = QString::fromStdString("%1.%2.%3")
+                        .arg(SDL_VERSIONNUM_MAJOR(sdl_version))
+                        .arg(SDL_VERSIONNUM_MINOR(sdl_version))
+                        .arg(SDL_VERSIONNUM_MICRO(sdl_version));
+
   const QString text =
       QStringLiteral(R"(
 <p style='font-size:38pt; font-weight:400;'>Dolphin</p>
@@ -35,7 +42,8 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <p style='font-size: small;'>
 %BRANCH%<br>
 %REVISION%<br><br>
-%QT_VERSION%
+%QT_VERSION%<br>
+%SDL_VERSION%
 </p>
 
 <p>
@@ -64,6 +72,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                    tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
           .replace(QStringLiteral("%QT_VERSION%"),
                    tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
+          .replace(QStringLiteral("%SDL_VERSION%"), tr("Using SDL %1").arg(sdl_str))
           .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))
           .replace(QStringLiteral("%ABOUT_DOLPHIN%"),
                    // i18n: The word "free" in the standard phrase "free and open source"

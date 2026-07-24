@@ -458,6 +458,7 @@ PRIVATE
   uicommon
   imgui
   implot
+  SDL3::SDL3
 )
 
 if (NEED_QT_GUI_PRIVATE_COMPONENT)
