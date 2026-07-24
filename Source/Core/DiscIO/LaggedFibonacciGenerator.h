@@ -19,12 +19,23 @@ public:
   // data - data_offset must be 4-byte aligned.
   static size_t GetSeed(const u8* data, size_t size, size_t data_offset, u32 seed_out[SEED_SIZE]);
 
+  // Generates a disc-level junk seed from disc ID, disc number, and sector index.
+  // Based on: https://github.com/encounter/nod/blob/d10d376/nod/src/util/lfg.rs#L62
+  static void GenerateSeed(u32 seed_out[SEED_SIZE], const u8 disc_id[4], u8 disc_num, u32 sector);
+
+  // Checks if a block of data matches the expected disc-level junk pattern.
+  // Re-seeds per 0x8000-byte sector boundary. Returns true if the entire block is junk.
+  static bool IsJunkBlock(const u8* data, size_t size, u64 disc_offset, const u8 disc_id[4],
+                          u8 disc_num);
+
   // SetSeed must be called before using the functions below
   void SetSeed(const u32 seed[SEED_SIZE]);
   void SetSeed(const u8 seed[SEED_SIZE * sizeof(u32)]);
 
   // Outputs a number of bytes and advances the internal state by the same amount.
   void GetBytes(size_t count, u8* out);
+  // Compares data against the LFG state, returns false at first mismatch.
+  bool CompareBytes(size_t count, const u8* data);
   u8 GetByte();
 
   // Advances the internal state like GetBytes, but without outputting data. O(N), like GetBytes.

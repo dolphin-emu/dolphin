@@ -115,6 +115,28 @@ void LaggedFibonacciGenerator::GetBytes(size_t count, u8* out)
   }
 }
 
+bool LaggedFibonacciGenerator::CompareBytes(size_t count, const u8* data)
+{
+  while (count > 0)
+  {
+    const size_t length = std::min(count, LFG_K * sizeof(u32) - m_position_bytes);
+
+    if (std::memcmp(data, reinterpret_cast<u8*>(m_buffer.data()) + m_position_bytes, length) != 0)
+      return false;
+
+    m_position_bytes += length;
+    count -= length;
+    data += length;
+
+    if (m_position_bytes == LFG_K * sizeof(u32))
+    {
+      Forward();
+      m_position_bytes = 0;
+    }
+  }
+  return true;
+}
+
 u8 LaggedFibonacciGenerator::GetByte()
 {
   const u8 result = reinterpret_cast<u8*>(m_buffer.data())[m_position_bytes];
@@ -206,6 +228,58 @@ bool LaggedFibonacciGenerator::Initialize(bool check_existing_data)
   for (size_t i = 0; i < 4; ++i)
     Forward();
 
+  return true;
+}
+
+// Disc-level junk seed generation.
+// Based on: https://github.com/encounter/nod/blob/d10d376/nod/src/util/lfg.rs#L62-L78
+void LaggedFibonacciGenerator::GenerateSeed(u32 seed_out[SEED_SIZE], const u8 disc_id[4],
+                                            u8 disc_num, u32 sector)
+{
+  u32 seed = (static_cast<u32>(disc_id[2]) << 24) | (static_cast<u32>(disc_id[1]) << 16) |
+             (static_cast<u32>(disc_id[3] + disc_id[2]) << 8) |
+             static_cast<u32>(disc_id[0] + disc_id[1]);
+  seed ^= static_cast<u32>(disc_num);
+  u32 n = (seed * 0x260BCD5u) ^ (sector * 0x1EF29123u);
+  for (size_t i = 0; i < SEED_SIZE; i++)
+  {
+    seed_out[i] = 0;
+    for (size_t j = 0; j < LFG_J; j++)
+    {
+      n = n * 0x5D588B65u + 1;
+      seed_out[i] = (seed_out[i] >> 1) | (n & 0x80000000u);
+    }
+  }
+  seed_out[16] ^= (seed_out[0] >> 9) ^ (seed_out[16] << 23);
+}
+
+bool LaggedFibonacciGenerator::IsJunkBlock(const u8* data, size_t size, u64 disc_offset,
+                                           const u8 disc_id[4], u8 disc_num)
+{
+  static constexpr size_t SECTOR_SIZE = 0x8000;
+  LaggedFibonacciGenerator lfg;
+
+  while (size > 0)
+  {
+    const u32 sector = static_cast<u32>(disc_offset / SECTOR_SIZE);
+    const size_t sector_off = static_cast<size_t>(disc_offset % SECTOR_SIZE);
+    const size_t chunk = std::min(SECTOR_SIZE - sector_off, size);
+
+    u32 seed[SEED_SIZE];
+    GenerateSeed(seed, disc_id, disc_num, sector);
+    for (size_t s = 0; s < SEED_SIZE; s++)
+      seed[s] = Common::swap32(seed[s]);
+    lfg.SetSeed(seed);
+    if (sector_off > 0)
+      lfg.Forward(sector_off);
+
+    if (!lfg.CompareBytes(chunk, data))
+      return false;
+
+    data += chunk;
+    disc_offset += chunk;
+    size -= chunk;
+  }
   return true;
 }
 
