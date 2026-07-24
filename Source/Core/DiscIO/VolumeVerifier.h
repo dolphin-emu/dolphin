@@ -39,6 +39,7 @@ struct Hashes
   T crc32;
   T md5;
   T sha1;
+  T xxhash64;
 };
 
 class RedumpVerifier final
@@ -177,12 +178,14 @@ private:
   u32 m_crc32_context = 0;
   mbedtls_md5_context m_md5_context{};
   std::unique_ptr<Common::SHA1::Context> m_sha1_context;
+  void* m_xxhash64_state = nullptr;
 
   u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
   std::future<void> m_crc32_future;
   std::future<void> m_md5_future;
   std::future<void> m_sha1_future;
+  std::future<void> m_xxhash64_future;
   std::future<void> m_content_future;
   std::future<void> m_group_future;
 

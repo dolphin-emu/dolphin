@@ -16,6 +16,7 @@
 #include <mz_zip.h>
 #include <mz_zip_rw.h>
 #include <pugixml.hpp>
+#include <xxhash.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -357,7 +358,7 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
     : m_volume(volume), m_redump_verification(redump_verification),
       m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
-                             hashes_to_calculate.sha1),
+                             hashes_to_calculate.sha1 || hashes_to_calculate.xxhash64),
       m_max_progress(volume.GetDataSize()), m_data_size_type(volume.GetDataSizeType())
 {
   if (!m_calculating_any_hash)
@@ -367,6 +368,8 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
 VolumeVerifier::~VolumeVerifier()
 {
   WaitForAsyncOperations();
+  if (m_xxhash64_state)
+    XXH64_freeState(static_cast<XXH64_state_t*>(m_xxhash64_state));
 }
 
 Hashes<bool> VolumeVerifier::GetDefaultHashesToCalculate()
@@ -1095,6 +1098,12 @@ void VolumeVerifier::SetUpHashing()
   {
     m_sha1_context = Common::SHA1::CreateContext();
   }
+
+  if (m_hashes_to_calculate.xxhash64)
+  {
+    m_xxhash64_state = static_cast<void*>(XXH64_createState());
+    XXH64_reset(static_cast<XXH64_state_t*>(m_xxhash64_state), 0);
+  }
 }
 
 void VolumeVerifier::WaitForAsyncOperations() const
@@ -1105,6 +1114,8 @@ void VolumeVerifier::WaitForAsyncOperations() const
     m_md5_future.wait();
   if (m_sha1_future.valid())
     m_sha1_future.wait();
+  if (m_xxhash64_future.valid())
+    m_xxhash64_future.wait();
   if (m_content_future.valid())
     m_content_future.wait();
   if (m_group_future.valid())
@@ -1241,6 +1252,13 @@ void VolumeVerifier::Process()
         m_sha1_context->Update(m_data.data(), byte_increment);
       });
     }
+
+    if (m_hashes_to_calculate.xxhash64)
+    {
+      m_xxhash64_future = std::async(std::launch::async, [this, byte_increment] {
+        XXH64_update(static_cast<XXH64_state_t*>(m_xxhash64_state), m_data.data(), byte_increment);
+      });
+    }
   }
 
   if (content_read)
@@ -1331,6 +1349,16 @@ void VolumeVerifier::Finish()
     {
       const auto digest = m_sha1_context->Finish();
       m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
+    }
+
+    if (m_hashes_to_calculate.xxhash64)
+    {
+      m_result.hashes.xxhash64 = std::vector<u8>(8);
+      auto* xxh_state = static_cast<XXH64_state_t*>(m_xxhash64_state);
+      const u64 xxh_be = Common::swap64(XXH64_digest(xxh_state));
+      std::memcpy(m_result.hashes.xxhash64.data(), &xxh_be, 8);
+      XXH64_freeState(xxh_state);
+      m_xxhash64_state = nullptr;
     }
   }
 

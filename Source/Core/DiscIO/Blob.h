@@ -212,4 +212,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
                        const std::string& outfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
                        int chunk_size, const CompressCB& callback);
+bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
+                   const std::string& outfile_path, const CompressCB& callback);
+
 }  // namespace DiscIO

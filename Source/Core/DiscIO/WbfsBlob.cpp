@@ -379,5 +379,274 @@ std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(File::DirectIOFile file,
   return reader;
 }
 
+// Converts any disc image to WBFS with an NKit v2 header for lossless round-trips.
+// Strips disc-level junk and partition-level junk (encrypted sectors whose decrypted
+// content is zero or LFG padding), records a junk bitmap for reconstruction.
+// See: https://github.com/dolphin-emu/dolphin/pull/14731
+bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
+                   const std::string& outfile_path, const CompressCB& callback)
+{
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate ||
+         infile->GetDataSizeType() == DataSizeType::UpperBound);
+
+  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
+  if (!outfile.IsOpen())
+  {
+    PanicAlertFmtT(
+        "Failed to open the output file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
+    return false;
+  }
+
+  const u64 disc_size = infile->GetDataSize();
+
+  // These match the values used by standard WBFS tools (wwt, WBFS Manager)
+  static constexpr u8 hd_sector_shift = 9;
+  static constexpr u8 wbfs_sector_shift = 21;
+  static constexpr u64 hd_sector_size = 1ull << hd_sector_shift;
+  static constexpr u64 wbfs_sector_size = 1ull << wbfs_sector_shift;
+
+  const u64 blocks_per_disc = (disc_size + wbfs_sector_size - 1) / wbfs_sector_size;
+  const u64 disc_info_size =
+      Common::AlignUp(WII_DISC_HEADER_SIZE + blocks_per_disc * sizeof(u16), hd_sector_size);
+
+  // Read disc header (first 256 bytes contain disc_id, disc_num, title, etc.)
+  std::vector<u8> disc_header(WII_DISC_HEADER_SIZE, 0);
+  if (!infile->Read(0, WII_DISC_HEADER_SIZE, disc_header.data()))
+  {
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
+    return false;
+  }
+
+  // Use Volume for partition info and decrypted reads
+  struct PartitionInfo
+  {
+    u64 data_offset;
+    u64 data_size;
+    Partition partition;
+  };
+  std::vector<PartitionInfo> partitions;
+
+  std::unique_ptr<VolumeDisc> volume = CreateDisc(infile_path);
+  if (volume)
+  {
+    for (const Partition& partition : volume->GetPartitions())
+    {
+      const std::optional<u64> data_offset =
+          volume->ReadSwappedAndShifted(partition.offset + 0x2B8, PARTITION_NONE);
+      const std::optional<u64> data_size =
+          volume->ReadSwappedAndShifted(partition.offset + 0x2BC, PARTITION_NONE);
+      if (!data_offset || !data_size)
+        continue;
+
+      PartitionInfo info;
+      info.data_offset = partition.offset + *data_offset;
+      info.data_size = *data_size;
+      info.partition = partition;
+      partitions.push_back(info);
+    }
+  }
+
+  // NKit v2 gap type bitmap: 1 bit per block, MSB-first, always sized for dual-layer
+  const u64 gap_type_blocks = (DL_DVD_SIZE + wbfs_sector_size - 1) / wbfs_sector_size;
+  const u64 gap_type_bytes = (gap_type_blocks + 7) / 8;
+  std::vector<u8> gap_type(gap_type_bytes, 0);
+
+  // Compute data_start up front so we can write sectors during the scan
+  const u64 data_start = Common::AlignUp(hd_sector_size + disc_info_size, wbfs_sector_size);
+  const u16 wlba_base = static_cast<u16>(data_start / wbfs_sector_size);
+
+  // Single pass: scan, classify, hash, and write used sectors in one loop
+  std::vector<u8> sector_buf(wbfs_sector_size, 0);
+  std::vector<u16> wlba_table(blocks_per_disc, 0);
+  u16 used_count = 0;
+  u16 zero_block_wlba = 0;  // Dedup: wlba of first stored all-zero ciphertext block
+
+  // NKit v2 stores four hash digests for verification
+  auto sha1_ctx = Common::SHA1::CreateContext();
+  u32 crc = Common::StartCRC32();
+  mbedtls_md5_context md5_ctx{};
+  mbedtls_md5_init(&md5_ctx);
+  mbedtls_md5_starts_ret(&md5_ctx);
+  XXH64_state_t* xxh_state = XXH64_createState();
+  XXH64_reset(xxh_state, 0);
+
+  auto hash_cleanup = Common::ScopeGuard([&] {
+    XXH64_freeState(xxh_state);
+    mbedtls_md5_free(&md5_ctx);
+  });
+
+  auto file_cleanup = Common::ScopeGuard([&] {
+    outfile.Close();
+    File::Delete(outfile_path);
+  });
+
+  const auto write_failed_panic = [&] {
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
+                   "Check that you have enough space available on the target drive.",
+                   outfile_path);
+    return false;
+  };
+
+  outfile.Seek(data_start, File::SeekOrigin::Begin);
+
+  for (u64 i = 0; i < blocks_per_disc; i++)
+  {
+    if (i % 100 == 0)
+    {
+      const bool was_cancelled =
+          !callback(Common::GetStringT("Converting"),
+                    static_cast<float>(i) / static_cast<float>(blocks_per_disc));
+      if (was_cancelled)
+        return false;
+    }
+
+    const u64 offset = i * wbfs_sector_size;
+    const size_t sz = static_cast<size_t>(std::min(wbfs_sector_size, disc_size - offset));
+
+    if (!infile->Read(offset, sz, sector_buf.data()))
+    {
+      PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
+      return false;
+    }
+
+    // Update all four hashes with the full disc data
+    sha1_ctx->Update(sector_buf.data(), sz);
+    crc = Common::UpdateCRC32(crc, sector_buf.data(), sz);
+    mbedtls_md5_update_ret(&md5_ctx, sector_buf.data(), sz);
+    XXH64_update(xxh_state, sector_buf.data(), sz);
+
+    // Find which partition (if any) this block belongs to
+    const auto pi = std::ranges::find_if(partitions, [&](const PartitionInfo& p) {
+      return offset >= p.data_offset && (offset + sz) <= (p.data_offset + p.data_size);
+    });
+
+    bool is_used = true;
+
+    if (pi != partitions.end())
+    {
+      // Partition data: use Volume::Read to get decrypted data for junk/zero checks.
+      // All-zero and all-junk are checked separately - mixed blocks are stored.
+      bool all_zero = true;
+      bool all_junk = true;
+      for (u64 sub = 0; sub < sz; sub += VolumeWii::BLOCK_TOTAL_SIZE)
+      {
+        const u64 abs = offset + sub;
+        const u64 sector_in_partition = (abs - pi->data_offset) / VolumeWii::BLOCK_TOTAL_SIZE;
+        const u64 partition_offset = sector_in_partition * VolumeWii::BLOCK_DATA_SIZE;
+
+        u8 decrypted[VolumeWii::BLOCK_DATA_SIZE];
+        if (!volume->Read(partition_offset, VolumeWii::BLOCK_DATA_SIZE, decrypted, pi->partition))
+          break;
+
+        const bool sector_zero = std::ranges::all_of(decrypted, [](u8 b) { return b == 0; });
+        if (!sector_zero)
+        {
+          all_zero = false;
+          const bool sector_junk = LaggedFibonacciGenerator::IsJunkBlock(
+              decrypted, VolumeWii::BLOCK_DATA_SIZE, partition_offset, disc_header.data(),
+              disc_header[6]);
+          if (!sector_junk)
+            all_junk = false;
+        }
+
+        if (!all_zero && !all_junk)
+          break;
+      }
+
+      if (all_zero || all_junk)
+      {
+        if (all_junk && !all_zero)
+          gap_type[i / 8] |= static_cast<u8>(1 << (7 - (i & 7)));
+        is_used = false;
+      }
+    }
+    else
+    {
+      // Non-partition data: check disc-level zero and junk patterns
+      const bool is_zero = std::ranges::all_of(sector_buf, [](u8 b) { return b == 0; });
+      if (is_zero)
+      {
+        is_used = false;
+      }
+      else if (LaggedFibonacciGenerator::IsJunkBlock(sector_buf.data(), sz, offset,
+                                                     disc_header.data(), disc_header[6]))
+      {
+        gap_type[i / 8] |= static_cast<u8>(1 << (7 - (i & 7)));
+        is_used = false;
+      }
+    }
+
+    if (is_used)
+    {
+      // Store one copy of all-zero blocks and reuse the wlba entry for duplicates.
+      const bool raw_zero = std::ranges::all_of(sector_buf.begin(), sector_buf.begin() + sz,
+                                                [](u8 b) { return b == 0; });
+
+      if (raw_zero && zero_block_wlba != 0)
+      {
+        wlba_table[i] = zero_block_wlba;
+      }
+      else
+      {
+        std::fill(sector_buf.begin() + sz, sector_buf.end(), u8{0});
+        if (!outfile.Write(sector_buf.data(), wbfs_sector_size))
+          return write_failed_panic();
+
+        wlba_table[i] = Common::swap16(static_cast<u16>(wlba_base + used_count));
+
+        if (raw_zero && zero_block_wlba == 0)
+          zero_block_wlba = wlba_table[i];
+
+        used_count++;
+      }
+    }
+  }
+
+  // Finalize hashes
+  const Common::SHA1::Digest sha1_digest = sha1_ctx->Finish();
+  const u64 xxh_digest = XXH64_digest(xxh_state);
+
+  // Write WBFS header (seek back to start)
+  const u64 total_size = data_start + static_cast<u64>(used_count) * wbfs_sector_size;
+  const u32 hd_sector_count = static_cast<u32>(total_size / hd_sector_size);
+
+  WbfsHeader header{};
+  header.magic = WBFS_MAGIC;
+  header.hd_sector_count = Common::swap32(hd_sector_count);
+  header.hd_sector_shift = hd_sector_shift;
+  header.wbfs_sector_shift = wbfs_sector_shift;
+  header.disc_table[0] = 1;
+
+  outfile.Seek(0, File::SeekOrigin::Begin);
+  if (!outfile.Write(Common::AsU8Span(header)))
+    return write_failed_panic();
+
+  // Write disc info at offset hd_sector_size: disc header + wlba table
+  outfile.Seek(hd_sector_size, File::SeekOrigin::Begin);
+  if (!outfile.Write(disc_header.data(), WII_DISC_HEADER_SIZE))
+    return write_failed_panic();
+  if (!outfile.Write(Common::AsU8Span(wlba_table)))
+    return write_failed_panic();
+
+  // Write NKit v2 header at offset 0x10000 for lossless round-trip.
+  NKit::Info nkit_info;
+  nkit_info.flags = NKit::Flags::Size | NKit::Flags::Crc32 | NKit::Flags::Md5 | NKit::Flags::Sha1 |
+                    NKit::Flags::XxHash64;
+  nkit_info.digests.disc_size = disc_size;
+  nkit_info.digests.crc32 = crc;
+  mbedtls_md5_finish_ret(&md5_ctx, nkit_info.digests.md5.data());
+  nkit_info.digests.sha1 = sha1_digest;
+  nkit_info.digests.xxhash64 = xxh_digest;
+  nkit_info.gap_type = std::move(gap_type);
+
+  if (!NKit::WriteHeader(outfile, NKit::HEADER_OFFSET, nkit_info))
+    return write_failed_panic();
+
+  file_cleanup.Dismiss();
+  return true;
+}
 
 }  // namespace DiscIO

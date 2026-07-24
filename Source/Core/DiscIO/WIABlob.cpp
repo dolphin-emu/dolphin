@@ -1745,7 +1745,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
                                File::DirectIOFile* outfile, WIARVZCompressionType compression_type,
                                int compression_level, int chunk_size, CompressCB callback)
 {
-  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate ||
+         infile->GetDataSizeType() == DataSizeType::UpperBound);
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
