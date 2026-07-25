@@ -22,11 +22,9 @@ project(dolphin-emu)
 # When using the Visual Studio generator, only show our targets and not the ones from Externals.
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
-if (MSVC)
-  set(CMAKE_C_STANDARD 99)
-  set(CMAKE_CXX_STANDARD 23)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(COMPILER ${CMAKE_CXX_COMPILER_ID})
 if (COMPILER STREQUAL "GNU")
@@ -149,12 +147,27 @@ list(APPEND CMAKE_MODULE_PATH
 # Support functions
 include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
+include(CheckCXXSourceCompiles)
 include(CheckSymbolExists)
 include(DolphinCompileDefinitions)
 include(DolphinDisableWarningsMSVC)
 include(DolphinLibraryTools)
 include(GNUInstallDirs)
 include(RemoveCompileFlag)
+
+# std::jthread is guarded behind -fexperimental-library prior to libc++ version 20
+check_cxx_source_compiles([[
+#if defined(_LIBCPP_VERSION)
+#if _LIBCPP_VERSION < 200000
+#error libc++ version < 20
+#endif
+#endif
+int main() {}
+]] IS_JTHREAD_STABLE)
+
+if(NOT IS_JTHREAD_STABLE)
+  add_compile_options(-fexperimental-library)
+endif()
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
