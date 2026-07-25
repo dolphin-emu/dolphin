@@ -3,6 +3,23 @@
 
 #include "Common/GL/GLInterface/EGLX11.h"
 
+#include <cstdlib>
+
+#include "Common/StringUtil.h"
+
+GLContextEGLX11::GLContextEGLX11()
+{
+  // HACK: If EGL_PLATFORM is set to "wayland", Dolphin will still use GLContextEGLX11 due to our
+  // lack of proper Wayland support, and crash.
+  // Some distros have started aggressively setting that environment variable, bypassing the usual
+  // runtime detection. Thus, clear that environment variable if it forces wayland.
+  const char* current_egl_platform = getenv("EGL_PLATFORM");
+  const bool replace_egl_platform =
+      current_egl_platform != nullptr &&
+      Common::CaseInsensitiveContains(current_egl_platform, "wayland");
+  setenv("EGL_PLATFORM", "", replace_egl_platform);
+}
+
 GLContextEGLX11::~GLContextEGLX11()
 {
   // The context must be destroyed before the window.
