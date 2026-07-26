@@ -13,6 +13,7 @@
 #include "VideoCommon/CPMemory.h"
 
 class NativeVertexFormat;
+class VertexLoaderBase;
 struct PortableVertexDeclaration;
 
 namespace OpcodeDecoder
@@ -40,9 +41,13 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
 // offsets set to the unused attributes.
 NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
-// Returns -1 if buf_size is insufficient, else the amount of bytes consumed
+// Returns -1 if buf_size is insufficient, else the amount of bytes consumed.
+// `loader` must be the loader previously resolved by RefreshLoader<IsPreprocess>(vtx_attr_group)
+// for this same vtx_attr_group; passing it in avoids resolving the loader a second time on the
+// hot primitive path (the decoder already resolved it in GetVertexSize).
 template <bool IsPreprocess = false>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src);
+int RunVertices(VertexLoaderBase* loader, int vtx_attr_group, OpcodeDecoder::Primitive primitive,
+                int count, const u8* src);
 
 namespace detail
 {

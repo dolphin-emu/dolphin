@@ -396,13 +396,12 @@ static bool CanSplit(OpcodeDecoder::Primitive primitive)
 }
 
 template <bool IsPreprocess>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
+int RunVertices(VertexLoaderBase* loader, int vtx_attr_group, OpcodeDecoder::Primitive primitive,
+                int count, const u8* src)
 {
   if (count == 0) [[unlikely]]
     return 0;
   ASSERT(count > 0);
-
-  VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
   int size = count * loader->m_vertex_size;
 
@@ -478,10 +477,10 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
   return size;
 }
 
-template int RunVertices<false>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                                const u8* src);
-template int RunVertices<true>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                               const u8* src);
+template int RunVertices<false>(VertexLoaderBase* loader, int vtx_attr_group,
+                                OpcodeDecoder::Primitive primitive, int count, const u8* src);
+template int RunVertices<true>(VertexLoaderBase* loader, int vtx_attr_group,
+                               OpcodeDecoder::Primitive primitive, int count, const u8* src);
 
 NativeVertexFormat* GetCurrentVertexFormat()
 {

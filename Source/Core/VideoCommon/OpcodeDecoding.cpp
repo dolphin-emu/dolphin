@@ -129,8 +129,8 @@ public:
     // load vertices
     const u32 size = vertex_size * num_vertices;
 
-    const u32 bytes =
-        VertexLoaderManager::RunVertices<is_preprocess>(vat, primitive, num_vertices, vertex_data);
+    const u32 bytes = VertexLoaderManager::RunVertices<is_preprocess>(
+        m_current_loader, vat, primitive, num_vertices, vertex_data);
 
     ASSERT(bytes == size);
 
@@ -248,12 +248,18 @@ public:
 
   OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
   {
-    VertexLoaderBase* loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
-    return loader->m_vertex_size;
+    // RunCommand always calls GetVertexSize immediately before OnPrimitiveCommand for the same
+    // vat, with no CP state change in between. Resolve the loader once here and reuse it in
+    // OnPrimitiveCommand, avoiding a second RefreshLoader lookup on the hot primitive path.
+    m_current_loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
+    return m_current_loader->m_vertex_size;
   }
 
   u32 m_cycles = 0;
   bool m_in_display_list = false;
+  // Loader resolved by the most recent GetVertexSize call, reused by the paired OnPrimitiveCommand
+  // to avoid a redundant RefreshLoader on the hot primitive path.
+  VertexLoaderBase* m_current_loader = nullptr;
 };
 
 template <bool is_preprocess>
