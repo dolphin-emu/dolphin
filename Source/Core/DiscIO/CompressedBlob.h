@@ -72,7 +72,7 @@ private:
   CompressedBlobHeader m_header = {};
   std::vector<u64> m_block_pointers = {};
   std::vector<u32> m_hashes = {};
-  int m_data_offset = 0;
+  u64 m_data_offset = 0;
   File::DirectIOFile m_file = {};
   u64 m_file_size = 0;
   std::vector<u8> m_zlib_buffer = {};
