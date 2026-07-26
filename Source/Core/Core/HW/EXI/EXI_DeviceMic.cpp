@@ -164,7 +164,7 @@ void CEXIMic::StreamReadOne()
   if (samples_avail >= buff_size_samples)
   {
     s16* last_buffer = &stream_buffer[stream_rpos];
-    std::memcpy(ring_buffer, last_buffer, buff_size);
+    std::memcpy(ring_buffer.data(), last_buffer, buff_size);
 
     samples_avail -= buff_size_samples;
 
@@ -194,7 +194,6 @@ CEXIMic::CEXIMic(Core::System& system, int index)
   buff_size_samples = buff_size / SAMPLE_SIZE;
 
   ring_pos = 0;
-  std::memset(ring_buffer, 0, sizeof(ring_buffer));
 
   next_int_ticks = 0;
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <mutex>
 
 #include "Common/CommonTypes.h"
@@ -24,7 +25,7 @@ public:
   bool IsPresent() const override;
 
 private:
-  static constexpr u8 EXI_ID[] = {0, 0x0a, 0, 0, 0};
+  static constexpr std::array<u8, 5> EXI_ID{0, 0x0a, 0, 0, 0};
   static constexpr int SAMPLE_SIZE = sizeof(s16);
   static constexpr int RATE_BASE = 11025;
   static constexpr int RING_BASE = 32;
@@ -68,7 +69,7 @@ private:
 
   // 64 is the max size, can be 16 or 32 as well
   int ring_pos;
-  u8 ring_buffer[64 * SAMPLE_SIZE];
+  std::array<u8, 64 * SAMPLE_SIZE> ring_buffer{};
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
   // to determine if interrupt should be raised
