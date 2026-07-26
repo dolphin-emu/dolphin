@@ -1673,6 +1673,7 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 {
   std::lock_guard lkp(m_crit.players);
   std::vector<const Player*> players;
+  players.reserve(m_players.size());
 
   for (const auto& pair : m_players)
     players.push_back(&pair.second);
