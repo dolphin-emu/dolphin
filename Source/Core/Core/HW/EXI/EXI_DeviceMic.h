@@ -39,10 +39,10 @@ private:
     cmdReset = 0xFF,
   };
 
-  int slot;
+  int m_slot;
 
   u32 m_position = 0;
-  int command = 0;
+  int m_command = 0;
   struct Status
   {
     u16 out : 4;          // MICSet/GetOut...???
@@ -68,34 +68,34 @@ private:
   void StreamReadOne();
 
   // 64 is the max size, can be 16 or 32 as well
-  int ring_pos = 0;
-  std::array<u8, 64 * SAMPLE_SIZE> ring_buffer{};
+  int m_ring_pos = 0;
+  std::array<u8, 64 * SAMPLE_SIZE> m_ring_buffer{};
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
   // to determine if interrupt should be raised
-  u64 next_int_ticks = 0;
+  u64 m_next_int_ticks = 0;
   void UpdateNextInterruptTicks();
 
   // Streaming input interface
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
-  Status status{};
+  Status m_status{};
 
-  std::mutex ring_lock;
+  std::mutex m_ring_lock;
 
   // status bits converted to nice numbers
-  int sample_rate = RATE_BASE;
-  int buff_size = RING_BASE;
-  int buff_size_samples = buff_size / SAMPLE_SIZE;
+  int m_sample_rate = RATE_BASE;
+  int m_buff_size = RING_BASE;
+  int m_buff_size_samples = m_buff_size / SAMPLE_SIZE;
 
   // Arbitrarily small ringbuffer used by audio input backend in order to
   // keep delay tolerable
-  s16* stream_buffer;
-  int stream_size;
-  int stream_wpos;
-  int stream_rpos;
-  int samples_avail;
+  s16* m_stream_buffer;
+  int m_stream_size;
+  int m_stream_wpos;
+  int m_stream_rpos;
+  int m_samples_avail;
 
 #ifdef _WIN32
   Common::AsyncWorkThread m_work_queue;
