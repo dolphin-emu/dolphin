@@ -250,6 +250,7 @@ bool VolumeWii::HasWiiEncryption() const
 std::vector<Partition> VolumeWii::GetPartitions() const
 {
   std::vector<Partition> partitions;
+  partitions.reserve(m_partitions.size());
   for (const auto& pair : m_partitions)
     partitions.push_back(pair.first);
   return partitions;
