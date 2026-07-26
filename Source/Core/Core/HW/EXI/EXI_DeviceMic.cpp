@@ -232,7 +232,8 @@ void CEXIMic::SetCS(int cs)
 
 void CEXIMic::UpdateNextInterruptTicks()
 {
-  int diff = (m_system.GetSystemTimers().GetTicksPerSecond() / m_sample_rate) * m_buff_size_samples;
+  const int diff =
+      (m_system.GetSystemTimers().GetTicksPerSecond() / m_sample_rate) * m_buff_size_samples;
   m_next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
@@ -264,7 +265,7 @@ void CEXIMic::TransferByte(u8& byte)
     return;
   }
 
-  int pos = m_position - 1;
+  const int pos = m_position - 1;
 
   switch (m_command)
   {
@@ -284,11 +285,11 @@ void CEXIMic::TransferByte(u8& byte)
 
   case cmdSetStatus:
   {
-    bool wasactive = m_status.is_active;
+    const bool was_active = m_status.is_active;
     Common::BitCastPtr<u8>(&m_status)[pos ^ 1] = byte;
 
     // safe to do since these can only be entered if both bytes of status have been written
-    if (!wasactive && m_status.is_active)
+    if (!was_active && m_status.is_active)
     {
       m_sample_rate = RATE_BASE << m_status.sample_rate;
       m_buff_size = RING_BASE << m_status.buff_size;
@@ -298,7 +299,7 @@ void CEXIMic::TransferByte(u8& byte)
 
       StreamStart();
     }
-    else if (wasactive && !m_status.is_active)
+    else if (was_active && !m_status.is_active)
     {
       StreamStop();
     }
