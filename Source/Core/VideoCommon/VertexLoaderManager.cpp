@@ -253,6 +253,13 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
   return loader;
 }
 
+// GetOrCreateLoader is defined here but is called from RefreshLoader() (a header template) in other
+// translation units, e.g. OpcodeDecoding.cpp. These instantiations used to be pulled in implicitly
+// because RunVertices() called RefreshLoader(); RunVertices() now receives an already-resolved
+// loader, so instantiate them explicitly to keep the symbols in this object file.
+template VertexLoaderBase* GetOrCreateLoader<false>(int vtx_attr_group);
+template VertexLoaderBase* GetOrCreateLoader<true>(int vtx_attr_group);
+
 }  // namespace detail
 
 static void CheckCPConfiguration(int vtx_attr_group)
