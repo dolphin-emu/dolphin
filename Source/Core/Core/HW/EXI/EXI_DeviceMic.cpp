@@ -179,9 +179,6 @@ void CEXIMic::StreamReadOne()
 // buffer size settings. When the console handles the interrupt, it will send
 // cmdGetBuffer, which is when we actually read data from a buffer filled
 // in the background.
-
-u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
-
 CEXIMic::CEXIMic(Core::System& system, int index)
     : IEXIDevice(system), slot(index)
 #ifdef _WIN32
@@ -192,9 +189,9 @@ CEXIMic::CEXIMic(Core::System& system, int index)
   m_position = 0;
   command = 0;
 
-  sample_rate = rate_base;
-  buff_size = ring_base;
-  buff_size_samples = buff_size / sample_size;
+  sample_rate = RATE_BASE;
+  buff_size = RING_BASE;
+  buff_size_samples = buff_size / SAMPLE_SIZE;
 
   ring_pos = 0;
   std::memset(ring_buffer, 0, sizeof(ring_buffer));
@@ -280,7 +277,7 @@ void CEXIMic::TransferByte(u8& byte)
   switch (command)
   {
   case cmdID:
-    byte = exi_id[pos];
+    byte = EXI_ID[pos];
     break;
 
   case cmdGetStatus:
@@ -301,9 +298,9 @@ void CEXIMic::TransferByte(u8& byte)
     // safe to do since these can only be entered if both bytes of status have been written
     if (!wasactive && status.is_active)
     {
-      sample_rate = rate_base << status.sample_rate;
-      buff_size = ring_base << status.buff_size;
-      buff_size_samples = buff_size / sample_size;
+      sample_rate = RATE_BASE << status.sample_rate;
+      buff_size = RING_BASE << status.buff_size;
+      buff_size_samples = buff_size / SAMPLE_SIZE;
 
       UpdateNextInterruptTicks();
 

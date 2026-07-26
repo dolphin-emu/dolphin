@@ -24,10 +24,10 @@ public:
   bool IsPresent() const override;
 
 private:
-  static u8 const exi_id[];
-  static int const sample_size = sizeof(s16);
-  static int const rate_base = 11025;
-  static int const ring_base = 32;
+  static constexpr u8 EXI_ID[] = {0, 0x0a, 0, 0, 0};
+  static constexpr int SAMPLE_SIZE = sizeof(s16);
+  static constexpr int RATE_BASE = 11025;
+  static constexpr int RING_BASE = 32;
 
   enum
   {
@@ -68,7 +68,7 @@ private:
 
   // 64 is the max size, can be 16 or 32 as well
   int ring_pos;
-  u8 ring_buffer[64 * sample_size];
+  u8 ring_buffer[64 * SAMPLE_SIZE];
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
   // to determine if interrupt should be raised
