@@ -41,8 +41,8 @@ private:
 
   int slot;
 
-  u32 m_position;
-  int command;
+  u32 m_position = 0;
+  int command = 0;
   struct Status
   {
     u16 out : 4;          // MICSet/GetOut...???
@@ -68,12 +68,12 @@ private:
   void StreamReadOne();
 
   // 64 is the max size, can be 16 or 32 as well
-  int ring_pos;
+  int ring_pos = 0;
   std::array<u8, 64 * SAMPLE_SIZE> ring_buffer{};
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
   // to determine if interrupt should be raised
-  u64 next_int_ticks;
+  u64 next_int_ticks = 0;
   void UpdateNextInterruptTicks();
 
   // Streaming input interface
@@ -85,9 +85,9 @@ private:
   std::mutex ring_lock;
 
   // status bits converted to nice numbers
-  int sample_rate;
-  int buff_size;
-  int buff_size_samples;
+  int sample_rate = RATE_BASE;
+  int buff_size = RING_BASE;
+  int buff_size_samples = buff_size / SAMPLE_SIZE;
 
   // Arbitrarily small ringbuffer used by audio input backend in order to
   // keep delay tolerable

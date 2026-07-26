@@ -186,17 +186,6 @@ CEXIMic::CEXIMic(Core::System& system, int index)
       m_work_queue("Mic Worker")
 #endif
 {
-  m_position = 0;
-  command = 0;
-
-  sample_rate = RATE_BASE;
-  buff_size = RING_BASE;
-  buff_size_samples = buff_size / SAMPLE_SIZE;
-
-  ring_pos = 0;
-
-  next_int_ticks = 0;
-
 #ifdef _WIN32
   m_work_queue.PushBlocking([this] {
     auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
