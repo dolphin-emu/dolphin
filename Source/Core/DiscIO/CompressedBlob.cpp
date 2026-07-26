@@ -38,36 +38,76 @@ bool IsGCZBlob(File::DirectIOFile& file);
 CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, std::string filename)
     : m_file(std::move(file)), m_file_name(std::move(filename))
 {
+  m_valid = Initialize();
+}
+
+bool CompressedBlobReader::Initialize()
+{
   m_file_size = m_file.GetSize();
   m_file.Seek(0, File::SeekOrigin::Begin);
-  m_file.Read(Common::AsWritableU8Span(m_header));
+  if (!m_file.Read(Common::AsWritableU8Span(m_header)))
+    return false;
 
-  SetSectorSize(m_header.block_size);
+  if (m_header.magic_cookie != GCZ_MAGIC)
+    return false;
+
+  size_t block_pointers_size = m_header.num_blocks * sizeof(u64);
+  size_t hashes_size = m_header.num_blocks * sizeof(u32);
+
+  size_t header_size = sizeof(CompressedBlobHeader) + block_pointers_size + hashes_size;
+
+  // Basic sanity check for size before we start allocating
+  if (header_size > m_file_size)
+  {
+    ERROR_LOG_FMT(DISCIO, "Headers' size is larger than file size");
+    return false;
+  }
+
+  if ((header_size + m_header.compressed_data_size) > m_file_size)
+  {
+    ERROR_LOG_FMT(DISCIO, "Data size is larger than file size.");
+    return false;
+  }
+
+  if (m_header.num_blocks == 0)
+  {
+    ERROR_LOG_FMT(DISCIO, "GCZ file has zero blocks");
+    return false;
+  }
 
   // cache block pointers and hashes
   m_block_pointers.resize(m_header.num_blocks);
-  m_file.Read(Common::AsWritableU8Span(m_block_pointers));
+  if (!m_file.Read(Common::AsWritableU8Span(m_block_pointers)))
+    return false;
 
   m_hashes.resize(m_header.num_blocks);
-  m_file.Read(Common::AsWritableU8Span(m_hashes));
+  if (!m_file.Read(Common::AsWritableU8Span(m_hashes)))
+    return false;
 
-  m_data_offset = (sizeof(CompressedBlobHeader)) +
-                  (sizeof(u64)) * m_header.num_blocks     // skip block pointers
-                  + (sizeof(u32)) * m_header.num_blocks;  // skip hashes
+  m_data_offset = header_size;
 
   // A compressed block is never ever longer than a decompressed block, so just header.block_size
   // should be fine.
   // I still add some safety margin.
   const u32 zlib_buffer_size = m_header.block_size + 64;
   m_zlib_buffer.resize(zlib_buffer_size);
+
+  SetSectorSize(m_header.block_size);
+
+  return ValidateBlockPointers();
 }
 
 std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(File::DirectIOFile file,
                                                                    const std::string& filename)
 {
   if (IsGCZBlob(file))
-    return std::unique_ptr<CompressedBlobReader>(
+  {
+    std::unique_ptr<CompressedBlobReader> reader(
         new CompressedBlobReader(std::move(file), filename));
+
+    if (reader->m_valid)
+      return reader;
+  }
 
   return nullptr;
 }
@@ -171,6 +211,46 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   return true;
 }
 
+bool CompressedBlobReader::ValidateBlockPointers() const
+{
+  size_t valid_pointers = 0;
+
+  // Validate block pointers
+  for (u32 i = 0; i < m_header.num_blocks; ++i)
+  {
+    u64 next;
+    if (i + 1 < m_header.num_blocks)
+      next = m_block_pointers[i + 1] & ~uncompressed_flag;
+    else
+      next = m_header.compressed_data_size;
+
+    if (next > m_header.compressed_data_size)
+      continue;
+
+    u64 offset = m_block_pointers[i] & ~uncompressed_flag;
+    if (offset > m_header.compressed_data_size)
+      continue;
+
+    bool uncompressed = m_block_pointers[i] & uncompressed_flag;
+    u64 size = next - offset;
+
+    if (uncompressed && size != m_header.block_size)
+      continue;
+
+    if (!uncompressed && size > m_zlib_buffer.size())
+      continue;
+
+    valid_pointers++;
+  }
+
+  size_t invalid_pointers = m_header.num_blocks - valid_pointers;
+
+  if (invalid_pointers > 0)
+    ERROR_LOG_FMT(DISCIO, "GCZ file has {} invalid block pointers", invalid_pointers);
+
+  return invalid_pointers == 0;
+}
+
 struct CompressThreadState
 {
   CompressThreadState() : z{} {}
@@ -258,7 +338,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::DirectIOFi
 {
   u64 offset = *position;
   if (!parameters.compressed)
-    offset |= 0x8000000000000000ULL;
+    offset |= uncompressed_flag;
   (*offsets)[parameters.block_number] = offset;
 
   *position += parameters.data.size();
@@ -306,10 +386,10 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   header.magic_cookie = GCZ_MAGIC;
   header.sub_type = sub_type;
   header.block_size = block_size;
-  header.data_size = infile->GetDataSize();
+  header.disc_size = infile->GetDataSize();
 
   // round upwards!
-  header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
+  header.num_blocks = (u32)((header.disc_size + (block_size - 1)) / block_size);
 
   std::vector<u64> offsets(header.num_blocks);
   std::vector<u32> hashes(header.num_blocks);
@@ -345,7 +425,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     if (compressor.GetStatus() != ConversionResultCode::Success)
       break;
 
-    const u64 bytes_to_read = std::min<u64>(block_size, header.data_size - inpos);
+    const u64 bytes_to_read = std::min<u64>(block_size, header.disc_size - inpos);
 
     if (!infile->Read(inpos, bytes_to_read, in_buf.data()))
     {
