@@ -136,8 +136,8 @@ void AudioPane::CreateWidgets()
 
   for (auto string : WASAPIStream::GetAvailableDevices())
   {
-    wasapi_options.push_back(std::pair<QString, QString>{QString::fromStdString(string),
-                                                         QString::fromStdString(string)});
+    const QString device = QString::fromStdString(string);
+    wasapi_options.emplace_back(device, device);
   }
 
   m_wasapi_device_label = new QLabel(tr("Output Device:"));
