@@ -42,22 +42,17 @@ private:
 
   u32 m_position;
   int command;
-  union UStatus
+  struct Status
   {
-    u16 U16;
-    u8 U8[2];
-    struct
-    {
-      u16 out : 4;          // MICSet/GetOut...???
-      u16 id : 1;           // Used for MICGetDeviceID (always 0)
-      u16 button_unk : 3;   // Button bits which appear unused
-      u16 button : 1;       // The actual button on the mic
-      u16 buff_ovrflw : 1;  // Ring buffer wrote over bytes which weren't read by console
-      u16 gain : 1;         // Gain: 0dB or 15dB
-      u16 sample_rate : 2;  // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
-      u16 buff_size : 2;    // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
-      u16 is_active : 1;    // If we are sampling or not
-    };
+    u16 out : 4;          // MICSet/GetOut...???
+    u16 id : 1;           // Used for MICGetDeviceID (always 0)
+    u16 button_unk : 3;   // Button bits which appear unused
+    u16 button : 1;       // The actual button on the mic
+    u16 buff_ovrflw : 1;  // Ring buffer wrote over bytes which weren't read by console
+    u16 gain : 1;         // Gain: 0dB or 15dB
+    u16 sample_rate : 2;  // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
+    u16 buff_size : 2;    // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
+    u16 is_active : 1;    // If we are sampling or not
   };
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
@@ -84,7 +79,7 @@ private:
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
-  UStatus status;
+  Status status{};
 
   std::mutex ring_lock;
 
