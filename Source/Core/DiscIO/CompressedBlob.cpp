@@ -31,6 +31,8 @@
 
 namespace DiscIO
 {
+static constexpr u64 uncompressed_flag = 1ULL << 63;
+
 bool IsGCZBlob(File::DirectIOFile& file);
 
 CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, std::string filename)
@@ -80,9 +82,9 @@ std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {
-  u64 start = m_block_pointers[block_num];
+  u64 start = m_block_pointers[block_num] & ~uncompressed_flag;
   if (block_num < m_header.num_blocks - 1)
-    return m_block_pointers[block_num + 1] - start;
+    return (m_block_pointers[block_num + 1] & ~uncompressed_flag) - start;
   else if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
   else
@@ -93,21 +95,29 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
   bool uncompressed = false;
-  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  u64 read_size = GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
-  if (offset & (1ULL << 63))
+  if (offset & uncompressed_flag)
   {
-    if (comp_block_size != m_header.block_size)
+    if (read_size != m_header.block_size)
+    {
       ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");
+      return false;
+    }
     uncompressed = true;
-    offset &= ~(1ULL << 63);
+    offset &= ~uncompressed_flag;
+  }
+  else
+  {
+    if (read_size > m_zlib_buffer.size())
+    {
+      ERROR_LOG_FMT(DISCIO, "Compressed block is too large");
+      return false;
+    }
   }
 
-  // clear unused part of zlib buffer. maybe this can be deleted when it works fully.
-  memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
-
-  if (!m_file.OffsetRead(offset, m_zlib_buffer.data(), comp_block_size))
+  if (!m_file.OffsetRead(offset, m_zlib_buffer.data(), read_size))
   {
     ERROR_LOG_FMT(DISCIO, "The disc image \"{}\" is truncated, some of the data is missing.",
                   m_file_name);
@@ -115,7 +125,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   }
 
   // First, check hash.
-  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), read_size);
   if (block_hash != m_hashes[block_num])
   {
     ERROR_LOG_FMT(DISCIO,
@@ -126,13 +136,13 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 
   if (uncompressed)
   {
-    std::copy_n(m_zlib_buffer.begin(), comp_block_size, out_ptr);
+    std::copy_n(m_zlib_buffer.begin(), m_header.block_size, out_ptr);
   }
   else
   {
     z_stream z = {};
     z.next_in = m_zlib_buffer.data();
-    z.avail_in = comp_block_size;
+    z.avail_in = read_size;
     if (z.avail_in > m_header.block_size)
     {
       ERROR_LOG_FMT(DISCIO, "Compressed block size is larger than uncompressed block size");
