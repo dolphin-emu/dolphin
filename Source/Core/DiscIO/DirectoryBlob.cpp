@@ -895,8 +895,8 @@ DirectoryBlobPartition::DirectoryBlobPartition(
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback,
     DirectoryBlobReader* blob)
-    : m_wrapped_partition(partition),
-      m_is_triforce(volume && volume->GetVolumeType() == Platform::Triforce)
+    : m_is_triforce(volume && volume->GetVolumeType() == Platform::Triforce),
+      m_wrapped_partition(partition)
 {
   std::vector<FSTBuilderNode> sys_nodes;
 

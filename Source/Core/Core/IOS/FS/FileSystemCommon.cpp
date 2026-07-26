@@ -147,7 +147,7 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
     return;
   }
 
-  Metadata metadata;
+  Metadata metadata{};
   p.Do(metadata.uid);
   p.Do(metadata.gid);
   p.Do(metadata.attribute);
