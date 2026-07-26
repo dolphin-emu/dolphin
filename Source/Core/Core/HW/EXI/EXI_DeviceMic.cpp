@@ -240,19 +240,15 @@ void CEXIMic::UpdateNextInterruptTicks()
 
 bool CEXIMic::IsInterruptSet()
 {
-  if (m_next_int_ticks && m_system.GetCoreTiming().GetTicks() >= m_next_int_ticks)
-  {
-    if (m_status.is_active)
-      UpdateNextInterruptTicks();
-    else
-      m_next_int_ticks = 0;
-
-    return true;
-  }
-  else
-  {
+  if (m_next_int_ticks == 0 || m_system.GetCoreTiming().GetTicks() < m_next_int_ticks)
     return false;
-  }
+
+  if (m_status.is_active)
+    UpdateNextInterruptTicks();
+  else
+    m_next_int_ticks = 0;
+
+  return true;
 }
 
 void CEXIMic::TransferByte(u8& byte)
@@ -265,15 +261,25 @@ void CEXIMic::TransferByte(u8& byte)
     return;
   }
 
-  const int pos = m_position - 1;
+  const u32 pos = m_position - 1;
 
   switch (m_command)
   {
   case cmdID:
+    if (pos >= EXI_ID.size())
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "ID command will overflow, pos={}", pos);
+      break;
+    }
     byte = EXI_ID[pos];
     break;
 
   case cmdGetStatus:
+    if (pos >= sizeof(m_status))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "GetStatus command will overflow, pos={}", pos);
+      break;
+    }
     if (pos == 0)
       m_status.button = Pad::GetMicButton(m_slot);
 
@@ -285,6 +291,11 @@ void CEXIMic::TransferByte(u8& byte)
 
   case cmdSetStatus:
   {
+    if (pos >= sizeof(m_status))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "SetStatus command will overflow, pos={}", pos);
+      break;
+    }
     const bool was_active = m_status.is_active;
     Common::BitCastPtr<u8>(&m_status)[pos ^ 1] = byte;
 

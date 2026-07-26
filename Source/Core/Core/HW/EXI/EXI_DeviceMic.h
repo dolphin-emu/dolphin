@@ -26,9 +26,9 @@ public:
 
 private:
   static constexpr std::array<u8, 5> EXI_ID{0, 0x0a, 0, 0, 0};
-  static constexpr int SAMPLE_SIZE = sizeof(s16);
-  static constexpr int RATE_BASE = 11025;
-  static constexpr int RING_BASE = 32;
+  static constexpr u32 SAMPLE_SIZE = sizeof(s16);
+  static constexpr u32 RATE_BASE = 11025;
+  static constexpr u32 RING_BASE = 32;
 
   enum
   {
@@ -68,7 +68,7 @@ private:
   void StreamReadOne();
 
   // 64 is the max size, can be 16 or 32 as well
-  int m_ring_pos = 0;
+  std::size_t m_ring_pos = 0;
   std::array<u8, 64 * SAMPLE_SIZE> m_ring_buffer{};
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
@@ -85,17 +85,17 @@ private:
   std::mutex m_ring_lock;
 
   // status bits converted to nice numbers
-  int m_sample_rate = RATE_BASE;
-  int m_buff_size = RING_BASE;
-  int m_buff_size_samples = m_buff_size / SAMPLE_SIZE;
+  u32 m_sample_rate = RATE_BASE;
+  u32 m_buff_size = RING_BASE;
+  u32 m_buff_size_samples = m_buff_size / SAMPLE_SIZE;
 
   // Arbitrarily small ringbuffer used by audio input backend in order to
   // keep delay tolerable
   s16* m_stream_buffer;
-  int m_stream_size;
-  int m_stream_wpos;
-  int m_stream_rpos;
-  int m_samples_avail;
+  u32 m_stream_size;
+  u32 m_stream_wpos;
+  u32 m_stream_rpos;
+  u32 m_samples_avail;
 
 #ifdef _WIN32
   Common::AsyncWorkThread m_work_queue;
