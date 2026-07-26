@@ -94,6 +94,9 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 
 bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
+  if (block_num >= m_header.num_blocks)
+    return false;
+
   bool uncompressed = false;
   u64 read_size = GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
