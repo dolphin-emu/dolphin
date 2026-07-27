@@ -68,6 +68,7 @@ TEST(BitCastView, SwappedRangeLoop)
 {
   std::vector<u8> data = {0, 0, 0, 1, 0, 0, 0, 2};
   auto words = Common::BitCastView<Common::BigEndianValue<u32>>(data);
+  static_assert(Common::user_defined_conversion<Common::BigEndianValue<u32>, u32>);
 
   u32 sum = 0;
   for (auto word : words)
