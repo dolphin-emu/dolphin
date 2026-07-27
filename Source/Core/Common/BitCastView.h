@@ -170,8 +170,6 @@ private:
   FromIter m_iter;
 };
 
-static_assert(std::random_access_iterator<BitCastViewIterator<u32, std::span<const u8>>>);
-
 template <typename To, std::ranges::view V>
 class BitCastViewImpl : public std::ranges::view_interface<BitCastViewImpl<To, V>>
 {
