@@ -202,8 +202,8 @@ int main(const int argc, char* argv[])
                 "fbdev"
 #endif
 #if HAVE_DRM
-            ,
-            "drm"
+				        ,
+				        "drm"
 #endif
 #if HAVE_X11
                 ,

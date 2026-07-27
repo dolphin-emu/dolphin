@@ -36,7 +36,8 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, [[maybe_unused]] VkPhysicalDevice physical_device,
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance,
+                                            [[maybe_unused]] VkPhysicalDevice physical_device,
                                             const WindowSystemInfo& wsi)
 {
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
