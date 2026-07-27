@@ -12,7 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/NKitHeader.h"
+#include "DiscIO/NKitv2Header.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -110,7 +110,7 @@ private:
   bool m_good;
 
   // NKit v2 header for lossless round-trip
-  NKit::Info m_nkit_info;
+  NKitv2::Info m_nkit_info;
   bool m_has_nkit_header = false;
   u8 m_disc_id[4] = {};
   u8 m_disc_num = 0;

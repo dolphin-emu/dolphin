@@ -256,7 +256,7 @@ void LaggedFibonacciGenerator::GenerateSeed(u32 seed_out[SEED_SIZE], const u8 di
 void LaggedFibonacciGenerator::FillJunkData(std::span<u8> out, u64 disc_offset, const u8 disc_id[4],
                                             u8 disc_num)
 {
-  static constexpr size_t SECTOR_SIZE = 0x8000;
+  static constexpr size_t BLOCK_SIZE = 0x8000;
   LaggedFibonacciGenerator lfg;
 
   size_t remaining = out.size();
@@ -264,9 +264,9 @@ void LaggedFibonacciGenerator::FillJunkData(std::span<u8> out, u64 disc_offset, 
 
   while (remaining > 0)
   {
-    const u32 sector = static_cast<u32>(disc_offset / SECTOR_SIZE);
-    const size_t sector_off = static_cast<size_t>(disc_offset % SECTOR_SIZE);
-    size_t chunk = std::min(SECTOR_SIZE - sector_off, remaining);
+    const u32 sector = static_cast<u32>(disc_offset / BLOCK_SIZE);
+    const size_t sector_off = static_cast<size_t>(disc_offset % BLOCK_SIZE);
+    size_t chunk = std::min(BLOCK_SIZE - sector_off, remaining);
 
     u32 seed[SEED_SIZE];
     GenerateSeed(seed, disc_id, disc_num, sector);
@@ -286,14 +286,14 @@ void LaggedFibonacciGenerator::FillJunkData(std::span<u8> out, u64 disc_offset, 
 bool LaggedFibonacciGenerator::IsJunkBlock(const u8* data, size_t size, u64 disc_offset,
                                            const u8 disc_id[4], u8 disc_num)
 {
-  static constexpr size_t SECTOR_SIZE = 0x8000;
+  static constexpr size_t BLOCK_SIZE = 0x8000;
   LaggedFibonacciGenerator lfg;
 
   while (size > 0)
   {
-    const u32 sector = static_cast<u32>(disc_offset / SECTOR_SIZE);
-    const size_t sector_off = static_cast<size_t>(disc_offset % SECTOR_SIZE);
-    const size_t chunk = std::min(SECTOR_SIZE - sector_off, size);
+    const u32 sector = static_cast<u32>(disc_offset / BLOCK_SIZE);
+    const size_t sector_off = static_cast<size_t>(disc_offset % BLOCK_SIZE);
+    const size_t chunk = std::min(BLOCK_SIZE - sector_off, size);
 
     u32 seed[SEED_SIZE];
     GenerateSeed(seed, disc_id, disc_num, sector);

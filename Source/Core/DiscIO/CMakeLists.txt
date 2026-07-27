@@ -28,8 +28,8 @@ add_library(discio
   LaggedFibonacciGenerator.cpp
   LaggedFibonacciGenerator.h
   MultithreadedCompressor.h
-  NKitHeader.cpp
-  NKitHeader.h
+  NKitv2Header.cpp
+  NKitv2Header.h
   NANDImporter.cpp
   NANDImporter.h
   NFSBlob.cpp

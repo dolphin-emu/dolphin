@@ -26,7 +26,7 @@
 #include "Common/Swap.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
-#include "DiscIO/NKitHeader.h"
+#include "DiscIO/NKitv2Header.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
 
@@ -147,7 +147,7 @@ bool WbfsFileReader::ReadHeader()
 bool WbfsFileReader::ReadNKitHeader()
 {
   const u64 gap_type_blocks = (DL_DVD_SIZE + m_wbfs_sector_size - 1) / m_wbfs_sector_size;
-  m_nkit_info = NKit::ReadHeaderFromFile(m_files[0].file, NKit::HEADER_OFFSET, gap_type_blocks);
+  m_nkit_info = NKitv2::ReadHeaderFromFile(m_files[0].file, NKitv2::HEADER_OFFSET, gap_type_blocks);
   if (!m_nkit_info.valid)
     return false;
 
@@ -162,7 +162,7 @@ bool WbfsFileReader::IsBlockStored(u64 block_index) const
 
 bool WbfsFileReader::IsGapJunk(u64 block_index) const
 {
-  return NKit::IsGapJunk(m_nkit_info.gap_type, block_index);
+  return NKitv2::IsGapJunk(m_nkit_info.gap_type, block_index);
 }
 
 void WbfsFileReader::GenerateJunkData(u64 disc_offset, std::span<u8> out) const
@@ -632,9 +632,9 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
     return write_failed_panic();
 
   // Write NKit v2 header at offset 0x10000 for lossless round-trip.
-  NKit::Info nkit_info;
-  nkit_info.flags = NKit::Flags::Size | NKit::Flags::Crc32 | NKit::Flags::Md5 | NKit::Flags::Sha1 |
-                    NKit::Flags::XxHash64;
+  NKitv2::Info nkit_info;
+  nkit_info.flags = NKitv2::Flags::Size | NKitv2::Flags::Crc32 | NKitv2::Flags::Md5 | NKitv2::Flags::Sha1 |
+                    NKitv2::Flags::XxHash64;
   nkit_info.digests.disc_size = disc_size;
   nkit_info.digests.crc32 = crc;
   mbedtls_md5_finish_ret(&md5_ctx, nkit_info.digests.md5.data());
@@ -642,7 +642,7 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
   nkit_info.digests.xxhash64 = xxh_digest;
   nkit_info.gap_type = std::move(gap_type);
 
-  if (!NKit::WriteHeader(outfile, NKit::HEADER_OFFSET, nkit_info))
+  if (!NKitv2::WriteHeader(outfile, NKitv2::HEADER_OFFSET, nkit_info))
     return write_failed_panic();
 
   file_cleanup.Dismiss();
