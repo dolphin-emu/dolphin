@@ -372,10 +372,9 @@ std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(File::DirectIOFile file,
   return reader;
 }
 
-// Converts any disc image to WBFS with an NKit v2 header for lossless round-trips.
+// Converts any disc image to lossless WBFS with an NKitv2 header.
 // Strips disc-level junk and partition-level junk (encrypted sectors whose decrypted
 // content is zero or LFG padding), records a junk bitmap for reconstruction.
-// See: https://github.com/dolphin-emu/dolphin/pull/14731
 bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
                    const std::string& outfile_path, const CompressCB& callback)
 {
@@ -392,6 +391,11 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
         outfile_path);
     return false;
   }
+
+  auto file_cleanup = Common::ScopeGuard([&] {
+    outfile.Close();
+    File::Delete(outfile_path);
+  });
 
   const u64 disc_size = infile->GetDataSize();
 
@@ -451,7 +455,6 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
   const u64 data_start = Common::AlignUp(hd_sector_size + disc_info_size, wbfs_sector_size);
   const u16 wlba_base = static_cast<u16>(data_start / wbfs_sector_size);
 
-  // Single pass: scan, classify, hash, and write used sectors in one loop
   std::vector<u8> sector_buf(wbfs_sector_size, 0);
   std::vector<u16> wlba_table(blocks_per_disc, 0);
   u16 used_count = 0;
@@ -469,11 +472,6 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
   auto hash_cleanup = Common::ScopeGuard([&] {
     XXH64_freeState(xxh_state);
     mbedtls_md5_free(&md5_ctx);
-  });
-
-  auto file_cleanup = Common::ScopeGuard([&] {
-    outfile.Close();
-    File::Delete(outfile_path);
   });
 
   const auto write_failed_panic = [&] {
@@ -520,19 +518,21 @@ bool ConvertToWBFS(BlobReader* infile, const std::string& infile_path,
 
     if (pi != partitions.end())
     {
-      // Partition data: use Volume::Read to get decrypted data for junk/zero checks.
-      // All-zero and all-junk are checked separately - mixed blocks are stored.
       bool all_zero = true;
       bool all_junk = true;
       for (u64 sub = 0; sub < sz; sub += VolumeWii::BLOCK_TOTAL_SIZE)
       {
         const u64 abs = offset + sub;
-        const u64 sector_in_partition = (abs - pi->data_offset) / VolumeWii::BLOCK_TOTAL_SIZE;
-        const u64 partition_offset = sector_in_partition * VolumeWii::BLOCK_DATA_SIZE;
+        const u64 block_in_partition = (abs - pi->data_offset) / VolumeWii::BLOCK_TOTAL_SIZE;
+        const u64 partition_offset = block_in_partition * VolumeWii::BLOCK_DATA_SIZE;
 
         u8 decrypted[VolumeWii::BLOCK_DATA_SIZE];
         if (!volume->Read(partition_offset, VolumeWii::BLOCK_DATA_SIZE, decrypted, pi->partition))
+        {
+          all_zero = false;
+          all_junk = false;
           break;
+        }
 
         const bool sector_zero = std::ranges::all_of(decrypted, [](u8 b) { return b == 0; });
         if (!sector_zero)

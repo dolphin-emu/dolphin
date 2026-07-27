@@ -72,9 +72,9 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   auto* const convert_button = new QPushButton(tr("Convert..."));
 
   m_lossy_warning = new QLabel(
-      tr("Warning: This file does not contain verification data. Some disc data may have been lost "
+      tr("Warning: This file uses a lossy format. Some disc data may have been lost "
          "during the original conversion, so the result will not be an exact copy of the original "
-         "disc. The converted file will still work fine for playing games."));
+         "disc. This won't affect your ability to play the game."));
   m_lossy_warning->setWordWrap(true);
   m_lossy_warning->setStyleSheet(QStringLiteral("color: red; font-weight: bold;"));
   m_lossy_warning->setVisible(std::ranges::any_of(m_files, [](const auto& file) {
@@ -92,9 +92,8 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "data (unless removed).\n\n"
          "RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. "
          "It can efficiently compress both junk data and encrypted Wii data.\n\n"
-         "WBFS: NKit v2 WBFS, a lossless variant that strips unused disc sectors "
-         "and stores verification data for perfect round-trips. Compatible with USB loaders on a "
-         "real Wii."));
+         "WBFS: A block-mapped format that strips unused disc sectors to save space. "
+         "Compatible with real Wiis."));
   info_text->setWordWrap(true);
   info_text->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
@@ -316,7 +315,7 @@ void ConvertDialog::Convert()
       }))
   {
     if (!ShowAreYouSureDialog(tr("Converting a GameCube disc to WBFS will produce a valid WBFS "
-                                 "file but is not playable on a real Wii. "
+                                 "file, but the result is not playable on a real Wii. "
                                  "Do you want to continue anyway?")))
     {
       return;
@@ -463,7 +462,7 @@ void ConvertDialog::Convert()
     std::unique_ptr<DiscIO::BlobReader> blob_reader;
     bool scrub_current_file = scrub;
 
-    // WBFS conversion computes hashes over the original disc data
+    // WBFS already strips unused sectors, so scrubbing is redundant
     if (format == DiscIO::BlobType::WBFS)
       scrub_current_file = false;
 

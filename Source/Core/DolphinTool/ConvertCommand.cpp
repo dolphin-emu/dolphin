@@ -154,10 +154,10 @@ int ConvertCommand(const std::vector<std::string>& args)
 
   if (blob_reader->GetDataSizeType() == DiscIO::DataSizeType::UpperBound)
   {
-    fmt::print(std::cerr, "Warning: This file does not contain verification data. "
+    fmt::print(std::cerr, "Warning: This file uses a lossy format. "
                           "Some disc data may have been lost during the original conversion, "
                           "so the result will not be an exact copy of the original disc. "
-                          "The converted file will still work fine for playing games. "
+                          "This won't affect your ability to play the game. "
                           "Continuing anyway.\n");
   }
 
@@ -218,7 +218,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       volume->GetVolumeType() == DiscIO::Platform::GameCubeDisc)
   {
     fmt::print(std::cerr,
-               "Warning: Output will be a valid WBFS file but is not playable on a real Wii.\n");
+               "Warning: Output will be a valid WBFS file, but the result is not playable on a real Wii.\n");
   }
 
   if (volume && volume->IsNKit())
