@@ -57,8 +57,6 @@ WbfsFileReader::WbfsFileReader(File::DirectIOFile file, const std::string& path)
   }
 
   // Grab disc info (assume slot 0, checked in ReadHeader())
-  // TODO: Multi-disc WBFS support (disc_table can hold up to 500 entries).
-  // Offset would be: m_hd_sector_size + WII_DISC_HEADER_SIZE + i * m_disc_info_size
   m_wlba_table.resize(m_blocks_per_disc);
   m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE, File::SeekOrigin::Begin);
   m_files[0].file.Read(Common::AsWritableU8Span(m_wlba_table));
@@ -163,11 +161,6 @@ bool WbfsFileReader::IsBlockStored(u64 block_index) const
 bool WbfsFileReader::IsGapJunk(u64 block_index) const
 {
   return NKitv2::IsGapJunk(m_nkit_info.gap_type, block_index);
-}
-
-void WbfsFileReader::GenerateJunkData(u64 disc_offset, std::span<u8> out) const
-{
-  LaggedFibonacciGenerator::FillJunkData(out, disc_offset, m_disc_id, m_disc_num);
 }
 
 void WbfsFileReader::ReadPartitionInfo()
@@ -301,7 +294,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
         }
         else if (IsGapJunk(base_cluster))
         {
-          GenerateJunkData(offset, {out_ptr, read_size});
+          LaggedFibonacciGenerator::FillJunkData({out_ptr, read_size}, offset, m_disc_id, m_disc_num);
         }
         else
         {

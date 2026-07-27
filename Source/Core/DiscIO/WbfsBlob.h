@@ -69,7 +69,6 @@ private:
   void ReadPartitionInfo();
   bool IsBlockStored(u64 block_index) const;
   bool IsGapJunk(u64 block_index) const;
-  void GenerateJunkData(u64 disc_offset, std::span<u8> out) const;
 
   struct PartitionEntry
   {
