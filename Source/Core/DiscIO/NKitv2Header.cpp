@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
@@ -23,7 +24,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
   const Flags flags = static_cast<Flags>(static_cast<u16>(header.flags));
   size_t pos = 0;
 
-  if (flags & Flags::Size)
+  if ((flags & Flags::Size) != Flags::None)
   {
     if (pos + sizeof(SizeField) > remaining)
       return false;
@@ -33,7 +34,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
     pos += sizeof(SizeField);
   }
 
-  if (flags & Flags::Crc32)
+  if ((flags & Flags::Crc32) != Flags::None)
   {
     if (pos + sizeof(Crc32Field) > remaining)
       return false;
@@ -43,7 +44,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
     pos += sizeof(Crc32Field);
   }
 
-  if (flags & Flags::Md5)
+  if ((flags & Flags::Md5) != Flags::None)
   {
     if (pos + sizeof(Md5Field) > remaining)
       return false;
@@ -53,7 +54,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
     pos += sizeof(Md5Field);
   }
 
-  if (flags & Flags::Sha1)
+  if ((flags & Flags::Sha1) != Flags::None)
   {
     if (pos + sizeof(Sha1Field) > remaining)
       return false;
@@ -63,7 +64,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
     pos += sizeof(Sha1Field);
   }
 
-  if (flags & Flags::XxHash64)
+  if ((flags & Flags::XxHash64) != Flags::None)
   {
     if (pos + sizeof(XxHash64Field) > remaining)
       return false;
@@ -73,7 +74,7 @@ static bool ParseHeaderFields(const Header& header, const u8* data, size_t remai
     pos += sizeof(XxHash64Field);
   }
 
-  if (flags & Flags::Key)
+  if ((flags & Flags::Key) != Flags::None)
   {
     if (pos + sizeof(KeyField) > remaining)
       return false;
@@ -125,15 +126,15 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
   const u64 gap_type_bytes = info.gap_type.size();
 
   size_t data_size = 0;
-  if (info.flags & Flags::Size)
+  if ((info.flags & Flags::Size) != Flags::None)
     data_size += sizeof(SizeField);
-  if (info.flags & Flags::Crc32)
+  if ((info.flags & Flags::Crc32) != Flags::None)
     data_size += sizeof(Crc32Field);
-  if (info.flags & Flags::Md5)
+  if ((info.flags & Flags::Md5) != Flags::None)
     data_size += sizeof(Md5Field);
-  if (info.flags & Flags::Sha1)
+  if ((info.flags & Flags::Sha1) != Flags::None)
     data_size += sizeof(Sha1Field);
-  if (info.flags & Flags::XxHash64)
+  if ((info.flags & Flags::XxHash64) != Flags::None)
     data_size += sizeof(XxHash64Field);
   const u16 total_header_size = static_cast<u16>(sizeof(Header) + data_size);
 
@@ -148,7 +149,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
 
   size_t pos = sizeof(Header);
 
-  if (info.flags & Flags::Size)
+  if ((info.flags & Flags::Size) != Flags::None)
   {
     SizeField field;
     field.disc_size = info.digests.disc_size;
@@ -156,7 +157,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
     pos += sizeof(SizeField);
   }
 
-  if (info.flags & Flags::Crc32)
+  if ((info.flags & Flags::Crc32) != Flags::None)
   {
     Crc32Field field;
     field.crc32 = info.digests.crc32;
@@ -164,7 +165,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
     pos += sizeof(Crc32Field);
   }
 
-  if (info.flags & Flags::Md5)
+  if ((info.flags & Flags::Md5) != Flags::None)
   {
     Md5Field field;
     field.digest = info.digests.md5;
@@ -172,7 +173,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
     pos += sizeof(Md5Field);
   }
 
-  if (info.flags & Flags::Sha1)
+  if ((info.flags & Flags::Sha1) != Flags::None)
   {
     Sha1Field field;
     field.digest = info.digests.sha1;
@@ -180,7 +181,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
     pos += sizeof(Sha1Field);
   }
 
-  if (info.flags & Flags::XxHash64)
+  if ((info.flags & Flags::XxHash64) != Flags::None)
   {
     XxHash64Field field;
     field.hash = info.digests.xxhash64;
