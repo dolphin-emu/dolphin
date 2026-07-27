@@ -44,7 +44,7 @@ public:
     return std::bit_cast<To>(arr);
   }
 
-  operator To() const { return this->operator*(); }
+  operator const To() const { return this->operator*(); }
 
   // We only forward the conversion operator if To defined one,
   // otherwise it's ambiguous which conversion to use.
