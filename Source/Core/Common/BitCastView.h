@@ -194,7 +194,9 @@ private:
 };
 
 template <typename To>
-struct BitCastViewAdapter : std::ranges::range_adaptor_closure<BitCastViewAdapter<To>>
+struct BitCastViewAdapter
+// TODO: restore range_adaptor_closure once we move to gcc 13/clang 16
+// : std::ranges::range_adaptor_closure<BitCastViewAdapter<To>>
 {
   static constexpr auto operator()(std::ranges::viewable_range auto&& viewable)
   {

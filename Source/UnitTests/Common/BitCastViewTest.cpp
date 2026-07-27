@@ -16,7 +16,7 @@ TEST(BitCastView, Basics)
 
   // check R | C
 
-  auto words = data | Common::BitCastView<u32>;
+  auto words = Common::BitCastView<u32>(data);
 
   EXPECT_EQ(words.size(), 4);
   EXPECT_EQ(words[0], 0x03020100);
@@ -37,7 +37,7 @@ TEST(BitCastView, Writable)
 
   for (u8 i = 0; i < 16; ++i)
     data.push_back(i);
-  auto words = data | Common::BitCastView<u32>;
+  auto words = Common::BitCastView<u32>(data);
 
   words[0] = 0xdeadbeef;
 
@@ -51,7 +51,7 @@ TEST(BitCastView, Swapping)
 {
   // Make sure it interacts correctly with BigEndianValue
   std::vector<u8> data = {0, 0, 0, 1};
-  auto words = data | Common::BitCastView<Common::BigEndianValue<u32>>;
+  auto words = Common::BitCastView<Common::BigEndianValue<u32>>(data);
 
   u32 value = words[0];
   EXPECT_EQ(value, 1);
@@ -67,7 +67,7 @@ TEST(BitCastView, Swapping)
 TEST(BitCastView, SwappedRangeLoop)
 {
   std::vector<u8> data = {0, 0, 0, 1, 0, 0, 0, 2};
-  auto words = data | Common::BitCastView<Common::BigEndianValue<u32>>;
+  auto words = Common::BitCastView<Common::BigEndianValue<u32>>(data);
 
   u32 sum = 0;
   for (auto word : words)
