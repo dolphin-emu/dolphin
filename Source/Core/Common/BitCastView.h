@@ -198,7 +198,7 @@ struct BitCastViewAdapter
 // TODO: restore range_adaptor_closure once we move to gcc 13/clang 16
 // : std::ranges::range_adaptor_closure<BitCastViewAdapter<To>>
 {
-  static constexpr auto operator()(std::ranges::viewable_range auto&& viewable)
+  auto operator()(std::ranges::viewable_range auto&& viewable) const
   {
     auto view = std::ranges::views::all(viewable);
     using V = std::remove_cvref_t<decltype(view)>;
