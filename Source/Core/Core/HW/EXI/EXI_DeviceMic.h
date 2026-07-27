@@ -6,6 +6,7 @@
 #include <array>
 #include <mutex>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -91,7 +92,7 @@ private:
 
   // Arbitrarily small ringbuffer used by audio input backend in order to
   // keep delay tolerable
-  s16* m_stream_buffer;
+  Common::UniqueBuffer<s16> m_stream_buffer;
   u32 m_stream_size;
   u32 m_stream_wpos;
   u32 m_stream_rpos;

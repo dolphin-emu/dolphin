@@ -28,7 +28,7 @@ namespace ExpansionInterface
 {
 void CEXIMic::StreamInit()
 {
-  m_stream_buffer = nullptr;
+  m_stream_buffer.clear();
   m_samples_avail = 0;
   m_stream_wpos = 0;
   m_stream_rpos = 0;
@@ -102,7 +102,7 @@ void CEXIMic::StreamStart()
 #endif
     // Open stream with current parameters
     m_stream_size = m_buff_size_samples * 500;
-    m_stream_buffer = new s16[m_stream_size];
+    m_stream_buffer.reset(m_stream_size);
 
     cubeb_stream_params params{};
     params.format = CUBEB_SAMPLE_S16LE;
@@ -157,8 +157,7 @@ void CEXIMic::StreamStop()
   m_stream_wpos = 0;
   m_stream_rpos = 0;
 
-  delete[] m_stream_buffer;
-  m_stream_buffer = nullptr;
+  m_stream_buffer.clear();
 }
 
 void CEXIMic::StreamReadOne()
