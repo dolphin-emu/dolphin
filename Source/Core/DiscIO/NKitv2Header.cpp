@@ -14,7 +14,8 @@
 
 namespace DiscIO::NKitv2
 {
-static constexpr char NKIT_MAGIC[8] = {'N', 'K', 'I', 'T', ' ', ' ', 'v', '2'};
+static constexpr char NKIT_MAGIC[4] = {'N', 'K', 'I', 'T'};
+static constexpr char NKIT_V2[4] = {' ', ' ', 'v', '2'};
 
 static bool ParseHeaderFields(const Header& header, const u8* data, size_t remaining,
                               const u8* gap_data, u64 gap_type_blocks, Info& info)
@@ -102,6 +103,9 @@ Info ReadHeaderFromFile(File::DirectIOFile& file, u64 offset, u64 gap_type_block
   if (std::memcmp(header.magic, NKIT_MAGIC, sizeof(NKIT_MAGIC)) != 0)
     return info;
 
+  if (std::memcmp(header.magic + 4, NKIT_V2, sizeof(NKIT_V2)) != 0)
+    return info;
+
   const u16 header_size = header.header_size;
   if (header_size < sizeof(Header))
     return info;
@@ -137,6 +141,7 @@ bool WriteHeader(File::DirectIOFile& file, u64 offset, const Info& info)
 
   Header header;
   std::memcpy(header.magic, NKIT_MAGIC, sizeof(NKIT_MAGIC));
+  std::memcpy(header.magic + 4, NKIT_V2, sizeof(NKIT_V2));
   header.header_size = total_header_size;
   header.flags = static_cast<u16>(info.flags);
   std::memcpy(buffer.data(), &header, sizeof(Header));
