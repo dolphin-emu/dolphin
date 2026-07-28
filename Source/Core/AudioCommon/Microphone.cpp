@@ -142,6 +142,7 @@ void Microphone::StreamStart(u32 sampling_rate)
     }
 
     m_stream_buffer.resize(GetStreamSize());
+    m_stream_rpos = 0;
     m_stream_wpos = 0;
     INFO_LOG_FMT(AUDIO, "started cubeb stream");
   });
@@ -177,6 +178,11 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
   return mic->DataCallback(static_cast<const SampleType*>(input_buffer), nframes);
 }
 
+void Microphone::OnOverflow()
+{
+  m_samples_avail = GetStreamSize();
+}
+
 long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
 {
   std::lock_guard lock(m_ring_lock);
@@ -204,7 +210,7 @@ long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
   m_samples_avail += nframes;
   if (m_samples_avail > stream_size)
   {
-    m_samples_avail = stream_size;
+    OnOverflow();
   }
 
   return nframes;
@@ -213,22 +219,23 @@ long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
 
 u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 {
-  static constexpr u32 SINGLE_READ_SIZE = BUFF_SIZE_SAMPLES * sizeof(SampleType);
+  const u32 samples_per_read = GetBufferSizeSamples();
+  const u32 bytes_per_read = samples_per_read * sizeof(SampleType);
 
   std::lock_guard lock(m_ring_lock);
 
   const u32 stream_size = GetStreamSize();
-  u8* begin = ptr;
-  for (u8* end = begin + size; ptr < end; ptr += SINGLE_READ_SIZE, size -= SINGLE_READ_SIZE)
+  u8* const begin = ptr;
+  for (u8* const end = begin + size; ptr < end; ptr += bytes_per_read, size -= bytes_per_read)
   {
-    if (size < SINGLE_READ_SIZE || m_samples_avail < BUFF_SIZE_SAMPLES)
+    if (size < bytes_per_read || m_samples_avail < samples_per_read)
       break;
 
     SampleType* last_buffer = &m_stream_buffer[m_stream_rpos];
-    std::memcpy(ptr, last_buffer, SINGLE_READ_SIZE);
+    std::memcpy(ptr, last_buffer, bytes_per_read);
 
-    m_samples_avail -= BUFF_SIZE_SAMPLES;
-    m_stream_rpos += BUFF_SIZE_SAMPLES;
+    m_samples_avail -= samples_per_read;
+    m_stream_rpos += samples_per_read;
     m_stream_rpos %= stream_size;
   }
   return static_cast<u16>(ptr - begin);
@@ -266,7 +273,7 @@ void Microphone::UpdateLoudness(const SampleType sample)
   }
 }
 
-bool Microphone::HasData(u32 sample_count = BUFF_SIZE_SAMPLES) const
+bool Microphone::HasData(u32 sample_count) const
 {
   std::lock_guard lock(m_ring_lock);
   return m_samples_avail >= sample_count;
@@ -281,6 +288,11 @@ void Microphone::SetSamplingRate(u32 sampling_rate)
 {
   StreamStop();
   StreamStart(sampling_rate);
+}
+
+u32 Microphone::GetBufferSizeSamples() const
+{
+  return BUFF_SIZE_SAMPLES;
 }
 
 const Microphone::FloatType Microphone::Loudness::DB_MIN =
