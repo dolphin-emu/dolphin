@@ -6,6 +6,7 @@
 #include <array>
 #include <mutex>
 
+#include "AudioCommon/Microphone.h"
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/WorkQueueThread.h"
@@ -16,6 +17,37 @@ struct cubeb_stream;
 
 namespace ExpansionInterface
 {
+class GameCubeMicState final : public AudioCommon::MicrophoneState
+{
+public:
+  static constexpr u32 DEFAULT_SAMPLING_RATE = 11025;
+  static constexpr u32 RING_BASE = 32;
+  static constexpr u32 SAMPLE_SIZE = sizeof(s16);
+
+  bool IsSampleOn() const override;
+  bool IsMuted() const override;
+  u32 GetDefaultSamplingRate() const override;
+
+  u32 GetSampleRate() const;
+  u32 GetBufferSize() const;
+  u32 GetBufferSizeSamples() const;
+
+  struct Status
+  {
+    u16 out : 4;          // MICSet/GetOut...???
+    u16 id : 1;           // Used for MICGetDeviceID (always 0)
+    u16 button_unk : 3;   // Button bits which appear unused
+    u16 button : 1;       // The actual button on the mic
+    u16 buff_ovrflw : 1;  // Ring buffer wrote over bytes which weren't read by console
+    u16 gain : 1;         // Gain: 0dB or 15dB
+    u16 sample_rate : 2;  // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
+    u16 buff_size : 2;    // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
+    u16 is_active : 1;    // If we are sampling or not
+  };
+
+  Status status{};
+};
+
 class CEXIMic : public IEXIDevice
 {
 public:
@@ -27,9 +59,6 @@ public:
 
 private:
   static constexpr std::array<u8, 5> EXI_ID{0, 0x0a, 0, 0, 0};
-  static constexpr u32 SAMPLE_SIZE = sizeof(s16);
-  static constexpr u32 RATE_BASE = 11025;
-  static constexpr u32 RING_BASE = 32;
 
   enum
   {
@@ -44,33 +73,15 @@ private:
 
   u32 m_position = 0;
   int m_command = 0;
-  struct Status
-  {
-    u16 out : 4;          // MICSet/GetOut...???
-    u16 id : 1;           // Used for MICGetDeviceID (always 0)
-    u16 button_unk : 3;   // Button bits which appear unused
-    u16 button : 1;       // The actual button on the mic
-    u16 buff_ovrflw : 1;  // Ring buffer wrote over bytes which weren't read by console
-    u16 gain : 1;         // Gain: 0dB or 15dB
-    u16 sample_rate : 2;  // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
-    u16 buff_size : 2;    // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
-    u16 is_active : 1;    // If we are sampling or not
-  };
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                            void* output_buffer, long nframes);
 
   void TransferByte(u8& byte) override;
 
-  void StreamInit();
-  void StreamTerminate();
-  void StreamStart();
-  void StreamStop();
-  void StreamReadOne();
-
   // 64 is the max size, can be 16 or 32 as well
   std::size_t m_ring_pos = 0;
-  std::array<u8, 64 * SAMPLE_SIZE> m_ring_buffer{};
+  std::array<u8, 64 * GameCubeMicState::SAMPLE_SIZE> m_ring_buffer{};
 
   // 0 to disable interrupts, else it will be checked against current CPU ticks
   // to determine if interrupt should be raised
@@ -81,27 +92,16 @@ private:
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
-  Status m_status{};
-
   std::mutex m_ring_lock;
 
   // status bits converted to nice numbers
-  u32 m_sample_rate = RATE_BASE;
-  u32 m_buff_size = RING_BASE;
-  u32 m_buff_size_samples = m_buff_size / SAMPLE_SIZE;
+  u32 m_sample_rate = GameCubeMicState::DEFAULT_SAMPLING_RATE;
+  u32 m_buff_size = GameCubeMicState::RING_BASE;
+  u32 m_buff_size_samples = m_buff_size / GameCubeMicState::SAMPLE_SIZE;
 
   // Arbitrarily small ringbuffer used by audio input backend in order to
   // keep delay tolerable
-  Common::UniqueBuffer<s16> m_stream_buffer;
-  u32 m_stream_size;
-  u32 m_stream_wpos;
-  u32 m_stream_rpos;
-  u32 m_samples_avail;
-
-#ifdef _WIN32
-  Common::AsyncWorkThread m_work_queue;
-  bool m_coinit_success = false;
-  bool m_should_couninit = false;
-#endif
+  GameCubeMicState m_sampler{};
+  std::unique_ptr<AudioCommon::Microphone> m_microphone{};
 };
 }  // namespace ExpansionInterface
