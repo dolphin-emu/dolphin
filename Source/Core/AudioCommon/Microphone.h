@@ -49,7 +49,9 @@ public:
   void SetSamplingRate(u32 sampling_rate);
 
 protected:
+  // sic. can be 16, 32 or 64 on GameCube
   static constexpr u32 BUFF_SIZE_SAMPLES = 32;
+  u32 m_samples_avail = 0;
 
 private:
 #ifdef HAVE_CUBEB
@@ -59,6 +61,7 @@ private:
   virtual std::string GetCubebStreamName() const = 0;
   virtual s16 GetVolumeModifier() const = 0;
   virtual bool AreSamplesByteSwapped() const = 0;
+  virtual void OnOverflow();
 #endif
 
   long DataCallback(const SampleType* input_buffer, long nframes);
@@ -70,11 +73,11 @@ private:
   void StreamStart(u32 sampling_rate);
   void StreamStop();
 
+  virtual u32 GetBufferSizeSamples() const;
   virtual u32 GetStreamSize() const = 0;
   std::vector<SampleType> m_stream_buffer{};
   u32 m_stream_wpos = 0;
   u32 m_stream_rpos = 0;
-  u32 m_samples_avail = 0;
 
   // TODO: Find how this level is calculated on real hardware
   std::atomic<u16> m_loudness_level = 0;
