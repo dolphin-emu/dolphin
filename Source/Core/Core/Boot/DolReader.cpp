@@ -55,17 +55,20 @@ bool DolReader::Initialize(std::span<const u8> buffer)
     {
       if ((m_dolheader.textAddress[i] & 31) != 0 || (m_dolheader.textSize[i] & 31) != 0)
       {
-        ERROR_LOG_FMT(BOOT, 
+        ERROR_LOG_FMT(BOOT,
                       "Text section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
                       i, m_dolheader.textAddress[i], m_dolheader.textSize[i]);
         return false;
       }
 
-      if (buffer.size() < m_dolheader.textOffset[i] + m_dolheader.textSize[i])
+      const std::size_t section_offset = m_dolheader.textOffset[i];
+      const std::size_t section_size = m_dolheader.textSize[i];
+
+      if (buffer.size() < section_offset || (buffer.size() - section_offset) < section_size)
         return false;
 
-      const u8* text_start = &buffer[m_dolheader.textOffset[i]];
-      m_text_sections.emplace_back(text_start, &text_start[m_dolheader.textSize[i]]);
+      const u8* text_start = &buffer[section_offset];
+      m_text_sections.emplace_back(text_start, &text_start[section_size]);
 
       for (unsigned int j = 0; !m_is_wii && j < (m_dolheader.textSize[i] / sizeof(u32)); ++j)
       {
@@ -86,11 +89,11 @@ bool DolReader::Initialize(std::span<const u8> buffer)
   {
     if (m_dolheader.dataSize[i] != 0)
     {
-      u32 section_size = m_dolheader.dataSize[i];
-      u32 section_offset = m_dolheader.dataOffset[i];
+      const std::size_t section_size = m_dolheader.dataSize[i];
+      const std::size_t section_offset = m_dolheader.dataOffset[i];
       if ((m_dolheader.dataAddress[i] & 31) != 0 || (section_size & 31) != 0)
       {
-        ERROR_LOG_FMT(BOOT, 
+        ERROR_LOG_FMT(BOOT,
                       "Data section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
                       i, m_dolheader.dataAddress[i], section_size);
         return false;
@@ -101,8 +104,7 @@ bool DolReader::Initialize(std::span<const u8> buffer)
 
       std::vector<u8> data(section_size);
       const u8* data_start = &buffer[section_offset];
-      std::memcpy(&data[0], data_start,
-                  std::min((size_t)section_size, buffer.size() - section_offset));
+      std::memcpy(&data[0], data_start, std::min(section_size, buffer.size() - section_offset));
       m_data_sections.emplace_back(data);
     }
     else
