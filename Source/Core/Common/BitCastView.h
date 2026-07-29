@@ -19,6 +19,27 @@ namespace Common
 template <typename T, typename U>
 concept user_defined_conversion = requires(T t) { t.operator U(); };
 
+// Excludes explicit conversion functions
+template <typename T, typename U>
+concept implicit_user_defined_conversion =
+    user_defined_conversion<T, U> && std::convertible_to<T, U>;
+
+template <typename T>
+struct wrapper_implicit_conversion_target
+{
+  using type = void;
+};
+
+template <typename T>
+requires(implicit_user_defined_conversion<T, typename T::target_type>)
+struct wrapper_implicit_conversion_target<T>
+{
+  using type = typename T::target_type;
+};
+
+// wrapper_implicit_conversion_target can be specialized to support wrappers that don't provide
+// a target_type type member.
+
 // BitCastRef is Reference-like wrapper for BitCastViewIterator
 //   - bit_casts on deref or implicit conversion to To
 //   - forwards user-defined conversions to To
@@ -30,6 +51,8 @@ requires(std::input_iterator<FromIter>)
 class BitCastRef
 {
   using From = std::iter_value_t<FromIter>;
+  using ImplicitConversion = typename wrapper_implicit_conversion_target<To>::type;
+
   constexpr static size_t step = sizeof(To) / sizeof(From);
 
 public:
@@ -44,15 +67,14 @@ public:
     return std::bit_cast<To>(arr);
   }
 
-  operator const To() const { return this->operator*(); }
+  operator To() const { return this->operator*(); }
 
-  // We only forward the conversion operator if To defined one,
-  // otherwise it's ambiguous which conversion to use.
-  template <typename U>
-  requires user_defined_conversion<To, U>
-  operator U() const
+  // forwarding implicit conversion allows BitCastRef to wrap other wrappers that depend on
+  // implicit conversion
+  operator ImplicitConversion() const
+      requires(!std::is_void_v<typename wrapper_implicit_conversion_target<To>::type>)
   {
-    return static_cast<U>(this->operator*());
+    return static_cast<ImplicitConversion>(this->operator*());
   }
 
   template <typename U>
