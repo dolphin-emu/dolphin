@@ -19,6 +19,18 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+
+# Support functions
+include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
+include(CheckSymbolExists)
+include(DolphinCompileDefinitions)
+include(DolphinDisableWarningsMSVC)
+include(DolphinLibraryTools)
+include(GNUInstallDirs)
+include(RemoveCompileFlag)
+
 # When using the Visual Studio generator, only show our targets and not the ones from Externals.
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
@@ -33,25 +45,35 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the c++23 features we use
-set (GCC_min_version 12)
-set (Clang_min_version 15)
-set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.3") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 19.32)
-set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
+# Minimum required versions
+# Toolsets
+set(Xcode_min_version 14.3)
+set(MSVC_toolset_min_version 143)
+# Compilers
+set(GCC_min_version 12)
+set(Clang_min_version 15)
+set(AppleClang_min_version 14.0.3)
+set(MSVC_min_version 19.32)
+# Standard libraries
+set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
+set(libc++_min_version 150000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz" 
+
+dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
+dolphin_check_toolset_version("MSVC Toolset" MSVC_TOOLSET_VERSION ${MSVC_toolset_min_version})
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
-if ("-" STREQUAL "${${COMPILER}_min_version}-")
+if(NOT DEFINED ${COMPILER}_min_version)
   message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
-else()
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
-    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
-    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
-    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
-  endif()
+elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${${COMPILER}_min_version})
+  message(FATAL_ERROR "Requires ${COMPILER} ${${COMPILER}_min_version} or higher")
 endif()
+
+# libstdc++ is almost always used on Linux, even when using clang as the compiler.
+# libc++ is used on the likes of Android, Apple devices, FreeBSD, and a few (very) rare Linux distros like Chimera Linux.
+# Windows uses its own standard library named STL, which we check as part of the toolset above. (outside of MinGW which can use either libstdc++ or libc++)
+dolphin_check_std_version("GNU_libstdc++" _GLIBCXX_RELEASE ${libstdc++_min_version})
+dolphin_check_std_version("LLVM_libc++" _LIBCPP_VERSION ${libc++_min_version})
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
@@ -141,20 +163,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
   endif()
 endif()
-
-list(APPEND CMAKE_MODULE_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake
-)
-
-# Support functions
-include(CheckAndAddFlag)
-include(CheckCCompilerFlag)
-include(CheckSymbolExists)
-include(DolphinCompileDefinitions)
-include(DolphinDisableWarningsMSVC)
-include(DolphinLibraryTools)
-include(GNUInstallDirs)
-include(RemoveCompileFlag)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
