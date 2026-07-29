@@ -67,7 +67,8 @@ public:
     return std::bit_cast<To>(arr);
   }
 
-  operator To() const { return this->operator*(); }
+  // TODO: why does msvc++ want this to be const? Does it matter if it's const?
+  operator const To() const { return this->operator*(); }
 
   // forwarding implicit conversion allows BitCastRef to wrap other wrappers that depend on
   // implicit conversion
