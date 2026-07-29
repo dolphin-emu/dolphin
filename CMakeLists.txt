@@ -697,6 +697,7 @@ endif()
 
 if(ENABLE_SDL)
   dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
+  add_definitions(-DHAVE_SDL3)
 endif()
 
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
