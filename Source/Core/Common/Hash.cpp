@@ -427,7 +427,7 @@ u64 GetHash64(const u8* src, u32 len, u32 samples)
 
 u32 StartCRC32()
 {
-  return crc32_z(0L, Z_NULL, 0);
+  return crc32_z(0L, nullptr, 0);
 }
 
 u32 UpdateCRC32(u32 crc, const u8* data, size_t len)
