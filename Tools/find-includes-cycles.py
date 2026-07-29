@@ -1,26 +1,20 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 '''
 Run this script from Source/Core/ to find all the #include cycles.
 '''
 
-import subprocess
+from typing import Iterator
+from pathlib import Path
 
-def get_local_includes_for(path):
-    lines = open(path).read().split('\n')
-    includes = [l.strip() for l in lines if l.strip().startswith('#include')]
-    return [i.split()[1][1:-1] for i in includes if '"' in i.split()[1]]
+def get_local_includes_for(path: Path) -> Iterator[str]:
+    with path.open() as file:
+        for line in file:
+            line = line.strip()
+            if line.startswith("#include") and '"' in line:
+                yield line.split()[1].strip(' "')
 
-def find_all_files():
-    '''Could probably use os.walk, but meh.'''
-    f = subprocess.check_output(['find', '.', '-name', '*.h'],
-                                universal_newlines=True).strip().split('\n')
-    return [p[2:] for p in f]
-
-def make_include_graph():
-    return { f: get_local_includes_for(f) for f in find_all_files() }
-
-def strongly_connected_components(graph):
+def strongly_connected_components(graph: dict[str, list[str]]) -> list[tuple[str, ...]]:
     """
     Tarjan's Algorithm (named for its discoverer, Robert Tarjan) is a graph theory algorithm
     for finding the strongly connected components of a graph.
@@ -34,7 +28,7 @@ def strongly_connected_components(graph):
     index = {}
     result = []
 
-    def strongconnect(node):
+    def strongconnect(node: str) -> None:
         # set the depth index for this node to the smallest unused index
         index[node] = index_counter[0]
         lowlinks[node] = index_counter[0]
@@ -74,7 +68,12 @@ def strongly_connected_components(graph):
     return result
 
 if __name__ == '__main__':
-    comp = strongly_connected_components(make_include_graph())
-    for c in comp:
-        if len(c) != 1:
-            print(c)
+    paths = Path(".").glob("**/*.h")
+    graph = {
+        path.as_posix(): list(get_local_includes_for(path))
+        for path in paths
+    }
+    components = strongly_connected_components(graph)
+    for component in components:
+        if len(component) != 1:
+            print(component)
