@@ -37,7 +37,7 @@ using Common::SEND_FLAGS;
 
 TAPServerConnection::TAPServerConnection(std::string destination,
                                          std::function<void(std::string&&)> recv_cb,
-                                         std::size_t max_frame_size)
+                                         const std::size_t max_frame_size)
     : m_destination(std::move(destination)), m_recv_cb(std::move(recv_cb)),
       m_max_frame_size(max_frame_size)
 {
@@ -209,7 +209,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
   return true;
 }
 
-bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
+bool TAPServerConnection::SendFrame(const u8* frame, const u32 size)
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
@@ -257,7 +257,7 @@ void TAPServerConnection::ReadThreadHandler()
     timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 50000;
-    int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
+    const int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
     if (select_res < 0)
     {
       ERROR_LOG_FMT(SP1, "Can\'t poll tapserver fd: {}", Common::StrNetworkError());

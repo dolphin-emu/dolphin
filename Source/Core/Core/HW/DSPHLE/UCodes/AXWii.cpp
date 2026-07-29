@@ -256,7 +256,7 @@ void AXWiiUCode::HandleCommandList()
   }
 }
 
-void AXWiiUCode::SetupProcessing(u32 init_addr)
+void AXWiiUCode::SetupProcessing(const u32 init_addr)
 {
   const std::array<BufferDesc, 20> buffers = {{
       {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
@@ -271,10 +271,11 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
   InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
 
-void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
+void AXWiiUCode::AddToLR(const u32 val_addr, const bool neg)
 {
-  auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 32 * 3 * sizeof(int)));
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
+  const int* ptr =
+      reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 32 * 3 * sizeof(int)));
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
@@ -286,23 +287,24 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
   }
 }
 
-void AXWiiUCode::AddSubToLR(u32 val_addr)
+void AXWiiUCode::AddSubToLR(const u32 val_addr)
 {
-  auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 2 * 32 * 3 * sizeof(int)));
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
+  const int* ptr =
+      reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 2 * 32 * 3 * sizeof(int)));
   for (int i = 0; i < 32 * 3; ++i)
   {
-    int val = (int)Common::swap32(*ptr++);
+    const int val = (int)Common::swap32(*ptr++);
     m_samples_main_left[i] += val;
   }
   for (int i = 0; i < 32 * 3; ++i)
   {
-    int val = (int)Common::swap32(*ptr++);
+    const int val = (int)Common::swap32(*ptr++);
     m_samples_main_right[i] -= val;
   }
 }
 
-AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXWiiUCode::ConvertMixerControl(const u32 mixer_control)
 {
   u32 ret = 0;
 
@@ -350,7 +352,7 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   return (AXMixControl)ret;
 }
 
-void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
+void AXWiiUCode::GenerateVolumeRamp(u16* output, const u16 vol1, const u16 vol2, const size_t nvals)
 {
   float curr = vol1;
   for (size_t i = 0; i < nvals; ++i)
@@ -360,7 +362,7 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
   }
 }
 
-void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
+void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, const u32 addr, AXPBWii& pb)
 {
   // The Wii PB memory layout changed twice.
   // For HLE, we use the largest struct version.
@@ -399,7 +401,7 @@ void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
   }
 }
 
-void AXWiiUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb)
+void AXWiiUCode::WritePB(Memory::MemoryManager& memory, const u32 addr, const AXPBWii& pb)
 {
   const char* src = (const char*)&pb;
   constexpr size_t updates_begin = offsetof(AXPBWii, updates);
@@ -482,13 +484,14 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
   }
 }
 
-void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
+void AXWiiUCode::MixAUXSamples(const int aux_id, u32 write_addr, const u32 read_addr,
+                               const u16 volume)
 {
   std::array<u16, 96> volume_ramp;
   GenerateVolumeRamp(volume_ramp.data(), m_last_aux_volumes[aux_id], volume, volume_ramp.size());
   m_last_aux_volumes[aux_id] = volume;
 
-  std::array<int*, 3> main_buffers{
+  const std::array<int*, 3> main_buffers{
       m_samples_main_left,
       m_samples_main_right,
       m_samples_main_surround,
@@ -536,7 +539,7 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   // Then read the buffers from the CPU and add to our main buffers.
   const int* ptr = reinterpret_cast<int*>(
       memory.GetPointerForRange(read_addr, main_buffers.size() * 3 * 32 * sizeof(int)));
-  for (auto& main_buffer : main_buffers)
+  for (const auto& main_buffer : main_buffers)
   {
     for (u32 j = 0; j < 3 * 32; ++j)
     {
@@ -547,12 +550,12 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   }
 }
 
-void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
+void AXWiiUCode::UploadAUXMixLRSC(const int aux_id, u32* addresses, const u16 volume)
 {
   int* aux_left = aux_id ? m_samples_auxB_left : m_samples_auxA_left;
-  int* aux_right = aux_id ? m_samples_auxB_right : m_samples_auxA_right;
-  int* aux_surround = aux_id ? m_samples_auxB_surround : m_samples_auxA_surround;
-  int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
+  const int* aux_right = aux_id ? m_samples_auxB_right : m_samples_auxA_right;
+  const int* aux_surround = aux_id ? m_samples_auxB_surround : m_samples_auxA_surround;
+  const int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
 
   auto& memory = m_dsphle->GetSystem().GetMemory();
   memory.CopyToEmuSwapped(addresses[0], aux_left, 96 * sizeof(int));
@@ -580,7 +583,8 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   }
 }
 
-void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool upload_auxc)
+void AXWiiUCode::OutputSamples(const u32 lr_addr, const u32 surround_addr, const u16 volume,
+                               const bool upload_auxc)
 {
   std::array<u16, 96> volume_ramp;
   GenerateVolumeRamp(volume_ramp.data(), m_last_main_volume, volume, volume_ramp.size());
@@ -625,14 +629,14 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
 {
   int* buffers[] = {m_samples_wm0, m_samples_wm1, m_samples_wm2, m_samples_wm3};
 
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   for (u32 i = 0; i < 4; ++i)
   {
-    int* in = buffers[i];
+    const int* in = buffers[i];
     u16* out = reinterpret_cast<u16*>(memory.GetPointerForRange(addresses[i], 3 * 6 * sizeof(s16)));
     for (u32 j = 0; j < 3 * 6; ++j)
     {
-      s16 sample = ClampS16(in[j]);
+      const s16 sample = ClampS16(in[j]);
       out[j] = Common::swap16((u16)sample);
     }
   }

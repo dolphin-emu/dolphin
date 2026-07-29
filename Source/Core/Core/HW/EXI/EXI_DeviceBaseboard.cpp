@@ -34,9 +34,9 @@ static u16 CheckSum(const u8* data, u32 length)
 namespace ExpansionInterface
 {
 
-void GenerateInterrupt(int flag)
+void GenerateInterrupt(const int flag)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   s_interrupt_set = true;
   s_irq_timer = 0;
@@ -124,11 +124,11 @@ bool CEXIBaseboard::IsInterruptSet()
   return false;
 }
 
-void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
+void CEXIBaseboard::DMAWrite(const u32 addr, const u32 size)
 {
   const auto& system = Core::System::GetInstance();
   const auto& memory = system.GetMemory();
-  auto span = memory.GetSpanForAddress(addr);
+  const auto span = memory.GetSpanForAddress(addr);
 
   if (span.size() < size)
   {
@@ -143,7 +143,7 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
   m_backup.Flush();
 }
 
-void CEXIBaseboard::DMARead(u32 addr, u32 size)
+void CEXIBaseboard::DMARead(const u32 addr, const u32 size)
 {
   const auto& system = Core::System::GetInstance();
   const auto& memory = system.GetMemory();

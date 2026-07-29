@@ -28,7 +28,8 @@ static s64 GetSyncInterval(const SystemTimers::SystemTimersManager& timers)
   return timers.GetTicksPerSecond() / 1000;
 }
 
-CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int device_number)
+CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, const SIDevices device,
+                                   const int device_number)
     : ISIDevice(system, device, device_number)
 {
   m_core = std::make_shared<HW::GBA::Core>(system, m_device_number);

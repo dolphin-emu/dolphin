@@ -69,7 +69,7 @@ struct SramFlags
   bool oobe_done() const { return value & kOobeDone; }
   bool boot_to_menu() const { return value & kBootToMenu; }
   bool progressive_scan() const { return value & kProgressiveScan; }
-  void set_flag(bool enable, u8 flag)
+  void set_flag(const bool enable, const u8 flag)
   {
     if (enable)
       value |= flag;

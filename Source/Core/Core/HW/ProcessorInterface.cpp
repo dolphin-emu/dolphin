@@ -72,7 +72,7 @@ void ProcessorInterfaceManager::Init()
       core_timing.RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
 }
 
-void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   mmio->Register(base | PI_INTERRUPT_CAUSE, MMIO::DirectRead<u32>(&m_interrupt_cause),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
@@ -143,7 +143,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   auto& processor_interface = system.GetProcessorInterface();
+                   const auto& processor_interface = system.GetProcessorInterface();
                    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}",
                                  processor_interface.m_reset_code);
                    return processor_interface.m_reset_code;
@@ -187,7 +187,7 @@ void ProcessorInterfaceManager::UpdateException()
     ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
-static const char* Debug_GetInterruptName(u32 cause_mask)
+static const char* Debug_GetInterruptName(const u32 cause_mask)
 {
   switch (cause_mask)
   {
@@ -228,7 +228,7 @@ static const char* Debug_GetInterruptName(u32 cause_mask)
   }
 }
 
-void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
+void ProcessorInterfaceManager::SetInterrupt(const u32 cause_mask, const bool set)
 {
   DEBUG_ASSERT_MSG(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
@@ -271,7 +271,7 @@ void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& syste
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
@@ -283,7 +283,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& syste
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }

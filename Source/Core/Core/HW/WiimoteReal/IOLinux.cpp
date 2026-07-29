@@ -33,7 +33,7 @@ static auto GetAutoConnectAddresses()
 {
   std::vector<std::unique_ptr<Wiimote>> wii_remotes;
 
-  std::string entries = Config::Get(Config::MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES);
+  const std::string entries = Config::Get(Config::MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES);
   for (auto& bt_address_str : SplitString(entries, ','))
   {
     const auto bt_addr = Common::StringToBluetoothAddress(bt_address_str);
@@ -124,7 +124,7 @@ static_assert(sizeof(InquiryRequest) ==
               sizeof(hci_inquiry_req) + sizeof(inquiry_info) * InquiryRequest::MAX_INFOS);
 
 // Returns 0 on success or some error number on failure.
-static int HciInquiry(int device_socket, InquiryRequest* request)
+static int HciInquiry(const int device_socket, InquiryRequest* request)
 {
   const auto done_event = UnixUtil::CreateEventFD(0, 0);
   Common::ScopeGuard close_guard([&] { close(done_event); });
@@ -136,7 +136,7 @@ static int HciInquiry(int device_socket, InquiryRequest* request)
   // Performing the inquiry on thread lets us interrupt `ioctl` if the socket signals.
 
   // Using `pthread_cancel` with `std::thread` isn't technically correct so we use `pthread_create`.
-  UnixUtil::PThreadWrapper hci_inquiry_thread{[&] {
+  const UnixUtil::PThreadWrapper hci_inquiry_thread{[&] {
     // We're manually doing the `ioctl` because `hci_inquiry` isn't pthread_cancel-safe.
     // It uses `malloc` and whatnot.
     const int ret = ioctl(device_socket, HCIINQUIRY, reinterpret_cast<unsigned long>(request));
@@ -144,7 +144,7 @@ static int HciInquiry(int device_socket, InquiryRequest* request)
       hci_inquiry_errorno = errno;
 
     // Signal doneness to `poll`.
-    u64 val = 1;
+    const u64 val = 1;
     if (write(done_event, &val, sizeof(val)) != sizeof(val))
       ERROR_LOG_FMT(WIIMOTE, "failed to write to eventfd: {}", Common::LastStrerrorString());
   }};
@@ -292,7 +292,7 @@ bool WiimoteLinux::ConnectInternal()
       .l2_cid = 0,
   };
 
-  const auto open_channel = [&](u16 l2_psm) {
+  const auto open_channel = [&](const u16 l2_psm) {
     addr.l2_psm = htobs(l2_psm);
 
     constexpr int total_tries = 3;
@@ -346,7 +346,7 @@ bool WiimoteLinux::IsConnected() const
 
 void WiimoteLinux::IOWakeup()
 {
-  u64 counter = 1;
+  const u64 counter = 1;
   if (write(m_wakeup_fd, &counter, sizeof(counter)) != sizeof(counter))
   {
     ERROR_LOG_FMT(WIIMOTE, "failed to write to wakeup eventfd: {}", Common::LastStrerrorString());
@@ -389,9 +389,9 @@ int WiimoteLinux::IORead(u8* buf)
   return result;
 }
 
-int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
+int WiimoteLinux::IOWrite(u8 const* buf, const size_t len)
 {
-  auto result = int(write(m_int_sock, buf, int(len)));
+  const auto result = int(write(m_int_sock, buf, int(len)));
   if (result == -1)
   {
     ERROR_LOG_FMT(WIIMOTE, "Wiimote {} write failed: {}", m_index + 1,

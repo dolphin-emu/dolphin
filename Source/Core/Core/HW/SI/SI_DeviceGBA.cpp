@@ -211,7 +211,7 @@ void GBASockServer::Send(const u8* si_buffer)
     Disconnect();
 }
 
-int GBASockServer::Receive(u8* si_buffer, u8 bytes)
+int GBASockServer::Receive(u8* si_buffer, const u8 bytes)
 {
   if (!m_client)
     return 0;

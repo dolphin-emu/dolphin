@@ -52,7 +52,7 @@ constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1, Slot
 constexpr auto MAX_SLOT = Slot::SP2;
 constexpr std::initializer_list<Slot> MEMCARD_SLOTS = {Slot::A, Slot::B};
 constexpr auto MAX_MEMCARD_SLOT = Slot::B;
-constexpr bool IsMemcardSlot(Slot slot)
+constexpr bool IsMemcardSlot(const Slot slot)
 {
   return slot == Slot::A || slot == Slot::B;
 }

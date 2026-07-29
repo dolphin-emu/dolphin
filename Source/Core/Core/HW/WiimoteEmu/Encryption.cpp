@@ -557,7 +557,7 @@ EncryptionKey::KeyData KeyGen3rdParty::GenerateKeyData(const EncryptionKey::Rand
 }
 
 EncryptionKey KeyGen1stParty::GenerateTables(const EncryptionKey::RandData& rand,
-                                             const EncryptionKey::KeyData& key, u32 idx) const
+                                             const EncryptionKey::KeyData& key, const u32 idx) const
 {
   EncryptionKey result;
   result.GenerateTables(rand, key, sboxes_1st_party[idx], sboxes_1st_party[idx + 1]);
@@ -565,7 +565,7 @@ EncryptionKey KeyGen1stParty::GenerateTables(const EncryptionKey::RandData& rand
 }
 
 EncryptionKey KeyGen3rdParty::GenerateTables(const EncryptionKey::RandData& rand,
-                                             const EncryptionKey::KeyData& key, u32 idx) const
+                                             const EncryptionKey::KeyData& key, const u32 idx) const
 {
   EncryptionKey result;
   result.GenerateTables(rand, key, sboxes_3rd_party[idx], sboxes_3rd_party[idx + 1]);

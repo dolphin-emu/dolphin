@@ -127,7 +127,7 @@ void WiiIPC::Shutdown()
 {
 }
 
-void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
@@ -298,7 +298,7 @@ void WiiIPC::GenerateAck(u32 address)
   m_system.GetCoreTiming().ScheduleEvent(100_tbticks, m_event_type_update_interrupts);
 }
 
-void WiiIPC::GenerateReply(u32 address)
+void WiiIPC::GenerateReply(const u32 address)
 {
   m_arm_msg = address;
   m_ctrl.Y1 = 1;

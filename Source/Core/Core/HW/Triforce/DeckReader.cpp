@@ -259,7 +259,7 @@ void DeckReader::Update()
     INFO_LOG_FMT(SERIALINTERFACE_CARD, "ProgramChecksum");
 
     // Avalon seems to not care about the actual value.
-    Common::BigEndianValue<u32> fake_checksum{0x89abcdef};
+    const Common::BigEndianValue<u32> fake_checksum{0x89abcdef};
     WriteTxBytes(Common::AsU8Span(fake_checksum));
 
     break;
@@ -269,7 +269,7 @@ void DeckReader::Update()
     INFO_LOG_FMT(SERIALINTERFACE_CARD, "BootChecksum");
 
     // Avalon seems to not care about the actual value.
-    Common::BigEndianValue<u32> fake_checksum{0x01234567};
+    const Common::BigEndianValue<u32> fake_checksum{0x01234567};
     WriteTxBytes(Common::AsU8Span(fake_checksum));
 
     break;
@@ -289,7 +289,7 @@ void DeckReader::Update()
   {
     INFO_LOG_FMT(SERIALINTERFACE_CARD, "ShutterGet");
 
-    Common::BigEndianValue<u32> shutter_time{SHUTTER_TIME};
+    const Common::BigEndianValue<u32> shutter_time{SHUTTER_TIME};
     WriteTxBytes(Common::AsU8Span(shutter_time));
 
     break;
@@ -298,7 +298,7 @@ void DeckReader::Update()
   {
     INFO_LOG_FMT(SERIALINTERFACE_CARD, "ShutterAuto");
 
-    Common::BigEndianValue<u32> shutter_time{SHUTTER_TIME};
+    const Common::BigEndianValue<u32> shutter_time{SHUTTER_TIME};
     WriteTxBytes(Common::AsU8Span(shutter_time));
 
     break;

@@ -20,9 +20,9 @@ void I2CBus::Reset()
   m_slaves.clear();
 }
 
-int I2CBus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int I2CBus::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
-  for (auto& slave : m_slaves)
+  for (const auto& slave : m_slaves)
   {
     auto const bytes_read = slave->BusRead(slave_addr, addr, count, data_out);
 
@@ -34,9 +34,9 @@ int I2CBus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return 0;
 }
 
-int I2CBus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int I2CBus::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
-  for (auto& slave : m_slaves)
+  for (const auto& slave : m_slaves)
   {
     auto const bytes_written = slave->BusWrite(slave_addr, addr, count, data_in);
 

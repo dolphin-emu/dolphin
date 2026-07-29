@@ -100,7 +100,7 @@ void AESndUCode::Update()
   }
 }
 
-void AESndUCode::HandleMail(u32 mail)
+void AESndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {
@@ -199,7 +199,7 @@ void AESndUCode::HandleMail(u32 mail)
 
 void AESndUCode::DMAInParameterBlock()
 {
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   m_parameter_block.out_buf = memory.Read_U32(m_parameter_block_addr + 0);
   m_parameter_block.buf_start = memory.Read_U32(m_parameter_block_addr + 4);
   m_parameter_block.buf_end = memory.Read_U32(m_parameter_block_addr + 8);
@@ -263,7 +263,7 @@ void AESndAccelerator::WriteMemory(u32 address, u8 value)
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
-void AESndUCode::SetUpAccelerator(u16 format, u16 gain)
+void AESndUCode::SetUpAccelerator(const u16 format, const u16 gain)
 {
   // setup_accl
   m_accelerator.SetSampleFormat(format);

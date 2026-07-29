@@ -140,7 +140,7 @@ public:
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
 
   void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
-               std::optional<std::vector<std::string>> auto_disc_change_paths);
+               const std::optional<std::vector<std::string>>& auto_disc_change_paths);
   bool IsDiscInside() const;
   void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::vector<std::string>& paths);
@@ -229,7 +229,7 @@ private:
     BitField<3, 29, u32> reserved;
 
     UDICVR() = default;
-    explicit UDICVR(u32 hex) : Hex{hex} {}
+    explicit UDICVR(const u32 hex) : Hex{hex} {}
   };
 
   // DI DMA Control Register
@@ -253,7 +253,7 @@ private:
     BitField<8, 24, u32> reserved;
 
     UDICFG() = default;
-    explicit UDICFG(u32 hex) : Hex{hex} {}
+    explicit UDICFG(const u32 hex) : Hex{hex} {}
   };
 
   // Hardware registers

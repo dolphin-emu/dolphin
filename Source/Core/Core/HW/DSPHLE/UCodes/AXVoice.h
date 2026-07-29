@@ -51,13 +51,14 @@ namespace
 PBUpdateData LoadPBUpdates(Memory::MemoryManager& memory, const PB_TYPE& pb)
 {
   PBUpdateData updates;
-  u32 updates_addr = HILO_TO_32(pb.updates.data);
+  const u32 updates_addr = HILO_TO_32(pb.updates.data);
   memory.CopyFromEmuSwapped((u16*)updates.data(), updates_addr, sizeof(updates));
   return updates;
 }
 
 // Apply updates to a PB.
-void ApplyUpdatesForMs(int curr_ms, PB_TYPE& pb, u16* num_updates, const PBUpdateData& updates)
+void ApplyUpdatesForMs(const int curr_ms, PB_TYPE& pb, u16* num_updates,
+                       const PBUpdateData& updates)
 {
   u32 start_idx = 0;
   for (int i = 0; i < curr_ms; ++i)
@@ -220,8 +221,9 @@ u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
 // avoids discontinuities in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
-u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count, s16* last_samples,
-                  u32 curr_pos, u32 ratio, int srctype, const s16* coeffs)
+u32 ResampleAudio(const std::function<s16(u32)>& input_callback, s16* output, const u32 count,
+                  s16* last_samples, u32 curr_pos, const u32 ratio, const int srctype,
+                  const s16* coeffs)
 {
   int read_samples_count = 0;
 
@@ -245,15 +247,15 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
         curr_pos -= 0x10000;
       }
 
-      u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
+      const u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
       const s16* c = &coeffs[curr_pos_frac];
 
-      s64 t0 = temp[idx++ & 3];
-      s64 t1 = temp[idx++ & 3];
-      s64 t2 = temp[idx++ & 3];
-      s64 t3 = temp[idx++ & 3];
+      const s64 t0 = temp[idx++ & 3];
+      const s64 t1 = temp[idx++ & 3];
+      const s64 t2 = temp[idx++ & 3];
+      const s64 t3 = temp[idx++ & 3];
 
-      s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
+      const s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
       output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
@@ -290,16 +292,16 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
       // Get our current fractional position, used to know how much of
       // curr0 and how much of curr1 the output sample should be.
-      u16 curr_frac = curr_pos & 0xFFFF;
-      u16 inv_curr_frac = -curr_frac;
+      const u16 curr_frac = curr_pos & 0xFFFF;
+      const u16 inv_curr_frac = -curr_frac;
 
       // Interpolate! If curr_frac is 0, we can simply take the last
       // sample without any multiplying.
       s16 sample;
       if (curr_frac)
       {
-        s32 s0 = temp[idx++ & 3];
-        s32 s1 = temp[idx++ & 3];
+        const s32 s0 = temp[idx++ & 3];
+        const s32 s1 = temp[idx++ & 3];
 
         sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
         idx += 2;
@@ -334,7 +336,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
 // Read <count> input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16 count,
+void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, const u16 count,
                      const s16* coeffs)
 {
   AcceleratorSetup(accelerator, &pb);
@@ -360,7 +362,7 @@ s16 ClampS16(s64 sample)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, const u32 count, VolumeData* vd, s16* dpop, const bool ramp)
 {
   u16& volume = vd->volume;
   u16 volume_delta = vd->volume_delta;
@@ -376,7 +378,7 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
     s64 sample = input[i];
     sample *= volume;
     sample >>= 15;
-    s16 sample16 = ClampS16((s32)sample);
+    const s16 sample16 = ClampS16((s32)sample);
 
     out[i] += sample16;
     volume += volume_delta;
@@ -386,18 +388,18 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
 }
 
 // Execute a low pass filter on the samples using one history value.
-static void LowPassFilter(s16* samples, u32 count, PBLowPassFilter& f)
+static void LowPassFilter(s16* samples, const u32 count, PBLowPassFilter& f)
 {
   for (u32 i = 0; i < count; ++i)
     f.yn1 = samples[i] = ClampS16((f.a0 * (s32)samples[i] + f.b0 * (s32)f.yn1) >> 15);
 }
 
 #ifdef AX_WII
-static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
+static void BiquadFilter(s16* samples, const u32 count, PBBiquadFilter& f)
 {
   for (u32 i = 0; i < count; ++i)
   {
-    s16 xn0 = samples[i];
+    const s16 xn0 = samples[i];
     s64 tmp = 0;
     tmp += f.b0 * s32(xn0);
     tmp += f.b1 * s32(f.xn1);
@@ -411,7 +413,7 @@ static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
     else
       tmp += 0x7FFF;
     tmp >>= 16;
-    s16 yn0 = ClampS16(tmp);
+    const s16 yn0 = ClampS16(tmp);
     f.xn2 = f.xn1;
     f.yn2 = f.yn1;
     f.xn1 = xn0;
@@ -423,8 +425,9 @@ static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
-                  AXMixControl mctrl, const s16* coeffs, bool new_filter)
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers,
+                  const u16 count, const AXMixControl mctrl, const s16* coeffs,
+                  const bool new_filter)
 {
   // If the voice is not running, nothing to do.
   if (pb.running != 1)
@@ -564,7 +567,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     }
 
     // Old AXWii versions process ms per ms.
-    u16 wm_count = count == 96 ? 18 : 6;
+    const u16 wm_count = count == 96 ? 18 : 6;
 
     // Interpolate at most 18 samples from the 96 samples we read before.
     s16 wm_samples[18];

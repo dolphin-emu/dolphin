@@ -26,7 +26,7 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevice(system)
+CEXIETHERNET::CEXIETHERNET(Core::System& system, const BBADeviceType type) : IEXIDevice(system)
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
@@ -126,7 +126,7 @@ bool CEXIETHERNET::IsInterruptSet()
   return !!(exi_status.interrupt & exi_status.interrupt_mask);
 }
 
-void CEXIETHERNET::ImmWrite(u32 data, u32 size)
+void CEXIETHERNET::ImmWrite(u32 data, const u32 size)
 {
   data >>= (4 - size) * 8;
 
@@ -187,7 +187,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
   }
 }
 
-u32 CEXIETHERNET::ImmRead(u32 size)
+u32 CEXIETHERNET::ImmRead(const u32 size)
 {
   u32 ret = 0;
 
@@ -227,14 +227,14 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   return ret;
 }
 
-void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
+void CEXIETHERNET::DMAWrite(const u32 addr, const u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA write: {:08x} {:x}", addr, size);
 
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     DirectFIFOWrite(memory.GetPointerForRange(addr, size), size);
   }
   else
@@ -245,7 +245,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   }
 }
 
-void CEXIETHERNET::DMARead(u32 addr, u32 size)
+void CEXIETHERNET::DMARead(const u32 addr, const u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
   auto& memory = m_system.GetMemory();
@@ -356,7 +356,7 @@ void CEXIETHERNET::MXHardReset()
   mBbaMem[BBA_MISC] = MISC1_TPF | MISC1_TPH | MISC1_TXF | MISC1_TXH;
 }
 
-void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
+void CEXIETHERNET::MXCommandHandler(u32 data, const u32 size)
 {
   switch (transfer.address)
   {
@@ -429,7 +429,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   }
 }
 
-void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
+void CEXIETHERNET::DirectFIFOWrite(const u8* data, const u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
@@ -487,7 +487,7 @@ inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
     u8 cur_byte = dest_eth_addr[byte_num];
     for (size_t bit = 0; bit < 8; ++bit)
     {
-      u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
+      const u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
       crc <<= 1;
       cur_byte >>= 1;
       if (carry)
@@ -525,7 +525,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
   else
   {
     // Lookup the dest eth address in the hashmap
-    u16 index = HashIndex(mRecvBuffer.get());
+    const u16 index = HashIndex(mRecvBuffer.get());
     return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
   }
 }
@@ -553,7 +553,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   u8* write_ptr;
   Descriptor* descriptor;
   u32 status = 0;
-  u16 rwp_initial = page_ptr(BBA_RWP);
+  const u16 rwp_initial = page_ptr(BBA_RWP);
   u16 current_rwp = 0;
   u32 off = 4;
   if (!RecvMACFilter())

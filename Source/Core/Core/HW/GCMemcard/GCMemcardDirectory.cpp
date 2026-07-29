@@ -40,7 +40,7 @@
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
 static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
-                                              bool card_encoding_is_shift_jis)
+                                              const bool card_encoding_is_shift_jis)
 {
   const auto string_decoder = card_encoding_is_shift_jis ? SHIFTJISToUTF8 : CP1252ToUTF8;
   const auto strip_null = [](const std::string_view& s) {
@@ -177,8 +177,8 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
   return filenames;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(std::string directory, ExpansionInterface::Slot slot,
-                                       const Memcard::HeaderData& header_data, u32 game_id)
+GCMemcardDirectory::GCMemcardDirectory(std::string directory, const ExpansionInterface::Slot slot,
+                                       const Memcard::HeaderData& header_data, const u32 game_id)
     : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
       m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0),
       m_save_directory(std::move(directory)), m_exiting(false)
@@ -295,7 +295,7 @@ GCMemcardDirectory::~GCMemcardDirectory()
   FlushToFile();
 }
 
-s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
+s32 GCMemcardDirectory::Read(const u32 src_address, s32 length, u8* dest_address)
 {
   const s32 block = src_address / Memcard::BLOCK_SIZE;
   const u32 offset = src_address % Memcard::BLOCK_SIZE;
@@ -352,7 +352,7 @@ s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
   return length + extra;
 }
 
-s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_address)
+s32 GCMemcardDirectory::Write(const u32 dest_address, s32 length, const u8* src_address)
 {
   std::unique_lock l(m_write_mutex);
   if (length != 0x80)
@@ -420,7 +420,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
   return length + extra;
 }
 
-void GCMemcardDirectory::ClearBlock(u32 address)
+void GCMemcardDirectory::ClearBlock(const u32 address)
 {
   if (address % Memcard::BLOCK_SIZE)
   {
@@ -524,7 +524,7 @@ inline void GCMemcardDirectory::SyncSaves()
     }
   }
 }
-inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
+inline s32 GCMemcardDirectory::SaveAreaRW(const u32 block, const bool writing)
 {
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
@@ -562,7 +562,8 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
   return -1;
 }
 
-s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* src_address)
+s32 GCMemcardDirectory::DirectoryWrite(const u32 dest_address, const u32 length,
+                                       const u8* src_address)
 {
   const u32 block = dest_address / Memcard::BLOCK_SIZE;
   const u32 offset = dest_address % Memcard::BLOCK_SIZE;
@@ -583,7 +584,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
   return length;
 }
 
-bool GCMemcardDirectory::SetUsedBlocks(int save_index)
+bool GCMemcardDirectory::SetUsedBlocks(const int save_index)
 {
   Memcard::BlockAlloc* current_bat;
   if (m_bat2.m_update_counter > m_bat1.m_update_counter)

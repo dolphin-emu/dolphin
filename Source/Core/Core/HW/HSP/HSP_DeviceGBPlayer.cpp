@@ -168,14 +168,14 @@ CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* gbplay
   auto& core_timing = m_system.GetCoreTiming();
 
   m_update_event =
-      core_timing.RegisterEvent("GBPmGBAUpdate", [this](Core::System&, u64, s64 cycles_late) {
+      core_timing.RegisterEvent("GBPmGBAUpdate", [this](Core::System&, u64, const s64 cycles_late) {
         HandleUpdateEvent(cycles_late);
       });
 
   m_av_stream.player = this;
 
-  m_av_stream.audioRateChanged = [](mAVStream* ptr, unsigned rate) {
-    auto* const stream = static_cast<AVStream*>(ptr);
+  m_av_stream.audioRateChanged = [](mAVStream* ptr, const unsigned rate) {
+    const auto* const stream = static_cast<AVStream*>(ptr);
     auto* const player = stream->player;
     player->ProcessAudioBuffer();
 
@@ -184,7 +184,7 @@ CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* gbplay
     player->m_bits_per_sample = 24 - MathUtil::IntLog2(rate);
   };
   m_av_stream.postAudioBuffer = [](mAVStream* ptr, struct mAudioBuffer*) {
-    auto* const stream = static_cast<AVStream*>(ptr);
+    const auto* const stream = static_cast<AVStream*>(ptr);
     stream->player->ProcessAudioBuffer();
   };
 }
@@ -295,7 +295,7 @@ void CGBPlayer_mGBA::PrepareAudioData()
 //
 // Unlike GBI, the Game Boy Player disc is picky about the PWM data.
 // Every 32 bit sequence must have any 1 bits be contiguous and leading.
-static constexpr u32 SampleToPWM(u16 value, u16* remainder)
+static constexpr u32 SampleToPWM(const u16 value, u16* remainder)
 {
   const u32 x = value + *remainder;
   const u32 y = x >> 11;
@@ -341,7 +341,7 @@ void CGBPlayer_mGBA::ProcessAudioBuffer()
   }
 }
 
-void CGBPlayer_mGBA::SetKeys(u16 keys)
+void CGBPlayer_mGBA::SetKeys(const u16 keys)
 {
   m_keys = keys;
 }
@@ -367,7 +367,7 @@ void CGBPlayer_mGBA::DoState(PointerWrap& p)
   p.Do(m_bits_per_sample);
 }
 
-void CGBPlayer_mGBA::HandleUpdateEvent(s64 cycles_late)
+void CGBPlayer_mGBA::HandleUpdateEvent(const s64 cycles_late)
 {
   m_gba_core.Flush();
   UpdateAudio();
@@ -394,7 +394,7 @@ void CGBPlayer_mGBA::UpdateAudio()
   m_player->AssertIRQ(CHSPDevice_GBPlayer::IRQ::Audio);
 }
 
-void CGBPlayer_mGBA::UpdateVideoAndScheduleNextUpdate(s64 cycles_late)
+void CGBPlayer_mGBA::UpdateVideoAndScheduleNextUpdate(const s64 cycles_late)
 {
   const s64 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
 
@@ -450,7 +450,7 @@ u8 CGBPlayer_mGBA::ReadSIOControl()
   return 0;
 }
 
-void CGBPlayer_mGBA::WriteSIOControl(u8 value)
+void CGBPlayer_mGBA::WriteSIOControl(const u8 value)
 {
   DEBUG_LOG_FMT(HSP, "GBPlayer: SIOControl Write: 0x{:02x}", value);
 }
@@ -462,7 +462,7 @@ u32 CGBPlayer_mGBA::ReadSIOData()
   return 0;
 }
 
-void CGBPlayer_mGBA::WriteSIOData(u32 value)
+void CGBPlayer_mGBA::WriteSIOData(const u32 value)
 {
   DEBUG_LOG_FMT(HSP, "GBPlayer: SIOData Write: 0x{:08x}", value);
 }
@@ -478,7 +478,7 @@ CHSPDevice_GBPlayer::CHSPDevice_GBPlayer(Core::System& system) : m_system{system
 #endif
 }
 
-void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
+void CHSPDevice_GBPlayer::Read(const u32 address, std::span<u8, TRANSFER_SIZE> data)
 {
   switch (GBPRegister(address >> 20))
   {
@@ -560,14 +560,14 @@ void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
   }
 }
 
-void CHSPDevice_GBPlayer::Write(u32 address, std::span<const u8, TRANSFER_SIZE> data)
+void CHSPDevice_GBPlayer::Write(const u32 address, const std::span<const u8, TRANSFER_SIZE> data)
 {
   switch (GBPRegister(address >> 20))
   {
   case GBPRegister::Test:
   {
     u8* dest = m_test.data();
-    for (u8 value : data)
+    for (const u8 value : data)
       *(dest++) = value ^ 0xffu;
     break;
   }

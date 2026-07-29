@@ -22,8 +22,8 @@
 namespace SerialInterface
 {
 // --- standard GameCube controller ---
-CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices device,
-                                               int device_number)
+CSIDevice_GCController::CSIDevice_GCController(Core::System& system, const SIDevices device,
+                                               const int device_number)
     : ISIDevice(system, device, device_number)
 {
   // Here we set origin to perfectly centered values.
@@ -36,7 +36,7 @@ CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices d
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
-int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_GCController::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
@@ -115,8 +115,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
-                                                  GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie,
+                                                  const int device_number, GCPadStatus* pad_status)
 {
   movie.SetPolledDevice();
   if (NetPlay_GetInput(device_number, pad_status))
@@ -290,7 +290,7 @@ void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
 }
 
 // SendCommand
-void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCController::SendCommand(const u32 command, const u8 poll)
 {
   UCommand controller_command(command);
 

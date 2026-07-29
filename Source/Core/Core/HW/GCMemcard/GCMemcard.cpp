@@ -19,7 +19,7 @@
 
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
-static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
+static constexpr std::optional<u64> BytesToMegabits(const u64 bytes)
 {
   const u64 factor = ((1024 * 1024) / 8);
   const u64 megabits = bytes / factor;
@@ -63,8 +63,9 @@ GCMemcard::GCMemcard()
 }
 
 std::optional<GCMemcard> GCMemcard::Create(std::string filename, const CardFlashId& flash_id,
-                                           u16 size_mbits, bool shift_jis, u32 rtc_bias,
-                                           u32 sram_language, u64 format_time)
+                                           const u16 size_mbits, const bool shift_jis,
+                                           const u32 rtc_bias, const u32 sram_language,
+                                           const u64 format_time)
 {
   GCMemcard card;
   card.m_filename = std::move(filename);
@@ -323,7 +324,7 @@ bool GCMemcard::Save()
   return mcdFile.Close();
 }
 
-static std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
+static std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, const size_t size)
 {
   ASSERT(size % 2 == 0);
   u16 csum = 0;
@@ -375,7 +376,7 @@ u8 GCMemcard::GetNumFiles() const
   return j;
 }
 
-u8 GCMemcard::GetFileIndex(u8 fileNumber) const
+u8 GCMemcard::GetFileIndex(const u8 fileNumber) const
 {
   if (m_valid)
   {
@@ -418,7 +419,7 @@ std::optional<u8> GCMemcard::TitlePresent(const DEntry& d) const
   return std::nullopt;
 }
 
-bool GCMemcard::DEntry_IsPingPong(u8 index) const
+bool GCMemcard::DEntry_IsPingPong(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return false;
@@ -427,7 +428,7 @@ bool GCMemcard::DEntry_IsPingPong(u8 index) const
   return (flags & 0b0000'0100) != 0;
 }
 
-u16 GCMemcard::DEntry_FirstBlock(u8 index) const
+u16 GCMemcard::DEntry_FirstBlock(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
@@ -438,7 +439,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
   return block;
 }
 
-u16 GCMemcard::DEntry_BlockCount(u8 index) const
+u16 GCMemcard::DEntry_BlockCount(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
@@ -449,8 +450,8 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
   return blocks;
 }
 
-std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t offset,
-                                                           size_t length) const
+std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(const u8 save_index, const size_t offset,
+                                                           const size_t length) const
 {
   if (!m_valid || save_index >= DIRLEN)
     return std::nullopt;
@@ -509,7 +510,7 @@ std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t
   return std::make_optional(std::move(result));
 }
 
-std::optional<std::pair<std::string, std::string>> GCMemcard::GetSaveComments(u8 index) const
+std::optional<std::pair<std::string, std::string>> GCMemcard::GetSaveComments(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -538,7 +539,7 @@ std::optional<std::pair<std::string, std::string>> GCMemcard::GetSaveComments(u8
                         strip_null(string_decoder(encoded_2)));
 }
 
-std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
+std::optional<DEntry> GCMemcard::GetDEntry(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -546,7 +547,7 @@ std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
   return GetActiveDirectory().m_dir_entries[index];
 }
 
-BlockAlloc::BlockAlloc(u16 size_mbits)
+BlockAlloc::BlockAlloc(const u16 size_mbits)
 {
   memset(this, 0, BLOCK_SIZE);
   m_free_blocks = MbitToFreeBlocks(size_mbits);
@@ -554,7 +555,7 @@ BlockAlloc::BlockAlloc(u16 size_mbits)
   FixChecksums();
 }
 
-u16 BlockAlloc::GetNextBlock(u16 block) const
+u16 BlockAlloc::GetNextBlock(const u16 block) const
 {
   // FIXME: This is fishy, shouldn't that be in range [5, 4096[?
   if ((block < MC_FST_BLOCKS) || (block > 4091))
@@ -582,7 +583,7 @@ u16 BlockAlloc::NextFreeBlock(u16 max_block, u16 starting_block) const
   return 0xFFFF;
 }
 
-bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
+bool BlockAlloc::ClearBlocks(u16 starting_block, const u16 block_count)
 {
   std::vector<u16> blocks;
   while (starting_block != 0xFFFF && starting_block != 0)
@@ -611,7 +612,7 @@ void BlockAlloc::FixChecksums()
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
 }
 
-u16 BlockAlloc::AssignBlocksContiguous(u16 length)
+u16 BlockAlloc::AssignBlocksContiguous(const u16 length)
 {
   const u16 starting = m_last_allocated_block + 1;
   if (length > m_free_blocks)
@@ -642,7 +643,7 @@ std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
+GCMemcardErrorCode BlockAlloc::CheckForErrors(const u16 size_mbits) const
 {
   GCMemcardErrorCode error_code;
 
@@ -686,7 +687,8 @@ GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
   return error_code;
 }
 
-GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
+GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(const u8 index,
+                                                  std::vector<GCMBlock>& Blocks) const
 {
   if (!m_valid)
     return GCMemcardGetSaveDataRetVal::NOMEMCARD;
@@ -783,7 +785,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const Savefile& savefile)
   return GCMemcardImportFileRetVal::SUCCESS;
 }
 
-std::optional<Savefile> GCMemcard::ExportFile(u8 index) const
+std::optional<Savefile> GCMemcard::ExportFile(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -799,7 +801,7 @@ std::optional<Savefile> GCMemcard::ExportFile(u8 index) const
   return savefile;
 }
 
-GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the directory array
+GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(const u8 index)  // index in the directory array
 {
   if (!m_valid)
     return GCMemcardRemoveFileRetVal::NOMEMCARD;
@@ -830,7 +832,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   return GCMemcardRemoveFileRetVal::SUCCESS;
 }
 
-std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(u8 index) const
+std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -873,7 +875,8 @@ std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(u8 index) const
   return rgba;
 }
 
-std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA8(u8 index) const
+std::optional<std::vector<GCMemcardAnimationFrameRGBA8>>
+GCMemcard::ReadAnimRGBA8(const u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -1014,8 +1017,9 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   return output;
 }
 
-bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,
-                       u32 rtc_bias, u32 sram_language, u64 format_time)
+bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, const u16 size_mbits,
+                       const bool shift_jis, const u32 rtc_bias, const u32 sram_language,
+                       const u64 format_time)
 {
   if (!card_data)
     return false;
@@ -1033,8 +1037,8 @@ bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbit
   return true;
 }
 
-bool GCMemcard::Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
-                       u32 sram_language, u64 format_time)
+bool GCMemcard::Format(const CardFlashId& flash_id, const u16 size_mbits, const bool shift_jis,
+                       const u32 rtc_bias, const u32 sram_language, const u64 format_time)
 {
   m_header_block = Header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
   m_directory_blocks[0] = m_directory_blocks[1] = Directory();
@@ -1195,8 +1199,9 @@ Header::Header()
   std::memset(this, 0xFF, BLOCK_SIZE);
 }
 
-void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
-                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time)
+void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, const u16 size_mbits,
+                          const bool shift_jis, const u32 rtc_bias, const u32 sram_language,
+                          const u64 format_time)
 {
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
@@ -1226,8 +1231,8 @@ bool operator==(const HeaderData& lhs, const HeaderData& rhs)
   return std::memcmp(&lhs, &rhs, sizeof(HeaderData)) == 0;
 }
 
-Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
-               u32 sram_language, u64 format_time)
+Header::Header(const CardFlashId& flash_id, const u16 size_mbits, const bool shift_jis,
+               const u32 rtc_bias, const u32 sram_language, const u64 format_time)
 {
   static_assert(std::is_trivially_copyable_v<Header>);
   std::memset(this, 0xFF, BLOCK_SIZE);
@@ -1285,7 +1290,7 @@ std::pair<u16, u16> Header::CalculateChecksums() const
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
+GCMemcardErrorCode Header::CheckForErrors(const u16 card_size_mbits) const
 {
   GCMemcardErrorCode error_code;
 
@@ -1321,7 +1326,7 @@ Directory::Directory()
   m_checksum_inv = 0;
 }
 
-bool Directory::Replace(const DEntry& entry, size_t index)
+bool Directory::Replace(const DEntry& entry, const size_t index)
 {
   if (index >= m_dir_entries.size())
     return false;

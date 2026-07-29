@@ -76,8 +76,8 @@ const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
                                       //"\x03\xfc\x00\x00"  // export
                                       "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 // AM-Baseboard device on SI
-CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
-                                             int device_number)
+CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, const SIDevices device,
+                                             const int device_number)
     : ISIDevice(system, device, device_number)
 {
   // Magnetic Card Reader
@@ -220,7 +220,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
     // Helper to check that iterating over data n times is safe,
     // i.e. *data++ at most lead to data.end()
-    auto validate_data_in_out = [&](u32 n_in, u32 n_out, std::string_view command) -> bool {
+    auto validate_data_in_out = [&](const u32 n_in, const u32 n_out,
+                                    const std::string_view command) -> bool {
       if (data_in + n_in > data_in_end)
         ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_in overflow in {}", command);
       else if (u64{data_offset} + n_out > usable_out_size)

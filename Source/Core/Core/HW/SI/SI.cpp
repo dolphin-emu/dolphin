@@ -67,7 +67,7 @@ static constexpr u32 GetRDSTBit(u32 channel)
   return 0x20000000 >> (channel * 8);
 }
 
-void SerialInterfaceManager::SetNoResponse(u32 channel)
+void SerialInterfaceManager::SetNoResponse(const u32 channel)
 {
   // raise the NO RESPONSE error
   switch (channel)
@@ -87,7 +87,7 @@ void SerialInterfaceManager::SetNoResponse(u32 channel)
   }
 }
 
-void SerialInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 user_data,
+void SerialInterfaceManager::ChangeDeviceCallback(Core::System& system, const u64 user_data,
                                                   s64 cycles_late)
 {
   // The purpose of this callback is to simply re-enable device changes.
@@ -115,7 +115,7 @@ void SerialInterfaceManager::UpdateInterrupts()
                                                 generate_interrupt);
 }
 
-void SerialInterfaceManager::GenerateSIInterrupt(SIInterruptType type)
+void SerialInterfaceManager::GenerateSIInterrupt(const SIInterruptType type)
 {
   switch (type)
   {
@@ -138,12 +138,13 @@ constexpr s32 ConvertSILengthField(u32 field)
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
 
-void SerialInterfaceManager::GlobalRunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late)
+void SerialInterfaceManager::GlobalRunSIBuffer(Core::System& system, const u64 user_data,
+                                               const s64 cycles_late)
 {
   system.GetSerialInterface().RunSIBuffer(user_data, cycles_late);
 }
 
-void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
+void SerialInterfaceManager::RunSIBuffer(u64 user_data, const s64 cycles_late)
 {
   if (m_com_csr.TSTART)
   {
@@ -246,7 +247,8 @@ void SerialInterfaceManager::RegisterEvents()
   }
 }
 
-void SerialInterfaceManager::ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata)
+void SerialInterfaceManager::ScheduleEvent(const int device_number, const s64 cycles_into_future,
+                                           const u64 userdata)
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(cycles_into_future, m_event_types_device[device_number], userdata);
@@ -294,7 +296,7 @@ void SerialInterfaceManager::Shutdown()
   GBAConnectionWaiter_Shutdown();
 }
 
-void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   // Register SI buffer direct accesses.
   const u32 io_buffer_base = base | SI_IO_BUFFER;
@@ -468,12 +470,12 @@ void SerialInterfaceManager::AddDevice(std::unique_ptr<ISIDevice> device)
   m_channel.at(device_number).device = std::move(device);
 }
 
-void SerialInterfaceManager::AddDevice(const SIDevices device, int device_number)
+void SerialInterfaceManager::AddDevice(const SIDevices device, const int device_number)
 {
   AddDevice(SIDevice_Create(m_system, device, device_number));
 }
 
-void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int channel)
+void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, const int channel)
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS)
     return;
@@ -553,7 +555,7 @@ void SerialInterfaceManager::UpdateDevices()
   NetPlay::SetSIPollBatching(false);
 }
 
-SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
+SIDevices SerialInterfaceManager::GetDeviceType(const int channel) const
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS || !m_channel[channel].device)
     return SIDEVICE_NONE;

@@ -33,11 +33,11 @@ ExpansionInterfaceManager::ExpansionInterfaceManager(Core::System& system) : m_s
 
 ExpansionInterfaceManager::~ExpansionInterfaceManager() = default;
 
-void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
+void ExpansionInterfaceManager::AddMemoryCard(const Slot slot)
 {
   EXIDeviceType memorycard_device;
 
-  auto& movie = m_system.GetMovie();
+  const auto& movie = m_system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
     if (movie.IsUsingMemcard(slot))
@@ -66,7 +66,7 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   m_channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 
-u8 SlotToEXIChannel(Slot slot)
+u8 SlotToEXIChannel(const Slot slot)
 {
   switch (slot)
   {
@@ -84,7 +84,7 @@ u8 SlotToEXIChannel(Slot slot)
   }
 }
 
-u8 SlotToEXIDevice(Slot slot)
+u8 SlotToEXIDevice(const Slot slot)
 {
   switch (slot)
   {
@@ -121,7 +121,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
 
   {
     u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
-    int size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+    const int size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
     if (size_override >= 0 && size_override <= 4)
       size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
@@ -141,7 +141,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     }
   }
 
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
@@ -172,18 +172,18 @@ void ExpansionInterfaceManager::Shutdown()
   if (!m_using_overridden_sram)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    auto& sram = m_system.GetSRAM();
+    const auto& sram = m_system.GetSRAM();
     file.WriteArray(&sram, 1);
   }
 }
 
 void ExpansionInterfaceManager::DoState(PointerWrap& p)
 {
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     channel->DoState(p);
 }
 
-void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
@@ -197,25 +197,26 @@ void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ExpansionInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 userdata,
+void ExpansionInterfaceManager::ChangeDeviceCallback(Core::System& system, const u64 userdata,
                                                      s64 cycles_late)
 {
-  u8 channel = (u8)(userdata >> 32);
+  const u8 channel = (u8)(userdata >> 32);
   u8 type = (u8)(userdata >> 16);
-  u8 num = (u8)userdata;
+  const u8 num = (u8)userdata;
 
   system.GetExpansionInterface().m_channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type),
                                                                    num);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(Slot slot, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(const Slot slot, const EXIDeviceType device_type,
+                                             const CoreTiming::FromThread from_thread)
 {
   ChangeDevice(SlotToEXIChannel(slot), SlotToEXIDevice(slot), device_type, from_thread);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(const u8 channel, const u8 device_num,
+                                             EXIDeviceType device_type,
+                                             const CoreTiming::FromThread from_thread)
 {
   // Let the hardware see no device for 1 second
   auto& core_timing = m_system.GetCoreTiming();
@@ -227,12 +228,12 @@ void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDevic
       ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
 }
 
-CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)
+CEXIChannel* ExpansionInterfaceManager::GetChannel(const u32 index)
 {
   return m_channels.at(index).get();
 }
 
-IEXIDevice* ExpansionInterfaceManager::GetDevice(Slot slot)
+IEXIDevice* ExpansionInterfaceManager::GetDevice(const Slot slot)
 {
   return m_channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
 }
@@ -246,7 +247,7 @@ void ExpansionInterfaceManager::UpdateInterrupts()
   m_channels[2]->SetEXIINT(m_channels[0]->GetDevice(4)->IsInterruptSet());
 
   bool causeInt = false;
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     causeInt |= channel->IsCausingInterrupt();
 
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
@@ -258,8 +259,8 @@ void ExpansionInterfaceManager::UpdateInterruptsCallback(Core::System& system, u
   system.GetExpansionInterface().UpdateInterrupts();
 }
 
-void ExpansionInterfaceManager::ScheduleUpdateInterrupts(CoreTiming::FromThread from,
-                                                         int cycles_late)
+void ExpansionInterfaceManager::ScheduleUpdateInterrupts(const CoreTiming::FromThread from,
+                                                         const int cycles_late)
 {
   m_system.GetCoreTiming().ScheduleEvent(cycles_late, m_event_type_update_interrupts, 0, from);
 }

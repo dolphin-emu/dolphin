@@ -125,7 +125,7 @@ void UDrawTablet::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* UDrawTablet::GetGroup(UDrawTabletGroup group)
+ControllerEmu::ControlGroup* UDrawTablet::GetGroup(const UDrawTabletGroup group)
 {
   switch (group)
   {

@@ -32,7 +32,7 @@ constexpr u8 CheckSumXOR(std::span<const u8> data)
   return std::accumulate(data.data(), data.data() + data.size(), u8{}, std::bit_xor{});
 }
 
-bool LoadCardData(const std::string& filename, std::span<u8> data)
+bool LoadCardData(const std::string& filename, const std::span<u8> data)
 {
   File::DirectIOFile file{filename, File::AccessMode::Read};
 
@@ -85,7 +85,7 @@ void SanitizeSerialNumber(std::span<u8> data)
     data[3] = 0x40;
 
     u32 checksum = 0;
-    for (auto bcd_pair : data.subspan(4))
+    for (const auto bcd_pair : data.subspan(4))
       checksum += (bcd_pair & 0x0f) + (bcd_pair >> 4);
     data[3] |= (checksum % 10);
 
@@ -162,7 +162,7 @@ ICCardReader::ICCardReader(u8 slot_index) : m_slot_index{slot_index}
 {
 }
 
-void ICCardReader::CreateCards(u8 card_count)
+void ICCardReader::CreateCards(const u8 card_count)
 {
   m_ic_cards.clear();
 
@@ -226,7 +226,7 @@ void ICCardReader::Update()
 
   u16 status_code = 0x00;
 
-  const auto validate_input_payload_size = [&](u32 expected_size) {
+  const auto validate_input_payload_size = [&](const u32 expected_size) {
     if (input_payload_size < expected_size)
     {
       ERROR_LOG_FMT(SERIALINTERFACE_CARD, "Undersized payload size {} for command: {:02x}",
@@ -245,7 +245,7 @@ void ICCardReader::Update()
     return true;
   };
 
-  const auto get_card_for_session = [&](u16 card_session) -> ICCard* {
+  const auto get_card_for_session = [&](const u16 card_session) -> ICCard* {
     if ((card_session & 0xff00) == CARD_SESSION_BASE)
     {
       // FYI: We don't verify that this session was actually created before using it.
@@ -586,7 +586,8 @@ void ICCardReader::Update()
   SendReply(card_command, status_code, reply_payload_span);
 }
 
-void ICCardReader::SendReply(u8 command, u16 status_code, std::span<const u8> payload)
+void ICCardReader::SendReply(const u8 command, const u16 status_code,
+                             const std::span<const u8> payload)
 {
   struct ICCardReplyHeader
   {
@@ -609,7 +610,7 @@ void ICCardReader::SendReply(u8 command, u16 status_code, std::span<const u8> pa
   WriteTxByte(checksum);
 }
 
-std::span<const u8> ICCardReader::ICCard::ReadData(u16 page, u16 page_count)
+std::span<const u8> ICCardReader::ICCard::ReadData(const u16 page, const u16 page_count)
 {
   const u32 byte_offset = page * IC_PAGE_SIZE;
   const u32 byte_count = page_count * IC_PAGE_SIZE;
@@ -627,7 +628,7 @@ std::span<const u8> ICCardReader::ICCard::ReadData(u16 page, u16 page_count)
   return read_span;
 }
 
-bool ICCardReader::ICCard::WriteData(u16 page, std::span<const u8> write_span)
+bool ICCardReader::ICCard::WriteData(const u16 page, std::span<const u8> write_span)
 {
   constexpr u32 read_only_area_begin = READ_ONLY_PAGE_INDEX * IC_PAGE_SIZE;
   constexpr u32 read_only_area_end = read_only_area_begin + IC_PAGE_SIZE;
@@ -657,7 +658,7 @@ bool ICCardReader::ICCard::WriteData(u16 page, std::span<const u8> write_span)
   return true;
 }
 
-u16 ICCardReader::ICCard::DecreaseUseCount(u16 page, u16 amount)
+u16 ICCardReader::ICCard::DecreaseUseCount(const u16 page, const u16 amount)
 {
   const u32 byte_offset = page * IC_PAGE_SIZE;
   auto* const addr = m_data.data() + byte_offset;
@@ -680,7 +681,7 @@ u16 ICCardReader::ICCard::DecreaseUseCount(u16 page, u16 amount)
 
 // TODO: Maybe in the future we should write to disk after a delay.
 // Games seem to write many chunks when saving.
-void ICCardReader::ICCard::FlushData(u32 byte_offset, u32 byte_count)
+void ICCardReader::ICCard::FlushData(const u32 byte_offset, const u32 byte_count)
 {
   File::DirectIOFile file{m_filename, File::AccessMode::Write, File::OpenMode::Always};
   if (!file.OffsetWrite(byte_offset, std::span{m_data}.subspan(byte_offset, byte_count)))
@@ -701,7 +702,7 @@ void ICCardReader::DoState(PointerWrap& p)
   if (card_count != m_ic_cards.size())
     CreateCards(card_count);
 
-  for (auto& card : m_ic_cards)
+  for (const auto& card : m_ic_cards)
     card->DoState(p);
 
   p.Do(m_is_field_on);

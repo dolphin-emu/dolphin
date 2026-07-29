@@ -180,7 +180,7 @@ void MagneticCardReader::Command_33_ReadData()
       return;
     }
 
-    for (auto track_index : track_indices)
+    for (const auto track_index : track_indices)
     {
       auto& track_data = m_card_data[track_index];
       if (!track_data.has_value())
@@ -258,7 +258,7 @@ void MagneticCardReader::Command_53_WriteData()
 
   const auto mode = Mode(m_current_packet[0]);
   // const auto bit_mode = BitMode(m_current_packet[1]);
-  auto track = Track(m_current_packet[2]);
+  const auto track = Track(m_current_packet[2]);
 
   const auto track_indices = GetTrackIndicesForTrackType(track);
   const auto proper_payload_size = track_indices.size() * TRACK_SIZE;
@@ -275,7 +275,7 @@ void MagneticCardReader::Command_53_WriteData()
   INFO_LOG_FMT(SERIALINTERFACE_CARD, "Command_53_WriteData: Writing {} track(s) to memory.",
                track_indices.size());
 
-  for (auto track_index : track_indices)
+  for (const auto track_index : track_indices)
   {
     auto& track_data = m_card_data[track_index];
     track_data.emplace();
@@ -721,7 +721,7 @@ bool MagneticCardReader::ReceivePacket(std::span<const u8> packet)
   return true;
 }
 
-void MagneticCardReader::StepStatePerson(DT elapsed_time)
+void MagneticCardReader::StepStatePerson(const DT elapsed_time)
 {
   m_time_since_person_moved_card += elapsed_time;
 
@@ -774,7 +774,7 @@ void MagneticCardReader::StepStatePerson(DT elapsed_time)
   }
 }
 
-void MagneticCardReader::StepStateMachine(DT elapsed_time)
+void MagneticCardReader::StepStateMachine(const DT elapsed_time)
 {
   m_time_since_machine_moved_card += elapsed_time;
 

@@ -48,7 +48,7 @@ std::vector<u8> BuildAckFrame(StackRef* ref)
 }
 
 // Change the IP identification and recompute the checksum
-void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
+void SetIPIdentification(u8* ptr, const std::size_t size, const u16 value)
 {
   if (size < Common::EthernetHeader::SIZE + Common::IPv4Header::SIZE)
     return;
@@ -397,7 +397,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->ready = false;
     ref->ip = std::bit_cast<u32>(ip_header.destination_addr);
 
-    sf::IpAddress target = sf::IpAddress(ntohl(destination_ip));
+    const sf::IpAddress target = sf::IpAddress(ntohl(destination_ip));
     ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port), m_current_ip);
   }
   else
@@ -462,7 +462,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 
 // This is a little hack, some games open a UDP port
 // and listen to it. We open it on our side manually.
-void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
+void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(const u16 port)
 {
   StackRef* ref = m_network_ref.GetAvailableSlot(htons(port));
   if (ref == nullptr || ref->ip != 0)
@@ -592,7 +592,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 
 const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
 {
-  auto it = m_arp_table.lower_bound(inet_ip);
+  const auto it = m_arp_table.lower_bound(inet_ip);
   if (it != m_arp_table.end() && it->first == inet_ip)
   {
     return it->second;
@@ -794,7 +794,8 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 
 BbaTcpSocket::BbaTcpSocket() = default;
 
-sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u32 net_ip)
+sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, const u16 port,
+                                         const u32 net_ip)
 {
   sockaddr_in addr;
   addr.sin_addr.s_addr = net_ip;
@@ -911,7 +912,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
 
 BbaUdpSocket::BbaUdpSocket() = default;
 
-sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
+sf::Socket::Status BbaUdpSocket::Bind(const u16 port, const u32 net_ip)
 {
   if (port != Common::SSDP_PORT)
     return this->bind(port, sf::IpAddress(ntohl(net_ip)));
@@ -986,7 +987,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   return sf::Socket::Status::Done;
 }
 
-StackRef* NetworkRef::GetAvailableSlot(u16 port)
+StackRef* NetworkRef::GetAvailableSlot(const u16 port)
 {
   if (port > 0)  // existing connection?
   {
@@ -1004,7 +1005,7 @@ StackRef* NetworkRef::GetAvailableSlot(u16 port)
   return nullptr;
 }
 
-StackRef* NetworkRef::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
+StackRef* NetworkRef::GetTCPSlot(const u16 src_port, const u16 dst_port, const u32 ip)
 {
   for (auto& ref : m_stacks)
   {

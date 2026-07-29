@@ -60,7 +60,7 @@ namespace FS = IOS::HLE::FS;
 class NandStorage final : public Storage
 {
 public:
-  explicit NandStorage(FS::FileSystem* fs, u64 tid) : m_fs{fs}, m_tid{tid}
+  explicit NandStorage(FS::FileSystem* fs, const u64 tid) : m_fs{fs}, m_tid{tid}
   {
     m_data_dir = Common::GetTitleDataPath(tid);
     InitTitleUidAndGid();
@@ -158,7 +158,7 @@ public:
 
   bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
 
-  bool WriteFiles(std::span<const SaveFile> files) override
+  bool WriteFiles(const std::span<const SaveFile> files) override
   {
     if (!m_uid || !m_gid)
       return false;
@@ -299,7 +299,7 @@ public:
       return {};
     }
 
-    Md5 md5_file = header.md5;
+    const Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
@@ -390,7 +390,7 @@ public:
     return m_file.Seek(sizeof(Header), File::SeekOrigin::Begin) && m_file.WriteArray(&bk_header, 1);
   }
 
-  bool WriteFiles(std::span<const SaveFile> files) override
+  bool WriteFiles(const std::span<const SaveFile> files) override
   {
     if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;
@@ -565,7 +565,7 @@ CopyResult Import(const std::string& data_bin_path, const std::function<bool()>&
   return Copy(data_bin.get(), nand.get());
 }
 
-static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(const u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -580,7 +580,7 @@ CopyResult Export(u64 tid, std::string_view export_path)
   return Export(tid, export_path, &ios);
 }
 
-size_t ExportAll(std::string_view export_path)
+size_t ExportAll(const std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;

@@ -81,7 +81,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
   }
 }
 
-static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
+static bool LoadDSPRom(u16* rom, const std::string& filename, const u32 size_in_bytes)
 {
   std::string bytes;
   if (!File::ReadFileToString(filename, bytes))
@@ -131,7 +131,7 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
   return true;
 }
 
-bool DSPLLE::Initialize(bool wii, bool dsp_thread)
+bool DSPLLE::Initialize(const bool wii, bool dsp_thread)
 {
   m_request_disable_thread = false;
 
@@ -177,7 +177,7 @@ void DSPLLE::Shutdown()
   m_dsp_core.Shutdown();
 }
 
-u16 DSPLLE::DSP_WriteControlRegister(u16 value)
+u16 DSPLLE::DSP_WriteControlRegister(const u16 value)
 {
   m_dsp_core.GetInterpreter().WriteControlRegister(value);
 
@@ -216,7 +216,7 @@ u16 DSPLLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
   return m_dsp_core.ReadMailboxLow(cpu_mailbox ? Mailbox::CPU : Mailbox::DSP);
 }
 
-void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
+void DSPLLE::DSP_WriteMailBoxHigh(const bool cpu_mailbox, const u16 value)
 {
   if (cpu_mailbox)
   {
@@ -234,7 +234,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   }
 }
 
-void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
+void DSPLLE::DSP_WriteMailBoxLow(const bool cpu_mailbox, const u16 value)
 {
   if (cpu_mailbox)
   {
@@ -246,7 +246,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
   }
 }
 
-void DSPLLE::DSP_Update(int cycles)
+void DSPLLE::DSP_Update(const int cycles)
 {
   const int dsp_cycles = cycles / 6;
 

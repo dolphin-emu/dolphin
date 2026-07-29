@@ -13,7 +13,7 @@ CSIDevice_DanceMat::CSIDevice_DanceMat(Core::System& system, SIDevices device, i
 {
 }
 
-int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_DanceMat::RunBuffer(u8* buffer, const int request_length)
 {
   // Read the command
   const auto command = static_cast<EBufferCommands>(buffer[0]);

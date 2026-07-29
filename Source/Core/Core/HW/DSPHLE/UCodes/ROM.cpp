@@ -22,7 +22,7 @@
 
 namespace DSP::HLE
 {
-ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
+ROMUCode::ROMUCode(DSPHLE* dsphle, const u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
 {
   INFO_LOG_FMT(DSPHLE, "UCode_Rom - initialized");
@@ -37,14 +37,14 @@ void ROMUCode::Update()
 {
 }
 
-void ROMUCode::HandleMail(u32 mail)
+void ROMUCode::HandleMail(const u32 mail)
 {
   if (m_next_parameter == 0)
   {
     // wait for beginning of UCode
     if ((mail & 0xFFFF0000) != 0x80F30000)
     {
-      u32 Message = 0xFEEE0000 | (mail & 0xFFFF);
+      const u32 Message = 0xFEEE0000 | (mail & 0xFFFF);
       m_mail_handler.PushMail(Message);
     }
     else
@@ -94,7 +94,7 @@ void ROMUCode::HandleMail(u32 mail)
 
 void ROMUCode::BootUCode()
 {
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   const u8* pointer =
       memory.GetPointerForRange(m_current_ucode.m_ram_address, m_current_ucode.m_length);
   const u32 ector_crc = Common::HashEctor(pointer, m_current_ucode.m_length);

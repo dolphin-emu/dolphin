@@ -138,7 +138,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   drum_data.buttons = desired_state.buttons;
 
   // Drum pads.
-  u8 current_pad_input = desired_state.drum_pads;
+  const u8 current_pad_input = desired_state.drum_pads;
   m_new_pad_hits |= ~m_prev_pad_input & current_pad_input;
   m_prev_pad_input = current_pad_input;
 
@@ -222,7 +222,7 @@ void Drums::DoState(PointerWrap& p)
   p.Do(m_pad_remaining_frames);
 }
 
-ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
+ControllerEmu::ControlGroup* Drums::GetGroup(const DrumsGroup group)
 {
   switch (group)
   {

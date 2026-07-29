@@ -20,7 +20,7 @@ CSIDevice_Keyboard::CSIDevice_Keyboard(Core::System& system, SIDevices device, i
 {
 }
 
-int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_Keyboard::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
@@ -77,7 +77,7 @@ DataResponse CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   return DataResponse::Success;
 }
 
-void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
+void CSIDevice_Keyboard::SendCommand(const u32 command, u8 poll)
 {
   UCommand keyboard_command(command);
 

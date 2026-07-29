@@ -37,7 +37,7 @@ WiimoteSource GetSource(unsigned int index)
   return s_wiimote_sources[index];
 }
 
-void OnSourceChanged(unsigned int index, WiimoteSource source)
+void OnSourceChanged(const unsigned int index, const WiimoteSource source)
 {
   const WiimoteSource previous_source = s_wiimote_sources[index].exchange(source);
 
@@ -63,7 +63,7 @@ void RefreshConfig()
 
 namespace WiimoteCommon
 {
-void UpdateSource(unsigned int index)
+void UpdateSource(const unsigned int index)
 {
   const auto bluetooth = WiiUtils::GetBluetoothEmuDevice();
   if (bluetooth == nullptr)
@@ -72,7 +72,7 @@ void UpdateSource(unsigned int index)
   bluetooth->AccessWiimoteByIndex(index)->SetSource(GetHIDWiimoteSource(index));
 }
 
-HIDWiimote* GetHIDWiimoteSource(unsigned int index)
+HIDWiimote* GetHIDWiimoteSource(const unsigned int index)
 {
   HIDWiimote* hid_source = nullptr;
 
@@ -174,7 +174,7 @@ void Shutdown()
   }
 }
 
-void Initialize(InitializeMode init_mode)
+void Initialize(const InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {

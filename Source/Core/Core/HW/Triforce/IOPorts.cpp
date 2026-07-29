@@ -58,7 +58,7 @@ void IOPorts::DoState(PointerWrap& p)
 
   p.Do(m_generic_outputs);
 
-  for (auto& io_adapter : m_io_adapters)
+  for (const auto& io_adapter : m_io_adapters)
     io_adapter->DoState(p);
 }
 
@@ -71,7 +71,7 @@ void IOPorts::AddIOAdapter(std::unique_ptr<IOAdapter> adapter)
 IOAdapter::IOAdapter() = default;
 IOAdapter::~IOAdapter() = default;
 
-void IOPorts::SetGenericOutputs(std::span<const u8> bytes)
+void IOPorts::SetGenericOutputs(const std::span<const u8> bytes)
 {
   if (bytes.size() > m_generic_outputs.size())
   {
@@ -101,7 +101,7 @@ void IOPorts::SetGenericOutputs(std::span<const u8> bytes)
                 fmt::join(bits_set, " "), fmt::join(bits_cleared, " "),
                 fmt::join(m_generic_outputs, " "));
 
-  for (auto& adapter : m_io_adapters)
+  for (const auto& adapter : m_io_adapters)
   {
     adapter->HandleGenericOutputsChanged(bits_set, bits_cleared);
   }
@@ -280,8 +280,8 @@ void VirtuaStriker4Common_IOAdapter::Update()
   }
 }
 
-void VirtuaStriker4Common_IOAdapter::HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                                                 std::span<const u8> bits_cleared)
+void VirtuaStriker4Common_IOAdapter::HandleGenericOutputsChanged(
+    const std::span<const u8> bits_set, const std::span<const u8> bits_cleared)
 {
   const u8 bits_changed_0 = bits_set[0] | bits_cleared[0];
 
@@ -298,8 +298,8 @@ void VirtuaStriker4Common_IOAdapter::HandleGenericOutputsChanged(std::span<const
   }
 }
 
-void VirtuaStriker4_2006_IOAdapter::HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                                                std::span<const u8> bits_cleared)
+void VirtuaStriker4_2006_IOAdapter::HandleGenericOutputsChanged(
+    const std::span<const u8> bits_set, const std::span<const u8> bits_cleared)
 {
   (void)bits_cleared;
 
@@ -358,8 +358,8 @@ void GekitouProYakyuu_IOAdapter::Update()
   }
 }
 
-void GekitouProYakyuu_IOAdapter::HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                                             std::span<const u8> bits_cleared)
+void GekitouProYakyuu_IOAdapter::HandleGenericOutputsChanged(const std::span<const u8> bits_set,
+                                                             const std::span<const u8> bits_cleared)
 {
   (void)bits_set;
 

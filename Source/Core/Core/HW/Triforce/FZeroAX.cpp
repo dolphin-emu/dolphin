@@ -81,8 +81,8 @@ void FZeroAXCommon_IOAdapter::Update()
   analog_inputs[6] = IOPorts::NEUTRAL_ANALOG_VALUE;
 }
 
-void FZeroAXCommon_IOAdapter::HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                                          std::span<const u8> bits_cleared)
+void FZeroAXCommon_IOAdapter::HandleGenericOutputsChanged(const std::span<const u8> bits_set,
+                                                          const std::span<const u8> bits_cleared)
 {
   const u8 bits_changed_0 = bits_set[0] | bits_cleared[0];
 

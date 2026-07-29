@@ -64,7 +64,7 @@ static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state st
 }
 
 long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                           void* /*output_buffer*/, long nframes)
+                           void* /*output_buffer*/, const long nframes)
 {
   CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
@@ -162,7 +162,7 @@ void CEXIMic::StreamReadOne()
 
   if (samples_avail >= buff_size_samples)
   {
-    s16* last_buffer = &stream_buffer[stream_rpos];
+    const s16* last_buffer = &stream_buffer[stream_rpos];
     std::memcpy(ring_buffer, last_buffer, buff_size);
 
     samples_avail -= buff_size_samples;
@@ -233,7 +233,7 @@ bool CEXIMic::IsPresent() const
   return true;
 }
 
-void CEXIMic::SetCS(int cs)
+void CEXIMic::SetCS(const int cs)
 {
   if (cs)  // not-selected to selected
     m_position = 0;
@@ -243,7 +243,8 @@ void CEXIMic::SetCS(int cs)
 
 void CEXIMic::UpdateNextInterruptTicks()
 {
-  int diff = (m_system.GetSystemTimers().GetTicksPerSecond() / sample_rate) * buff_size_samples;
+  const int diff =
+      (m_system.GetSystemTimers().GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
@@ -275,7 +276,7 @@ void CEXIMic::TransferByte(u8& byte)
     return;
   }
 
-  int pos = m_position - 1;
+  const int pos = m_position - 1;
 
   switch (command)
   {
@@ -295,7 +296,7 @@ void CEXIMic::TransferByte(u8& byte)
 
   case cmdSetStatus:
   {
-    bool wasactive = status.is_active;
+    const bool wasactive = status.is_active;
     status.U8[pos ^ 1] = byte;
 
     // safe to do since these can only be entered if both bytes of status have been written

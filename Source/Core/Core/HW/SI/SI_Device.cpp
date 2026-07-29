@@ -33,7 +33,7 @@ constexpr u64 GBA_BITS_PER_SECOND = 250000;
 constexpr u64 GC_STOP_BIT_NS = 6500;
 constexpr u64 GBA_STOP_BIT_NS = 14000;
 
-ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
+ISIDevice::ISIDevice(Core::System& system, const SIDevices device_type, const int device_number)
     : m_system(system), m_device_number(device_number), m_device_type(device_type)
 {
 }
@@ -50,7 +50,7 @@ SIDevices ISIDevice::GetDeviceType() const
   return m_device_type;
 }
 
-int ISIDevice::RunBuffer(u8* buffer, int request_length)
+int ISIDevice::RunBuffer(u8* buffer, const int request_length)
 {
 #ifdef _DEBUG
   DEBUG_LOG_FMT(SERIALINTERFACE, "Send Data Device({}) - Length({})   ", m_device_number,
@@ -89,17 +89,17 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
-int ISIDevice::CreateStatusResponse(u32 si_device_id, u8* buffer)
+int ISIDevice::CreateStatusResponse(const u32 si_device_id, u8* buffer)
 {
   constexpr int RESPONSE_LENGTH = 3;
 
-  Common::BigEndianValue<u32> id(si_device_id);
+  const Common::BigEndianValue<u32> id(si_device_id);
   std::memcpy(buffer, &id, RESPONSE_LENGTH);
   return RESPONSE_LENGTH;
 }
 
 int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
-                                EBufferCommands cmd)
+                                const EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
@@ -141,7 +141,7 @@ int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
 // The goal of this function is to avoid special casing a long list of
 // device types when there is no "real" input device, e.g. when playing
 // a TAS movie, or netplay input.
-bool SIDevice_IsGCController(SIDevices type)
+bool SIDevice_IsGCController(const SIDevices type)
 {
   switch (type)
   {

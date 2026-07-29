@@ -79,7 +79,7 @@ namespace AMMediaboard
 static constexpr u32 TEST_OK_WORD0 = 0x54455354;  // "TEST"
 static constexpr u32 TEST_OK_WORD1 = 0x204F4B00;  // " OK\0"
 
-MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
+MediaBoardRange::MediaBoardRange(const u32 start_, const u32 size_, std::span<u8> buffer_)
     : start{start_}, end{start_ + std::min(size_, u32(buffer_.size()))}, buffer{buffer_.data()},
       buffer_size{buffer_.size()}
 {
@@ -117,7 +117,7 @@ struct GuestFdSet
     return Common::ExtractBit(bits[index / CHAR_BIT], index % CHAR_BIT) != 0;
   }
 
-  constexpr void SetFd(GuestSocket s, bool value = true)
+  constexpr void SetFd(GuestSocket s, const bool value = true)
   {
     const auto index = std::size_t(s);
     assert(index < BIT_COUNT);
@@ -201,7 +201,7 @@ static const MediaBoardRange s_mediaboard_ranges[] = {
     {AllNetBuffer, 0x1000, s_allnet_buffer},
 };
 
-static std::span<u8> GetSpanForMediaboardAddress(u32 address)
+static std::span<u8> GetSpanForMediaboardAddress(const u32 address)
 {
   for (const auto& range : s_mediaboard_ranges)
   {
@@ -283,7 +283,7 @@ static SOCKET GetHostSocket(GuestSocket x)
   return INVALID_SOCKET;
 }
 
-static GuestSocket GetGuestSocket(SOCKET x)
+static GuestSocket GetGuestSocket(const SOCKET x)
 {
   const auto it = std::find(std::begin(s_sockets) + FIRST_VALID_FD, std::end(s_sockets), x);
 
@@ -296,7 +296,7 @@ static GuestSocket GetGuestSocket(SOCKET x)
   return GuestSocket(it - std::begin(s_sockets));
 }
 
-static std::string_view GetSafeString(u32 offset, u32 max_length)
+static std::string_view GetSafeString(const u32 offset, const u32 max_length)
 {
   const auto str_span = GetSpanForMediaboardAddress(offset);
 
@@ -310,8 +310,8 @@ static std::string_view GetSafeString(u32 offset, u32 max_length)
   return {reinterpret_cast<char*>(str_span.data()), length};
 }
 
-static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* source,
-                          u64 source_size, u32 offset, u32 length)
+static bool SafeCopyToEmu(Memory::MemoryManager& memory, const u32 address, const u8* source,
+                          const u64 source_size, const u32 offset, const u32 length)
 {
   if (offset > source_size || length > source_size - offset)
   {
@@ -320,7 +320,7 @@ static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* 
     return false;
   }
 
-  auto span = memory.GetSpanForAddress(address);
+  const auto span = memory.GetSpanForAddress(address);
   if (length > span.size())
   {
     ERROR_LOG_FMT(AMMEDIABOARD,
@@ -333,8 +333,8 @@ static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* 
   return true;
 }
 
-static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, u32 address,
-                            u64 destination_size, u32 offset, u32 length)
+static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, const u32 address,
+                            const u64 destination_size, const u32 offset, const u32 length)
 {
   if (offset > destination_size || length > destination_size - offset)
   {
@@ -344,7 +344,7 @@ static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, u32 
     return false;
   }
 
-  auto span = memory.GetSpanForAddress(address);
+  const auto span = memory.GetSpanForAddress(address);
   if (length > span.size())
   {
     ERROR_LOG_FMT(AMMEDIABOARD,
@@ -357,7 +357,7 @@ static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, u32 
   return true;
 }
 
-static GuestSocket socket_(int af, int type, int protocol)
+static GuestSocket socket_(const int af, const int type, const int protocol)
 {
   const auto guest_socket = GetAvailableGuestSocket();
   if (guest_socket == INVALID_GUEST_SOCKET)
@@ -376,7 +376,7 @@ static GuestSocket socket_(int af, int type, int protocol)
   return guest_socket;
 }
 
-static GuestSocket accept_(int fd, sockaddr* addr, socklen_t* len)
+static GuestSocket accept_(const int fd, sockaddr* addr, socklen_t* len)
 {
   const auto guest_socket = GetAvailableGuestSocket();
   if (guest_socket == INVALID_GUEST_SOCKET)
@@ -392,10 +392,10 @@ static GuestSocket accept_(int fd, sockaddr* addr, socklen_t* len)
   return guest_socket;
 }
 
-static inline void PrintMBBuffer(u32 address, u32 length)
+static inline void PrintMBBuffer(const u32 address, const u32 length)
 {
   const auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   for (u32 i = 0; i < length; i += 0x10)
   {
@@ -410,7 +410,7 @@ void FirmwareMap(bool on)
   s_firmware_map = on;
 }
 
-void InitKeys(u32 key_a, u32 key_b, u32 key_c)
+void InitKeys(const u32 key_a, const u32 key_b, const u32 key_c)
 {
   s_gcam_key_a = key_a;
   s_gcam_key_b = key_b;
@@ -427,7 +427,7 @@ static File::IOFile OpenOrCreateFile(const std::string& filename)
   return File::IOFile(filename, "wb+");
 }
 
-static void TestHwPhase2Callback(Core::System& system, u64 userdata, s64 cycles_late)
+static void TestHwPhase2Callback(Core::System& system, const u64 userdata, s64 cycles_late)
 {
   const bool is_exec2 = (userdata != 0);
   auto& response = is_exec2 ? s_exec2_last_response : s_exec1_last_response;
@@ -523,7 +523,7 @@ void InitDIMM(const DiscIO::Volume& volume)
   s_dimm_disc = DiscIO::CreateCachedBlobReader(volume.GetBlobReader().CopyReader());
 }
 
-static int PlatformPoll(std::span<WSAPOLLFD> pfds, std::chrono::milliseconds timeout)
+static int PlatformPoll(std::span<WSAPOLLFD> pfds, const std::chrono::milliseconds timeout)
 {
 #if defined(_WIN32)
   return WSAPoll(pfds.data(), ULONG(pfds.size()), INT(timeout.count()));
@@ -580,7 +580,7 @@ Common::IPv4Port IPRedirection::Apply(Common::IPv4Port subject) const
   return subject;
 }
 
-Common::IPv4Port IPRedirection::Reverse(Common::IPv4Port subject) const
+Common::IPv4Port IPRedirection::Reverse(const Common::IPv4Port subject) const
 {
   // Low effort implementation..
   return IPRedirection{.original = replacement, .replacement = original}.Apply(subject);
@@ -618,7 +618,7 @@ IPRedirections GetIPRedirections()
   return result;
 }
 
-static std::optional<Common::IPv4Port> AdjustIPv4PortFromConfig(Common::IPv4Port subject)
+static std::optional<Common::IPv4Port> AdjustIPv4PortFromConfig(const Common::IPv4Port subject)
 {
   // TODO: We should parse this elsewhere to avoid repeated string manipulations.
   for (auto&& redirection : GetIPRedirections())
@@ -630,7 +630,8 @@ static std::optional<Common::IPv4Port> AdjustIPv4PortFromConfig(Common::IPv4Port
   return std::nullopt;
 }
 
-static std::optional<Common::IPv4Port> ReverseAdjustIPv4PortFromConfig(Common::IPv4Port subject)
+static std::optional<Common::IPv4Port>
+ReverseAdjustIPv4PortFromConfig(const Common::IPv4Port subject)
 {
   // TODO: We should parse this elsewhere to avoid repeated string manipulations.
   for (auto&& redirection : GetIPRedirections())
@@ -643,8 +644,9 @@ static std::optional<Common::IPv4Port> ReverseAdjustIPv4PortFromConfig(Common::I
 }
 
 // Ports are in host byte order.
-static bool BindEphemeralPort(SOCKET host_socket, Common::IPAddress ip_address,
-                              u16 first_port_value, u16 last_port_value, u32 attempt_count)
+static bool BindEphemeralPort(const SOCKET host_socket, const Common::IPAddress ip_address,
+                              const u16 first_port_value, const u16 last_port_value,
+                              u32 attempt_count)
 {
   std::mt19937 rng(u32(Clock::now().time_since_epoch().count()));
   std::uniform_int_distribution<u16> port_distribution{first_port_value, last_port_value};
@@ -939,7 +941,7 @@ static u32 NetDIMMBind(GuestSocket guest_socket, const GuestSocketAddress& guest
 
   const auto adjusted_ipv4port = GetAdjustedBindIPv4Port({guest_addr.ip_address, guest_addr.port});
 
-  sockaddr_in addr{
+  const sockaddr_in addr{
       .sin_family = guest_addr.ip_family,
       .sin_port = adjusted_ipv4port.port,
       .sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port.ip_address),
@@ -966,7 +968,7 @@ static u32 NetDIMMBind(GuestSocket guest_socket, const GuestSocketAddress& guest
   return bind_result;
 }
 
-static void AMMBCommandRecv(u32 parameter_offset)
+static void AMMBCommandRecv(const u32 parameter_offset)
 {
   const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[parameter_offset]));
   const u32 off = s_media_buffer_32[parameter_offset + 1];
@@ -1004,7 +1006,7 @@ static void AMMBCommandRecv(u32 parameter_offset)
   s_media_buffer_32[1] = ret;
 }
 
-static void AMMBCommandSend(u32 parameter_offset)
+static void AMMBCommandSend(const u32 parameter_offset)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
   const auto fd = GetHostSocket(guest_socket);
@@ -1038,7 +1040,7 @@ static void AMMBCommandSend(u32 parameter_offset)
   s_media_buffer_32[1] = ret;
 }
 
-static void AMMBCommandSocket(u32 parameter_offset)
+static void AMMBCommandSocket(const u32 parameter_offset)
 {
   // Protocol is not sent (determined automatically).
   const u32 domain = s_media_buffer_32[parameter_offset];
@@ -1052,7 +1054,7 @@ static void AMMBCommandSocket(u32 parameter_offset)
   s_media_buffer_32[1] = u32(guest_socket);
 }
 
-static void AMMBCommandClosesocket(u32 parameter_offset)
+static void AMMBCommandClosesocket(const u32 parameter_offset)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
   const auto fd = GetHostSocket(guest_socket);
@@ -1068,7 +1070,7 @@ static void AMMBCommandClosesocket(u32 parameter_offset)
   s_last_error = SSC_SUCCESS;
 }
 
-static void AMMBCommandConnect(u32 parameter_offset)
+static void AMMBCommandConnect(const u32 parameter_offset)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset + 0]);
   const u32 addr_offset = s_media_buffer_32[parameter_offset + 1];
@@ -1097,7 +1099,7 @@ static void AMMBCommandConnect(u32 parameter_offset)
   s_media_buffer_32[1] = ret;
 }
 
-static void AMMBCommandAccept(u32 parameter_offset)
+static void AMMBCommandAccept(const u32 parameter_offset)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
   const u32 addr_off = s_media_buffer_32[parameter_offset + 1];
@@ -1160,8 +1162,8 @@ static void AMMBCommandBind()
   s_last_error = SSC_SUCCESS;
 }
 
-static void FillPollFdsFromGuestFdSet(std::span<WSAPOLLFD> pfds, u32 guest_fds_offset,
-                                      short requested_events)
+static void FillPollFdsFromGuestFdSet(std::span<WSAPOLLFD> pfds, const u32 guest_fds_offset,
+                                      const short requested_events)
 {
   if (guest_fds_offset == 0)
     return;
@@ -1191,8 +1193,9 @@ static void FillPollFdsFromGuestFdSet(std::span<WSAPOLLFD> pfds, u32 guest_fds_o
   }
 }
 
-static void WriteGuestFdSetFromPollFds(u32 guest_fds_offset, std::span<const WSAPOLLFD> fds,
-                                       short returned_events)
+static void WriteGuestFdSetFromPollFds(const u32 guest_fds_offset,
+                                       const std::span<const WSAPOLLFD> fds,
+                                       const short returned_events)
 {
   if (guest_fds_offset == 0)
     return;
@@ -1221,7 +1224,7 @@ static void WriteGuestFdSetFromPollFds(u32 guest_fds_offset, std::span<const WSA
   std::ranges::copy(Common::AsU8Span(guest_fds), guest_fds_span.data());
 }
 
-static void AMMBCommandSelect(u32 parameter_offset)
+static void AMMBCommandSelect(const u32 parameter_offset)
 {
   u32 nfds = int(s_media_buffer_32[parameter_offset]);
   const u32 readfds_offset = s_media_buffer_32[parameter_offset + 1];
@@ -1299,7 +1302,7 @@ static void AMMBCommandSelect(u32 parameter_offset)
   s_media_buffer_32[1] = ret;
 }
 
-static void AMMBCommandSetSockOpt(u32 parameter_offset)
+static void AMMBCommandSetSockOpt(const u32 parameter_offset)
 {
   const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[parameter_offset]));
   const int level = static_cast<int>(s_media_buffer_32[parameter_offset + 1]);
@@ -1329,7 +1332,7 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset)
   s_media_buffer_32[1] = ret;
 }
 
-static void AMMBCommandModifyMyIPaddr(u32 parameter_offset)
+static void AMMBCommandModifyMyIPaddr(const u32 parameter_offset)
 {
   const u32 ip_address_offset = s_media_buffer_32[parameter_offset];
   const auto ip_address_str = GetSafeString(ip_address_offset, MAX_IPV4_STRING_LENGTH);
@@ -1340,10 +1343,10 @@ static void AMMBCommandModifyMyIPaddr(u32 parameter_offset)
     s_game_modified_ip_address = parse_result->first.ip_address;
 }
 
-static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
-                          u32 address, std::size_t length)
+static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, const u32 seek_pos,
+                          const u32 address, const std::size_t length)
 {
-  auto span = memory.GetSpanForAddress(address);
+  const auto span = memory.GetSpanForAddress(address);
   if (length <= span.size())
   {
     file->Seek(seek_pos, File::SeekOrigin::Begin);
@@ -1357,8 +1360,8 @@ static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32
   }
 }
 
-static void FileReadData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
-                         u32 address, std::size_t length)
+static void FileReadData(Memory::MemoryManager& memory, File::IOFile* file, const u32 seek_pos,
+                         const u32 address, const std::size_t length)
 {
   auto span = memory.GetSpanForAddress(address);
   if (length <= span.size())
@@ -2309,7 +2312,7 @@ u32 GetGameType()
     triforce_id = 0x454A;  // Fallback (VirtuaStriker3)
   }
 
-  auto it = s_game_map.find(triforce_id);
+  const auto it = s_game_map.find(triforce_id);
   if (it != s_game_map.end())
   {
     return it->second;
@@ -2413,7 +2416,7 @@ void DoState(PointerWrap& p)
   }
 }
 
-s32 DebuggerGetSocket(u32 triforce_fd)
+s32 DebuggerGetSocket(const u32 triforce_fd)
 {
   if (triforce_fd < std::size(s_sockets))
     return s32(s_sockets[triforce_fd]);

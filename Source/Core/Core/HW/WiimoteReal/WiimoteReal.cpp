@@ -74,7 +74,7 @@ static std::vector<WiimotePoolEntry> s_wiimote_pool;
 static WiimoteScanner s_wiimote_scanner;
 
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
-static void TryToFillWiimoteSlot(u32 index)
+static void TryToFillWiimoteSlot(const u32 index)
 {
   std::lock_guard lk(g_wiimotes_mutex);
 
@@ -207,7 +207,8 @@ void Wiimote::WriteReport(Report rpt)
 }
 
 // to be called from CPU thread
-void Wiimote::QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data, unsigned int size)
+void Wiimote::QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data,
+                          const unsigned int size)
 {
   auto const queue_data = static_cast<const u8*>(data);
 
@@ -327,7 +328,7 @@ bool Wiimote::Write(const TimedReport& timed_report)
 
   // Write the report at the proper time, mainly for speaker data, not that it will help much.
   std::this_thread::sleep_until(timed_report.time);
-  int ret = IOWrite(rpt.data(), rpt.size());
+  const int ret = IOWrite(rpt.data(), rpt.size());
 
   return ret != 0;
 }
@@ -420,7 +421,7 @@ bool Wiimote::GetNextReport(Report* report)
 }
 
 // Returns the next report that should be sent
-Report& Wiimote::ProcessReadQueue(bool repeat_last_data_report)
+Report& Wiimote::ProcessReadQueue(const bool repeat_last_data_report)
 {
   // If we're not repeating data reports or had a non-data report, any old report is irrelevant.
   if (!repeat_last_data_report || !IsDataReport(m_last_input_report))
@@ -488,7 +489,7 @@ ButtonData Wiimote::GetCurrentlyPressedButtons()
     // TODO: Button data could also be pulled out of non-data reports if really wanted.
     if (DataReportBuilder::IsValidMode(mode))
     {
-      auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
+      const auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
 
@@ -631,7 +632,7 @@ void WiimoteScanner::PoolThreadFunc()
     }
 
     // Make wiimote pool LEDs dance.
-    for (auto& wiimote : s_wiimote_pool)
+    for (const auto& wiimote : s_wiimote_pool)
     {
       OutputReportLeds leds = {};
       leds.leds = led_value;
@@ -881,7 +882,7 @@ int Wiimote::GetIndex() const
 }
 
 // config dialog calls this when some settings change
-void Initialize(::Wiimote::InitializeMode init_mode)
+void Initialize(const ::Wiimote::InitializeMode init_mode)
 {
   if (!s_real_wiimotes_initialized)
   {
@@ -916,7 +917,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
 // called on emulation shutdown
 void Stop()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuStop();
 }
@@ -940,20 +941,20 @@ void Shutdown()
 
 void Resume()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuResume();
 }
 
 void Pause()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuPause();
 }
 
 // Called from the Wiimote scanner thread (or UI thread on source change)
-static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int i)
+static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, const unsigned int i)
 {
   if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::Real || g_wiimotes[i])
     return false;
@@ -990,7 +991,7 @@ static void TryToConnectBalanceBoard(std::unique_ptr<Wiimote> wm)
   NOTICE_LOG_FMT(WIIMOTE, "No open slot for real balance board.");
 }
 
-static void HandleWiimoteDisconnect(int index)
+static void HandleWiimoteDisconnect(const int index)
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
   // The Wii Remote object must exist through the call to UpdateSource
@@ -1035,7 +1036,7 @@ bool IsKnownDeviceId(const USBUtils::DeviceInfo& device_info)
   return device_info.vid == 0x057e && (device_info.pid == 0x0306 || device_info.pid == 0x0330);
 }
 
-void HandleWiimoteSourceChange(unsigned int index)
+void HandleWiimoteSourceChange(const unsigned int index)
 {
   std::lock_guard wm_lk(g_wiimotes_mutex);
 

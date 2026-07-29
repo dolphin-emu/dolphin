@@ -46,7 +46,7 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // We have a special exception here for FIFO writes: these are handled via a
 // different mechanism and should not go through the normal MMIO access
 // interface.
-inline bool IsMMIOAddress(u32 address, bool is_wii)
+inline bool IsMMIOAddress(const u32 address, const bool is_wii)
 {
   if (address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
     return false;  // WG Pipe
@@ -66,7 +66,7 @@ inline bool IsMMIOAddress(u32 address, bool is_wii)
 // from a very simple formula: (block_id << 16) | lower_16_bits(address).
 //
 // The block ID can easily be computed by simply checking bit 24 (CC vs. CD).
-inline u32 UniqueID(u32 address)
+inline u32 UniqueID(const u32 address)
 {
   DEBUG_ASSERT_MSG(MEMMAP,
                    ((address & 0xFFFF0000) == 0x0C000000) ||

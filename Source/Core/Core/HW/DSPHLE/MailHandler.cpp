@@ -18,7 +18,7 @@ CMailHandler::~CMailHandler()
 {
 }
 
-void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
+void CMailHandler::PushMail(u32 mail, const bool interrupt, const int cycles_into_future)
 {
   if (interrupt)
   {

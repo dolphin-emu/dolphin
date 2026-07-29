@@ -27,7 +27,7 @@ void CameraLogic::DoState(PointerWrap& p)
   // FYI: m_is_enabled is handled elsewhere.
 }
 
-int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int CameraLogic::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -38,7 +38,7 @@ int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return RawRead(&m_reg_data, addr, count, data_out);
 }
 
-int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int CameraLogic::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -50,7 +50,7 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 }
 
 std::array<CameraPoint, CameraLogic::NUM_POINTS>
-CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Vec2 field_of_view)
 {
   using Common::Matrix33;
   using Common::Matrix44;

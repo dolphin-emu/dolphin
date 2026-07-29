@@ -50,7 +50,7 @@ bool UCodeInterface::NeedsResumeMail()
   return false;
 }
 
-void UCodeInterface::PrepareBootUCode(u32 mail)
+void UCodeInterface::PrepareBootUCode(const u32 mail)
 {
   switch (m_next_ucode_steps)
   {
@@ -93,7 +93,7 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
     m_needs_resume_mail = true;
     m_upload_setup_in_progress = false;
 
-    auto& memory = m_dsphle->GetSystem().GetMemory();
+    const auto& memory = m_dsphle->GetSystem().GetMemory();
     const u8* pointer =
         memory.GetPointerForRange(m_next_ucode.iram_mram_addr, m_next_ucode.iram_size);
     const u32 ector_crc = Common::HashEctor(pointer, m_next_ucode.iram_size);
@@ -131,7 +131,7 @@ void UCodeInterface::DoStateShared(PointerWrap& p)
   p.Do(m_needs_resume_mail);
 }
 
-std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, const bool wii)
 {
   switch (crc)
   {

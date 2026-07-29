@@ -69,7 +69,7 @@ bool ASndUCode::UseNewFlagMasks() const
          m_crc == HASH_2024_PAD;
 }
 
-ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+ASndUCode::ASndUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
 
@@ -87,7 +87,7 @@ void ASndUCode::Update()
   }
 }
 
-void ASndUCode::HandleMail(u32 mail)
+void ASndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {
@@ -136,7 +136,7 @@ void ASndUCode::HandleMail(u32 mail)
       // input_samples2
       DMAInVoiceData();  // first do_dma call
       // second do_dma call
-      auto& memory = m_dsphle->GetSystem().GetMemory();
+      const auto& memory = m_dsphle->GetSystem().GetMemory();
       memory.CopyFromEmuSwapped(m_output_buffer.data(), m_current_voice.out_buf,
                                 sizeof(m_output_buffer));
       DoMixing(DSP_SYNC);
@@ -201,10 +201,10 @@ void ASndUCode::HandleMail(u32 mail)
 
 void ASndUCode::DMAInVoiceData()
 {
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   m_current_voice.out_buf = memory.Read_U32(m_voice_addr);
   m_current_voice.delay_samples = memory.Read_U32(m_voice_addr + 4);
-  u32 new_flags = memory.Read_U32(m_voice_addr + 8);
+  const u32 new_flags = memory.Read_U32(m_voice_addr + 8);
   if (m_current_voice.flags != new_flags)
     DEBUG_LOG_FMT(DSPHLE, "ASndUCode - flags: {:08x}", new_flags);
   m_current_voice.flags = new_flags;
@@ -457,7 +457,7 @@ void ASndUCode::DMAInSampleData()
   // The only difference is that this one forces the address to be aligned, while when
   // jump_load_smp_dma is used, the address is expected to already be aligned.
   const u32 addr = m_current_voice.start_addr & ~INPUT_SAMPLE_BUFFER_BYTE_MASK;
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   memory.CopyFromEmuSwapped(m_input_sample_buffer.data(), addr, INPUT_SAMPLE_BUFFER_SIZE_BYTES);
 }
 
@@ -467,7 +467,7 @@ void ASndUCode::DMAInSampleDataAssumeAligned()
   // This is technically not a function, but instead is directly jumped to and then jumps to $ar3
   // (which is set to an address from sample_selector). We can just treat it as a function though.
   const u32 addr = m_current_voice.start_addr;
-  auto& memory = m_dsphle->GetSystem().GetMemory();
+  const auto& memory = m_dsphle->GetSystem().GetMemory();
   memory.CopyFromEmuSwapped(m_input_sample_buffer.data(), addr, INPUT_SAMPLE_BUFFER_SIZE_BYTES);
 }
 
@@ -536,7 +536,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo8BitsUnsigned() const
 {
   // stereo_8bits_unsigned
   const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
-  u16 sample = m_input_sample_buffer[index] ^ 0x8080;
+  const u16 sample = m_input_sample_buffer[index] ^ 0x8080;
   const s16 right = sample & 0xff00;
   const s16 left = sample << 8;
   return {right, left};

@@ -20,7 +20,7 @@ DSPHLE::DSPHLE(Core::System& system) : m_mail_handler(system.GetDSP()), m_system
 
 DSPHLE::~DSPHLE() = default;
 
-bool DSPHLE::Initialize(bool wii, bool dsp_thread)
+bool DSPHLE::Initialize(const bool wii, bool dsp_thread)
 {
   m_wii = wii;
   m_ucode = nullptr;
@@ -60,7 +60,7 @@ u32 DSPHLE::DSP_UpdateRate()
   return m_system.GetSystemTimers().GetTicksPerSecond() / 1000;
 }
 
-void DSPHLE::SendMailToDSP(u32 mail)
+void DSPHLE::SendMailToDSP(const u32 mail)
 {
   if (m_ucode != nullptr)
   {
@@ -79,7 +79,7 @@ void DSPHLE::SetUCode(u32 crc)
 // TODO do it better?
 // Assumes that every odd call to this func is by the persistent ucode.
 // Even callers are deleted.
-void DSPHLE::SwapUCode(u32 crc)
+void DSPHLE::SwapUCode(const u32 crc)
 {
   m_mail_handler.ClearPending();
 
@@ -113,9 +113,9 @@ void DSPHLE::DoState(PointerWrap& p)
   p.Do(m_dsp_state);
 
   int ucode_crc = UCodeInterface::GetCRC(m_ucode.get());
-  int ucode_crc_before_load = ucode_crc;
+  const int ucode_crc_before_load = ucode_crc;
   int last_ucode_crc = UCodeInterface::GetCRC(m_last_ucode.get());
-  int last_ucode_crc_before_load = last_ucode_crc;
+  const int last_ucode_crc_before_load = last_ucode_crc;
 
   p.Do(ucode_crc);
   p.Do(last_ucode_crc);
@@ -140,7 +140,7 @@ void DSPHLE::DoState(PointerWrap& p)
 }
 
 // Mailbox functions
-u16 DSPHLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
+u16 DSPHLE::DSP_ReadMailBoxHigh(const bool cpu_mailbox)
 {
   if (cpu_mailbox)
   {
@@ -152,7 +152,7 @@ u16 DSPHLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
   }
 }
 
-u16 DSPHLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
+u16 DSPHLE::DSP_ReadMailBoxLow(const bool cpu_mailbox)
 {
   if (cpu_mailbox)
   {
@@ -164,7 +164,7 @@ u16 DSPHLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
   }
 }
 
-void DSPHLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
+void DSPHLE::DSP_WriteMailBoxHigh(const bool cpu_mailbox, const u16 value)
 {
   if (cpu_mailbox)
   {
@@ -176,7 +176,7 @@ void DSPHLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   }
 }
 
-void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
+void DSPHLE::DSP_WriteMailBoxLow(const bool cpu_mailbox, const u16 value)
 {
   if (cpu_mailbox)
   {
@@ -192,7 +192,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 }
 
 // Other DSP functions
-u16 DSPHLE::DSP_WriteControlRegister(u16 value)
+u16 DSPHLE::DSP_WriteControlRegister(const u16 value)
 {
   DSP::UDSPControl temp(value);
 

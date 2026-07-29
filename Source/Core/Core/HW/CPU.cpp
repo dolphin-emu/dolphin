@@ -29,7 +29,7 @@ CPUManager::CPUManager(Core::System& system) : m_system(system)
 }
 CPUManager::~CPUManager() = default;
 
-void CPUManager::Init(PowerPC::CPUCore cpu_core)
+void CPUManager::Init(const PowerPC::CPUCore cpu_core)
 {
   m_system.GetPowerPC().Init(cpu_core);
   m_state = State::Stepping;
@@ -138,7 +138,7 @@ void CPUManager::Run()
           power_pc.GetMemChecks().HasAny())
       {
         m_state = State::Stepping;
-        PowerPC::CoreMode old_mode = power_pc.GetMode();
+        const PowerPC::CoreMode old_mode = power_pc.GetMode();
         power_pc.SetMode(PowerPC::CoreMode::Interpreter);
         power_pc.SingleStep();
         power_pc.SetMode(old_mode);
@@ -221,7 +221,7 @@ void CPUManager::Run()
 }
 
 // Requires holding m_state_change_lock
-void CPUManager::RunAdjacentSystems(bool running)
+void CPUManager::RunAdjacentSystems(const bool running)
 {
   // NOTE: We're assuming these will not try to call Break or SetStepping.
   m_system.GetFifo().EmulatorState(running);
@@ -288,7 +288,7 @@ void CPUManager::StepOpcode(Common::Event* event)
 }
 
 // Requires m_state_change_lock
-bool CPUManager::SetStateLocked(State s)
+bool CPUManager::SetStateLocked(const State s)
 {
   if (m_state == State::PowerDown)
     return false;
@@ -298,7 +298,7 @@ bool CPUManager::SetStateLocked(State s)
   return true;
 }
 
-void CPUManager::SetStepping(bool stepping)
+void CPUManager::SetStepping(const bool stepping)
 {
   std::lock_guard stepping_lock(m_stepping_lock);
   std::unique_lock state_lock(m_state_change_lock);

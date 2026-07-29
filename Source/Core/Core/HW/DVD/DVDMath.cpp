@@ -108,7 +108,7 @@ double CalculatePhysicalDiscPosition(u64 offset)
 // afterwards. Based on hardware testing, this appears to be a function of the
 // linear distance between the radius of the first and second positions on the
 // disc, though the head speed varies depending on the length of the seek.
-double CalculateSeekTime(u64 offset_from, u64 offset_to)
+double CalculateSeekTime(const u64 offset_from, const u64 offset_to)
 {
   const double position_from = CalculatePhysicalDiscPosition(offset_from);
   const double position_to = CalculatePhysicalDiscPosition(offset_to);
@@ -124,7 +124,7 @@ double CalculateSeekTime(u64 offset_from, u64 offset_to)
 
 // Returns the time in seconds it takes for the disc to spin to the angle where the
 // read head is over the given offset, starting from the given time in seconds.
-double CalculateRotationalLatency(u64 offset, double time, bool wii_disc)
+double CalculateRotationalLatency(const u64 offset, const double time, const bool wii_disc)
 {
   // The data track on the disc is modelled as an Archimedean spiral.
 
@@ -158,7 +158,7 @@ double CalculateRotationalLatency(u64 offset, double time, bool wii_disc)
 // ignoring factors such as seek times. This is the streaming rate of the
 // drive and varies between ~3-8MiB/s for Wii discs. Note that there is technically
 // a DMA delay on top of this, but we model that as part of this read time.
-double CalculateRawDiscReadTime(u64 offset, u64 length, bool wii_disc)
+double CalculateRawDiscReadTime(const u64 offset, const u64 length, const bool wii_disc)
 {
   // The Wii/GC have a CAV drive and the data has a constant pit length
   // regardless of location on disc. This means we can linearly interpolate

@@ -134,7 +134,7 @@ public:
     return *(m_data++);
   }
 
-  constexpr void SkipBytes(std::size_t count)
+  constexpr void SkipBytes(const std::size_t count)
   {
     DEBUG_ASSERT(RemainingByteCount() >= count);
     m_data += count;
@@ -161,7 +161,7 @@ public:
 #endif
   }
 
-  void StartFrame(u8 destination_node)
+  void StartFrame(const u8 destination_node)
   {
     m_buffer.clear();
     m_buffer.reserve(2 + 255);
@@ -405,7 +405,7 @@ void JVSIOBoard::ProcessUnicastRequest(JVSIORequestReader* request)
   JVSIOResponseWriter response{&m_last_response};
   response.StartFrame(JVSIO_HOST_ADDRESS);
 
-  FrameContext ctx{*request, response};
+  const FrameContext ctx{*request, response};
 
   while (true)
   {
@@ -444,7 +444,7 @@ void JVSIOBoard::ProcessUnicastRequest(JVSIORequestReader* request)
   WriteResponse(m_last_response);
 }
 
-void JVSIOBoard::WriteResponse(std::span<const u8> response)
+void JVSIOBoard::WriteResponse(const std::span<const u8> response)
 {
   WriteTxByte(JVSIO_SYNC);
 
@@ -463,7 +463,7 @@ void JVSIOBoard::WriteResponse(std::span<const u8> response)
   }
 }
 
-auto JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerResponse
+auto JVSIOBoard::HandleCommand(const JVSIOCommand cmd, const FrameContext ctx) -> HandlerResponse
 {
   switch (cmd)
   {
@@ -493,8 +493,8 @@ auto JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerRes
     if (null_iter == remaining_bytes.end())
       return JVSIOReportCode::ParameterDataError;
 
-    std::string_view main_id_str{reinterpret_cast<const char*>(remaining_bytes.data()),
-                                 reinterpret_cast<const char*>(std::to_address(null_iter))};
+    const std::string_view main_id_str{reinterpret_cast<const char*>(remaining_bytes.data()),
+                                       reinterpret_cast<const char*>(std::to_address(null_iter))};
     ctx.request.SkipBytes(main_id_str.size() + 1);
 
     INFO_LOG_FMT(SERIALINTERFACE_JVSIO, "MainID: {}", main_id_str);
@@ -539,7 +539,7 @@ auto JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerRes
     const auto analog_inputs = m_io_ports->GetAnalogInputs();
     const auto inputs_to_use = std::min<std::size_t>(channel_count, analog_inputs.size());
 
-    for (auto value : analog_inputs.first(inputs_to_use))
+    for (const auto value : analog_inputs.first(inputs_to_use))
       ctx.response.AddData(Common::AsU8Span(Common::swap16(value)));
 
     // Pad data if the game requests more inputs than we have (unlikely).
@@ -629,7 +629,8 @@ auto JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerRes
 // JVS board specs largely sourced from:
 // https://www.arcade-projects.com/threads/jvs-information-extractor.2071/
 
-auto Namco_FCA_JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerResponse
+auto Namco_FCA_JVSIOBoard::HandleCommand(const JVSIOCommand cmd, const FrameContext ctx)
+    -> HandlerResponse
 {
   switch (cmd)
   {
@@ -692,7 +693,8 @@ auto Namco_FCA_JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> 
   }
 }
 
-auto Sega_837_13551_JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerResponse
+auto Sega_837_13551_JVSIOBoard::HandleCommand(const JVSIOCommand cmd, const FrameContext ctx)
+    -> HandlerResponse
 {
   switch (cmd)
   {
@@ -722,7 +724,8 @@ auto Sega_837_13551_JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx
   }
 }
 
-auto Sega_837_13844_JVSIOBoard::HandleCommand(JVSIOCommand cmd, FrameContext ctx) -> HandlerResponse
+auto Sega_837_13844_JVSIOBoard::HandleCommand(const JVSIOCommand cmd, const FrameContext ctx)
+    -> HandlerResponse
 {
   switch (cmd)
   {

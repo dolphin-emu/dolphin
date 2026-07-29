@@ -47,7 +47,7 @@ void InitSRAM(Sram* sram, const std::string& filename)
   }
 }
 
-void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_slot)
+void SetCardFlashID(Sram* sram, const u8* buffer, const ExpansionInterface::Slot card_slot)
 {
   u8 card_index;
   switch (card_slot)
@@ -83,7 +83,7 @@ void FixSRAMChecksums(Sram* sram)
   for (auto p = reinterpret_cast<u16*>(&sram->settings.rtc_bias);
        p != reinterpret_cast<u16*>(&sram->settings_ex); p++)
   {
-    u16 value = Common::FromBigEndian(*p);
+    const u16 value = Common::FromBigEndian(*p);
     checksum += value;
     checksum_inv += ~value;
   }

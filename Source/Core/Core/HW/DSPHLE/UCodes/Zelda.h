@@ -56,7 +56,7 @@ private:
   // Apply volume to a buffer. The volume is a fixed point integer, usually
   // 1.15 or 4.12 in the DAC UCode.
   template <size_t N, size_t B>
-  static void ApplyVolumeInPlace(std::array<s16, N>* buf, u16 vol)
+  static void ApplyVolumeInPlace(std::array<s16, N>* buf, const u16 vol)
   {
     for (size_t i = 0; i < N; ++i)
     {
@@ -67,12 +67,12 @@ private:
     }
   }
   template <size_t N>
-  void ApplyVolumeInPlace_1_15(std::array<s16, N>* buf, u16 vol)
+  void ApplyVolumeInPlace_1_15(std::array<s16, N>* buf, const u16 vol)
   {
     ApplyVolumeInPlace<N, 1>(buf, vol);
   }
   template <size_t N>
-  void ApplyVolumeInPlace_4_12(std::array<s16, N>* buf, u16 vol)
+  void ApplyVolumeInPlace_4_12(std::array<s16, N>* buf, const u16 vol)
   {
     ApplyVolumeInPlace<N, 4>(buf, vol);
   }
@@ -84,7 +84,7 @@ private:
   // we can do better here with very low risk. Why not? :)
   template <size_t N>
   static s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src,
-                                      s32 vol, s32 step)
+                                      s32 vol, const s32 step)
   {
     if (!vol && !step)
       return vol;
@@ -100,7 +100,7 @@ private:
 
   // Does not use std::array because it needs to be able to process partial
   // buffers. Volume is in 1.15 format.
-  static void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, u16 vol)
+  static void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, const u16 vol)
   {
     while (count--)
     {

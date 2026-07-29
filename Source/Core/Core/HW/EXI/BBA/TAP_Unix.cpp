@@ -99,12 +99,12 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 #endif
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, const u32 size)
 {
 #ifdef __linux__
   DEBUG_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
-  int writtenBytes = write(fd, frame, size);
+  const int writtenBytes = write(fd, frame, size);
   if ((u32)writtenBytes != size)
   {
     ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,

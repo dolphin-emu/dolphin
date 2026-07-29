@@ -55,8 +55,8 @@ void MarioKartGPCommon_IOAdapter::Update()
   analog_inputs[2] = Common::ExpandValue<u16>(pad_status.triggerLeft, 8);
 }
 
-void MarioKartGPCommon_IOAdapter::HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                                              std::span<const u8> bits_cleared)
+void MarioKartGPCommon_IOAdapter::HandleGenericOutputsChanged(
+    const std::span<const u8> bits_set, const std::span<const u8> bits_cleared)
 {
   if (bits_set[0] & 0x80u)
     m_steering_wheel->Reset();

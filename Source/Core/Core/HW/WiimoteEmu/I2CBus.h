@@ -23,7 +23,7 @@ protected:
   virtual int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) = 0;
 
   template <typename T>
-  static int RawRead(T* reg_data, u8 addr, int count, u8* data_out)
+  static int RawRead(T* reg_data, const u8 addr, int count, u8* data_out)
   {
     static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
     static_assert(0x100 == sizeof(T));
@@ -39,7 +39,7 @@ protected:
   }
 
   template <typename T>
-  static int RawWrite(T* reg_data, u8 addr, int count, const u8* data_in)
+  static int RawWrite(T* reg_data, const u8 addr, int count, const u8* data_in)
   {
     static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
     static_assert(0x100 == sizeof(T));

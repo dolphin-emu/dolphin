@@ -93,7 +93,7 @@ WiimoteScannerHidapi::WiimoteScannerHidapi()
   // https://man.openbsd.org/usbhid.3
 #define hid_init hidapi_hid_init
 #endif
-  int ret = hid_init();
+  const int ret = hid_init();
   ASSERT_MSG(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
 }
 
@@ -175,8 +175,8 @@ bool WiimoteHidapi::IsConnected() const
 
 int WiimoteHidapi::IORead(u8* buf)
 {
-  int timeout = 200;  // ms
-  int result = hid_read_timeout(m_handle, buf + 1, MAX_PAYLOAD - 1, timeout);
+  const int timeout = 200;  // ms
+  const int result = hid_read_timeout(m_handle, buf + 1, MAX_PAYLOAD - 1, timeout);
   // TODO: If and once we use hidapi across platforms, change our internal API to clean up this
   // mess.
   if (result == -1)
@@ -192,11 +192,11 @@ int WiimoteHidapi::IORead(u8* buf)
   return result + 1;  // number of bytes read
 }
 
-int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
+int WiimoteHidapi::IOWrite(const u8* buf, const size_t len)
 {
   assert(len > 0);
   DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
-  int result = hid_write(m_handle, buf + 1, len - 1);
+  const int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)
   {
     ERROR_LOG_FMT(WIIMOTE, "Failed to write to {}.", m_device_path);
