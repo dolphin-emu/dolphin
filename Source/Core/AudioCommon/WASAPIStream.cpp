@@ -15,6 +15,8 @@
 
 #include <thread>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
@@ -110,7 +112,7 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   {
     ComPtr<IMMDevice> device;
     devices->Item(i, &device);
-    if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
+    if (!HandleWinAPI(fmt::format("Failed to get device {}", i), result))
       continue;
 
     ComPtr<IPropertyStore> device_properties;
