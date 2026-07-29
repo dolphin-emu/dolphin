@@ -134,7 +134,6 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             joystick.draw(canvas)
         }
 
-
         for (button in gbaOverlayButtons) {
             button.draw(canvas)
             drawGbaBadge(canvas, button.bounds)
@@ -146,110 +145,125 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         }
     }
 
-    // Draws GBA badge on controls for GBA controller, to not get confused with the GC pad buttons
-    private fun drawGbaBadge(canvas: Canvas, bounds: Rect) {
-        val bp = android.graphics.Paint().apply {
-            isAntiAlias = true; color = android.graphics.Color.argb(200, 98, 0, 238)
-            style = android.graphics.Paint.Style.FILL
+    override fun onTouch(v: View, event: MotionEvent): Boolean {
+        if (editMode) {
+            return onTouchWhileEditing(event)
         }
-        val tp = android.graphics.Paint().apply {
-            isAntiAlias = true; color = android.graphics.Color.WHITE; textSize = 18f
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            textAlign = android.graphics.Paint.Align.CENTER
-        }
-        val text = "GBA ${gbaControllerIndex + 1}"
-        val r = android.graphics.RectF(
-            bounds.left.toFloat(), bounds.top.toFloat(),
-            bounds.left + 58f, bounds.top + 20f
-        )
-        canvas.drawRoundRect(r, 6f, 6f, bp)
-        canvas.drawText(text, r.centerX(), r.top + 16f, tp)
-    }
 
-    private fun processOverlayTouch(
-        event: MotionEvent,
-        targetIndex: Int,
-        buttons: Set<InputOverlayDrawableButton>,
-        dpads: Set<InputOverlayDrawableDpad>,
-        pointerId: Int,
-        action: Int,
-        pointerIndex: Int
-    ): Boolean {
-        var handled = false
+        val action = event.actionMasked
+        val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
+            action != MotionEvent.ACTION_POINTER_UP
+        val pointerIndex = if (firstPointer) 0 else event.actionIndex
+        // Tracks if any button/joystick is pressed down
+        var pressed = false
 
-        // Process Buttons
-        for (button in buttons) {
+        for (button in overlayButtons + gbaOverlayButtons) {
+            val cIndex =
+                if (gbaOverlayButtons.contains(button)) gbaControllerIndex else controllerIndex
+            // Determine the button state to apply based on the MotionEvent action flag.
             when (action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    // If a pointer enters the bounds of a button, press that button.
                     if (button.bounds.contains(
                             event.getX(pointerIndex).toInt(),
                             event.getY(pointerIndex).toInt()
                         )
                     ) {
                         button.setPressedState(if (button.latching) !button.getPressedState() else true)
-                        button.trackId = pointerId
+                        button.trackId = event.getPointerId(pointerIndex)
+                        pressed = true
                         InputOverrider.setControlState(
-                            targetIndex,
+                            cIndex,
                             button.control,
                             if (button.getPressedState()) 1.0 else 0.0
                         )
 
-                        getAnalogControlForTrigger(button.control).takeIf { it >= 0 }?.let {
-                            InputOverrider.setControlState(targetIndex, it, 1.0)
-                        }
-                        handled = true
+                        val analogControl = getAnalogControlForTrigger(button.control)
+                        if (analogControl >= 0)
+                            InputOverrider.setControlState(
+                                cIndex,
+                                analogControl,
+                                1.0
+                            )
                     }
                 }
 
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
-                    if (button.trackId == pointerId) {
-                        if (!button.latching) button.setPressedState(false)
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> {
+                    // If a pointer ends, release the button it was pressing.
+                    if (button.trackId == event.getPointerId(pointerIndex)) {
+                        if (!button.latching)
+                            button.setPressedState(false)
                         InputOverrider.setControlState(
-                            targetIndex,
+                            cIndex,
                             button.control,
                             if (button.getPressedState()) 1.0 else 0.0
                         )
 
-                        getAnalogControlForTrigger(button.control).takeIf { it >= 0 }?.let {
-                            InputOverrider.setControlState(targetIndex, it, 0.0)
-                        }
+                        val analogControl = getAnalogControlForTrigger(button.control)
+                        if (analogControl >= 0)
+                            InputOverrider.setControlState(
+                                cIndex,
+                                analogControl,
+                                0.0
+                            )
+
                         button.trackId = -1
-                        handled = true
                     }
                 }
             }
         }
 
-        // Process Dpads
-        for (dpad in dpads) {
-            when (action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                    if (dpad.bounds.contains(
-                            event.getX(pointerIndex).toInt(),
-                            event.getY(pointerIndex).toInt()
-                        )
+        for (dpad in overlayDpads + gbaOverlayDpads) {
+            val cIndex = if (gbaOverlayDpads.contains(dpad)) gbaControllerIndex else controllerIndex
+            // Determine the button state to apply based on the MotionEvent action flag.
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    // If a pointer enters the bounds of a button, press that button.
+                    if (dpad.bounds
+                            .contains(
+                                event.getX(pointerIndex).toInt(),
+                                event.getY(pointerIndex).toInt()
+                            )
                     ) {
-                        dpad.trackId = pointerId
-                        handled = true
+                        dpad.trackId = event.getPointerId(pointerIndex)
+                        pressed = true
                     }
                 }
             }
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN,
+                MotionEvent.ACTION_MOVE -> {
+                    if (dpad.trackId == event.getPointerId(pointerIndex)) {
+                        val dpadPressed = booleanArrayOf(false, false, false, false)
 
-            if (dpad.trackId == pointerId) {
-                when (action) {
-                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_MOVE -> {
-                        val dpadPressed = booleanArrayOf(
-                            dpad.bounds.top + dpad.height / 3 > event.getY(pointerIndex).toInt(),
-                            dpad.bounds.bottom - dpad.height / 3 < event.getY(pointerIndex).toInt(),
-                            dpad.bounds.left + dpad.width / 3 > event.getX(pointerIndex).toInt(),
-                            dpad.bounds.right - dpad.width / 3 < event.getX(pointerIndex).toInt()
-                        )
-                        for (i in 0 until 4) {
-                            InputOverrider.setControlState(
-                                targetIndex,
-                                dpad.getControl(i),
-                                if (dpadPressed[i]) 1.0 else 0.0
-                            )
+                        if (dpad.bounds.top + dpad.height / 3 > event.getY(pointerIndex).toInt())
+                            dpadPressed[0] = true
+                        if (dpad.bounds.bottom - dpad.height / 3 < event.getY(pointerIndex).toInt())
+                            dpadPressed[1] = true
+                        if (dpad.bounds.left + dpad.width / 3 > event.getX(pointerIndex).toInt())
+                            dpadPressed[2] = true
+                        if (dpad.bounds.right - dpad.width / 3 < event.getX(pointerIndex).toInt())
+                            dpadPressed[3] = true
+
+                        // Release the buttons first, then press
+                        for (i in dpadPressed.indices) {
+                            if (!dpadPressed[i]) {
+                                InputOverrider.setControlState(
+                                    cIndex,
+                                    dpad.getControl(i),
+                                    0.0
+                                )
+                            } else {
+                                InputOverrider.setControlState(
+                                    cIndex,
+                                    dpad.getControl(i),
+                                    1.0
+                                )
+                            }
                         }
                         setDpadState(
                             dpad,
@@ -258,68 +272,33 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             dpadPressed[2],
                             dpadPressed[3]
                         )
-                        handled = true
                     }
+                }
 
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> {
+                    // If a pointer ends, release the buttons.
+                    if (dpad.trackId == event.getPointerId(pointerIndex)) {
                         for (i in 0 until 4) {
                             dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
-                            InputOverrider.setControlState(targetIndex, dpad.getControl(i), 0.0)
+                            InputOverrider.setControlState(
+                                cIndex,
+                                dpad.getControl(i),
+                                0.0
+                            )
                         }
                         dpad.trackId = -1
-                        handled = true
                     }
                 }
             }
         }
-        return handled
-    }
 
-    override fun onTouch(v: View, event: MotionEvent): Boolean {
-        if (editMode) return onTouchWhileEditing(event)
-
-        val action = event.actionMasked
-        val pointerIndex =
-            if (action != MotionEvent.ACTION_POINTER_DOWN && action != MotionEvent.ACTION_POINTER_UP) 0 else event.actionIndex
-        val pointerId = event.getPointerId(pointerIndex)
-// Tracks if any button/joystick is pressed down
-        var pressed = false
-
-        // Check GBA overlay
-        if (gbaControllerIndex >= 0) {
-            if (processOverlayTouch(
-                    event,
-                    gbaControllerIndex,
-                    gbaOverlayButtons,
-                    gbaOverlayDpads,
-                    pointerId,
-                    action,
-                    pointerIndex
-                )
-            ) {
-                pressed = true
-            }
-        }
-
-        // Check primary overlay (GC/Wii)
-        if (processOverlayTouch(
-                event,
-                controllerIndex,
-                overlayButtons,
-                overlayDpads,
-                pointerId,
-                action,
-                pointerIndex
-            )
-        ) {
-            pressed = true
-        }
-
-        // Process Joysticks
         for (joystick in overlayJoysticks) {
             if (joystick.trackEvent(event)) {
-                if (joystick.trackId != -1) pressed = true
+                if (joystick.trackId != -1)
+                    pressed = true
             }
+
             InputOverrider.setControlState(
                 controllerIndex,
                 joystick.xControl,
@@ -332,7 +311,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             )
         }
 
-        // Process IR Pointer if no other inputs active
+        // No button/joystick pressed, safe to move pointer
         if (!pressed && overlayPointer != null) {
             overlayPointer!!.onTouch(event)
             InputOverrider.setControlState(
@@ -470,7 +449,6 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 }
             }
         }
-
         return true
     }
 
@@ -692,70 +670,6 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
-    }
-
-    private fun addGbaOverlayControls(orientation: String) {
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context, R.drawable.gba_a, R.drawable.gba_a_pressed,
-                ButtonType.BUTTON_A + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_A_BUTTON, orientation, false
-            )
-        )
-
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context, R.drawable.gba_b, R.drawable.gba_b_pressed,
-                ButtonType.BUTTON_B + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_B_BUTTON, orientation, false
-            )
-        )
-
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context,
-                R.drawable.gba_start,
-                R.drawable.gba_start_pressed,
-                ButtonType.BUTTON_START + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_START_BUTTON,
-                orientation,
-                false
-            )
-        )
-
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context, R.drawable.gba_select, R.drawable.gba_select_pressed,
-                ButtonType.BUTTON_Z + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_SELECT_BUTTON, orientation, false
-            )
-        )
-
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context, R.drawable.gba_l, R.drawable.gba_l_pressed,
-                ButtonType.TRIGGER_L + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_L_BUTTON, orientation, false
-            )
-        )
-
-        gbaOverlayButtons.add(
-            initializeOverlayButton(
-                context, R.drawable.gba_r, R.drawable.gba_r_pressed,
-                ButtonType.TRIGGER_R + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_R_BUTTON, orientation, false
-            )
-        )
-
-        gbaOverlayDpads.add(
-            initializeOverlayDpad(
-                context, R.drawable.gba_dpad, R.drawable.gba_dpad_pressed_one_direction,
-                R.drawable.gba_dpad_pressed_two_directions,
-                ButtonType.BUTTON_UP + GBA_BUTTON_ID_OFFSET,
-                ControlId.GBA_DPAD_UP, ControlId.GBA_DPAD_DOWN,
-                ControlId.GBA_DPAD_LEFT, ControlId.GBA_DPAD_RIGHT, orientation
-            )
-        )
     }
 
     private fun addWiimoteOverlayControls(orientation: String) {
@@ -1099,6 +1013,70 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
+    }
+
+    private fun addGbaOverlayControls(orientation: String) {
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context, R.drawable.gba_a, R.drawable.gba_a_pressed,
+                ButtonType.BUTTON_A + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_A_BUTTON, orientation, false
+            )
+        )
+
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context, R.drawable.gba_b, R.drawable.gba_b_pressed,
+                ButtonType.BUTTON_B + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_B_BUTTON, orientation, false
+            )
+        )
+
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context,
+                R.drawable.gba_start,
+                R.drawable.gba_start_pressed,
+                ButtonType.BUTTON_START + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_START_BUTTON,
+                orientation,
+                false
+            )
+        )
+
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context, R.drawable.gba_select, R.drawable.gba_select_pressed,
+                ButtonType.BUTTON_Z + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_SELECT_BUTTON, orientation, false
+            )
+        )
+
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context, R.drawable.gba_l, R.drawable.gba_l_pressed,
+                ButtonType.TRIGGER_L + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_L_BUTTON, orientation, false
+            )
+        )
+
+        gbaOverlayButtons.add(
+            initializeOverlayButton(
+                context, R.drawable.gba_r, R.drawable.gba_r_pressed,
+                ButtonType.TRIGGER_R + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_R_BUTTON, orientation, false
+            )
+        )
+
+        gbaOverlayDpads.add(
+            initializeOverlayDpad(
+                context, R.drawable.gba_dpad, R.drawable.gba_dpad_pressed_one_direction,
+                R.drawable.gba_dpad_pressed_two_directions,
+                ButtonType.BUTTON_UP + GBA_BUTTON_ID_OFFSET,
+                ControlId.GBA_DPAD_UP, ControlId.GBA_DPAD_DOWN,
+                ControlId.GBA_DPAD_LEFT, ControlId.GBA_DPAD_RIGHT, orientation
+            )
+        )
     }
 
     fun refreshControls() {
@@ -2536,6 +2514,26 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             .apply()
     }
 
+    // Draws GBA badge on controls for GBA controller, to not get confused with the GC pad buttons
+    private fun drawGbaBadge(canvas: Canvas, bounds: Rect) {
+        val bp = android.graphics.Paint().apply {
+            isAntiAlias = true; color = android.graphics.Color.argb(200, 98, 0, 238)
+            style = android.graphics.Paint.Style.FILL
+        }
+        val tp = android.graphics.Paint().apply {
+            isAntiAlias = true; color = android.graphics.Color.WHITE; textSize = 18f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+        val text = "GBA ${gbaControllerIndex + 1}"
+        val r = android.graphics.RectF(
+            bounds.left.toFloat(), bounds.top.toFloat(),
+            bounds.left + 58f, bounds.top + 20f
+        )
+        canvas.drawRoundRect(r, 6f, 6f, bp)
+        canvas.drawText(text, r.centerX(), r.top + 16f, tp)
+    }
+
     companion object {
         const val OVERLAY_GAMECUBE = 0
         const val OVERLAY_WIIMOTE = 1
@@ -2551,6 +2549,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // Buttons that have special positions in Wiimote only
         private val WIIMOTE_H_BUTTONS = ArrayList<Int>()
+
         // Avoids overlap with Gamecube buttons
         private const val GBA_BUTTON_ID_OFFSET = 1000
 
