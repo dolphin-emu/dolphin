@@ -19,10 +19,10 @@ TEST(BitCastView, Basics)
   auto words = Common::BitCastView<u32>(data);
 
   EXPECT_EQ(words.size(), 4);
-  EXPECT_EQ(words[0], 0x03020100);
-  EXPECT_EQ(words[1], 0x07060504);
-  EXPECT_EQ(words[2], 0x0b0a0908);
-  EXPECT_EQ(words[3], 0x0f0e0d0c);
+  EXPECT_EQ(words[0], 0x03020100u);
+  EXPECT_EQ(words[1], 0x07060504u);
+  EXPECT_EQ(words[2], 0x0b0a0908u);
+  EXPECT_EQ(words[3], 0x0f0e0d0cu);
 
   // and make sure C(R) compiles too
 
@@ -41,10 +41,10 @@ TEST(BitCastView, Writable)
 
   words[0] = 0xdeadbeef;
 
-  EXPECT_EQ(data[0], 0xef);
-  EXPECT_EQ(data[1], 0xbe);
-  EXPECT_EQ(data[2], 0xad);
-  EXPECT_EQ(data[3], 0xde);
+  EXPECT_EQ(data[0], 0xefU);
+  EXPECT_EQ(data[1], 0xbeU);
+  EXPECT_EQ(data[2], 0xadU);
+  EXPECT_EQ(data[3], 0xdeU);
 }
 
 TEST(BitCastView, Swapping)
@@ -54,14 +54,14 @@ TEST(BitCastView, Swapping)
   auto words = Common::BitCastView<Common::BigEndianValue<u32>>(data);
 
   u32 value = words[0];
-  EXPECT_EQ(value, 1);
+  EXPECT_EQ(value, 1u);
 
   words[0] = 0xdeadbeef;
 
-  EXPECT_EQ(data[0], 0xde);
-  EXPECT_EQ(data[1], 0xad);
-  EXPECT_EQ(data[2], 0xbe);
-  EXPECT_EQ(data[3], 0xef);
+  EXPECT_EQ(data[0], 0xdeU);
+  EXPECT_EQ(data[1], 0xadU);
+  EXPECT_EQ(data[2], 0xbeU);
+  EXPECT_EQ(data[3], 0xefU);
 }
 
 TEST(BitCastView, SwappedRangeLoop)
@@ -78,5 +78,5 @@ TEST(BitCastView, SwappedRangeLoop)
   for (auto word : words)
     sum += word;
 
-  EXPECT_EQ(sum, 3);
+  EXPECT_EQ(sum, 3u);
 }
