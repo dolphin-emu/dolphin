@@ -9,6 +9,10 @@ cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
 # This is inserted into the Info.plist as well.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0.0" CACHE STRING "")
 
+# When we don't set a sysroot, AppleClang will put /usr/local/include at a higher
+# priority than -isystem paths, which can cause weird include issues in Externals
+set(CMAKE_OSX_SYSROOT macosx CACHE STRING "")
+
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverride.cmake")
 
 # CMake 3.28 and later scan c++ source files for module imports by default. Since we don't use
