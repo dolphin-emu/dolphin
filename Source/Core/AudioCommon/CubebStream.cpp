@@ -106,10 +106,6 @@ bool CubebStream::Init()
       if (return_value && Core::System::GetInstance().IsWii() &&
           Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED))
       {
-        static const char* const WIIMOTE_STREAM_NAMES[4] = {
-            "Dolphin Wiimote 1 Audio", "Dolphin Wiimote 2 Audio", "Dolphin Wiimote 3 Audio",
-            "Dolphin Wiimote 4 Audio"};
-
         cubeb_stream_params wiimote_params{};
         wiimote_params.rate = m_mixer->GetSampleRate();
         wiimote_params.channels = 2;
@@ -133,9 +129,10 @@ bool CubebStream::Init()
 
           m_wiimote_stream_data[i] = {this, i};
           const int result = cubeb_stream_init(
-              m_ctx.get(), &m_wiimote_streams[i], WIIMOTE_STREAM_NAMES[i], nullptr, nullptr,
-              output_devid, &wiimote_params, std::max(BUFFER_SAMPLES, wiimote_min_latency),
-              WiimoteDataCallback, WiimoteStateCallback, &m_wiimote_stream_data[i]);
+              m_ctx.get(), &m_wiimote_streams[i],
+              fmt::format("Dolphin Wiimote {} Audio", i + 1).data(), nullptr, nullptr, output_devid,
+              &wiimote_params, std::max(BUFFER_SAMPLES, wiimote_min_latency), WiimoteDataCallback,
+              WiimoteStateCallback, &m_wiimote_stream_data[i]);
 
           if (result != CUBEB_OK)
           {
