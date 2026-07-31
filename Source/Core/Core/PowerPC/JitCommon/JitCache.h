@@ -231,7 +231,7 @@ private:
   // It is used by the assembly dispatcher to quickly
   // know where to jump based on pc and msr bits.
   Common::LazyMemoryRegion m_entry_points_arena;
-  u8** m_entry_points_ptr = 0;
+  u8** m_entry_points_ptr = nullptr;
 
   // An alternative for the above but without a shm segment
   // in case the shm memory region couldn't be allocated.

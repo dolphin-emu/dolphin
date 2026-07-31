@@ -78,7 +78,7 @@ private:
     opt.decorationSize = QSize(0, 0);
 
     // Default draw command for paint.
-    QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, 0);
+    QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, nullptr);
 
     // Draw pixmap at the center of the tablewidget cell
     QPixmap pix = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
