@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <numeric>
 #include <span>
 
 #include "Common/CommonTypes.h"
@@ -602,12 +603,14 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
       color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
       break;
     case 6:
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
+      color = MakeRGBA(std::midpoint(red1, red2), std::midpoint(green1, green2),
+                       std::midpoint(blue1, blue2), 255);
       break;
     case 7:
       // color[3] is the same as color[2] (average of both colors), but transparent.
       // This differs from DXT1 where color[3] is transparent black.
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
+      color = MakeRGBA(std::midpoint(red1, red2), std::midpoint(green1, green2),
+                       std::midpoint(blue1, blue2), 0);
       break;
     default:
       color = 0;
