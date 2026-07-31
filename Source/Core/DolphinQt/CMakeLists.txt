@@ -581,6 +581,7 @@ if (WIN32)
                                  --no-translations
                                  --no-compiler-runtime
                                  --no-system-d3d-compiler
+                                 --no-system-dxc-compiler
                                  --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
