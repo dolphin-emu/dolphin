@@ -58,6 +58,12 @@
 #include <linux/rtnetlink.h>
 #endif
 
+auto format_as(addrinfo hints)
+{
+  return fmt::format("flags={}, family={}, socktype={}, protocol={}, addrlen={}", hints.ai_flags,
+                     hints.ai_family, hints.ai_socktype, hints.ai_protocol, hints.ai_addrlen);
+}
+
 namespace IOS::HLE
 {
 enum SOResultCode : s32
@@ -65,6 +71,21 @@ enum SOResultCode : s32
   SO_ERROR_INVALID_REQUEST = -51,
   SO_ERROR_HOST_NOT_FOUND = -305,
 };
+
+namespace
+{
+const char* GaiStrError(s32 error)
+{
+#ifdef _WIN32
+  // gai_strerror isn't thread safe on Windows
+  return Common::DecodeNetworkError(error);
+#else
+  // Unlike Windows it doesn't return regular error codes
+  // e.g. EAI_AGAIN vs errno's EAGAIN
+  return gai_strerror(error);
+#endif
+}
+}  // namespace
 
 NetIPTopDevice::NetIPTopDevice(EmulationKernel& ios, const std::string& device_name)
     : EmulationDevice(ios, device_name)
@@ -1281,10 +1302,10 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
 
   addrinfo* result = nullptr;
   int ret = getaddrinfo(pNodeName, pServiceName, hints_valid ? &hints : nullptr, &result);
-  u32 addr = request.io_vectors[0].address;
-  u32 sockoffset = addr + 0x460;
   if (ret == 0)
   {
+    u32 addr = request.io_vectors[0].address;
+    u32 sockoffset = addr + 0x460;
     constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
     for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
     {
@@ -1326,6 +1347,15 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   }
   else
   {
+    const char* const hostname = pNodeName ? pNodeName : "(null)";
+    const char* const service = pServiceName ? pServiceName : "(null)";
+    const std::string hints_description{hints_valid ? fmt::format("{}", hints) : "(null)"};
+    ERROR_LOG_FMT(IOS_NET,
+                  "getaddrinfo failed with error {}: {}\n"
+                  " - hostname: {}\n"
+                  " - service: {}\n"
+                  " - hints: {}",
+                  ret, GaiStrError(ret), hostname, service, hints_description);
     ret = SO_ERROR_HOST_NOT_FOUND;
   }
 
