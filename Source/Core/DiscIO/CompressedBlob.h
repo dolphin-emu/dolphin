@@ -35,7 +35,7 @@ struct CompressedBlobHeader  // 32 bytes
   u32 magic_cookie;  // 0xB10BB10B
   u32 sub_type;      // GC image, whatever
   u64 compressed_data_size;
-  u64 data_size;
+  u64 disc_size;
   u32 block_size;
   u32 num_blocks;
 };
@@ -53,7 +53,7 @@ public:
   std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override { return m_file_size; }
-  u64 GetDataSize() const override { return m_header.data_size; }
+  u64 GetDataSize() const override { return m_header.disc_size; }
   DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }
 
   u64 GetBlockSize() const override { return m_header.block_size; }
@@ -66,15 +66,18 @@ public:
 
 private:
   CompressedBlobReader(File::DirectIOFile file, std::string filename);
+  bool Initialize();
+  bool ValidateBlockPointers() const;
 
-  CompressedBlobHeader m_header;
-  std::vector<u64> m_block_pointers;
-  std::vector<u32> m_hashes;
-  int m_data_offset;
-  File::DirectIOFile m_file;
-  u64 m_file_size;
-  std::vector<u8> m_zlib_buffer;
-  std::string m_file_name;
+  CompressedBlobHeader m_header = {};
+  std::vector<u64> m_block_pointers = {};
+  std::vector<u32> m_hashes = {};
+  u64 m_data_offset = 0;
+  File::DirectIOFile m_file = {};
+  u64 m_file_size = 0;
+  std::vector<u8> m_zlib_buffer = {};
+  std::string m_file_name = {};
+  bool m_valid = false;
 };
 
 }  // namespace DiscIO
