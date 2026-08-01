@@ -3,7 +3,6 @@
 
 #include "VideoCommon/CPMemory.h"
 
-#include <cstring>
 #include <type_traits>
 #include <utility>
 
