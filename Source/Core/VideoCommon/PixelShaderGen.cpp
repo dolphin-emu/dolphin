@@ -1335,7 +1335,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.x = fixpoint_uv{}.x & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.sw.Value()) - u32(IndTexWrap::ITW_256)]);
+                tev_ind_wrap_start[std::to_underlying(tevind.sw.Value()) -
+                                   std::to_underlying(IndTexWrap::ITW_256)]);
     }
 
     // wrap T
@@ -1350,7 +1351,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.y = fixpoint_uv{}.y & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.tw.Value()) - u32(IndTexWrap::ITW_256)]);
+                tev_ind_wrap_start[std::to_underlying(tevind.tw.Value()) -
+                                   std::to_underlying(IndTexWrap::ITW_256)]);
     }
 
     if (tevind.fb_addprev)  // add previous tevcoord
@@ -1407,15 +1409,15 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[stage.tevksel_kc],
               tev_ksel_table_a[stage.tevksel_ka]);
 
-    if (u32(stage.tevksel_kc) > 7)
+    if (std::to_underlying(stage.tevksel_kc) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((std::to_underlying(stage.tevksel_kc) - 0xc) % 4),
+                           C_KCOLORS + ((std::to_underlying(stage.tevksel_kc) - 0xc) % 4));
     }
-    if (u32(stage.tevksel_ka) > 7)
+    if (std::to_underlying(stage.tevksel_ka) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((std::to_underlying(stage.tevksel_ka) - 0xc) % 4),
+                           C_KCOLORS + ((std::to_underlying(stage.tevksel_ka) - 0xc) % 4));
     }
   }
 
@@ -1429,10 +1431,12 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.SetConstantsUsed(C_COLORS + 3, C_COLORS + 3);
 
   if (cc.dest >= TevOutput::Color0)
-    out.SetConstantsUsed(C_COLORS + u32(cc.dest.Value()), C_COLORS + u32(cc.dest.Value()));
+    out.SetConstantsUsed(C_COLORS + std::to_underlying(cc.dest.Value()),
+                         C_COLORS + std::to_underlying(cc.dest.Value()));
 
   if (ac.dest >= TevOutput::Color0)
-    out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
+    out.SetConstantsUsed(C_COLORS + std::to_underlying(ac.dest.Value()),
+                         C_COLORS + std::to_underlying(ac.dest.Value()));
 
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
