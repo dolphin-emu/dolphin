@@ -15,7 +15,7 @@ namespace VideoCommon
 void CustomAssetCache::Initialize()
 {
   // Use half of available system memory but leave at least 2GiB unused for system stability.
-  constexpr size_t must_keep_unused = 2 * size_t(1024 * 1024 * 1024);
+  constexpr size_t must_keep_unused = 2UZ * 1024 * 1024 * 1024;
 
   const size_t sys_mem = Common::MemPhysical();
   const size_t keep_unused_mem = std::max(sys_mem / 2, std::min(sys_mem, must_keep_unused));

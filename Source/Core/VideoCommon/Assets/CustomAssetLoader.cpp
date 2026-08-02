@@ -99,7 +99,7 @@ void CustomAssetLoader::WorkerThreadRun(u32 thread_index)
     m_change_in_memory -= item->Unload();
 
     const std::size_t bytes_loaded = item->Load();
-    m_change_in_memory += s64(bytes_loaded);
+    m_change_in_memory += static_cast<s64>(bytes_loaded);
 
     load_lock.lock();
 
