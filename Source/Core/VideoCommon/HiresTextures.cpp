@@ -144,9 +144,17 @@ void HiresTexture::Update()
       SConfig::GetInstance().GetGameIDsForTextures();
   const std::string game_id_display = fmt::format("{}", fmt::join(game_ids_for_textures, "' or '"));
 
-  const auto message = fmt::format("{} '{}' custom textures for '{}'",
-                                   g_ActiveConfig.bCacheHiresTextures ? "Preloading" : "Found",
-                                   s_hires_texture_cache.size(), game_id_display);
+  std::string message;
+  if (g_ActiveConfig.bCacheHiresTextures)
+  {
+    message = fmt::format("Preloading '{}' custom textures for '{}'", s_hires_texture_cache.size(),
+                          game_id_display);
+  }
+  else
+  {
+    message = fmt::format("Found '{}' custom textures for '{}'",
+                          s_hires_texture_id_to_arbmipmap.size(), game_id_display);
+  }
   OSD::AddMessage(message, 10000);
 }
 
