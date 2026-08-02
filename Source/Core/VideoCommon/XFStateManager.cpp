@@ -51,38 +51,42 @@ void XFStateManager::DoState(PointerWrap& p)
   }
 }
 
+static bool IsInMatrix(const u32 start, const u32 matrix_idx, const int stride, const int base = 0)
+{
+  return base + matrix_idx * stride <= start && start < base + matrix_idx * stride + 3 * stride;
+}
+
+static bool IsInPosMatrix(const u32 start, const u32 matrix_idx)
+{
+  return IsInMatrix(start, matrix_idx, 4);
+}
+
+static bool IsInNormalMatrix(const u32 start, const u32 matrix_idx)
+{
+  return IsInMatrix(start, matrix_idx, 3, XFMEM_NORMALMATRICES);
+}
+
 void XFStateManager::InvalidateXFRange(int start, int end)
 {
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
-      ((u32)start >=
-           XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
-       (u32)start < XFMEM_NORMALMATRICES +
-                        ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
+  const auto start_u32 = static_cast<u32>(start);
+  if (IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_a.PosNormalMtxIdx) ||
+      IsInNormalMatrix(start_u32, g_main_cp_state.matrix_index_a.PosNormalMtxIdx.Value() & 31))
   {
     m_pos_normal_matrix_changed = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 + 12))
+  if (IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_a.PosNormalMtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_a.Tex1MtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_a.Tex2MtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_a.Tex3MtxIdx))
   {
     m_tex_matrices_changed[0] = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 + 12))
+  if (IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_b.Tex4MtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_b.Tex5MtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_b.Tex6MtxIdx) ||
+      IsInPosMatrix(start_u32, g_main_cp_state.matrix_index_b.Tex7MtxIdx))
   {
     m_tex_matrices_changed[1] = true;
   }
