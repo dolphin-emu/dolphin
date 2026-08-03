@@ -175,12 +175,6 @@ object GameFileCacheManager {
             }
         }
 
-        if (runRescanAfterLoad) {
-            // Without this, there will be a short blip where the loading indicator in the GUI disappears
-            // because neither loadInProgress nor rescanInProgress is true
-            rescanInProgress.postValue(true)
-        }
-
         loadInProgress.postValue(false)
 
         if (runRescanAfterLoad) {
@@ -214,9 +208,9 @@ object GameFileCacheManager {
             if (changed || additionalMetadataChanged) {
                 gameFileCache!!.save()
             }
-        }
 
-        rescanInProgress.postValue(false)
+            rescanInProgress.postValue(false)
+        }
     }
 
     private fun updateGameFileArray() {
