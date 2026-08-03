@@ -259,6 +259,13 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
     instance_create_info.ppEnabledLayerNames = &VALIDATION_LAYER_NAME;
   }
 
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+  if (wstype == WindowSystemType::MacOS || wstype == WindowSystemType::Headless)
+  {
+    instance_create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+  }
+#endif
+
   VkInstance instance;
   VkResult res = vkCreateInstance(&instance_create_info, nullptr, &instance);
   if (res != VK_SUCCESS)
@@ -374,6 +381,14 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   {
     return false;
   }
+
+  if (wstype == WindowSystemType::MacOS || wstype == WindowSystemType::Headless)
+  {
+    if (!AddExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, true))
+    {
+      return false;
+    }
+  }
 #endif
 
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
@@ -467,9 +482,44 @@ void VulkanContext::PopulateBackendInfoAdapters(BackendInfo* backend_info, const
   backend_info->Adapters.clear();
   for (VkPhysicalDevice physical_device : gpu_list)
   {
-    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
+    properties_vk12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+    properties_vk12.pNext = nullptr;
+
+    VkPhysicalDeviceProperties2 properties2 = {};
+    properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    properties2.pNext = &properties_vk12;
+
+    VkPhysicalDeviceProperties& properties = properties2.properties;
     vkGetPhysicalDeviceProperties(physical_device, &properties);
-    backend_info->Adapters.push_back(properties.deviceName);
+
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+    if (vkGetPhysicalDeviceProperties2 && properties.apiVersion >= VK_API_VERSION_1_2)
+    {
+      vkGetPhysicalDeviceProperties2(physical_device, &properties2);
+
+      std::string driver;
+      if (properties_vk12.driverID == VK_DRIVER_ID_MOLTENVK)
+      {
+        driver = "MoltenVK";
+      }
+      else if (properties_vk12.driverID == VK_DRIVER_ID_MESA_KOSMICKRISP)
+      {
+        driver = "KosmicKrisp";
+      }
+      else
+      {
+        driver = fmt::format("driver ID {}", fmt::underlying(properties_vk12.driverID));
+      }
+
+      const std::string device_name = fmt::format("{} ({})", properties.deviceName, driver);
+      backend_info->Adapters.push_back(device_name);
+    }
+    else
+#endif
+    {
+      backend_info->Adapters.push_back(properties.deviceName);
+    }
   }
 }
 
@@ -943,6 +993,7 @@ static bool DriverIsMesa(VkDriverId driver_id)
   case VK_DRIVER_ID_MESA_NVK:
   case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
   case VK_DRIVER_ID_MESA_HONEYKRISP:
+  case VK_DRIVER_ID_MESA_KOSMICKRISP:
     return true;
   default:
     return false;
