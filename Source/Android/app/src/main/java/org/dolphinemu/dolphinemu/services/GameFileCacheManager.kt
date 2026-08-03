@@ -2,10 +2,12 @@
 
 package org.dolphinemu.dolphinemu.services
 
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.ConfigChangedCallback
 import org.dolphinemu.dolphinemu.model.GameFile
@@ -14,11 +16,9 @@ import org.dolphinemu.dolphinemu.ui.platform.Platform
 import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import java.util.Arrays
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
- * Loads game list data on a separate thread.
+ * Loads game list data in the background.
  */
 object GameFileCacheManager {
     private var gameFileCache: GameFileCache? = null
@@ -27,7 +27,6 @@ object GameFileCacheManager {
     private var runRescanAfterLoad = false
     private var recursiveScanEnabled = false
 
-    private val executor: ExecutorService = Executors.newFixedThreadPool(1)
     private val loadInProgress = MutableLiveData(false)
     private val rescanInProgress = MutableLiveData(false)
 
@@ -120,7 +119,9 @@ object GameFileCacheManager {
 
         if (!loadInProgress.value!!) {
             loadInProgress.value = true
-            AfterDirectoryInitializationRunner().runWithoutLifecycle { executor.execute(::load) }
+            AfterDirectoryInitializationRunner().runWithoutLifecycle {
+                MainScope().launch { load() }
+            }
         }
     }
 
@@ -136,7 +137,9 @@ object GameFileCacheManager {
 
         if (!rescanInProgress.value!!) {
             rescanInProgress.value = true
-            AfterDirectoryInitializationRunner().runWithoutLifecycle { executor.execute(::rescan) }
+            AfterDirectoryInitializationRunner().runWithoutLifecycle {
+                MainScope().launch { rescan() }
+            }
         }
     }
 
@@ -144,9 +147,9 @@ object GameFileCacheManager {
     fun addOrGet(gamePath: String?): GameFile {
         val nonNullGamePath = gamePath!!
 
-        // Common case: The game is in the cache, so just grab it from there. (GameFileCache.addOrGet
+        // Common case: The game is in the cache, so we grab it from there. (GameFileCache.addOrGet
         // actually already checks for this case, but we want to avoid calling it if possible
-        // because the executor thread may hold a lock on gameFileCache for extended periods of time.)
+        // because rescan() may hold a lock on gameFileCache for extended periods of time.)
         val allGames = gameFiles.value!!
         for (game in allGames) {
             if (game.getPath() == nonNullGamePath) {
@@ -165,17 +168,19 @@ object GameFileCacheManager {
      * games are still present in the user's configured folders.
      * If this has already been called, calling it again has no effect.
      */
-    private fun load() {
+    private suspend fun load() {
         if (!firstLoadDone) {
-            firstLoadDone = true
-            setUpAutomaticRescan()
-            gameFileCache!!.load()
-            if (gameFileCache!!.getSize() != 0) {
-                updateGameFileArray()
+            withContext(Dispatchers.IO) {
+                setUpAutomaticRescan()
+                gameFileCache!!.load()
+                if (gameFileCache!!.getSize() != 0) {
+                    updateGameFileArray()
+                }
             }
+            firstLoadDone = true
         }
 
-        loadInProgress.postValue(false)
+        loadInProgress.value = false
 
         if (runRescanAfterLoad) {
             runRescanAfterLoad = false
@@ -189,10 +194,13 @@ object GameFileCacheManager {
      * If load hasn't been called before this, the execution of this
      * will be postponed until after load runs.
      */
-    private fun rescan() {
+    private suspend fun rescan() {
         if (!firstLoadDone) {
             runRescanAfterLoad = true
-        } else {
+            return
+        }
+
+        withContext(Dispatchers.IO) {
             val gamePaths = GameFileCache.getAllGamePaths()
 
             val changed = gameFileCache!!.update(gamePaths)
@@ -208,9 +216,9 @@ object GameFileCacheManager {
             if (changed || additionalMetadataChanged) {
                 gameFileCache!!.save()
             }
-
-            rescanInProgress.postValue(false)
         }
+
+        rescanInProgress.value = false
     }
 
     private fun updateGameFileArray() {
@@ -233,10 +241,10 @@ object GameFileCacheManager {
     private fun setUpAutomaticRescan() {
         recursiveScanEnabled = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
         ConfigChangedCallback {
-            Handler(Looper.getMainLooper()).post {
-                val recursiveScanEnabled = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
-                if (this.recursiveScanEnabled != recursiveScanEnabled) {
-                    this.recursiveScanEnabled = recursiveScanEnabled
+            MainScope().launch {
+                val newRecursiveScanEnabled = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
+                if (recursiveScanEnabled != newRecursiveScanEnabled) {
+                    recursiveScanEnabled = newRecursiveScanEnabled
                     startRescan()
                 }
             }
