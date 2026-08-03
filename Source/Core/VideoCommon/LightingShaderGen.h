@@ -67,5 +67,5 @@ constexpr char s_lighting_struct[] = "struct Light {\n"
                                      "};\n";
 
 void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid_data);
-void GetLightingShaderUid(LightingUidData& uid_data);
+void GetLightingShaderUid(LightingUidData& uid_data, size_t numColorChans);
 void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data);

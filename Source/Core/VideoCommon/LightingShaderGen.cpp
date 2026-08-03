@@ -148,15 +148,17 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
   }
 }
 
-void GetLightingShaderUid(LightingUidData& uid_data)
+void GetLightingShaderUid(LightingUidData& uid_data, size_t numColorChans)
 {
   auto collect = [](const LitChannel& chan) -> LightChannel {
+    // We only collect fields that will actually be used in the shader.
+    // Games often skip filling in fields they aren't using
     LightChannel out = {
         .func =
             LightFunc{
-                .matsource = chan.matsource,
+                .matsource = chan.matsource,  // always used (if output channel is enabled)
                 .enablelighting = chan.enablelighting,
-                .ambsource = {},
+                .ambsource = {},  // not used unless enablelighting is true
                 .diffusefunc = {},
                 .attnfunc = {},
             },
@@ -166,15 +168,21 @@ void GetLightingShaderUid(LightingUidData& uid_data)
     if (chan.enablelighting)
     {
       out.func.ambsource = chan.ambsource;
-      out.func.diffusefunc = chan.diffusefunc;
-      out.func.attnfunc = chan.attnfunc;
-      out.mask = chan.GetFullLightMask();
+      if ((out.mask = chan.GetFullLightMask()) != 0)
+      {
+        // Only collect functions if at least one light is enabled
+        out.func.diffusefunc = chan.diffusefunc;
+        out.func.attnfunc = chan.attnfunc;
+      }
     }
 
     return out;
   };
 
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  // We only collect channels that are actually enabled for output;  Inactive channels are likely
+  // uninitialized data and we don't want them in our UID
+  // TODO: We should also be detecting which of alpha and color are actually consumed by TEV
+  for (u32 j = 0; j < std::min(numColorChans, NUM_XF_COLOR_CHANNELS); j++)
   {
     uid_data.color[j] = collect(xfmem.color[j]);
     uid_data.alpha[j] = collect(xfmem.alpha[j]);

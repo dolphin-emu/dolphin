@@ -204,7 +204,7 @@ PixelShaderUid GetPixelShaderUid()
   if (g_ActiveConfig.bEnablePixelLighting)
   {
     uid_data->numColorChans = xfmem.numChan.numColorChans;
-    GetLightingShaderUid(uid_data->lighting);
+    GetLightingShaderUid(uid_data->lighting, uid_data->numColorChans);
   }
 
   if (uid_data->genMode_numtexgens > 0)
