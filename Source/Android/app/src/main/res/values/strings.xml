@@ -73,6 +73,8 @@
     <string name="dual_core">Dual Core (speedhack)</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="enable_cheats">Enable Cheats</string>
+    <string name="automatic_controllers">Automatic Controllers</string>
+    <string name="automatic_controllers_description">Map connected controllers and assign them to ports automatically. Press a button to take the next free port.</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="achievements_submenu">RetroAchievements</string>

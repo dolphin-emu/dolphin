@@ -230,6 +230,14 @@ class SettingsFragmentPresenter(
         sl.add(
             SwitchSetting(
                 context,
+                BooleanSetting.MAIN_AUTOMATIC_CONTROLLERS,
+                R.string.automatic_controllers,
+                R.string.automatic_controllers_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
                 BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
                 R.string.override_region_settings,
                 0
