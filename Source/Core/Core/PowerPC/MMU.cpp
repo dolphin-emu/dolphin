@@ -1375,10 +1375,8 @@ void MMU::InvalidateTLBEntry(u32 address)
   m_ppc_state.tlb[PowerPC::DATA_TLB_INDEX][entry_index].Invalidate();
   m_ppc_state.tlb[PowerPC::INST_TLB_INDEX][entry_index].Invalidate();
 
-  if (m_ppc_state.msr.DR)
-    PageTableUpdated();
-  else
-    m_ppc_state.pagetable_update_pending = true;
+  m_ppc_state.pagetable_update_pending = true;
+  m_system.GetJitInterface().UpdateMembase();
 }
 
 void MMU::ClearPageTable()
