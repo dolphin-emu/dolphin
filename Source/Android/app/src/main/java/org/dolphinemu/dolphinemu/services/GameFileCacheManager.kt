@@ -4,8 +4,10 @@ package org.dolphinemu.dolphinemu.services
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
@@ -24,7 +26,6 @@ object GameFileCacheManager {
     private var gameFileCache: GameFileCache? = null
     private val gameFiles = MutableLiveData(emptyArray<GameFile>())
     private var firstLoadDone = false
-    private var runRescanAfterLoad = false
     private var recursiveScanEnabled = false
 
     private val loadInProgress = MutableLiveData(false)
@@ -181,11 +182,6 @@ object GameFileCacheManager {
         }
 
         loadInProgress.value = false
-
-        if (runRescanAfterLoad) {
-            runRescanAfterLoad = false
-            rescan()
-        }
     }
 
     /**
@@ -195,9 +191,9 @@ object GameFileCacheManager {
      * will be postponed until after load runs.
      */
     private suspend fun rescan() {
-        if (!firstLoadDone) {
-            runRescanAfterLoad = true
-            return
+        while (!firstLoadDone) {
+            // Wait until loadInProgress becomes false
+            loadInProgress.asFlow().first { !it }
         }
 
         withContext(Dispatchers.IO) {
