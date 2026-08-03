@@ -6,5 +6,4 @@ set(ZSTD_BUILD_SHARED OFF)
 
 add_subdirectory(zstd EXCLUDE_FROM_ALL)
 
-dolphin_disable_warnings(libzstd_static)
 add_library(zstd::zstd ALIAS libzstd_static)
