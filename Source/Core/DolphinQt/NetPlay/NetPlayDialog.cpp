@@ -33,6 +33,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayCommon.h"
+#include "Core/NetPlayProto.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -130,6 +131,7 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button = new QPushButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
+  m_buffer_size_box->setMaximum(MAX_TARGET_PAD_BUFFER_SIZE);
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);

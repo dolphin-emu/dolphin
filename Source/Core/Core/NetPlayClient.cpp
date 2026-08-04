@@ -754,8 +754,13 @@ void NetPlayClient::OnPadBuffer(sf::Packet& packet)
   u32 size = 0;
   packet >> size;
 
-  m_target_buffer_size = size;
-  m_dialog->OnPadBufferChanged(size);
+  if (size > MAX_TARGET_PAD_BUFFER_SIZE)
+  {
+    WARN_LOG_FMT(NETPLAY, "Ignoring invalid pad buffer size {}.", size);
+    return;
+  }
+
+  AdjustPadBufferSize(size);
 }
 
 void NetPlayClient::OnHostInputAuthority(sf::Packet& packet)
