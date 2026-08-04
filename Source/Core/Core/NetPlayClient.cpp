@@ -754,8 +754,13 @@ void NetPlayClient::OnPadBuffer(sf::Packet& packet)
   u32 size = 0;
   packet >> size;
 
-  m_target_buffer_size = size;
-  m_dialog->OnPadBufferChanged(size);
+  if (size > MAX_BUFFER_SIZE)
+  {
+    WARN_LOG_FMT(NETPLAY, "Ignoring invalid pad buffer size {}.", size);
+    return;
+  }
+
+  AdjustPadBufferSize(size);
 }
 
 void NetPlayClient::OnHostInputAuthority(sf::Packet& packet)
@@ -2577,8 +2582,8 @@ const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
 
 void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
 {
-  m_target_buffer_size = size;
-  m_dialog->OnPadBufferChanged(size);
+  m_target_buffer_size = std::min(size, MAX_BUFFER_SIZE);
+  m_dialog->OnPadBufferChanged(m_target_buffer_size);
 }
 
 void NetPlayClient::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
