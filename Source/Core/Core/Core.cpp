@@ -252,9 +252,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
 
 static void ResetRumble()
 {
-#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
-#endif
   if (!Pad::IsInitialized())
     return;
   for (int i = 0; i < 4; ++i)
