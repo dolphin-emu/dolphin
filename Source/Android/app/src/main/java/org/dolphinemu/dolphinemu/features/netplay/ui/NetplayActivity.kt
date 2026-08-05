@@ -70,6 +70,9 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
                     gameDigestProgress = viewModel.gameDigestProgress.collectAsState().value,
                     joinAddresses = viewModel.joinAddresses.collectAsState().value,
+                    onComputeGameDigest = viewModel::computeGameDigest,
+                    onComputeSDCardDigest = viewModel::computeSDCardDigest,
+                    onAbortGameDigest = viewModel::abortGameDigest,
                 )
             }
         }
