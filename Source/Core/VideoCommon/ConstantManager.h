@@ -86,7 +86,7 @@ struct alignas(16) VertexShaderConstants
   std::array<float4, 64> transformmatrices;
   std::array<float4, 32> normalmatrices;
   std::array<float4, 64> posttransformmatrices;
-  float4 pixelcentercorrection;
+  float4 pixelpositioncorrection;
   std::array<float, 2> viewport;  // .xy
   std::array<float, 2> pad2;      // .zw
 
