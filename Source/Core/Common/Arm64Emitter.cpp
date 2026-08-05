@@ -3805,6 +3805,11 @@ void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 }
 
 // Modified Immediate
+void ARM64FloatEmitter::FMOV(u8 size, ARM64Reg Rd, uint8_t imm8)
+{
+  EncodeModImm(IsQuad(Rd), size >> 6, 0xF, 0, Rd, imm8);
+}
+
 void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
 {
   bool Q = IsQuad(Rd);

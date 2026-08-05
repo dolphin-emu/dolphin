@@ -1411,6 +1411,7 @@ public:
   void FMLA(u8 esize, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index);
 
   // Modified Immediate
+  void FMOV(u8 size, ARM64Reg Rd, uint8_t imm8);
   void MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift = 0);
   void ORR(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
   void BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
