@@ -22,6 +22,7 @@
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/VideoConfig.h"
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;
@@ -43,6 +44,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   setWindowTitle(tr("Post-Processing Shader Configuration"));
 
   PopulateGroups();
+
   Create();
   ConnectWidgets();
 
@@ -120,6 +122,15 @@ void PostProcessingConfigWindow::Create()
     m_tabs->insertTab(0, general, tr("General"));
   }
 
+  // If USE_DISPLAY_PEAK_LUMINANCE is already checked on open, cap the slider to the display peak
+  const auto use_peak_it = m_config_map.find("USE_DISPLAY_PEAK_LUMINANCE");
+  const auto max_nits_it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
+  if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end() &&
+      use_peak_it->second->GetCheckboxValue() && g_backend_info.hdr_max_luminance_nits > 0.f)
+  {
+    max_nits_it->second->SetSliderMax(0, static_cast<int>(g_backend_info.hdr_max_luminance_nits));
+  }
+
   m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
 
   auto* layout = new QVBoxLayout(this);
@@ -152,6 +163,17 @@ void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, con
   m_post_processor->SetOptionb(config_group->GetOptionName(), state);
 
   config_group->EnableSuboptions(state);
+
+  if (config_group->GetOptionName() == "USE_DISPLAY_PEAK_LUMINANCE")
+  {
+    m_post_processor->SaveOptionsConfiguration();
+    const auto it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
+    if (it != m_config_map.end() && g_backend_info.hdr_max_luminance_nits > 0.f)
+    {
+      const int max = state ? static_cast<int>(g_backend_info.hdr_max_luminance_nits) : 2000;
+      it->second->SetSliderMax(0, max);
+    }
+  }
 }
 
 void PostProcessingConfigWindow::UpdateInteger(ConfigGroup* const config_group, const int value)
@@ -346,6 +368,14 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
   return row + 1;
 }
 
+void PostProcessingConfigWindow::ConfigGroup::SetEnabled(const bool state)
+{
+  for (auto& slider : m_sliders)
+    slider->setEnabled(state);
+  for (auto& value_box : m_value_boxes)
+    value_box->setEnabled(state);
+}
+
 void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)
 {
   for (auto& it : m_subgroups)
@@ -378,4 +408,9 @@ int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(size_t index) const
 void PostProcessingConfigWindow::ConfigGroup::SetSliderText(size_t index, const QString& text)
 {
   m_value_boxes[index]->setText(text);
+}
+
+void PostProcessingConfigWindow::ConfigGroup::SetSliderMax(size_t index, int max)
+{
+  m_sliders[index]->setMaximum(max);
 }
