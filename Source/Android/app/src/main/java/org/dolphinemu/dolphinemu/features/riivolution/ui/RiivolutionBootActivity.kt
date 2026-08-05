@@ -20,6 +20,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.ActivityRiivolutionBootBinding
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
@@ -42,21 +43,26 @@ class RiivolutionBootActivity : AppCompatActivity() {
         val revision = intent.getIntExtra(ARG_REVISION, -1)
         val discNumber = intent.getIntExtra(ARG_DISC_NUMBER, -1)
 
-        var loadPath = StringSetting.MAIN_LOAD_PATH.string
-        if (loadPath.isEmpty()) loadPath = DirectoryInitialization.getUserDirectory() + "/Load"
+        binding.buttonStart.isEnabled = false
 
-        binding.textSdRoot.text = getString(R.string.riivolution_sd_root, "$loadPath/Riivolution")
-        binding.buttonStart.setOnClickListener {
-            if (patches != null) patches!!.saveConfig()
-            EmulationActivity.launch(this, path!!, true)
-        }
+        AfterDirectoryInitializationRunner().runWithLifecycle(this) {
+            var loadPath = StringSetting.MAIN_LOAD_PATH.string
+            if (loadPath.isEmpty()) loadPath = DirectoryInitialization.getUserDirectory() + "/Load"
+            binding.textSdRoot.text = getString(R.string.riivolution_sd_root, "$loadPath/Riivolution")
 
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val patches = RiivolutionPatches(gameId!!, revision, discNumber)
-                patches.loadConfig()
-                withContext(Dispatchers.Main) {
-                    populateList(patches)
+            binding.buttonStart.isEnabled = true
+            binding.buttonStart.setOnClickListener {
+                if (patches != null) patches!!.saveConfig()
+                EmulationActivity.launch(this, path!!, true)
+            }
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    val patches = RiivolutionPatches(gameId!!, revision, discNumber)
+                    patches.loadConfig()
+                    withContext(Dispatchers.Main) {
+                        populateList(patches)
+                    }
                 }
             }
         }
