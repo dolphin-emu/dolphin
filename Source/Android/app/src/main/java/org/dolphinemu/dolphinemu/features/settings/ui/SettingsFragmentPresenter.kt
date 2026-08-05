@@ -1260,7 +1260,7 @@ class SettingsFragmentPresenter(
                 R.string.main_mem2_size,
                 0,
                 64,
-                128,
+                256,
                 "MB",
                 1
             )
