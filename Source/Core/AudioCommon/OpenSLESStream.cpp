@@ -82,11 +82,11 @@ bool OpenSLESStream::Init()
   SLDataSink audioSnk = {&loc_outmix, nullptr};
 
   // create audio player
-  const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
-  const SLboolean req[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+  const std::array<SLInterfaceID, 2> ids{SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
+  const std::array<SLboolean, 2> req{SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
   result = (*m_engine_engine)
                ->CreateAudioPlayer(m_engine_engine, &m_bq_player_object, &audioSrc, &audioSnk, 2,
-                                   ids, req);
+                                   ids.data(), req.data());
   ASSERT(SL_RESULT_SUCCESS == result);
 
   result = (*m_bq_player_object)->Realize(m_bq_player_object, SL_BOOLEAN_FALSE);
