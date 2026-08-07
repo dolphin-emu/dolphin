@@ -126,7 +126,9 @@ public:
       if (event->modifiers() == Qt::ControlModifier)
       {
         m_view->TriggerActivateSearch();
+        return;
       }
+      [[fallthrough]];
     default:
       QWidget::keyPressEvent(event);
       return;
