@@ -51,6 +51,7 @@ else()
   check_and_add_warning(MISSING_DECLARATIONS missing-declarations ERROR)
   check_and_add_warning(MISSING_VARIABLE_DECLARATIONS missing-variable-declarations ERROR)
   check_and_add_warning(FORMAT format ERROR)
+  check_and_add_warning(IMPLICIT_FALLTHROUGH implicit-fallthrough ERROR)
 
   # Disable -Wstringop-truncation warnings as they result in many false positives.
   # In most (all?) cases where std::strncpy is used, we want to fill the entire buffer
