@@ -4,6 +4,7 @@
 #pragma once
 
 #include <enet/enet.h>
+
 #include <utility>
 
 namespace Common

@@ -5,9 +5,9 @@
 
 #ifdef HAS_LIBMGBA
 
-#include <span>
-
 #include "Core/Host.h"
+
+#include <span>
 
 namespace HW::GBA
 {

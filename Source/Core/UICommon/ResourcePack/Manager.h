@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "UICommon/ResourcePack/ResourcePack.h"
+
 #include <string>
 #include <vector>
-
-#include "UICommon/ResourcePack/ResourcePack.h"
 
 namespace ResourcePack
 {

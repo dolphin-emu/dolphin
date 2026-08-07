@@ -5,11 +5,11 @@
 
 #pragma once
 
+#include "Common/Flag.h"
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
-
-#include "Common/Flag.h"
 
 namespace Common
 {

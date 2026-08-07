@@ -6,7 +6,6 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 

@@ -6,7 +6,6 @@
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 #include "Common/CommonTypes.h"
-
 #include "Core/DSP/DSPCore.h"
 
 using namespace Gen;

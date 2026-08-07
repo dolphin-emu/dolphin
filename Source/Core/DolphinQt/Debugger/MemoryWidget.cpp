@@ -3,9 +3,17 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
-#include <limits>
-#include <optional>
-#include <string>
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/AddressSpace.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/MemoryViewWidget.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
 
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -25,17 +33,9 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/AddressSpace.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/System.h"
-#include "DolphinQt/Debugger/MemoryViewWidget.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Settings.h"
+#include <limits>
+#include <optional>
+#include <string>
 
 using Type = MemoryViewWidget::Type;
 

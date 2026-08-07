@@ -3,15 +3,15 @@
 
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include <sstream>
-#include <unordered_map>
-
 #include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #endif
+
+#include <sstream>
+#include <unordered_map>
 
 // gl_1_1
 PFNDOLCLEARINDEXPROC dolClearIndex;

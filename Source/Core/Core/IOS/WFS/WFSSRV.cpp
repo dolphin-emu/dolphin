@@ -3,13 +3,6 @@
 
 #include "Core/IOS/WFS/WFSSRV.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -17,6 +10,13 @@
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace IOS::HLE
 {

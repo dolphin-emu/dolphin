@@ -3,12 +3,7 @@
 
 #include "Core/NetworkCaptureLogger.h"
 
-#include <array>
-#include <cstring>
-
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Network.h"
@@ -17,6 +12,11 @@
 #include "Common/TimeUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
+#include <cstring>
 
 namespace Core
 {

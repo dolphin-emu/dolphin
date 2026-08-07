@@ -1,12 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-#include <utility>
+#include "Common/BitSet.h"
 
 #include <gtest/gtest.h>
 
-#include "Common/BitSet.h"
+#include <array>
+#include <utility>
 
 TEST(BitSet, Basics)
 {

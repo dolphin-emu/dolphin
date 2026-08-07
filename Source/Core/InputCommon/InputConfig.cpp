@@ -3,9 +3,6 @@
 
 #include "InputCommon/InputConfig.h"
 
-#include <utility>
-#include <vector>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -16,6 +13,9 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
+
+#include <utility>
+#include <vector>
 
 InputConfig::InputConfig(std::string ini_name, std::string gui_name,
                          std::string profile_directory_name, std::string profile_key)

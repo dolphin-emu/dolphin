@@ -3,16 +3,6 @@
 
 #include "DolphinTool/ConvertCommand.h"
 
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-#include <optional>
-#include <string>
-#include <vector>
-
-#include <OptionParser.h>
-#include <fmt/ostream.h>
-
 #include "Common/CommonTypes.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
@@ -20,6 +10,16 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/WIABlob.h"
 #include "UICommon/UICommon.h"
+
+#include <cpp-optparse/OptionParser.h>
+#include <fmt/ostream.h>
+
+#include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace DolphinTool
 {

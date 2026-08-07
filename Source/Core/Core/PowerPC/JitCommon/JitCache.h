@@ -3,8 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/MemArena.h"
+#include "Common/RangeSet.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+
 #include <array>
-#include <bitset>
 #include <chrono>
 #include <cstring>
 #include <functional>
@@ -14,12 +19,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/RangeSet.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 
 class JitBase;
 

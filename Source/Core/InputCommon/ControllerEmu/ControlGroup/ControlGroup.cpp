@@ -4,7 +4,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 
 #include "Common/IniFile.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"

@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/IOS.h"
+
 #include <array>
 #include <map>
 #include <optional>
 #include <string>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 

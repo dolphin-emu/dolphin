@@ -4,9 +4,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
-
-#include "SFML/Network/IpAddress.hpp"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <SFML/Network/IpAddress.hpp>
 
 #include <cstring>
 #include <optional>

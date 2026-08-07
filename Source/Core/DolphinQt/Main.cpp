@@ -1,51 +1,49 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef _WIN32
-#include <cstdio>
-#include <string>
-#include <vector>
-
-#include <windows.h>
-#endif
-
-#ifdef __linux__
-#include <cstdlib>
-#endif
-
-#include <OptionParser.h>
-#include <QAbstractEventDispatcher>
-#include <QApplication>
-#include <QObject>
-#include <QPushButton>
-#include <QWidget>
-
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
-
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
-
+#include "DiscIO/Blob.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/AnalyticsPrompt.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
-#ifdef _WIN32
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
-#endif
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Translation.h"
 #include "DolphinQt/Updater.h"
-
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+#ifdef _WIN32
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#endif
+
+#include <QAbstractEventDispatcher>
+#include <QApplication>
+#include <QObject>
+#include <QPushButton>
+#include <QWidget>
+#include <cpp-optparse/OptionParser.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#ifdef _WIN32
+#include <cstdio>
+#include <string>
+#include <vector>
+#elifdef __linux__
+#include <cstdlib>
+#endif
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)

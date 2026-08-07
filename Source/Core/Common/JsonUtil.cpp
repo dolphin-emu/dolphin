@@ -3,9 +3,9 @@
 
 #include "Common/JsonUtil.h"
 
-#include <fstream>
-
 #include "Common/FileUtil.h"
+
+#include <fstream>
 
 picojson::object ToJsonObject(const Common::Vec3& vec)
 {

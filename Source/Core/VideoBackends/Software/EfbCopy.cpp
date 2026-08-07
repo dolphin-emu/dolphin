@@ -3,13 +3,12 @@
 
 #include "VideoBackends/Software/EfbCopy.h"
 
-#include <algorithm>
-
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/SWEfbInterface.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <algorithm>
 
 namespace EfbCopy
 {

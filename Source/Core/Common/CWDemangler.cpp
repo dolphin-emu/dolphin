@@ -6,13 +6,13 @@
 
 #include "Common/CWDemangler.h"
 
-#include <algorithm>
-#include <cctype>
-#include <map>
+#include "Common/StringUtil.h"
 
 #include <fmt/format.h>
 
-#include "Common/StringUtil.h"
+#include <algorithm>
+#include <cctype>
+#include <map>
 
 namespace CWDemangler
 {

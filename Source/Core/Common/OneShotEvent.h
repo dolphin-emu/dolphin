@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/Functional.h"
+
 #include <chrono>
 #include <memory>
 #include <semaphore>
-
-#include "Common/Functional.h"
 
 namespace Common
 {

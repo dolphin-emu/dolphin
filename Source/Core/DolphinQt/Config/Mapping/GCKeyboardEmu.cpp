@@ -3,19 +3,17 @@
 
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCKeyboardEmu.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QStyle>
 #include <QVBoxLayout>
-
-#include "InputCommon/InputConfig.h"
-
-#include "Core/HW/GCKeyboard.h"
-#include "Core/HW/GCKeyboardEmu.h"
-
-#include "DolphinQt/QtUtils/QtUtils.h"
 
 GCKeyboardEmu::GCKeyboardEmu(MappingWindow* window) : MappingWidget(window)
 {

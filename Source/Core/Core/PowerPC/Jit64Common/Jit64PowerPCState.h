@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <type_traits>
 
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.

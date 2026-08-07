@@ -5,10 +5,10 @@
 
 #ifdef HAS_LIBMGBA
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/SI/SI_Device.h"
+
+#include <memory>
 
 namespace HW::GBA
 {

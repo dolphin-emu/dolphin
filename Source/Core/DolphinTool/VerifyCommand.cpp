@@ -3,17 +3,17 @@
 
 #include "DolphinTool/VerifyCommand.h"
 
-#include <cstdlib>
-#include <string>
-#include <vector>
-
-#include <OptionParser.h>
-#include <fmt/ostream.h>
-
 #include "Core/AchievementManager.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeVerifier.h"
 #include "UICommon/UICommon.h"
+
+#include <cpp-optparse/OptionParser.h>
+#include <fmt/ostream.h>
+
+#include <cstdlib>
+#include <string>
+#include <vector>
 
 namespace DolphinTool
 {

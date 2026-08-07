@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "VideoBackends/Vulkan/Constants.h"
+
 #include <cstddef>
 #include <memory>
-
-#include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan
 {

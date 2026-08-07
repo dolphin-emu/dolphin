@@ -3,18 +3,6 @@
 
 #include "Core/IOS/IOSC.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstring>
-#include <map>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-#include <mbedtls/md.h>
-#include <mbedtls/rsa.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Crypto/AES.h"
@@ -26,6 +14,18 @@
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
+
+#include <fmt/format.h>
+#include <mbedtls/md.h>
+#include <mbedtls/rsa.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <map>
+#include <utility>
+#include <vector>
 
 namespace
 {

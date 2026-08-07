@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <deque>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/Common.h"
+
+#include <deque>
+#include <utility>
 
 namespace DX12
 {

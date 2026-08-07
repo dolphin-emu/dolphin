@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <array>
-#include <optional>
-#include <variant>
-#include <vector>
-
-#include <picojson.h>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/TextureSamplerValue.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderState.h"
+
+#include <picojson.h>
+
+#include <array>
+#include <optional>
+#include <variant>
+#include <vector>
 
 class ShaderCode;
 

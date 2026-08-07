@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/Swap.h"
+#include "Core/IOS/ES/Formats.h"
+#include "DiscIO/Enums.h"
+
 #include <limits>
 #include <map>
 #include <memory>
@@ -10,12 +16,6 @@
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/Swap.h"
-#include "Core/IOS/ES/Formats.h"
-#include "DiscIO/Enums.h"
 
 namespace DiscIO
 {

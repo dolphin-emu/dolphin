@@ -5,11 +5,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

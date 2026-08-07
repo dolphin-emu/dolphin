@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+
+#include <array>
 
 namespace Core
 {

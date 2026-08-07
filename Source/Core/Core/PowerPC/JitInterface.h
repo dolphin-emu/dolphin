@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/MachineContext.h"
+
 #include <cstddef>
 #include <cstdio>
 #include <functional>
@@ -11,9 +14,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/MachineContext.h"
 
 class CPUCoreBase;
 class PointerWrap;

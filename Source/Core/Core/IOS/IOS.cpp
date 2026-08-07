@@ -3,19 +3,11 @@
 
 #include "Core/IOS/IOS.h"
 
-#include <algorithm>
-#include <array>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
-
 #include "Core/Boot/AncastTypes.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
@@ -59,6 +51,13 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
+
+#include <algorithm>
+#include <array>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace IOS::HLE
 {

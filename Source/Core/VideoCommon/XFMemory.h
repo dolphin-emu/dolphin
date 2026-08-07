@@ -3,15 +3,12 @@
 
 #pragma once
 
-// X.h defines None to be 0, which causes problems with some of the enums
-#undef None
-
-#include <array>
-
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/CPMemory.h"
+
+#include <array>
 
 constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
 

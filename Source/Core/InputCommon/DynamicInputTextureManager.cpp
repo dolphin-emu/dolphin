@@ -3,16 +3,15 @@
 
 #include "InputCommon/DynamicInputTextureManager.h"
 
-#include <set>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
-
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 #include "InputCommon/ImageOperations.h"
 #include "VideoCommon/HiresTextures.h"
+
+#include <set>
 
 namespace InputCommon
 {

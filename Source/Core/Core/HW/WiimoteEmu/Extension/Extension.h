@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+
+#include <array>
+#include <string>
 
 namespace WiimoteEmu
 {

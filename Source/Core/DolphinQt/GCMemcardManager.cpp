@@ -3,11 +3,19 @@
 
 #include "DolphinQt/GCMemcardManager.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
+#include "Common/Assert.h"
+#include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Common/VariantUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
+#include "DolphinQt/GCMemcardCreateNewDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include <QDialogButtonBox>
 #include <QDir>
@@ -25,21 +33,11 @@
 #include <QTableWidget>
 #include <QTimer>
 #include <QToolButton>
+#include <fmt/format.h>
 
-#include "Common/Assert.h"
-#include "Common/CommonPaths.h"
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/VariantUtil.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/HW/GCMemcard/GCMemcard.h"
-#include "Core/HW/GCMemcard/GCMemcardUtils.h"
-
-#include "DolphinQt/GCMemcardCreateNewDialog.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 using namespace ExpansionInterface;
 

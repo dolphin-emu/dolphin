@@ -3,14 +3,15 @@
 
 #include "Core/MemoryWatcher.h"
 
+#include "Common/FileUtil.h"
+#include "Core/PowerPC/MMU.h"
+
+#include <unistd.h>
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>
-
-#include "Common/FileUtil.h"
-#include "Core/PowerPC/MMU.h"
 
 MemoryWatcher::MemoryWatcher()
 {

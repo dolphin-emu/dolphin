@@ -3,17 +3,11 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 
-#include <string>
-#include <string_view>
-#include <variant>
-
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
-
 #include "Core/ConfigManager.h"
-
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
@@ -22,6 +16,10 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <string>
+#include <string_view>
+#include <variant>
 
 std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;
 

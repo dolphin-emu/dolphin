@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/HRWrap.h"
-
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
+
+#include <array>
+#include <memory>
 
 struct IDXGIFactory;
 

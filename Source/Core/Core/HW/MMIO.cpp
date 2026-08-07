@@ -3,12 +3,12 @@
 
 #include "Core/HW/MMIO.h"
 
-#include <functional>
-#include <utility>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIOHandlers.h"
+
+#include <functional>
+#include <utility>
 
 namespace MMIO
 {

@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/Common.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <string>
 
 struct GCPadStatus;
 

@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/BitSet.h"
+
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/BitSet.h"
 
 struct expr;
 struct expr_var_list;

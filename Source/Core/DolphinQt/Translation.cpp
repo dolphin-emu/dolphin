@@ -3,27 +3,24 @@
 
 #include "DolphinQt/Translation.h"
 
-#include <algorithm>
-#include <cstring>
-#include <iterator>
-#include <string>
-
-#include <fmt/format.h>
-
-#include <QApplication>
-#include <QLocale>
-#include <QTranslator>
-
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/Config/MainSettings.h"
-
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-
 #include "UICommon/UICommon.h"
+
+#include <QApplication>
+#include <QLocale>
+#include <QTranslator>
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstring>
+#include <iterator>
+#include <string>
 
 constexpr u32 MO_MAGIC_NUMBER = 0x950412de;
 

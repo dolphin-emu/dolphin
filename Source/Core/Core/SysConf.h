@@ -5,16 +5,15 @@
 
 #pragma once
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+
 #include <cstring>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/NandPaths.h"
-#include "Common/Swap.h"
 
 namespace IOS::HLE::FS
 {

@@ -3,12 +3,9 @@
 
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
@@ -19,6 +16,10 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace DSP::HLE
 {

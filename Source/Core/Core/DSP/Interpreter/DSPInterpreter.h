@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/DSPCore.h"
+
+#include <array>
+#include <cstddef>
 
 namespace DSP::Interpreter
 {

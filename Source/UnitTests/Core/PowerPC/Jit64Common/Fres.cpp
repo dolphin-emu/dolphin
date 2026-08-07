@@ -1,8 +1,6 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <bit>
-
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
@@ -13,9 +11,11 @@
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/System.h"
 
-#include "../TestValues.h"
-
 #include <gtest/gtest.h>
+
+#include <bit>
+
+#include "../TestValues.h"
 
 namespace
 {

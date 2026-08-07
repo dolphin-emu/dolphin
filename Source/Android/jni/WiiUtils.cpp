@@ -1,23 +1,21 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <string>
-
-#include <jni.h>
-
-#include "jni/AndroidCommon/AndroidCommon.h"
-#include "jni/AndroidCommon/IDCache.h"
+#include "Core/WiiUtils.h"
 
 #include "Common/FatFsUtil.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/CommonTitles.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
-#include "Core/WiiUtils.h"
-
 #include "DiscIO/NANDImporter.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <string>
 
 // The hardcoded values here must match WiiUtils.java
 static jint ConvertCopyResult(WiiSave::CopyResult result)

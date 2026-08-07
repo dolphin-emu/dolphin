@@ -3,23 +3,23 @@
 
 #include "Core/Config/DefaultLocale.h"
 
-#include <algorithm>
-#include <array>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
 #include "Common/StringUtil.h"
 #include "Core/Host.h"
 #include "DiscIO/Enums.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <algorithm>
+#include <array>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace Config
 {

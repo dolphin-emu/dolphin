@@ -3,19 +3,19 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
 #include <algorithm>
 #include <ios>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <jni.h>
-
-#include "Common/Assert.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "jni/AndroidCommon/IDCache.h"
 
 std::string GetJString(JNIEnv* env, jstring jstr)
 {

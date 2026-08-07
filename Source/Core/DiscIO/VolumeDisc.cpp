@@ -3,16 +3,16 @@
 
 #include "DiscIO/VolumeDisc.h"
 
-#include <memory>
-#include <optional>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeGC.h"
+
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace DiscIO
 {

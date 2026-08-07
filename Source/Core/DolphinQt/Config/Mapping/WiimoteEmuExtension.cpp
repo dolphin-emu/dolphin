@@ -3,11 +3,6 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QLabel>
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
@@ -19,8 +14,12 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
 #include "InputCommon/InputConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
 
 WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(window)
 {

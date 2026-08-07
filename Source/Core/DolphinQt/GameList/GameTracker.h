@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <atomic>
-#include <memory>
-#include <string>
+#include "Common/Event.h"
+#include "Common/WorkQueueThread.h"
+#include "UICommon/GameFileCache.h"
 
 #include <QFileSystemWatcher>
 #include <QMap>
@@ -13,9 +13,9 @@
 #include <QString>
 #include <QVector>
 
-#include "Common/Event.h"
-#include "Common/WorkQueueThread.h"
-#include "UICommon/GameFileCache.h"
+#include <atomic>
+#include <memory>
+#include <string>
 
 namespace UICommon
 {
@@ -99,4 +99,3 @@ private:
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
-Q_DECLARE_METATYPE(std::string)

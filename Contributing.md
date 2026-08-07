@@ -211,12 +211,14 @@ Summary:
 - If you find duplicate includes of a certain header, remove it.
 - When declaring includes in a source file, make sure they follow the given pattern:
   - The header for the source file
+  - Dolphin source file headers
+  - Non-standard library headers
+  - System-specific headers (these should also likely be in an `#ifdef` block unless the source file itself is system-specific.)
   - Standard library headers
-  - System-specific headers (these should also likely be in an `#ifdef` block unless the source file itself is system-specific).
-  - Other Dolphin source file headers
-- Each of the above header sections should also be in alphabetical order
+- Each of the above header sections should also be in alphabetical order.
 - Project source file headers should be included in a way that is relative to the `[Dolphin Root]/Source/Core` directory.
 - This project uses `#pragma once` as header guards.
+- If a header is shared across multiple source files, those source files' names should be prefixed with the header's name (e.g., `UI.h` is used by `UIWin.cpp` and `UIMac.cpp`.)
 
 ## <a name="cpp-code-loops"></a>Loops
 - If an infinite loop is required, do not use `for (;;)`, use `while (true)`.

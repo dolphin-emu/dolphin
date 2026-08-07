@@ -3,16 +3,16 @@
 
 #include "Common/Image.h"
 
-#include <memory>
-#include <string>
-
-#include <spng.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
+
+#include <spng.h>
+
+#include <memory>
+#include <string>
 
 namespace Common
 {

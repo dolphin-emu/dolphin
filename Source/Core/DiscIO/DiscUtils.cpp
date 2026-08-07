@@ -3,20 +3,20 @@
 
 #include "DiscIO/DiscUtils.h"
 
-#include <algorithm>
-#include <optional>
-#include <span>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
 
 namespace DiscIO
 {

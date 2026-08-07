@@ -4,6 +4,9 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementBox.h"
 
+#include "Core/AchievementManager.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
+
 #include <QByteArray>
 #include <QDateTime>
 #include <QHBoxLayout>
@@ -12,10 +15,6 @@
 #include <QSizePolicy>
 #include <QVBoxLayout>
 #include <QWidget>
-
-#include "Core/AchievementManager.h"
-
-#include "DolphinQt/QtUtils/FromStdString.h"
 
 static constexpr size_t PROGRESS_LENGTH = 24;
 

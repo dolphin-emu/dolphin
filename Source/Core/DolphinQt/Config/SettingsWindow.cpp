@@ -3,19 +3,6 @@
 
 #include "DolphinQt/Config/SettingsWindow.h"
 
-#include <utility>
-
-#include <QApplication>
-#include <QColor>
-#include <QDialogButtonBox>
-#include <QEvent>
-#include <QHBoxLayout>
-#include <QListWidget>
-#include <QPalette>
-#include <QStackedWidget>
-#include <QTabWidget>
-#include <QVBoxLayout>
-
 #include "DolphinQt/Config/ControllersPane.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/MainWindow.h"
@@ -31,6 +18,19 @@
 #include "DolphinQt/Settings/PathPane.h"
 #include "DolphinQt/Settings/TriforcePane.h"
 #include "DolphinQt/Settings/WiiPane.h"
+
+#include <QApplication>
+#include <QColor>
+#include <QDialogButtonBox>
+#include <QEvent>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QPalette>
+#include <QStackedWidget>
+#include <QTabWidget>
+#include <QVBoxLayout>
+
+#include <utility>
 
 StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
 {

@@ -1,17 +1,16 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-
 #include "Common/Assert.h"
 #include "Common/EnumMap.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/DXShader.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <array>
 
 namespace DX11
 {

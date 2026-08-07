@@ -3,15 +3,6 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <cstdio>
-#include <optional>
-#include <span>
-#include <sstream>
-#include <utility>
-
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
@@ -19,8 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -37,6 +26,15 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#include <cstdio>
+#include <optional>
+#include <span>
+#include <sstream>
+#include <utility>
 
 using namespace Arm64Gen;
 

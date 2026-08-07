@@ -3,12 +3,12 @@
 
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
 
+#include <windows.h>
+#include <setupapi.h>
+
 #include <cwchar>
 #include <unordered_set>
 #include <vector>
-
-#include <windows.h>
-#include <setupapi.h>
 
 namespace ciface::DInput
 {

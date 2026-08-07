@@ -3,8 +3,9 @@
 
 #include "InputCommon/ControllerEmu/Control/Control.h"
 
-#include <utility>
 #include "InputCommon/ControlReference/ControlReference.h"
+
+#include <utility>
 
 namespace ControllerEmu
 {

@@ -1,11 +1,10 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoCommon/BoundingBox.h"
 
 #include <Metal/Metal.h>
-
-#include "VideoBackends/Metal/MRCHelpers.h"
 
 namespace Metal
 {

@@ -5,7 +5,6 @@
 
 #include "Common/HookableEvent.h"
 #include "Common/MathUtil.h"
-
 #include "VideoCommon/RenderState.h"
 
 #include <array>

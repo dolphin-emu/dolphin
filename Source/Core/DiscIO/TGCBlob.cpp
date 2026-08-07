@@ -3,14 +3,14 @@
 
 #include "DiscIO/TGCBlob.h"
 
+#include "Common/BitUtils.h"
+#include "Common/Swap.h"
+
 #include <algorithm>
 #include <memory>
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "Common/BitUtils.h"
-#include "Common/Swap.h"
 
 namespace
 {

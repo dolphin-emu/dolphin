@@ -10,9 +10,10 @@ add_library(videovulkan
   StagingBuffer.h
   StateTracker.cpp
   StateTracker.h
+  VideoBackend.h
+  VideoBackendVK.cpp
   VKBoundingBox.cpp
   VKBoundingBox.h
-  VKMain.cpp
   VKPerfQuery.cpp
   VKPerfQuery.h
   VKPipeline.cpp

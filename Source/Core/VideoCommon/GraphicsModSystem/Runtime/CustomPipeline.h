@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <memory>
-#include <span>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+
+#include <span>
 
 struct CustomPipeline
 {

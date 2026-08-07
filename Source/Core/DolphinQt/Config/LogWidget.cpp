@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/LogWidget.h"
 
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFont>
@@ -11,8 +13,6 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QTimer>
-
-#include "DolphinQt/Settings.h"
 
 // Delay in ms between calls of UpdateLog()
 constexpr int UPDATE_LOG_DELAY = 100;

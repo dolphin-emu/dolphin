@@ -3,21 +3,6 @@
 
 #include "DiscIO/CompressedBlob.h"
 
-#include <algorithm>
-#include <cstring>
-#include <expected>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <zlib.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#include <io.h>
-#endif
-
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -28,6 +13,21 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
+
+#include <zlib.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#endif
+
+#include <algorithm>
+#include <cstring>
+#include <expected>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace DiscIO
 {

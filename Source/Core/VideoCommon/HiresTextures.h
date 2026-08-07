@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <fmt/ranges.h>
+#include "VideoCommon/TextureInfo.h"
+
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-
-#include "VideoCommon/TextureInfo.h"
 
 namespace VideoCommon
 {

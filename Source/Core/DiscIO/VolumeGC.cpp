@@ -3,19 +3,11 @@
 
 #include "DiscIO/VolumeGC.h"
 
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
-
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/DiscUtils.h"
@@ -23,6 +15,13 @@
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace DiscIO
 {

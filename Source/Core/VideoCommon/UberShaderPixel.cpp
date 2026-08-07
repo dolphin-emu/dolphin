@@ -4,7 +4,6 @@
 #include "VideoCommon/UberShaderPixel.h"
 
 #include "Common/Assert.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/PixelShaderGen.h"

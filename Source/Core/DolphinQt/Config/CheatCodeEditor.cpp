@@ -3,7 +3,11 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 
-#include <regex>
+#include "Common/StringUtil.h"
+#include "Core/ARDecrypt.h"
+#include "Core/ActionReplay.h"
+#include "Core/GeckoCodeConfig.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include <QDialogButtonBox>
 #include <QFontDatabase>
@@ -13,13 +17,7 @@
 #include <QStringList>
 #include <QTextEdit>
 
-#include "Common/StringUtil.h"
-
-#include "Core/ARDecrypt.h"
-#include "Core/ActionReplay.h"
-#include "Core/GeckoCodeConfig.h"
-
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include <regex>
 
 CheatCodeEditor::CheatCodeEditor(QWidget* parent) : QDialog(parent)
 {

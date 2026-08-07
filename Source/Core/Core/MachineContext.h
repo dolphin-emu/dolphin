@@ -43,10 +43,9 @@ typedef CONTEXT SContext;
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 // for modules:
 #define _XOPEN_SOURCE
-#include <ucontext.h>
-
 #include <mach/mach.h>
 #include <mach/message.h>
+#include <ucontext.h>
 #if _M_X86_64
 typedef x86_thread_state64_t SContext;
 #define CTX_RAX __rax
@@ -105,9 +104,9 @@ typedef _STRUCT_MCONTEXT64 SContext;
 #error No context definition for architecture
 #endif
 #elif defined(__linux__)
-#include <signal.h>
-
 #include <ucontext.h>
+
+#include <signal.h>
 typedef mcontext_t SContext;
 
 #if _M_X86_64

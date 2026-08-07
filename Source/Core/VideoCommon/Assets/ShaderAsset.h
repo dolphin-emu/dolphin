@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/ShaderCompileUtils.h"
+#include "VideoCommon/TextureConfig.h"
+
+#include <picojson.h>
+
 #include <array>
 #include <memory>
 #include <span>
@@ -10,12 +16,6 @@
 #include <string_view>
 #include <variant>
 #include <vector>
-
-#include <picojson.h>
-
-#include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/ShaderCompileUtils.h"
-#include "VideoCommon/TextureConfig.h"
 
 class ShaderCode;
 

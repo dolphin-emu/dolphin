@@ -3,9 +3,6 @@
 
 #include "DiscIO/NANDImporter.h"
 
-#include <algorithm>
-#include <cstring>
-
 #include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -13,6 +10,9 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Core/IOS/ES/Formats.h"
+
+#include <algorithm>
+#include <cstring>
 
 namespace DiscIO
 {

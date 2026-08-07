@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
+
 #include <memory>
 #include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "InputCommon/ControlReference/ExpressionParser.h"
 
 namespace ciface::ExpressionParser
 {

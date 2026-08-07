@@ -3,31 +3,15 @@
 
 #include "DolphinQt/Settings/WiiPane.h"
 
-#include <array>
-#include <future>
-#include <optional>
-#include <utility>
-
-#include <QDir>
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QListWidget>
-#include <QPushButton>
-#include <QSpacerItem>
-
 #include "Common/Config/Config.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
 #include "Core/USBUtils.h"
-
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
@@ -39,6 +23,20 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDevicePicker.h"
+
+#include <QDir>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
+#include <QSpacerItem>
+
+#include <array>
+#include <future>
+#include <optional>
+#include <utility>
 
 namespace
 {

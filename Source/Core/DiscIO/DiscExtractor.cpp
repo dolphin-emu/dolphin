@@ -3,6 +3,14 @@
 
 #include "DiscIO/DiscExtractor.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -11,14 +19,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

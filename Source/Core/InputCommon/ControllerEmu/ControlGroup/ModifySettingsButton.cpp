@@ -3,13 +3,13 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "VideoCommon/OnScreenDisplay.h"
+
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
-
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace ControllerEmu
 {

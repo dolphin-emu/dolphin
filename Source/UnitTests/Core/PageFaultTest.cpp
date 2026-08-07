@@ -1,14 +1,14 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <chrono>
-
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
+
+#include <chrono>
 
 #include "StubJit.h"
 

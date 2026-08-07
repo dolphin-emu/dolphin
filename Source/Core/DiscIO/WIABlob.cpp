@@ -3,6 +3,29 @@
 
 #include "DiscIO/WIABlob.h"
 
+#include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
+#include "Common/Swap.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
+#include "DiscIO/MultithreadedCompressor.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeWii.h"
+#include "DiscIO/WIACompression.h"
+#include "DiscIO/WiiEncryptionCache.h"
+
+#include <fmt/format.h>
+#include <zstd.h>
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -14,30 +37,6 @@
 #include <optional>
 #include <type_traits>
 #include <utility>
-
-#include <fmt/format.h>
-#include <zstd.h>
-
-#include "Common/Align.h"
-#include "Common/Assert.h"
-#include "Common/BitUtils.h"
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/ScopeGuard.h"
-#include "Common/Swap.h"
-
-#include "DiscIO/Blob.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/LaggedFibonacciGenerator.h"
-#include "DiscIO/MultithreadedCompressor.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeWii.h"
-#include "DiscIO/WIACompression.h"
-#include "DiscIO/WiiEncryptionCache.h"
 
 namespace DiscIO
 {

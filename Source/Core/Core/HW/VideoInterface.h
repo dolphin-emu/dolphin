@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+
+#include <array>
 
 enum class FieldType;
 class PointerWrap;

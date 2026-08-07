@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/System.h"
+
 #include <bit>
 #include <cstddef>
 #include <cstdio>
@@ -10,12 +16,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/Core.h"
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitInterface.h"
-#include "Core/System.h"
 
 namespace Core
 {

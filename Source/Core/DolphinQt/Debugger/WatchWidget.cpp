@@ -3,13 +3,6 @@
 
 #include "DolphinQt/Debugger/WatchWidget.h"
 
-#include <QHeaderView>
-#include <QInputDialog>
-#include <QMenu>
-#include <QTableWidget>
-#include <QToolBar>
-#include <QVBoxLayout>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -17,11 +10,17 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include <QHeaderView>
+#include <QInputDialog>
+#include <QMenu>
+#include <QTableWidget>
+#include <QToolBar>
+#include <QVBoxLayout>
 
 WatchWidget::WatchWidget(QWidget* parent)
     : QDockWidget(parent), m_system(Core::System::GetInstance())

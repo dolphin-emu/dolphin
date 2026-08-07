@@ -3,9 +3,6 @@
 
 #include "Core/PowerPC/PPCCache.h"
 
-#include <algorithm>
-#include <array>
-
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
@@ -13,6 +10,9 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <array>
 
 namespace PowerPC
 {

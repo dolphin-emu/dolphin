@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QWidget>
-
 #include "Core/Core.h"
+
+#include <QWidget>
 
 class QCheckBox;
 class QComboBox;

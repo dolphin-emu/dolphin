@@ -3,25 +3,25 @@
 
 #include "Common/Crypto/AES.h"
 
-#include <array>
-#include <cstring>
-#include <memory>
-
-#include <mbedtls/aes.h>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
+
+#include <mbedtls/aes.h>
 
 #ifdef _MSC_VER
 #include <intrin.h>
 #else
-#if defined(_M_X86_64)
+#ifdef _M_X86_64
 #include <x86intrin.h>
-#elif defined(_M_ARM_64)
+#elifdef _M_ARM_64
 #include <arm_acle.h>
 #include <arm_neon.h>
 #endif
 #endif
+
+#include <array>
+#include <cstring>
+#include <memory>
 
 #ifdef _MSC_VER
 #define ATTRIBUTE_TARGET(x)

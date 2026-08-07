@@ -3,14 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 
-#include <array>
-#include <functional>
-#include <memory>
-#include <string>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -34,6 +26,14 @@
 #include "Core/Movie.h"
 #include "Core/System.h"
 #include "DiscIO/Enums.h"
+
+#include <fmt/format.h>
+
+#include <array>
+#include <functional>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace ExpansionInterface
 {

@@ -5,7 +5,6 @@
 
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
-
 #include "VideoCommon/OnScreenUIKeyMap.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConfig.h"

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include "Core/HW/SI/SI_Device.h"
+
+#include <array>
 
 class PointerWrap;
 struct KeyboardStatus;

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <QDockWidget>
-
 #include "Common/Assembler/GekkoAssembler.h"
 #include "Core/Core.h"
+
+#include <QDockWidget>
 
 class QTabWidget;
 class AsmEditor;

@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <string_view>
-
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/AbstractShader.h"
+
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace OGL
 {

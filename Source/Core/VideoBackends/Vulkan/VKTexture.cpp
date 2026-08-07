@@ -3,16 +3,11 @@
 
 #include "VideoBackends/Vulkan/VKTexture.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
@@ -20,9 +15,12 @@
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
 
 namespace Vulkan
 {

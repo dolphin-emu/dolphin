@@ -3,13 +3,19 @@
 
 #include "DolphinQt/CheatSearchWidget.h"
 
-#include <algorithm>
-#include <optional>
-#include <ranges>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+#include "Core/ActionReplay.h"
+#include "Core/CheatGeneration.h"
+#include "Core/CheatSearch.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/CheatCodeEditor.h"
+#include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Settings.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -25,23 +31,15 @@
 #include <QString>
 #include <QTableWidget>
 #include <QVBoxLayout>
-
 #include <fmt/format.h>
 
-#include "Core/ActionReplay.h"
-#include "Core/CheatGeneration.h"
-#include "Core/CheatSearch.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/CheatCodeEditor.h"
-#include "DolphinQt/Config/CheatWarningWidget.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
-#include "DolphinQt/Settings.h"
+#include <algorithm>
+#include <optional>
+#include <ranges>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 constexpr size_t TABLE_MAX_ROWS = 1000;
 

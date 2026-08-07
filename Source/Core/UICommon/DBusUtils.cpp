@@ -3,14 +3,14 @@
 
 #include "UICommon/DBusUtils.h"
 
+#include "Common/Logging/Log.h"
+
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
 #include <QHash>
 #include <QObject>
 #include <QString>
-
-#include "Common/Logging/Log.h"
 
 namespace DBusUtils
 {

@@ -3,6 +3,28 @@
 
 #include "DolphinQt/Settings/AdvancedPane.h"
 
+#include "Common/Config/Config.h"
+#include "Common/Config/Enums.h"
+#include "Common/FileUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/QtUtils/AnalyticsPrompt.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/UICommon.h"
+
 #include <QCheckBox>
 #include <QDateTimeEdit>
 #include <QFontMetrics>
@@ -14,31 +36,8 @@
 #include <QSignalBlocker>
 #include <QTimeZone>
 #include <QVBoxLayout>
+
 #include <cmath>
-
-#include "Common/Config/Config.h"
-#include "Common/Config/Enums.h"
-#include "Common/FileUtil.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
-#include "DolphinQt/QtUtils/AnalyticsPrompt.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
-
-#include "UICommon/UICommon.h"
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},

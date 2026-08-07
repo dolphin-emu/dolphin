@@ -1,11 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstdint>
-#include <map>
-#include <optional>
-#include <string>
-#include <vector>
+#include "Core/Boot/Boot.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -13,8 +9,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
-
-#include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -35,14 +29,18 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
-
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace
 {

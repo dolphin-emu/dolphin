@@ -3,12 +3,12 @@
 
 #include "Core/HW/Triforce/Touchscreen.h"
 
-#include <numeric>
-
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCPad.h"
 #include "InputCommon/GCPadStatus.h"
+
+#include <numeric>
 
 namespace
 {

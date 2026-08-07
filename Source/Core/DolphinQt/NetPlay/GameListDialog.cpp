@@ -3,13 +3,13 @@
 
 #include "DolphinQt/NetPlay/GameListDialog.h"
 
-#include <memory>
+#include "UICommon/GameFile.h"
 
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include <QVBoxLayout>
 
-#include "UICommon/GameFile.h"
+#include <memory>
 
 GameListDialog::GameListDialog(const GameListModel& game_list_model, QWidget* parent)
     : QDialog(parent), m_game_list_model(game_list_model)

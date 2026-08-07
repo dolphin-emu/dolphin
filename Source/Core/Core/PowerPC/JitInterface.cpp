@@ -3,14 +3,11 @@
 
 #include "Core/PowerPC/JitInterface.h"
 
-#include <string>
-#include <unordered_set>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -18,14 +15,14 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #ifdef _M_X86_64
 #include "Core/PowerPC/Jit64/Jit.h"
-#endif
-
-#ifdef _M_ARM_64
+#elifdef _M_ARM_64
 #include "Core/PowerPC/JitArm64/Jit.h"
 #endif
+
+#include <string>
+#include <unordered_set>
 
 JitInterface::JitInterface(Core::System& system) : m_system(system)
 {

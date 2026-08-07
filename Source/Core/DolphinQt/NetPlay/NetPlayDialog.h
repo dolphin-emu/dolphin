@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <string>
-
-#include <QDialog>
-#include <QMenuBar>
-
 #include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/NetPlay/ClickBlurLabel.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <QDialog>
+#include <QMenuBar>
+
+#include <functional>
+#include <memory>
+#include <string>
 
 class BootSessionData;
 class ChunkedProgressDialog;

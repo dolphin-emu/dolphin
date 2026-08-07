@@ -3,13 +3,12 @@
 
 #pragma once
 
+#include "InputCommon/DynamicInputTextures/DITData.h"
+#include "InputCommon/ImageOperations.h"
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "InputCommon/DynamicInputTextures/DITData.h"
-#include "InputCommon/ImageOperations.h"
 
 namespace Common
 {

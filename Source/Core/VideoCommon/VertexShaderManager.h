@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <array>
-#include <span>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <array>
+#include <span>
+#include <string>
 
 class PointerWrap;
 struct PortableVertexDeclaration;

@@ -3,19 +3,20 @@
 
 #include "Common/FileSearch.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <system_error>
-
 #include "Common/CommonPaths.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#ifdef ANDROID
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
-#elifdef ANDROID
-#include "jni/AndroidCommon/AndroidCommon.h"
 #endif
+
+#include <algorithm>
+#include <filesystem>
+#include <system_error>
 
 namespace fs = std::filesystem;
 

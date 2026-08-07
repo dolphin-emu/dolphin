@@ -3,15 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/Triforce/SerialDevice.h"
+
 #include <array>
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-
-#include "Core/HW/Triforce/SerialDevice.h"
 
 namespace Triforce
 {

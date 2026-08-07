@@ -3,17 +3,16 @@
 
 #include "Core/CheatGeneration.h"
 
-#include <expected>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
-
 #include "Core/ActionReplay.h"
 #include "Core/CheatSearch.h"
+
+#include <fmt/format.h>
+
+#include <expected>
+#include <vector>
 
 constexpr int AR_SET_BYTE_CMD = 0x00;
 constexpr int AR_SET_SHORT_CMD = 0x02;

@@ -7,14 +7,12 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
-
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Present.h"

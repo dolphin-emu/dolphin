@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <cstddef>
-
-#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
+
+#include <cstddef>
 
 namespace Vulkan
 {

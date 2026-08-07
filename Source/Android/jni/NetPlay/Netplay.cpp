@@ -1,12 +1,6 @@
 // Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <jni.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/TraversalClient.h"
 #include "Core/Boot/Boot.h"
@@ -15,10 +9,15 @@
 #include "Core/NetPlayCommon.h"
 #include "Core/NetPlayServer.h"
 #include "UICommon/GameFile.h"
-
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/NetPlay/NetPlayUICallbacks.h"
+
+#include <jni.h>
+
+#include <memory>
+#include <string>
+#include <vector>
 
 static NetPlay::NetPlayUICallbacks* GetUICallbacksPointer(JNIEnv* env, jobject obj)
 {

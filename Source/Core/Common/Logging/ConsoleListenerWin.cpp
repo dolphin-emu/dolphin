@@ -3,9 +3,9 @@
 
 #include "Common/Logging/ConsoleListener.h"
 
-#include <windows.h>
-
 #include "Common/StringUtil.h"
+
+#include <windows.h>
 
 ConsoleListener::ConsoleListener()
 {

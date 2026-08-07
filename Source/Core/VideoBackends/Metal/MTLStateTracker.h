@@ -3,23 +3,22 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-#include <atomic>
-#include <memory>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-
 #include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
-
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PerfQueryBase.h"
+
+#include <Metal/Metal.h>
+
+#include <atomic>
+#include <memory>
+#include <vector>
 
 namespace Metal
 {

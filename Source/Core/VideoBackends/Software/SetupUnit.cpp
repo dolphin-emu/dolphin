@@ -3,11 +3,11 @@
 
 #include "VideoBackends/Software/SetupUnit.h"
 
-#include <cstring>
-
 #include "Common/Logging/Log.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoCommon/OpcodeDecoding.h"
+
+#include <cstring>
 
 void SetupUnit::Init(OpcodeDecoder::Primitive primitive_type)
 {

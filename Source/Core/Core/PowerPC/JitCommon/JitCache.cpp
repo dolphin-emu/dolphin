@@ -3,16 +3,6 @@
 
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <functional>
-#include <map>
-#include <ranges>
-#include <set>
-#include <span>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Core/Config/MainSettings.h"
@@ -26,6 +16,15 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <functional>
+#include <map>
+#include <ranges>
+#include <span>
+#include <utility>
 
 using namespace Gen;
 

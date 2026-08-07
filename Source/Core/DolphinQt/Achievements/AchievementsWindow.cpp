@@ -4,18 +4,7 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 
-#include <mutex>
-
-#include <rcheevos/include/rc_error.h>
-
-#include <QDialogButtonBox>
-#include <QScrollArea>
-#include <QScrollBar>
-#include <QTabWidget>
-#include <QVBoxLayout>
-
 #include "Core/AchievementManager.h"
-
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 #include "DolphinQt/Achievements/AchievementLeaderboardWidget.h"
 #include "DolphinQt/Achievements/AchievementProgressWidget.h"
@@ -23,6 +12,15 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
+
+#include <QDialogButtonBox>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QTabWidget>
+#include <QVBoxLayout>
+#include <rcheevos/include/rc_error.h>
+
+#include <mutex>
 
 AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
 {

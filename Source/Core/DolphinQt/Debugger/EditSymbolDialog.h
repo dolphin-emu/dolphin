@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#include <string>
+
+#include "Common/CommonTypes.h"
 
 #include <QDialog>
 #include <QString>
-#include "Common/CommonTypes.h"
+
+#include <string>
 
 class QLineEdit;
 class QDialogButtonBox;

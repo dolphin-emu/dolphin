@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+
 #include <string>
 #include <vector>
-
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 
 namespace ControllerEmu
 {

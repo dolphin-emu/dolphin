@@ -3,18 +3,19 @@
 
 #include "Common/CommonFuncs.h"
 
-#include <cstddef>
-#include <cstring>
-#include <errno.h>
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
 #include <setupapi.h>
-
 #define strerror_r(err, buf, len) strerror_s(buf, len, err)
-
-#include "Common/StringUtil.h"
 #endif
+
+#include <cstddef>
+#include <cstring>
+#include <errno.h>
 
 namespace Common
 {

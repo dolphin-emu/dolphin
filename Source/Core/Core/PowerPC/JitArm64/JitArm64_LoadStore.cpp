@@ -3,13 +3,10 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <bit>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -19,6 +16,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"

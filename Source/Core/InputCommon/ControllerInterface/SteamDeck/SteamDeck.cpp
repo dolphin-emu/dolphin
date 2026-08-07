@@ -3,12 +3,12 @@
 
 #include "InputCommon/ControllerInterface/SteamDeck/SteamDeck.h"
 
-#include <hidapi.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include <hidapi.h>
 
 namespace ciface::SteamDeck
 {

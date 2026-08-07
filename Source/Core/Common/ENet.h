@@ -3,12 +3,12 @@
 //
 #pragma once
 
-#include <memory>
+#include "Common/CommonTypes.h"
 
 #include <SFML/Network/Packet.hpp>
 #include <enet/enet.h>
 
-#include "Common/CommonTypes.h"
+#include <memory>
 
 namespace Common::ENet
 {

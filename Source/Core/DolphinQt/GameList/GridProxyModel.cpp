@@ -3,16 +3,14 @@
 
 #include "DolphinQt/GameList/GridProxyModel.h"
 
+#include "Core/Config/UISettings.h"
+#include "DolphinQt/GameList/GameListModel.h"
+#include "UICommon/GameFile.h"
+
 #include <QImage>
 #include <QPainter>
 #include <QPixmap>
 #include <QSize>
-
-#include "DolphinQt/GameList/GameListModel.h"
-
-#include "Core/Config/UISettings.h"
-
-#include "UICommon/GameFile.h"
 
 const QSize LARGE_BANNER_SIZE(144, 48);
 

@@ -3,19 +3,6 @@
 
 #include "Core/IOS/ES/Formats.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstring>
-#include <map>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -31,6 +18,19 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace IOS::ES
 {

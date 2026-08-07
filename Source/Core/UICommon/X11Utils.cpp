@@ -3,16 +3,17 @@
 
 #include "UICommon/X11Utils.h"
 
+#include "Common/Config/Config.h"
+#include "Common/Contains.h"
+#include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
+
+#include <fmt/format.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
-
-#include <fmt/format.h>
-
-#include "Common/Contains.h"
-#include "Common/Logging/Log.h"
-#include "Core/Config/MainSettings.h"
 
 extern char** environ;
 

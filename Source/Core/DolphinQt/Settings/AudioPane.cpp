@@ -3,9 +3,22 @@
 
 #include "DolphinQt/Settings/AudioPane.h"
 
-#include <string>
-#include <utility>
-#include <vector>
+#include "AudioCommon/AudioCommon.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
+#include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Settings.h"
+#ifdef HAVE_CUBEB
+#include "AudioCommon/CubebUtils.h"
+#endif
+#ifdef _WIN32
+#include "AudioCommon/WASAPIStream.h"
+#endif
 
 #include <QFontMetrics>
 #include <QFormLayout>
@@ -19,23 +32,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/WASAPIStream.h"
-
-#ifdef HAVE_CUBEB
-#include "AudioCommon/CubebUtils.h"
-#endif
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/WiimoteSettings.h"
-#include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/System.h"
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
-
-#include "DolphinQt/Settings.h"
+#include <string>
+#include <utility>
+#include <vector>
 
 static QString GetVolumeLabelText(int volume_level)
 {

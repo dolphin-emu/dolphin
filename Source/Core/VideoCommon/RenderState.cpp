@@ -3,11 +3,11 @@
 
 #include "VideoCommon/RenderState.h"
 
-#include <algorithm>
-#include <array>
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <algorithm>
+#include <array>
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
 {

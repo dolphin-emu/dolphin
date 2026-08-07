@@ -3,10 +3,10 @@
 
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 
-#include <chrono>
-
 #include <QEvent>
 #include <QTimer>
+
+#include <chrono>
 
 namespace QtUtils
 {

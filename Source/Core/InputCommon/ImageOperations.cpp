@@ -3,13 +3,13 @@
 
 #include "InputCommon/ImageOperations.h"
 
+#include "Common/IOFile.h"
+#include "Common/Image.h"
+
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
-
-#include "Common/IOFile.h"
-#include "Common/Image.h"
 
 namespace InputCommon
 {

@@ -3,17 +3,16 @@
 
 #include "VideoBackends/Vulkan/VKPipeline.h"
 
-#include <array>
-
 #include "Common/Assert.h"
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+
+#include <array>
 
 namespace Vulkan
 {

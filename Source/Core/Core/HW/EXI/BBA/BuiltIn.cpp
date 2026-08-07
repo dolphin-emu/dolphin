@@ -3,10 +3,15 @@
 
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 
-#include <bit>
-#include <optional>
-#include "SFML/Network/IpAddress.hpp"
-#include "SFML/Network/Socket.hpp"
+#include "Common/BitUtils.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/Network.h"
+#include "Common/ScopeGuard.h"
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+
+#include <SFML/Network/IpAddress.hpp>
+#include <SFML/Network/Socket.hpp>
 
 #ifdef _WIN32
 #include <ws2ipdef.h>
@@ -15,12 +20,8 @@
 #include <sys/socket.h>
 #endif
 
-#include "Common/BitUtils.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/Network.h"
-#include "Common/ScopeGuard.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include <bit>
+#include <optional>
 
 namespace
 {

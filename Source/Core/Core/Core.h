@@ -9,14 +9,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Functional.h"
+#include "Common/HookableEvent.h"
+
 #include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
-#include "Common/Functional.h"
-#include "Common/HookableEvent.h"
 
 struct BootParameters;
 struct WindowSystemInfo;

@@ -3,13 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
-#include <string>
-
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

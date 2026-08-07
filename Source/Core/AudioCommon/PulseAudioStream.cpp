@@ -1,8 +1,6 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
-
 #include "AudioCommon/PulseAudioStream.h"
 
 #include "Common/Assert.h"
@@ -10,6 +8,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
+
+#include <cstring>
 
 namespace
 {

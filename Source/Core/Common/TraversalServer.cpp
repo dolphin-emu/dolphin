@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: CC0-1.0
 
 // The central server implementation.
+#include "Common/Random.h"
+#include "Common/TraversalProto.h"
+
+#include <fmt/format.h>
+#ifdef HAVE_LIBSYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+
 #include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <netinet/in.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-
-#include <fmt/format.h>
-
-#ifdef HAVE_LIBSYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
-
-#include "Common/Random.h"
-#include "Common/TraversalProto.h"
 
 #define DEBUG 0
 #define NUMBER_OF_TRIES 5

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <span>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
 
 enum class TextureFormat;
 enum class TLUTFormat;

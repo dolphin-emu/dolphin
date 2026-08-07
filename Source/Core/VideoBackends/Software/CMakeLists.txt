@@ -9,7 +9,6 @@ add_library(videosoftware
   Rasterizer.h
   SetupUnit.cpp
   SetupUnit.h
-  SWmain.cpp
   SWBoundingBox.cpp
   SWBoundingBox.h
   SWEfbInterface.cpp
@@ -31,6 +30,7 @@ add_library(videosoftware
   TransformUnit.cpp
   TransformUnit.h
   VideoBackend.h
+  VideoBackendSW.cpp
 )
 
 target_link_libraries(videosoftware

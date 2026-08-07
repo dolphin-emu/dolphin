@@ -54,12 +54,12 @@ endif()
 set(Xcode_min_version 14.3)
 set(MSVC_toolset_min_version 143)
 # Compilers
-set(GCC_min_version 12)
+set(GCC_min_version 13)
 set(Clang_min_version 15)
 set(AppleClang_min_version 14.0.3)
 set(MSVC_min_version 19.32)
 # Standard libraries
-set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
+set(libstdc++_min_version 13) # This should match GCC_min_version's major version.
 set(libc++_min_version 150000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz" 
 
 dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
@@ -600,7 +600,13 @@ endif()
 #       includes, definitions, etc, to that target. This way, only libraries that need those attributes simply
 #       need to link that target in, as opposed to them being provided to every library
 #       (which is the case with the directory-based include_directories, add_definitions, etc)
-#
+#   - The include directory should match the one that would exist if the library was installed system-wide.
+#     This means being able to use #include <glslang/SPIRV/GlslangToSpv.h> but not #include "GlslangToSpv.h"
+#     - If the external is not meant to be installed system-wide, consider
+#       adding a subdirectory named after the library (e.g. Externals/Bochs_disasm/bochs/)
+#       and placing its sources there, so the include directory can simply point at
+#       Externals/Bochs_disasm/ and consumers can #include <bochs/disasm.h> instead
+#       of #include "disasm.h", making it more clear that the header is from an external library.
 #   - make sure to tell cmake to link them statically or dynamically (most
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.

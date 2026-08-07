@@ -3,9 +3,11 @@
 
 #pragma once
 
-#include <windows.h>
-#include <string>
 #include "Common/GL/GLContext.h"
+
+#include <windows.h>
+
+#include <string>
 
 class GLContextWGL final : public GLContext
 {

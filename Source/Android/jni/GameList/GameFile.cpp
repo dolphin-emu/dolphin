@@ -3,19 +3,19 @@
 
 #include "jni/GameList/GameFile.h"
 
-#include <chrono>
-#include <memory>
-#include <utility>
-#include <vector>
-
-#include <jni.h>
-
 #include "Core/TimePlayed.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "UICommon/GameFile.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <jni.h>
+
+#include <chrono>
+#include <memory>
+#include <utility>
+#include <vector>
 
 static std::shared_ptr<const UICommon::GameFile>* GetPointer(JNIEnv* env, jobject obj)
 {

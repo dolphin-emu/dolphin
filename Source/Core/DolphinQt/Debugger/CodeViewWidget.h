@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Core/Debugger/CodeTrace.h"
 
 #include <QTableWidget>
 
-#include "Common/CommonTypes.h"
-#include "Core/Debugger/CodeTrace.h"
+#include <vector>
 
 class QFont;
 class QKeyEvent;

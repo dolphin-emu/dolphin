@@ -3,13 +3,11 @@
 
 #pragma once
 
+#include "UICommon/ResourcePack/Manifest.h"
+
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-
-#include "UICommon/ResourcePack/Manifest.h"
 
 namespace ResourcePack
 {

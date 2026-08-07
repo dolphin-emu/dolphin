@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "AudioCommon/Mixer.h"
-#include "Common/CommonTypes.h"
+
+#include <memory>
 
 class SoundStream
 {

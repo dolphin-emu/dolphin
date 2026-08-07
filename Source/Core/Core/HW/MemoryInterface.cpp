@@ -3,13 +3,13 @@
 
 #include "Core/HW/MemoryInterface.h"
 
-#include <array>
-#include <cstring>
-#include <type_traits>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
+
+#include <array>
+#include <cstring>
+#include <type_traits>
 
 namespace MemoryInterface
 {

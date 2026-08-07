@@ -1,15 +1,16 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/HW/MMIO.h"
+
+#include "Common/CommonTypes.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/System.h"
+
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <unordered_set>
-
-#include "Common/CommonTypes.h"
-#include "Core/HW/GPFifo.h"
-#include "Core/HW/MMIO.h"
-#include "Core/System.h"
 
 // Tests that the UniqueID function returns a "unique enough" identifier
 // number: that is, it is unique in the address ranges we care about.

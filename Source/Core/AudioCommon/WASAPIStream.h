@@ -5,20 +5,20 @@
 
 #ifdef _WIN32
 
+#include "AudioCommon/SoundStream.h"
+
 // clang-format off
 #include <windows.h>
 #include <mmreg.h>
 #include <objbase.h>
 #include <wil/resource.h>
 // clang-format on
+#include <wrl/client.h>
 
 #include <atomic>
 #include <string>
 #include <thread>
 #include <vector>
-#include <wrl/client.h>
-
-#include "AudioCommon/SoundStream.h"
 
 struct IAudioClient;
 struct IAudioRenderClient;

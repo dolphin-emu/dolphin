@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/Assert.h"
+#include "Common/Event.h"
+
 #include <atomic>
 #include <expected>
 #include <functional>
 #include <memory>
 #include <thread>
 #include <utility>
-
-#include "Common/Assert.h"
-#include "Common/Event.h"
 
 namespace DiscIO
 {

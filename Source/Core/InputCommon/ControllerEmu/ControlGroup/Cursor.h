@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <chrono>
-#include <string>
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
+
+#include <chrono>
+#include <string>
 
 namespace ControllerEmu
 {

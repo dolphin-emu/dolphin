@@ -1,9 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <gtest/gtest.h>
-
 #include "Common/Swap.h"
+
+#include <gtest/gtest.h>
 
 TEST(Swap, SwapByValue)
 {

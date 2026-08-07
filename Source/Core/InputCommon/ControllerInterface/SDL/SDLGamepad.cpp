@@ -3,12 +3,12 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
 
+#include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+
 #include <array>
 #include <span>
 #include <unordered_set>
-
-#include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
 
 namespace ciface::SDL
 {

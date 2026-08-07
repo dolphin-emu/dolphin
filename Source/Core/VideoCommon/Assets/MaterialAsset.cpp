@@ -3,15 +3,15 @@
 
 #include "VideoCommon/Assets/MaterialAsset.h"
 
-#include <algorithm>
-#include <string_view>
-#include <vector>
-
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+
+#include <algorithm>
+#include <string_view>
+#include <vector>
 
 namespace VideoCommon
 {

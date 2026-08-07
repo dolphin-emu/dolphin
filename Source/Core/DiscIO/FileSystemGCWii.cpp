@@ -3,6 +3,13 @@
 
 #include "DiscIO/FileSystemGCWii.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeDisc.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -12,13 +19,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/VolumeDisc.h"
 
 namespace DiscIO
 {

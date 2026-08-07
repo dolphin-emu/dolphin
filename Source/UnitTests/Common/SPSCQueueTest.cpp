@@ -1,13 +1,14 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/SPSCQueue.h"
+
+#include "Common/CommonTypes.h"
+
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <thread>
-
-#include "Common/CommonTypes.h"
-#include "Common/SPSCQueue.h"
 
 TEST(SPSCQueue, Simple)
 {

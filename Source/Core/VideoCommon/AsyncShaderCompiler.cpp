@@ -3,14 +3,13 @@
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 
-#include <thread>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-
 #include "Core/Core.h"
 #include "Core/System.h"
+
+#include <thread>
 
 namespace VideoCommon
 {

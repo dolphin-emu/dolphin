@@ -3,17 +3,16 @@
 
 #include "VideoBackends/Software/TextureSampler.h"
 
-#include <algorithm>
-#include <span>
-
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/SpanUtils.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
+
+#include <algorithm>
+#include <span>
 
 #define ALLOW_MIPMAP 1
 

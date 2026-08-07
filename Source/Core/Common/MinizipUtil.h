@@ -3,14 +3,15 @@
 
 #pragma once
 
-#include <algorithm>
+#include "Common/CommonTypes.h"
+#include "Common/ScopeGuard.h"
 
 #include <mz.h>
+#include <mz_strm.h>
 #include <mz_zip.h>
 #include <mz_zip_rw.h>
 
-#include "Common/CommonTypes.h"
-#include "Common/ScopeGuard.h"
+#include <algorithm>
 
 namespace Common
 {

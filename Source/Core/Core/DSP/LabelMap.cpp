@@ -3,13 +3,13 @@
 
 #include "Core/DSP/LabelMap.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
+#include "Core/DSP/DSPTables.h"
 
 #include <fmt/format.h>
 
-#include "Core/DSP/DSPTables.h"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace DSP
 {

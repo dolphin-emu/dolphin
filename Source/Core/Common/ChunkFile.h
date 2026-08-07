@@ -12,6 +12,14 @@
 // - Zero backwards/forwards compatibility
 // - Serialization code for anything complex has to be manually written.
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "Common/Flag.h"
+#include "Common/Inline.h"
+
+#include <fmt/format.h>
+
 #include <array>
 #include <cstddef>
 #include <cstring>
@@ -24,14 +32,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
-#include "Common/Flag.h"
-#include "Common/Inline.h"
 
 // Wrapper class
 class PointerWrap

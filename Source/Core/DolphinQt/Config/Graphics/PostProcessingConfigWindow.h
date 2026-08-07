@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoCommon/PostProcessing.h"
+
+#include <QDialog>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <QDialog>
-
-#include "Common/CommonTypes.h"
-#include "VideoCommon/PostProcessing.h"
 
 class EnhancementsWidget;
 class QCheckBox;

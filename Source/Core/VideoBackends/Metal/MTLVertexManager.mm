@@ -4,9 +4,7 @@
 #include "VideoBackends/Metal/MTLVertexManager.h"
 
 #include "Core/System.h"
-
 #include "VideoBackends/Metal/MTLStateTracker.h"
-
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"

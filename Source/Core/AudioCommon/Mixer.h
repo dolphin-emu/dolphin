@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <bit>
-
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Inline.h"
+
+#include <array>
+#include <atomic>
+#include <bit>
 
 class PointerWrap;
 

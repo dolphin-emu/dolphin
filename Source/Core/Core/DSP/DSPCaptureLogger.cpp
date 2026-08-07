@@ -3,13 +3,13 @@
 
 #include "Core/DSP/DSPCaptureLogger.h"
 
-#include <cstring>
-#include <memory>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/PcapFile.h"
+
+#include <cstring>
+#include <memory>
+#include <string>
 
 namespace DSP
 {

@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/Logging/Log.h"
+
 #include <algorithm>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
-
-#include "Common/Logging/Log.h"
 
 namespace Common
 {

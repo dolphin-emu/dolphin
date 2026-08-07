@@ -3,13 +3,8 @@
 
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include <memory>
-#include <string>
-#include <utility>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
@@ -18,9 +13,12 @@
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/TextureCache.h"
-
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace SW
 {

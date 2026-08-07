@@ -3,24 +3,6 @@
 
 #include "Core/HW/WiimoteReal/IOWin.h"
 
-#include <algorithm>
-#include <array>
-#include <bit>
-#include <optional>
-#include <vector>
-
-#include <windows.h>
-#include <bluetoothapis.h>
-#include <cfgmgr32.h>
-#include <hidclass.h>
-#include <hidsdi.h>
-#include <initguid.h>
-#include <wtypes.h>
-// initguid.h must be included before devpkey.h
-#include <devpkey.h>
-// wtypes.h must be included before propkey.h
-#include <propkey.h>
-
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -28,10 +10,27 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+
+#include <windows.h>
+#include <bluetoothapis.h>
+#include <cfgmgr32.h>
+#include <initguid.h>
+
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <optional>
+#include <vector>
+// initguid.h must be included before devpkey.h
+#include <devpkey.h>
+#include <hidclass.h>
+#include <hidsdi.h>
+#include <wtypes.h>
+// wtypes.h must be included before propkey.h
+#include <propkey.h>
 
 #pragma comment(lib, "Bthprops.lib")
 

@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include "Common/CommonTypes.h"
 #include "Common/RangeSizeSet.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreterBlockCache.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreterEmitter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/PPCAnalyst.h"
+
+#include <cstddef>
 
 namespace CoreTiming
 {

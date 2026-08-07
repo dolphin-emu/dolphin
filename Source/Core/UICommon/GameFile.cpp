@@ -3,21 +3,6 @@
 
 #include "UICommon/GameFile.h"
 
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-#include <pugixml.hpp>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -31,18 +16,31 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/TitleDatabase.h"
-
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+#include <pugixml.hpp>
+
+#include <algorithm>
+#include <array>
+#include <cstdio>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace UICommon
 {

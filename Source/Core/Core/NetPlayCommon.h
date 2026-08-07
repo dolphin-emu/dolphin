@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <SFML/Network/Packet.hpp>
 
 #include <chrono>
@@ -10,8 +12,6 @@
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace NetPlay
 {

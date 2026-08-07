@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
+
 #include <cstddef>
 #include <functional>
 #include <string>
 #include <unordered_set>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 // Small utility functions for common Wii related tasks.
 

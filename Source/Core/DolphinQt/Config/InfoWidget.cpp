@@ -3,6 +3,14 @@
 
 #include "DolphinQt/Config/InfoWidget.h"
 
+#include "Core/ConfigManager.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/WiiSaveBanner.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ImageConverter.h"
+#include "UICommon/UICommon.h"
+
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
@@ -12,17 +20,6 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
-
-#include "Core/ConfigManager.h"
-
-#include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/WiiSaveBanner.h"
-
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ImageConverter.h"
-
-#include "UICommon/UICommon.h"
 
 InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {

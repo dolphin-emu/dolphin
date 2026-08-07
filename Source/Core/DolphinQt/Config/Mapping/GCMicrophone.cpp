@@ -3,15 +3,14 @@
 
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 
+#include "Core/HW/GCPad.h"
+#include "Core/HW/GCPadEmu.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
-#include "InputCommon/InputConfig.h"
-
-#include "Core/HW/GCPad.h"
-#include "Core/HW/GCPadEmu.h"
 
 GCMicrophone::GCMicrophone(MappingWindow* window) : MappingWidget(window)
 {

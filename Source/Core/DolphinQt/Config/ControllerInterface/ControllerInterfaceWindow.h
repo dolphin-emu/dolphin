@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include <QDialog>
 
 #if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
 class DualShockUDPClientWidget;

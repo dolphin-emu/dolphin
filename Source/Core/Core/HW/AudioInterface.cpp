@@ -38,9 +38,9 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 
 #include "Core/HW/AudioInterface.h"
 
-#include <algorithm>
-
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/SoundStream.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
@@ -49,6 +49,8 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
 
 namespace AudioInterface
 {

@@ -3,8 +3,10 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
+#include "Core/Core.h"
+#include "Core/TimePlayed.h"
+#include "Core/TitleDatabase.h"
+#include "DolphinQt/GameList/GameTracker.h"
 
 #include <QAbstractTableModel>
 #include <QMap>
@@ -12,11 +14,8 @@
 #include <QStringList>
 #include <QVariant>
 
-#include "Core/Core.h"
-#include "Core/TimePlayed.h"
-#include "Core/TitleDatabase.h"
-
-#include "DolphinQt/GameList/GameTracker.h"
+#include <memory>
+#include <string>
 
 namespace UICommon
 {

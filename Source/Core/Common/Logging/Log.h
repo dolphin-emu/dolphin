@@ -3,9 +3,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <fmt/format.h>
 #include "Common/FormatUtil.h"
+
+#include <fmt/format.h>
+
+#include <cstddef>
 
 namespace Common::Log
 {

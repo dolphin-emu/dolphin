@@ -3,13 +3,15 @@
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 
-#include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <utility>
+#include "Common/Assert.h"
+#include "Common/Contains.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+#include "jni/Input/CoreDevice.h"
 
 #include <fmt/format.h>
 
@@ -17,17 +19,13 @@
 #include <android/keycodes.h>
 #include <jni.h>
 
-#include "Common/Assert.h"
-#include "Common/Contains.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
-#include "InputCommon/ControllerInterface/InputBackend.h"
-#include "jni/AndroidCommon/AndroidCommon.h"
-#include "jni/AndroidCommon/IDCache.h"
-#include "jni/Input/CoreDevice.h"
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace
 {

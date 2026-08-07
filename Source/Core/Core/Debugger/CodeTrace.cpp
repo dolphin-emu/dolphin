@@ -3,16 +3,16 @@
 
 #include "Core/Debugger/CodeTrace.h"
 
-#include <algorithm>
-#include <chrono>
-#include <regex>
-
 #include "Common/Contains.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <chrono>
+#include <regex>
 
 namespace
 {

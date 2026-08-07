@@ -3,25 +3,24 @@
 
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 
-#include <algorithm>
-#include <cstring>
-#include <mutex>
-
-#include <cubeb/cubeb.h>
-
 #include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
+#include <cubeb/cubeb.h>
+
 #ifdef _WIN32
 #include <objbase.h>
 #endif
+
+#include <algorithm>
+#include <cstring>
+#include <mutex>
 
 namespace ExpansionInterface
 {

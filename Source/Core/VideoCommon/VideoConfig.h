@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <optional>
+#include <string>
+#include <vector>
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 

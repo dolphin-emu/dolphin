@@ -3,6 +3,9 @@
 
 #include "DolphinQt/AboutDialog.h"
 
+#include "Common/Version.h"
+#include "DolphinQt/Resources.h"
+
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -10,10 +13,6 @@
 #ifdef HAVE_SDL3
 #include <SDL3/SDL_version.h>
 #endif
-
-#include "Common/Version.h"
-
-#include "DolphinQt/Resources.h"
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {

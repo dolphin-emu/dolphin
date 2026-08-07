@@ -6,8 +6,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/ASnd.h"
 
-#include <algorithm>
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
@@ -17,6 +15,8 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
 
 namespace DSP::HLE
 {

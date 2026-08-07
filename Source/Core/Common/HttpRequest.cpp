@@ -3,15 +3,15 @@
 
 #include "Common/HttpRequest.h"
 
-#include <chrono>
-#include <cstddef>
-#include <mutex>
-
-#include <curl/curl.h>
-
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+
+#include <curl/curl.h>
+
+#include <chrono>
+#include <cstddef>
+#include <mutex>
 
 namespace Common
 {

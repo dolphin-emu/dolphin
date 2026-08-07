@@ -7,22 +7,10 @@
 
 #include "Core/PatchEngine.h"
 
-#include <algorithm>
-#include <array>
-#include <iterator>
-#include <mutex>
-#include <optional>
-#include <span>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
@@ -36,6 +24,17 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
+#include <iterator>
+#include <mutex>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
 
 namespace PatchEngine
 {

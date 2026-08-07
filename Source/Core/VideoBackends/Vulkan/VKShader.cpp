@@ -4,11 +4,9 @@
 #include "VideoBackends/Vulkan/VKShader.h"
 
 #include "Common/Align.h"
-
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan

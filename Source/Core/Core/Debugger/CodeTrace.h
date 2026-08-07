@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <set>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace Core
 {

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <array>
-
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <array>
 
 enum class ShaderAttrib : u32;
 

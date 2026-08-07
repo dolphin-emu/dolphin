@@ -3,6 +3,9 @@
 
 #include "DolphinQt/Debugger/AssemblyEditor.h"
 
+#include "Common/StringUtil.h"
+#include "DolphinQt/Debugger/GekkoSyntaxHighlight.h"
+
 #include <QFile>
 #include <QPainter>
 #include <QTextBlock>
@@ -10,9 +13,6 @@
 
 #include <filesystem>
 #include <utility>
-
-#include "Common/StringUtil.h"
-#include "DolphinQt/Debugger/GekkoSyntaxHighlight.h"
 
 QSize AsmEditor::LineNumberArea::sizeHint() const
 {

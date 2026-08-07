@@ -3,15 +3,15 @@
 
 #include "DiscIO/ScrubbedBlob.h"
 
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <utility>
-
 #include "Common/Align.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/VolumeDisc.h"
+
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace DiscIO
 {

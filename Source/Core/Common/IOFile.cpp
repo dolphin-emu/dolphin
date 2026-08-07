@@ -3,26 +3,26 @@
 
 #include "Common/IOFile.h"
 
-#include <cstdio>
-#include <string>
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#ifdef _WIN32
+#include "Common/CommonFuncs.h"
+#include "Common/StringUtil.h"
+#elifdef ANDROID
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
 
 #ifdef _WIN32
 #include <io.h>
-
-#include "Common/CommonFuncs.h"
-#include "Common/StringUtil.h"
 #else
 #include <unistd.h>
 #endif
 
+#include <cstdio>
+#include <string>
 #ifdef ANDROID
 #include <algorithm>
-
-#include "jni/AndroidCommon/AndroidCommon.h"
 #endif
-
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 
 namespace File
 {

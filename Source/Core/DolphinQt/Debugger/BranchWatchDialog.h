@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
+#include "Common/CommonTypes.h"
 
 #include <QDialog>
 #include <QIcon>
 #include <QModelIndexList>
 
-#include "Common/CommonTypes.h"
+#include <optional>
+#include <string>
 
 namespace Core
 {

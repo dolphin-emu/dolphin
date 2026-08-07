@@ -3,15 +3,15 @@
 
 #include "DolphinQt/Resources.h"
 
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
+
 #include <QFileInfo>
 #include <QIcon>
 #include <QImageReader>
 #include <QPixmap>
-
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/Config/MainSettings.h"
 
 bool Resources::m_svg_supported;
 QList<QIcon> Resources::m_platforms;

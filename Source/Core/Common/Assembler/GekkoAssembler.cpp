@@ -3,17 +3,17 @@
 
 #include "Common/Assembler/GekkoAssembler.h"
 
-#include <array>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assembler/AssemblerShared.h"
 #include "Common/Assembler/AssemblerTables.h"
 #include "Common/Assembler/GekkoIRGen.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+
+#include <fmt/format.h>
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace Common::GekkoAssembler
 {

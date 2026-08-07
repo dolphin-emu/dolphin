@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <string>
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/Assets/Types.h"
 
 #include <picojson.h>
 
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
-#include "VideoCommon/Assets/Types.h"
+#include <string>
 
 struct GraphicsModAssetConfig
 {

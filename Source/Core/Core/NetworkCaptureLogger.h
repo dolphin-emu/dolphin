@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include <cstddef>
-#include <map>
-#include <memory>
-#include <mutex>
+#include "Common/CommonTypes.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -17,7 +14,10 @@ using socklen_t = int;
 #include <sys/types.h>
 #endif
 
-#include "Common/CommonTypes.h"
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <mutex>
 
 namespace Common
 {

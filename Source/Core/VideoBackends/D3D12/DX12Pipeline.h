@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include <d3d12.h>
-#include <memory>
-
 #include "VideoCommon/AbstractPipeline.h"
+
+#include <d3d12.h>
+
+#include <memory>
 
 namespace DX12
 {

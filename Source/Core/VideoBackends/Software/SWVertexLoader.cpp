@@ -3,19 +3,13 @@
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
-#include <cstddef>
-#include <limits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/System.h"
-
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
-
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -26,6 +20,9 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <cstddef>
+#include <limits>
 
 SWVertexLoader::SWVertexLoader() = default;
 

@@ -5,10 +5,10 @@
 
 #include "Common/Assembler/GekkoParser.h"
 
-#include <utility>
-
 #include <QLabel>
 #include <QPalette>
+
+#include <utility>
 
 namespace
 {

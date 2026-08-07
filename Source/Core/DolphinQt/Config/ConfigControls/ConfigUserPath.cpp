@@ -3,13 +3,12 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
 
-#include <QLineEdit>
-#include <QString>
-
 #include "Common/FileUtil.h"
-
 #include "DolphinQt/Config/ConfigControls/ConfigText.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+
+#include <QLineEdit>
+#include <QString>
 
 ConfigUserPath::ConfigUserPath(const unsigned int dir_index,
                                const Config::Info<std::string>& setting)

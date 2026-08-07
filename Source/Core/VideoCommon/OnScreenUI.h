@@ -3,14 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoCommon/OnScreenUIKeyMap.h"
+
 #include <map>
 #include <memory>
 #include <mutex>
-#include <span>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "VideoCommon/OnScreenUIKeyMap.h"
 
 class NativeVertexFormat;
 class AbstractTexture;

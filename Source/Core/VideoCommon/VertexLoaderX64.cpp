@@ -3,9 +3,6 @@
 
 #include "VideoCommon/VertexLoaderX64.h"
 
-#include <array>
-#include <cstring>
-
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -15,6 +12,9 @@
 #include "Common/x64Emitter.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoaderManager.h"
+
+#include <array>
+#include <cstring>
 
 using namespace Gen;
 

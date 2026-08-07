@@ -3,10 +3,10 @@
 
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
+#include "Common/Thread.h"
+
 #include <array>
 #include <string>
-
-#include "Common/Thread.h"
 
 namespace ciface::ForceFeedback
 {

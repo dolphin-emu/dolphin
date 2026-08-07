@@ -4,20 +4,18 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/DSP/DSPDisassembler.h"
+#include "Core/DSP/DSPTables.h"
+#include "Core/DSP/LabelMap.h"
+
+#include <fmt/format.h>
+
 #include <cstddef>
 #include <map>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-
-#include "Core/DSP/DSPDisassembler.h"
-#include "Core/DSP/DSPTables.h"
-#include "Core/DSP/LabelMap.h"
 
 namespace DSP
 {

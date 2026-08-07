@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
+
+#include <memory>
 
 // Dolphin only uses/implements AES-128-CBC.
 

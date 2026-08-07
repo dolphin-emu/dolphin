@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <cstddef>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

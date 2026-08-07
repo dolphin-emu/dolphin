@@ -3,19 +3,19 @@
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 
-#include <algorithm>
-#include <array>
-#include <type_traits>
-
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
+#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
+
+#include <algorithm>
+#include <array>
+#include <type_traits>
 
 namespace Vulkan
 {

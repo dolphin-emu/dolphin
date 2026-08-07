@@ -3,14 +3,13 @@
 
 #include "VideoCommon/VertexLoader_TextCoord.h"
 
-#include <type_traits>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
+#include <type_traits>
 
 namespace
 {

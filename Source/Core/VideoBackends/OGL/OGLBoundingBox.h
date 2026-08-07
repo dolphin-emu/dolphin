@@ -5,7 +5,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-
 #include "VideoCommon/BoundingBox.h"
 
 namespace OGL

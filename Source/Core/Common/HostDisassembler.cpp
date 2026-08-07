@@ -3,8 +3,6 @@
 
 #include "Common/HostDisassembler.h"
 
-#include <span>
-
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
@@ -13,8 +11,10 @@
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
 #elif defined(_M_X86_64)
-#include <disasm.h>  // Bochs
+#include <bochs/disasm.h>
 #endif
+
+#include <span>
 
 #if defined(HAVE_LLVM)
 class HostDisassemblerLLVM final : public HostDisassembler

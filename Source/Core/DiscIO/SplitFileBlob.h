@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/DirectIOFile.h"
+#include "DiscIO/Blob.h"
+
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/DirectIOFile.h"
-#include "DiscIO/Blob.h"
 
 namespace DiscIO
 {

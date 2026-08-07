@@ -82,10 +82,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <cstdint>
-
-#include "Common/CommonTypes.h"
 
 // All structs in this file are packed
 #pragma pack(push, 1)

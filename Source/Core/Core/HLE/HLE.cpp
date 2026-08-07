@@ -3,12 +3,7 @@
 
 #include "Core/HLE/HLE.h"
 
-#include <algorithm>
-#include <array>
-#include <map>
-
 #include "Common/CommonTypes.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -19,6 +14,10 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <array>
+#include <map>
 
 namespace HLE
 {

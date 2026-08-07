@@ -3,23 +3,20 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/TimePlayed.h"
+#include "DiscIO/Enums.h"
+#include "DolphinQt/QtUtils/ImageConverter.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
+
 #include <QDir>
 #include <QFileInfo>
 #include <QPixmap>
 #include <QRegularExpression>
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/TimePlayed.h"
-
-#include "DiscIO/Enums.h"
-
-#include "DolphinQt/QtUtils/ImageConverter.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
-#include "UICommon/UICommon.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 

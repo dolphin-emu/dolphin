@@ -3,6 +3,16 @@
 
 #include "DiscIO/NFSBlob.h"
 
+#include "Common/Align.h"
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -11,16 +21,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/Align.h"
-#include "Common/BitUtils.h"
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/AES.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 namespace DiscIO
 {

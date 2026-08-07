@@ -3,11 +3,6 @@
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 
-#include <algorithm>
-#include <cstring>
-#include <memory>
-#include <string>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -26,6 +21,11 @@
 #include "Core/SysConf.h"
 #include "Core/System.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include <algorithm>
+#include <cstring>
+#include <memory>
+#include <string>
 
 namespace IOS::HLE
 {

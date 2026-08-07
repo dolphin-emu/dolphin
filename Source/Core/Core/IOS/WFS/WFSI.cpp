@@ -3,13 +3,6 @@
 
 #include "Core/IOS/WFS/WFSI.h"
 
-#include <stack>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
@@ -21,6 +14,13 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <stack>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace
 {

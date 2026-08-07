@@ -3,20 +3,18 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/SPSCQueue.h"
+#include "Common/WorkQueueThread.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/FileMonitor.h"
+#include "DiscIO/Volume.h"
+
 #include <map>
 #include <memory>
 #include <optional>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/SPSCQueue.h"
-
-#include "Common/WorkQueueThread.h"
-#include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/FileMonitor.h"
-
-#include "DiscIO/Volume.h"
 
 class PointerWrap;
 namespace Core

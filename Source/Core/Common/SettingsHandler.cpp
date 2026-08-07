@@ -5,14 +5,14 @@
 
 #include "Common/SettingsHandler.h"
 
+#include "Common/CommonTypes.h"
+
+#include <fmt/chrono.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <ctime>
 #include <string>
-
-#include <fmt/chrono.h>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

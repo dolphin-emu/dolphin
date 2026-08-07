@@ -3,6 +3,22 @@
 
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 
+#include "Common/Contains.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/Expression.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/BreakpointDialog.h"
+#include "DolphinQt/Debugger/MemoryWidget.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+
 #include <QApplication>
 #include <QHeaderView>
 #include <QInputDialog>
@@ -15,23 +31,6 @@
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
-
-#include "Common/Contains.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/Expression.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Debugger/BreakpointDialog.h"
-#include "DolphinQt/Debugger/MemoryWidget.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
 
 // Qt constants
 namespace

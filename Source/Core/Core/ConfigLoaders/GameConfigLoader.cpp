@@ -3,6 +3,19 @@
 
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 
+#include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/WiimoteSettings.h"
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
+
+#include <fmt/format.h>
+
 #include <array>
 #include <map>
 #include <optional>
@@ -12,20 +25,6 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonPaths.h"
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {

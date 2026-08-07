@@ -3,16 +3,6 @@
 
 #include "Core/HW/SI/SI.h"
 
-#include <array>
-#include <cstring>
-#include <memory>
-
-#if defined(_DEBUG)
-#include <vector>
-
-#include "Common/StringUtil.h"
-#endif
-
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -28,8 +18,17 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#if defined(_DEBUG)
+#include "Common/StringUtil.h"
+#endif
+
+#include <array>
+#include <cstring>
+#include <memory>
+#if defined(_DEBUG)
+#include <vector>
+#endif
 
 namespace SerialInterface
 {

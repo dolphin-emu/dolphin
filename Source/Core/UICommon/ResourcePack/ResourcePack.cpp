@@ -3,15 +3,6 @@
 
 #include "UICommon/ResourcePack/ResourcePack.h"
 
-#include <algorithm>
-#include <memory>
-
-#include <mz.h>
-#include <mz_os.h>
-#include <mz_strm.h>
-#include <mz_zip.h>
-#include <mz_zip_rw.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/Contains.h"
 #include "Common/FileSearch.h"
@@ -20,9 +11,17 @@
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
-
 #include "UICommon/ResourcePack/Manager.h"
 #include "UICommon/ResourcePack/Manifest.h"
+
+#include <mz.h>
+#include <mz_os.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
+
+#include <algorithm>
+#include <memory>
 
 namespace ResourcePack
 {

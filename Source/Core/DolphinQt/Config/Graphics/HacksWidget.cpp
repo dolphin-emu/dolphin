@@ -3,21 +3,19 @@
 
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/GameConfigWidget.h"
+#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "VideoCommon/VideoConfig.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
-
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/MainSettings.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
-#include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
-
-#include "VideoCommon/VideoConfig.h"
 
 HacksWidget::HacksWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
 {

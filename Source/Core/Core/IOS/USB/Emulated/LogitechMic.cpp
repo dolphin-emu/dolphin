@@ -3,14 +3,14 @@
 
 #include "Core/IOS/USB/Emulated/LogitechMic.h"
 
-#include <algorithm>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <utility>
 
 namespace IOS::HLE::USB
 {

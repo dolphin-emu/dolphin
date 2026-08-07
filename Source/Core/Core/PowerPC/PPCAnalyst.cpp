@@ -3,13 +3,6 @@
 
 #include "Core/PowerPC/PPCAnalyst.h"
 
-#include <algorithm>
-#include <map>
-#include <string>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -23,6 +16,14 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <bitset>
+#include <map>
+#include <string>
+#include <vector>
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls

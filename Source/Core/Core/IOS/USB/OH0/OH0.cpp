@@ -3,9 +3,6 @@
 
 #include "Core/IOS/USB/OH0/OH0.h"
 
-#include <algorithm>
-#include <utility>
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -15,6 +12,9 @@
 #include "Core/IOS/USB/USBV0.h"
 #include "Core/IOS/VersionInfo.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <utility>
 
 namespace IOS::HLE
 {

@@ -5,11 +5,11 @@
 
 #include "DolphinQt/GBAHost.h"
 
-#include <QApplication>
-
 #include "Core/HW/GBACore.h"
 #include "DolphinQt/GBAWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+
+#include <QApplication>
 
 GBAHost::GBAHost(std::weak_ptr<HW::GBA::Core> core)
 {

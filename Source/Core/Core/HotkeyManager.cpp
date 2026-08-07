@@ -3,21 +3,20 @@
 
 #include "Core/HotkeyManager.h"
 
-#include <algorithm>
-#include <array>
-#include <string>
-#include <vector>
+#include "Common/Assert.h"
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
-#include "Common/Assert.h"
-#include "Common/Common.h"
-#include "Common/CommonTypes.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include <algorithm>
+#include <array>
+#include <string>
+#include <vector>
 
 // clang-format off
 constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{

@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Core/HW/GCMemcard/GCMemcard.h"
+
 #include <cstddef>
 #include <span>
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "Core/HW/GCMemcard/GCMemcard.h"
 
 namespace Memcard
 {

@@ -3,28 +3,32 @@
 
 #include "Common/Network.h"
 
-#include <algorithm>
-#include <bit>
-#include <string_view>
-#include <vector>
-
-#ifndef _WIN32
-#include <cstring>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#else
-#include <winsock2.h>
+#include "Common/BitUtils.h"
+#include "Common/CommonFuncs.h"
+#include "Common/Random.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include "Common/Logging/Log.h"
 #endif
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
-#include "Common/BitUtils.h"
-#include "Common/CommonFuncs.h"
-#include "Common/Logging/Log.h"
-#include "Common/Random.h"
-#include "Common/StringUtil.h"
-#include "Common/Swap.h"
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#include <sys/socket.h>
+#endif
+
+#include <algorithm>
+#include <bit>
+#include <string_view>
+#include <vector>
+#ifndef _WIN32
+#include <cstring>
+#endif
 
 namespace Common
 {

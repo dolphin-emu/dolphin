@@ -3,28 +3,6 @@
 
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
-#include <algorithm>
-#include <cmath>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
-#include <QApplication>
-#include <QClipboard>
-#include <QHeaderView>
-#include <QInputDialog>
-#include <QKeyEvent>
-#include <QMenu>
-#include <QMessageBox>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QResizeEvent>
-#include <QScrollBar>
-#include <QStyleHints>
-#include <QStyledItemDelegate>
-#include <QTableWidgetItem>
-#include <QWheelEvent>
-
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
 #include "Core/Core.h"
@@ -42,6 +20,27 @@
 #include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include <QApplication>
+#include <QClipboard>
+#include <QHeaderView>
+#include <QInputDialog>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMessageBox>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QResizeEvent>
+#include <QScrollBar>
+#include <QStyleHints>
+#include <QStyledItemDelegate>
+#include <QTableWidgetItem>
+#include <QWheelEvent>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <cmath>
 
 struct CodeViewBranch
 {

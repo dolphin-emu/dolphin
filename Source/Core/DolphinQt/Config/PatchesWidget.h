@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "Common/CommonTypes.h"
+#include "Core/PatchEngine.h"
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
-#include "Core/PatchEngine.h"
+#include <string>
+#include <vector>
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;

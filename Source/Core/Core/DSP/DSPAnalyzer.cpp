@@ -3,13 +3,12 @@
 
 #include "Core/DSP/DSPAnalyzer.h"
 
-#include <array>
-#include <cstddef>
-
 #include "Common/Logging/Log.h"
-
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
+
+#include <array>
+#include <cstddef>
 
 namespace DSP
 {

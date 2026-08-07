@@ -3,18 +3,16 @@
 
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
 
-#include <windows.h>
-#include <cfgmgr32.h>
-// must be before hidclass
-#include <initguid.h>
-
-#include <hidclass.h>
-
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/WGInput/WGInput.h"
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
+
+#include <windows.h>
+#include <cfgmgr32.h>
+#include <hidclass.h>
+#include <initguid.h>
 
 #pragma comment(lib, "OneCoreUAP.Lib")
 

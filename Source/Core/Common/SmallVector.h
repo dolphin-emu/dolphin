@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "Common/TypeUtils.h"
+
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <utility>
-
-#include "Common/TypeUtils.h"
 
 namespace Common
 {

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <QObject>
+
 #include <utility>
 
 // QWidget and subclasses are not thread-safe! However, Qt's signal-slot connection mechanism will

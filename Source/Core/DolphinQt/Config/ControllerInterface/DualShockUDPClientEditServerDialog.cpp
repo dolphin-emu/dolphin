@@ -3,7 +3,9 @@
 
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientEditServerDialog.h"
 
-#include <fmt/format.h>
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
+#include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
+#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -14,10 +16,7 @@
 #include <QSpinBox>
 #include <QString>
 #include <QWidget>
-
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
-#include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
-#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
+#include <fmt/format.h>
 
 DualShockUDPClientEditServerDialog::DualShockUDPClientEditServerDialog(
     QWidget* parent, std::optional<size_t> existing_index)

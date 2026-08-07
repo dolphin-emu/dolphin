@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/IOFile.h"
+#include "Common/Version.h"
+
 #include <algorithm>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <type_traits>
-
-#include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
-#include "Common/Version.h"
 
 // On disk format:
 // header{

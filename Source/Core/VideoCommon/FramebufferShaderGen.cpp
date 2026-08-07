@@ -3,16 +3,15 @@
 
 #include "VideoCommon/FramebufferShaderGen.h"
 
-#include <string_view>
-
 #include "Common/Logging/Log.h"
-
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <string_view>
 
 namespace FramebufferShaderGen
 {

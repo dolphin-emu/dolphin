@@ -3,13 +3,13 @@
 
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
-#if defined(__linux__)
-#include <filesystem>
-#endif
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+
+#if defined(__linux__)
+#include <filesystem>
+#endif
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;

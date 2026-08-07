@@ -3,14 +3,6 @@
 
 #include "Core/IOS/ES/ES.h"
 
-#include <algorithm>
-#include <cstdio>
-#include <memory>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -31,6 +23,14 @@
 #include "Core/IOS/VersionInfo.h"
 #include "Core/System.h"
 #include "DiscIO/Enums.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstdio>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace IOS::HLE
 {

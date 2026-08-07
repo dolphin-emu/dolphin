@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/IniFile.h"
+
 #include <string>
 #include <vector>
-
-#include "Common/IniFile.h"
 
 template <typename T>
 void ReadEnabledOrDisabled(const Common::IniFile& ini, const std::string& section, bool enabled,

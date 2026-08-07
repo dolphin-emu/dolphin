@@ -4,9 +4,10 @@
 #include "Common/LdrWatcher.h"
 
 #include <windows.h>
-#include <string>
 #include <tlhelp32.h>
 #include <winternl.h>
+
+#include <string>
 
 typedef struct _LDR_DLL_LOADED_NOTIFICATION_DATA
 {

@@ -3,23 +3,6 @@
 
 #include "Core/State.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <locale>
-#include <map>
-#include <mutex>
-#include <shared_mutex>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-#include <fmt/std.h>
-
-#include <lz4.h>
-#include <lzo/lzo1x.h>
-
 #include "Common/Buffer.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -34,7 +17,6 @@
 #include "Common/TransferableSharedMutex.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -47,12 +29,26 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "UICommon/UICommon.h"
-
 #include "VideoCommon/FrameDumpFFMpeg.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+#include <fmt/std.h>
+#include <lz4.h>
+#include <lzo/lzo1x.h>
+
+#include <algorithm>
+#include <filesystem>
+#include <locale>
+#include <map>
+#include <mutex>
+#include <shared_mutex>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace State
 {

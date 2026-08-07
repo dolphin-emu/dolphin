@@ -3,18 +3,18 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+#include "Common/CommonTypes.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoCommon/Constants.h"
+#include "VideoCommon/RenderState.h"
+
 #include <array>
 #include <bitset>
 #include <cstddef>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-
-#include "Common/BitField.h"
-#include "Common/CommonTypes.h"
-#include "VideoBackends/D3D/D3DBase.h"
-#include "VideoCommon/Constants.h"
-#include "VideoCommon/RenderState.h"
 
 namespace DX11
 {

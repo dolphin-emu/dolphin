@@ -3,15 +3,15 @@
 
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 
-#include <string>
-#include <vector>
-
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/SysConf.h"
+
+#include <string>
+#include <vector>
 
 namespace IOS::HLE
 {

@@ -3,8 +3,14 @@
 
 #include "DolphinQt/CheatSearchFactoryWidget.h"
 
-#include <string>
-#include <vector>
+#include "Common/StringUtil.h"
+#include "Core/CheatSearch.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -16,14 +22,8 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "Common/StringUtil.h"
-#include "Core/CheatSearch.h"
-#include "Core/Core.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/System.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include <string>
+#include <vector>
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {

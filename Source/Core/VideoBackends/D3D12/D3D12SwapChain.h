@@ -3,15 +3,16 @@
 
 #pragma once
 
-#include <d3d12.h>
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3DCommon/SwapChain.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <d3d12.h>
+
+#include <memory>
+#include <vector>
 
 namespace DX12
 {

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
+
 #include <array>
 #include <memory>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
 
 namespace OGL
 {

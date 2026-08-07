@@ -11,7 +11,6 @@
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoBackends/Metal/MTLVertexFormat.h"
 #include "VideoBackends/Metal/MTLVertexManager.h"
-
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"

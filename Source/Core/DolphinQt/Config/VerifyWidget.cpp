@@ -3,18 +3,6 @@
 
 #include "DolphinQt/Config/VerifyWidget.h"
 
-#include <future>
-#include <memory>
-#include <optional>
-#include <span>
-#include <tuple>
-
-#include <QByteArray>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QLabel>
-#include <QVBoxLayout>
-
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/System.h"
@@ -22,6 +10,18 @@
 #include "DiscIO/VolumeVerifier.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Settings.h"
+
+#include <QByteArray>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QVBoxLayout>
+
+#include <future>
+#include <memory>
+#include <optional>
+#include <span>
+#include <tuple>
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
 {

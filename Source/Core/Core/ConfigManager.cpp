@@ -3,19 +3,7 @@
 
 #include "Core/ConfigManager.h"
 
-#include <algorithm>
-#include <fmt/format.h>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <variant>
-
-#include <Core/Core.h>
-
 #include "AudioCommon/AudioCommon.h"
-
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -24,7 +12,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/DefaultLocale.h"
@@ -50,12 +37,20 @@
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WC24PatchEngine.h"
-
-#include "VideoCommon/HiresTextures.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
+#include "VideoCommon/HiresTextures.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <variant>
 
 SConfig* SConfig::m_Instance;
 

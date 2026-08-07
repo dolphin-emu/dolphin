@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <string>
-
-#include "Common/CommonTypes.h"
 
 namespace CWDemangler
 {

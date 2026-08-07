@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/IOFile.h"
+#include "Core/IOS/FS/FileSystem.h"
+
 #include <array>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
-#include "Core/IOS/FS/FileSystem.h"
 
 namespace IOS::HLE::FS
 {

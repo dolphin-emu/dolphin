@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "DolphinQt/Config/SettingsWindow.h"
+
+#include <QDialog>
 
 namespace UICommon
 {

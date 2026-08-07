@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/System.h"
+
 #include <array>
 #include <memory>
-
-#include "Common/CommonTypes.h"
-
-#include "Core/HW/GCMemcard/GCMemcard.h"
 
 class PointerWrap;
 

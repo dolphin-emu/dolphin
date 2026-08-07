@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <QLabel>
-
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
-#include "Common/Config/ConfigInfo.h"
+#include <QLabel>
 
 // Automatically converts an int slider into a float one.
 // Do not read the int values or ranges directly from it.

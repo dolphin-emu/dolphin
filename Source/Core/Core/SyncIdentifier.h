@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <string>
-
-#include "Common/CommonTypes.h"
 
 namespace NetPlay
 {

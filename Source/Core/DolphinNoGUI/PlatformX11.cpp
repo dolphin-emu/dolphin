@@ -1,32 +1,32 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <unistd.h>
+// X.h defines macros that other parts of Dolphin need.
+// Work around that by copying the needed definitions
+// before they are undefined.
+#include "Common/Config/Config.h"
 
-// X.h defines None to be 0L, but other parts of Dolphin undef that so that
-// None can be used in enums.  Work around that here by copying the definition
-// before it is undefined.
 #include <X11/X.h>
 static constexpr auto X_None = None;
-
-#include "DolphinNoGUI/Platform.h"
 
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "Core/System.h"
-
-#include <cstring>
-#include <thread>
+#include "DolphinNoGUI/Platform.h"
+#include "UICommon/UICommon.h"
+#include "UICommon/X11Utils.h"
+#include "VideoCommon/Present.h"
 
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#include "UICommon/UICommon.h"
-#include "UICommon/X11Utils.h"
-#include "VideoCommon/Present.h"
+#include <unistd.h>
+
+#include <cstring>
+#include <thread>
 
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX _POSIX_HOST_NAME_MAX

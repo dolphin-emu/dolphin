@@ -4,7 +4,6 @@
 #include "VideoCommon/Resources/TexturePool.h"
 
 #include "Common/Logging/Log.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractTexture.h"
 

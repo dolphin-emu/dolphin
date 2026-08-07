@@ -3,9 +3,9 @@
 
 #include "Core/Config/GraphicsSettings.h"
 
-#include <string>
-
 #include "VideoCommon/VideoConfig.h"
+
+#include <string>
 
 namespace Config
 {

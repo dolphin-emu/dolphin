@@ -3,19 +3,19 @@
 
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 
-#include <algorithm>
-#include <limits>
-#include <mutex>
-#include <set>
-#include <type_traits>
-
-#include <fmt/format.h>
-
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <limits>
+#include <mutex>
+#include <set>
+#include <type_traits>
 
 namespace ciface::DInput
 {

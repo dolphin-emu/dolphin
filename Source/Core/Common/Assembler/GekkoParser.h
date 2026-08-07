@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <string_view>
-
 #include "Common/Assembler/AssemblerShared.h"
 #include "Common/Assembler/GekkoLexer.h"
 #include "Common/CommonTypes.h"
+
+#include <optional>
+#include <string>
+#include <string_view>
 
 namespace Common::GekkoAssembler::detail
 {

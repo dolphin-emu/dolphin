@@ -3,13 +3,6 @@
 
 #include "Core/IOS/Network/SSL.h"
 
-#include <array>
-#include <cstring>
-#include <vector>
-
-#include <mbedtls/md.h>
-#include <mbedtls/sha256.h>
-
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -20,6 +13,13 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <mbedtls/md.h>
+#include <mbedtls/sha256.h>
+
+#include <array>
+#include <cstring>
+#include <vector>
 
 namespace IOS::HLE
 {

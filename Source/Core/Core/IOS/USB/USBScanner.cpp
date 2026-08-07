@@ -3,18 +3,6 @@
 
 #include "Core/IOS/USB/USBScanner.h"
 
-#include <algorithm>
-#include <memory>
-#include <mutex>
-#include <ranges>
-#include <set>
-#include <thread>
-#include <utility>
-
-#ifdef __LIBUSB__
-#include <libusb.h>
-#endif
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
@@ -30,6 +18,18 @@
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "Core/USBUtils.h"
+
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <ranges>
+#include <set>
+#include <thread>
+#include <utility>
 
 namespace IOS::HLE
 {

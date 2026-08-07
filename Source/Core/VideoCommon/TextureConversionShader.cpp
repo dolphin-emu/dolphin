@@ -3,10 +3,6 @@
 
 #include "VideoCommon/TextureConversionShader.h"
 
-#include <map>
-#include <sstream>
-#include <string_view>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -15,6 +11,10 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <map>
+#include <sstream>
+#include <string_view>
 
 namespace TextureConversionShaderTiled
 {

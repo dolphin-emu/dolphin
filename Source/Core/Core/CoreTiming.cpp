@@ -3,20 +3,11 @@
 
 #include "Core/CoreTiming.h"
 
-#include <algorithm>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
@@ -24,13 +15,20 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace CoreTiming
 {

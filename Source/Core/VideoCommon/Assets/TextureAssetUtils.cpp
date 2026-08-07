@@ -3,11 +3,13 @@
 
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 
-#include <algorithm>
-
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
+
+#include <algorithm>
+#include <filesystem>
 
 namespace VideoCommon
 {

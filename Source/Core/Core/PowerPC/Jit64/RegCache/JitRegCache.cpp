@@ -3,12 +3,6 @@
 
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <utility>
-#include <variant>
-
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -17,6 +11,12 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <variant>
 
 using namespace Gen;
 using namespace PowerPC;

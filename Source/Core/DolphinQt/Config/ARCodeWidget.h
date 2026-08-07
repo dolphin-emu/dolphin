@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <QWidget>
 
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace ActionReplay
 {

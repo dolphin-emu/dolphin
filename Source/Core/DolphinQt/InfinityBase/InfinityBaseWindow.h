@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <array>
+#include "Common/CommonTypes.h"
 
 #include <QDialog>
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
+#include <array>
 
 class QCheckBox;
 class QGroupBox;

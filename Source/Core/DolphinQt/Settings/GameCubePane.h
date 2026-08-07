@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <string_view>
-
-#include <QWidget>
-
 #include "Common/EnumMap.h"
 #include "Core/HW/EXI/EXI.h"
 #include "DolphinQt/MainWindow.h"
+
+#include <QWidget>
+
+#include <array>
+#include <string>
+#include <string_view>
 
 class ConfigBool;
 class ConfigChoice;

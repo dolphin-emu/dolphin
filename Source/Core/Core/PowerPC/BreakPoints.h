@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/Expression.h"
+
 #include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/BitSet.h"
-#include "Common/CommonTypes.h"
-#include "Core/PowerPC/Expression.h"
 
 namespace Core
 {

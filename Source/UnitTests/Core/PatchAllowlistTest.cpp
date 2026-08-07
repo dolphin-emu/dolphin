@@ -3,15 +3,6 @@
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 
-#include <map>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <fmt/format.h>
-#include <gtest/gtest.h>
-#include <picojson.h>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/Crypto/SHA1.h"
@@ -23,6 +14,15 @@
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
+
+#include <fmt/format.h>
+#include <gtest/gtest.h>
+#include <picojson.h>
+
+#include <map>
+#include <string>
+#include <string_view>
+#include <vector>
 
 struct GameHashes
 {

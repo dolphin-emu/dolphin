@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <QDialog>
 #include <QWidget>
+
+#include <memory>
+#include <vector>
 
 namespace PatchEngine
 {

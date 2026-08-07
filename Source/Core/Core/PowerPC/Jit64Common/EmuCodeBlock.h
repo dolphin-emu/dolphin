@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include <unordered_map>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-
 #include "Core/PowerPC/Jit64Common/ConstantPool.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
+
+#include <unordered_map>
 
 namespace MMIO
 {

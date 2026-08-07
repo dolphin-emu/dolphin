@@ -6,6 +6,7 @@
 #include "UpdaterCommon/UpdaterCommon.h"
 
 #include <Cocoa/Cocoa.h>
+
 #include <string>
 #include <vector>
 

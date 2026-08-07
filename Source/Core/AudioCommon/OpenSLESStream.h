@@ -4,11 +4,11 @@
 #pragma once
 
 #ifdef HAVE_OPENSL_ES
-#include <array>
-#include <vector>
-
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+
+#include <array>
+#include <vector>
 #endif  // HAVE_OPENSL_ES
 
 #include "AudioCommon/SoundStream.h"

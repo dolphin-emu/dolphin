@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DState.h"

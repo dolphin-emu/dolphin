@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <optional>
-#include <span>
-#include <string_view>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "Common/SmallVector.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/Resources/MaterialResource.h"
 #include "VideoCommon/ShaderGenCommon.h"
+
+#include <optional>
+#include <span>
+#include <string_view>
+#include <vector>
 
 namespace GraphicsModActionData
 {

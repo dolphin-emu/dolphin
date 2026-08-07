@@ -1,10 +1,11 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <gtest/gtest.h>
+#include "Common/EnumFormatter.h"
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumFormatter.h"
+
+#include <gtest/gtest.h>
 
 enum class Enum1 : u32
 {

@@ -4,16 +4,15 @@
 #pragma once
 
 #ifdef _WIN32
+#include "Common/SocketContext.h"
+#include "Common/WindowsDevice.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/USBUtils.h"
+
 #include <windows.h>
 
 #include <atomic>
 #include <vector>
-
-#include "Common/SocketContext.h"
-#include "Common/WindowsDevice.h"
-
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/USBUtils.h"
 
 namespace WiimoteReal
 {

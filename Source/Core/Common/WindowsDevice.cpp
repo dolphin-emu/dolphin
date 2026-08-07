@@ -5,12 +5,12 @@
 
 #include "Common/WindowsDevice.h"
 
+#include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
+
 #include <string>
 
 #include "hidclass.h"
-
-#include "Common/CommonFuncs.h"
-#include "Common/Logging/Log.h"
 
 namespace Common
 {

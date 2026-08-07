@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <cstddef>
+#include "Common/CommonTypes.h"
+
 #include <optional>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace VideoCommon
 {

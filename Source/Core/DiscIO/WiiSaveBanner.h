@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace DiscIO
 {

@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
+
 #include <cstddef>
 #include <memory>
 #include <type_traits>
-#include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 
 namespace Common
 {

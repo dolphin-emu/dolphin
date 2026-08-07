@@ -1,20 +1,20 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <span>
+#include "VideoCommon/TextureDecoder.h"
 
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/SpanUtils.h"
 #include "Common/Swap.h"
-
 #include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureDecoder_Util.h"
 #include "VideoCommon/sfont.inc"
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <span>
 
 static bool TexFmt_Overlay_Enable = false;
 static bool TexFmt_Overlay_Center = false;

@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-#include <memory>
-
 #include "VideoBackends/Metal/MRCHelpers.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderState.h"
+
+#include <Metal/Metal.h>
+
+#include <memory>
 
 struct AbstractPipelineConfig;
 class AbstractPipeline;

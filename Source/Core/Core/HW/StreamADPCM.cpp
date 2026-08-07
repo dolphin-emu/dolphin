@@ -5,10 +5,10 @@
 
 #include "Core/HW/StreamADPCM.h"
 
-#include <algorithm>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+
+#include <algorithm>
 
 namespace StreamADPCM
 {

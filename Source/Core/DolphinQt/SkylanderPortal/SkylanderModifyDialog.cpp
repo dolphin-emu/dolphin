@@ -1,7 +1,11 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "SkylanderModifyDialog.h"
+#include "DolphinQt/SkylanderPortal/SkylanderModifyDialog.h"
+
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -13,11 +17,6 @@
 #include <QMessageBox>
 #include <QStringConverter>
 #include <QValidator>
-
-#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/QtUtils.h"
 
 SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
     : QDialog(parent), m_slot(slot)

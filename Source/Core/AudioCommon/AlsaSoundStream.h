@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
-#include <thread>
+#include "AudioCommon/SoundStream.h"
+#include "Common/CommonTypes.h"
 
 #if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
 #endif
 
-#include "AudioCommon/SoundStream.h"
-#include "Common/CommonTypes.h"
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 class AlsaSound final : public SoundStream
 {

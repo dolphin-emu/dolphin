@@ -3,16 +3,15 @@
 
 #pragma once
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/Network.h"
+#include "DiscIO/Volume.h"
+
 #include <array>
 #include <optional>
 #include <span>
 #include <string_view>
-
-#include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
-#include "Common/Network.h"
-
-#include "DiscIO/Volume.h"
 
 namespace Core
 {

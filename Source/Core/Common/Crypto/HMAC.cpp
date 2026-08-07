@@ -1,10 +1,11 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "mbedtls/md.h"
-
 #include "Common/Crypto/HMAC.h"
+
 #include "Common/ScopeGuard.h"
+
+#include "mbedtls/md.h"
 
 namespace Common::HMAC
 {

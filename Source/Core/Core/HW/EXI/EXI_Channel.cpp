@@ -3,19 +3,18 @@
 
 #include "Core/HW/EXI/EXI_Channel.h"
 
-#include <memory>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+
+#include <memory>
 
 namespace ExpansionInterface
 {

@@ -1,12 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <thread>
+#include "Common/BlockingLoop.h"
+#include "Common/Thread.h"
 
 #include <gtest/gtest.h>
 
-#include "Common/BlockingLoop.h"
-#include "Common/Thread.h"
+#include <thread>
 
 TEST(BusyLoopTest, MultiThreaded)
 {

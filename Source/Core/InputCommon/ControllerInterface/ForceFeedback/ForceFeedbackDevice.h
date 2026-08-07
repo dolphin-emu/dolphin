@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <atomic>
-#include <string>
-#include <thread>
+#include "Common/Event.h"
+#include "Common/Flag.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
 #include <windows.h>
 
-#include "Common/Event.h"
-#include "Common/Flag.h"
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
-#include "InputCommon/ControllerInterface/DInput/DInput8.h"
+#include <atomic>
+#include <string>
+#include <thread>
 
 namespace ciface::ForceFeedback
 {

@@ -3,6 +3,14 @@
 
 #include "UICommon/GameFileCache.h"
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "DiscIO/DirectoryBlob.h"
+#include "UICommon/GameFile.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <memory>
@@ -10,16 +18,6 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
-#include "Common/FileSearch.h"
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-
-#include "DiscIO/DirectoryBlob.h"
-
-#include "UICommon/GameFile.h"
 
 namespace UICommon
 {

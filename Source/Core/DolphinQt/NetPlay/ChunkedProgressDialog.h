@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <map>
-#include <span>
+#include "Common/CommonTypes.h"
 
 #include <QDialog>
 
-#include "Common/CommonTypes.h"
+#include <map>
+#include <span>
 
 class QDialogButtonBox;
 class QGroupBox;

@@ -3,17 +3,14 @@
 
 #include "Core/HW/EXI/EXI.h"
 
-#include <array>
-#include <memory>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI_Channel.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/MMIO.h"
@@ -22,8 +19,10 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "DiscIO/Enums.h"
+
+#include <array>
+#include <memory>
 
 namespace ExpansionInterface
 {

@@ -3,7 +3,14 @@
 
 #include "DolphinQt/InfinityBase/InfinityBaseWindow.h"
 
-#include <string>
+#include "Common/IOFile.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -18,16 +25,7 @@
 #include <QString>
 #include <QVBoxLayout>
 
-#include "Common/IOFile.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/IOS/USB/Emulated/Infinity.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
+#include <string>
 
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
 // static variable to ensure we open at the most recent figure file location

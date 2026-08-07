@@ -3,10 +3,9 @@
 
 #pragma once
 
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-
-#include "Common/Config/ConfigInfo.h"
 
 class ConfigBool final : public ConfigControl<ToolTipCheckBox>
 {

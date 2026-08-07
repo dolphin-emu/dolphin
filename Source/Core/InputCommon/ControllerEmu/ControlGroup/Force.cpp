@@ -3,13 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 
-#include <string>
-
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

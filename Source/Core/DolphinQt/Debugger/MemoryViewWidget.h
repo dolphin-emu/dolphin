@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#include <mutex>
+
+#include "Common/CommonTypes.h"
 
 #include <QStyledItemDelegate>
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
+#include <mutex>
 
 class QFont;
 class QPoint;

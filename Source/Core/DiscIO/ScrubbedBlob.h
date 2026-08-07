@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscScrubber.h"
+
+#include <memory>
+#include <string>
 
 namespace DiscIO
 {

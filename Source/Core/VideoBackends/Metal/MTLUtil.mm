@@ -3,18 +3,18 @@
 
 #include "VideoBackends/Metal/MTLUtil.h"
 
-#include <fstream>
-#include <string>
-
-#include <TargetConditionals.h>
-#include <spirv_msl.hpp>
-
 #include "Common/MsgHandler.h"
-
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
+
+#include <spirv_msl.hpp>
+
+#include <TargetConditionals.h>
+
+#include <fstream>
+#include <string>
 
 Metal::DeviceFeatures Metal::g_features;
 

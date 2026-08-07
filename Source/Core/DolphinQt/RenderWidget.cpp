@@ -3,6 +3,17 @@
 
 #include "DolphinQt/RenderWidget.h"
 
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/State.h"
+#include "Core/System.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "VideoCommon/Present.h"
+
 #include <QApplication>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -16,20 +27,6 @@
 #include <QScreen>
 #include <QTimer>
 #include <QWindow>
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/State.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
-#include "VideoCommon/Present.h"
 
 #ifdef _WIN32
 #include <windows.h>

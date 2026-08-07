@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyStatesOther.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGroupBox>
 #include <QHBoxLayout>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyStatesOther::HotkeyStatesOther(MappingWindow* window) : MappingWidget(window)
 {

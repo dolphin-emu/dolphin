@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <bit>
-#include <string>
-#include <tuple>
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
+
+#include <array>
+#include <atomic>
+#include <bit>
+#include <tuple>
+#include <type_traits>
 
 namespace Core
 {

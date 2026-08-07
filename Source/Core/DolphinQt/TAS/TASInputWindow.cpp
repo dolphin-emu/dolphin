@@ -3,8 +3,15 @@
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
-#include <cmath>
-#include <utility>
+#include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/TAS/StickWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
+#include "DolphinQt/TAS/TASSlider.h"
+#include "DolphinQt/TAS/TASSpinBox.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -17,16 +24,8 @@
 #include <QSlider>
 #include <QSpinBox>
 
-#include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/AspectRatioWidget.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/TAS/StickWidget.h"
-#include "DolphinQt/TAS/TASCheckBox.h"
-#include "DolphinQt/TAS/TASSlider.h"
-#include "DolphinQt/TAS/TASSpinBox.h"
-
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
+#include <cmath>
+#include <utility>
 
 void InputOverrider::AddFunction(std::string_view group_name, std::string_view control_name,
                                  OverrideFunction function)

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <span>
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

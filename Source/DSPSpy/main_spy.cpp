@@ -8,22 +8,22 @@
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
 
-#include <array>
 #include <debug.h>
 #include <fat.h>
 #include <fcntl.h>
 #include <gccore.h>
 #include <malloc.h>
 #include <network.h>
+#include <ogc/color.h>
+#include <ogc/consol.h>
 #include <ogcsys.h>
+#include <unistd.h>
+
+#include <array>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#include <ogc/color.h>
-#include <ogc/consol.h>
-#include <unistd.h>
 
 #ifdef _MSC_VER
 // Just for easy looking :)
@@ -38,7 +38,6 @@
 #endif
 
 #include "ConsoleHelper.h"
-
 #include "dspregs.h"
 
 // This is where the DSP binary is.

@@ -1,6 +1,11 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/CommonFuncs.h"
+#include "Common/StringUtil.h"
+#include "UpdaterCommon/UI.h"
+#include "UpdaterCommon/UpdaterCommon.h"
+
 #include <windows.h>
 #include <ShlObj.h>
 #include <shellapi.h>
@@ -8,12 +13,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "Common/CommonFuncs.h"
-#include "Common/StringUtil.h"
-
-#include "UpdaterCommon/UI.h"
-#include "UpdaterCommon/UpdaterCommon.h"
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 

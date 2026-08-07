@@ -3,10 +3,9 @@
 
 #pragma once
 
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/TAS/TASInputWindow.h"
-
-#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
 class QGroupBox;
 class QHideEvent;

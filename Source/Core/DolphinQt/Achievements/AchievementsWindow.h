@@ -4,10 +4,10 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-#include <QDialog>
-
 #include "Common/HookableEvent.h"
 #include "Core/AchievementManager.h"
+
+#include <QDialog>
 
 class AchievementHeaderWidget;
 class AchievementLeaderboardWidget;

@@ -3,12 +3,6 @@
 
 #include "Core/HW/Triforce/DeckReader.h"
 
-#include <string_view>
-
-#include <fmt/ranges.h>
-
-#include <picojson.h>
-
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
@@ -16,8 +10,12 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
-
 #include "Core/ConfigManager.h"
+
+#include <fmt/ranges.h>
+#include <picojson.h>
+
+#include <string_view>
 
 namespace
 {

@@ -3,22 +3,23 @@
 
 #include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
-#include <fcntl.h>
 #include <iostream>
 #include <locale>
 #include <map>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <utility>
 #include <vector>
-
-#include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Pipes
 {

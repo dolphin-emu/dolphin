@@ -3,10 +3,10 @@
 
 #include "DolphinQt/QtUtils/SignalDaemon.h"
 
+#include <QSocketNotifier>
+
 #include <sys/socket.h>
 #include <unistd.h>
-
-#include <QSocketNotifier>
 
 int SignalDaemon::s_sigterm_fd[2];
 

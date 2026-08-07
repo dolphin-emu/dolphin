@@ -8,7 +8,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "Core/HW/EXI/EXI.h"
 
 // English

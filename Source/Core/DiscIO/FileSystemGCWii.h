@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "DiscIO/Filesystem.h"
+
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "DiscIO/Filesystem.h"
 
 namespace DiscIO
 {

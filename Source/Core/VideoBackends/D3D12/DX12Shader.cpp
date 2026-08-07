@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/StringUtil.h"
-
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 

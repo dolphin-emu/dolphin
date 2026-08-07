@@ -1,11 +1,25 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "AudioCommon/SoundStream.h"
 #ifdef HAS_LIBMGBA
 
+#include "AudioCommon/AudioCommon.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GBAPad.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "DolphinQt/GBAWidget.h"
-
-#include <fmt/format.h>
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/GameCubePane.h"
 
 #include <QAction>
 #include <QCloseEvent>
@@ -18,22 +32,7 @@
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
-
-#include "AudioCommon/AudioCommon.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/GBAPad.h"
-#include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_Device.h"
-#include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
-#include "Core/System.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/GameCubePane.h"
+#include <fmt/format.h>
 
 static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_view rom_path = {})
 {

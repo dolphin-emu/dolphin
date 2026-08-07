@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <memory>
-#include <string_view>
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 
 #include <picojson.h>
 
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
+#include <memory>
+#include <string_view>
 
 class ScaleAction final : public GraphicsModAction
 {

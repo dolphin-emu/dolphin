@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <array>
+#include <memory>
 
 class VertexLoaderUID
 {

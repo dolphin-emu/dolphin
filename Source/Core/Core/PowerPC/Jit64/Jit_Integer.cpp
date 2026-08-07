@@ -3,23 +3,22 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <array>
-#include <bit>
-#include <limits>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
-
 #include "Core/PowerPC/ConditionRegister.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+#include <array>
+#include <bit>
+#include <limits>
 
 using namespace Gen;
 using namespace JitCommon;

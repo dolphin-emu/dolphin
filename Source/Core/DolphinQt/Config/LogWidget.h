@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/FixedSizeQueue.h"
+#include "Common/Logging/LogManager.h"
+
 #include <QDockWidget>
 
 #include <mutex>
 #include <string>
-
-#include "Common/FixedSizeQueue.h"
-#include "Common/Logging/LogManager.h"
 
 class QCheckBox;
 class QCloseEvent;

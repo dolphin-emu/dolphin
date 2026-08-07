@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
+
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace InputCommon
 {

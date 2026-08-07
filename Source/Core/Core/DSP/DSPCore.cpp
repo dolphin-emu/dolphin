@@ -4,23 +4,22 @@
 
 #include "Core/DSP/DSPCore.h"
 
-#include <algorithm>
-#include <array>
-#include <memory>
-#include <type_traits>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Hash.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitterBase.h"
+
+#include <algorithm>
+#include <array>
+#include <memory>
+#include <type_traits>
 
 namespace DSP
 {

@@ -3,6 +3,17 @@
 
 #include "DolphinQt/Config/FilesystemWidget.h"
 
+#include "Common/StringUtil.h"
+#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/Resources.h"
+#include "UICommon/UICommon.h"
+
 #include <QApplication>
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -14,20 +25,6 @@
 #include <QTreeView>
 
 #include <future>
-
-#include "Common/StringUtil.h"
-
-#include "DiscIO/DiscExtractor.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/Resources.h"
-
-#include "UICommon/UICommon.h"
 
 constexpr int ENTRY_PARTITION = Qt::UserRole;
 constexpr int ENTRY_NAME = Qt::UserRole + 1;

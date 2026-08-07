@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/Config/ConfigInfo.h"
+#include "Core/SysConf.h"
+
 #include <array>
 #include <variant>
-
-#include "Common/Config/Config.h"
-#include "Core/SysConf.h"
 
 namespace Config
 {

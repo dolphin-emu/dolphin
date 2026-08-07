@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+
+#include <memory>
 
 class PointerWrap;
 

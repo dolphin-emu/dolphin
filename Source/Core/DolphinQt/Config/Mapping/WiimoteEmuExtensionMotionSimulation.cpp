@@ -3,16 +3,15 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
 
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "InputCommon/InputConfig.h"
 
 WiimoteEmuExtensionMotionSimulation::WiimoteEmuExtensionMotionSimulation(MappingWindow* window)
     : MappingWidget(window)

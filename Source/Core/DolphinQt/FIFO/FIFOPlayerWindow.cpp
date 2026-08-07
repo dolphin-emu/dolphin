@@ -3,6 +3,19 @@
 
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 
+#include "Core/Core.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/FIFO/FIFOAnalyzer.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QEvent>
@@ -16,20 +29,6 @@
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
-
-#include "Core/Core.h"
-#include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlayer.h"
-#include "Core/FifoPlayer/FifoRecorder.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/FIFO/FIFOAnalyzer.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
 
 FIFOPlayerWindow::FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_recorder,
                                    QWidget* parent)

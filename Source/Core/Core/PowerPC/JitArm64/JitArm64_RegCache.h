@@ -3,16 +3,15 @@
 
 #pragma once
 
+#include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
+
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <vector>
-
-#include "Common/Arm64Emitter.h"
-#include "Common/CommonTypes.h"
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PowerPC.h"
 
 class JitArm64;
 

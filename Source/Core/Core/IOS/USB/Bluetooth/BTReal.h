@@ -4,6 +4,14 @@
 #pragma once
 
 #if defined(__LIBUSB__)
+#include "Common/CommonTypes.h"
+#include "Common/Timer.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
+#include "Core/IOS/USB/Bluetooth/hci.h"
+#include "Core/IOS/USB/USBV0.h"
+
 #include <array>
 #include <atomic>
 #include <functional>
@@ -11,15 +19,6 @@
 #include <memory>
 #include <queue>
 #include <string>
-
-#include "Common/CommonTypes.h"
-#include "Common/Timer.h"
-
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
-#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
-#include "Core/IOS/USB/Bluetooth/hci.h"
-#include "Core/IOS/USB/USBV0.h"
 
 class PointerWrap;
 

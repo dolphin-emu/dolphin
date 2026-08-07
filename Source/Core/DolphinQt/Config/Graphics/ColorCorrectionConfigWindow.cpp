@@ -3,19 +3,18 @@
 
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QRadioButton>
-
-#include "Core/Config/GraphicsSettings.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 ColorCorrectionConfigWindow::ColorCorrectionConfigWindow(QWidget* parent) : QDialog(parent)
 {

@@ -3,16 +3,16 @@
 
 #include "DolphinQt/Debugger/BranchWatchTableModel.h"
 
-#include <array>
-#include <cstddef>
-#include <utility>
-
-#include <QBrush>
-
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+
+#include <QBrush>
+
+#include <array>
+#include <cstddef>
+#include <utility>
 
 QVariant BranchWatchTableModel::data(const QModelIndex& index, int role) const
 {

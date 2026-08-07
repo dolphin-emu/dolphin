@@ -30,13 +30,14 @@
 
 #pragma once
 
-#include <cstddef>
+#include "Common/Inline.h"
+
 #include <fmt/format.h>
+
+#include <cstddef>
 #include <iterator>
 #include <limits>
 #include <type_traits>
-
-#include "Common/Inline.h"
 
 /*
  * Abstract bitfield class

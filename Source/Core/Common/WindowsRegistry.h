@@ -1,9 +1,10 @@
 #pragma once
 
-#include <windows.h>
-#include <string>
-
 #include "Common/CommonTypes.h"
+
+#include <windows.h>
+
+#include <string>
 
 namespace WindowsRegistry
 {

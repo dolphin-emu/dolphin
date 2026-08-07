@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <ctime>
 #include <limits>
 #include <memory>
-
-#include "Common/CommonTypes.h"
 
 struct FrameDumpContext;
 class PointerWrap;

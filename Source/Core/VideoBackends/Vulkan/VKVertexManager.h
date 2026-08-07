@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/VertexManagerBase.h"
+
+#include <memory>
 
 namespace Vulkan
 {

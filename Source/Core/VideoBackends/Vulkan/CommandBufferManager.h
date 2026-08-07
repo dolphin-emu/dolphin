@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/Flag.h"
+#include "VideoBackends/Vulkan/Constants.h"
+
+#include <Common/WorkQueueThread.h>
+
 #include <array>
 #include <functional>
 #include <memory>
 #include <vector>
-
-#include <Common/WorkQueueThread.h>
-#include "Common/Flag.h"
-
-#include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan
 {

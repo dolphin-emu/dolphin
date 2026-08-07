@@ -3,16 +3,16 @@
 
 #include "DolphinQt/Debugger/JitBlockTableModel.h"
 
-#include <array>
-#include <span>
-#include <utility>
-
 #include "Common/Assert.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
+
+#include <array>
+#include <span>
+#include <utility>
 
 const JitBlock& JitBlockTableModel::GetJitBlock(const QModelIndex& index) const
 {

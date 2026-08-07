@@ -3,8 +3,6 @@
 
 #include "Core/HW/ProcessorInterface.h"
 
-#include <memory>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -21,6 +19,8 @@
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+
+#include <memory>
 
 namespace ProcessorInterface
 {

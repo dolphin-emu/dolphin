@@ -3,6 +3,24 @@
 
 #include "DolphinQt/Settings/InterfacePane.h"
 
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "Core/AchievementManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
+#include "Core/Core.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileInfo>
@@ -12,26 +30,6 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
-
-#include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
-#include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
-
-#include "Core/AchievementManager.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/UISettings.h"
-#include "Core/Core.h"
-#include "Core/System.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {

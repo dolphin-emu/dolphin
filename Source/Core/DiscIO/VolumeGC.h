@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Lazy.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
+
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace DiscIO
 {

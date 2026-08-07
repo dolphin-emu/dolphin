@@ -3,16 +3,15 @@
 
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
-#include <map>
-#include <mutex>
+#include "Core/Host.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
-#include "Core/Host.h"
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
+#include <map>
+#include <mutex>
 
 /// Helper class to get window position data from threads other than the main thread
 @interface DolWindowPositionObserver : NSObject

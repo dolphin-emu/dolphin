@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <functional>
-
 #include "Common/CommonTypes.h"
+
+#include <functional>
 
 struct GCPadStatus;
 

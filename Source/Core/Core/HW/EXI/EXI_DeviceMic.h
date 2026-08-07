@@ -3,11 +3,13 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "Common/CommonTypes.h"
-#include "Common/WorkQueueThread.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#ifdef _WIN32
+#include "Common/WorkQueueThread.h"
+#endif
+
+#include <mutex>
 
 struct cubeb;
 struct cubeb_stream;

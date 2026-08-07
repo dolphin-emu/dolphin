@@ -3,23 +3,21 @@
 
 #include "Core/HW/Triforce/IOPorts.h"
 
-#include <algorithm>
-
-#include <fmt/ranges.h>
-
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
-
 #include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Triforce/ICCardReader.h"
 #include "Core/System.h"
-
 #include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <fmt/ranges.h>
+
+#include <algorithm>
 
 namespace Triforce
 {

@@ -6,18 +6,19 @@
 
 #include "Core/WC24PatchEngine.h"
 
-#include <algorithm>
-#include <array>
-#include <fmt/format.h>
-
+#include "Common/Config/Config.h"
 #include "Common/Contains.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
-
 #include "Core/CheatCodes.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <array>
 
 namespace WC24PatchEngine
 {

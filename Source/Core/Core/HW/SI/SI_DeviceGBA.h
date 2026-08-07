@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
+#include "Common/CommonTypes.h"
+#include "Core/HW/SI/SI_Device.h"
 
 #include <SFML/Network.hpp>
 
-#include "Common/CommonTypes.h"
-#include "Core/HW/SI/SI_Device.h"
+#include <memory>
 
 // GameBoy Advance "Link Cable"
 

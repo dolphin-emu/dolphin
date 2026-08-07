@@ -6,7 +6,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/Inline.h"
-
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoader.h"
 

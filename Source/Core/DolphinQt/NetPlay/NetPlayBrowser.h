@@ -3,17 +3,17 @@
 
 #pragma once
 
+#include "Common/Event.h"
+#include "Common/Flag.h"
+#include "UICommon/NetPlayIndex.h"
+
+#include <QDialog>
+
 #include <map>
 #include <mutex>
 #include <optional>
 #include <thread>
 #include <vector>
-
-#include <QDialog>
-
-#include "Common/Event.h"
-#include "Common/Flag.h"
-#include "UICommon/NetPlayIndex.h"
 
 class QCheckBox;
 class QComboBox;

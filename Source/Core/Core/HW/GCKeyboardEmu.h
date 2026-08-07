@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string>
-
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+
+#include <string>
 
 struct KeyboardStatus;
 

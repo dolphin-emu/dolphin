@@ -3,28 +3,26 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <bit>
-#include <limits>
-#include <utility>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <bit>
+#include <limits>
+#include <utility>
 
 using namespace Arm64Gen;
 

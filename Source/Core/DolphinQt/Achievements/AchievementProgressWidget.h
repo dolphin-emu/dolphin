@@ -4,10 +4,10 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-#include <QWidget>
-
 #include "Common/CommonTypes.h"
 #include "Core/AchievementManager.h"
+
+#include <QWidget>
 
 class AchievementBox;
 class QCheckBox;

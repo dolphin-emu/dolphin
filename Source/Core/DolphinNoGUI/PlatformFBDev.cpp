@@ -1,8 +1,6 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <unistd.h>
-
 #include "DolphinNoGUI/Platform.h"
 
 #include "Core/ConfigManager.h"
@@ -10,11 +8,11 @@
 #include "Core/State.h"
 #include "Core/System.h"
 
-#include <cstdio>
-#include <thread>
-
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <cstdio>
+#include <thread>
 
 namespace
 {

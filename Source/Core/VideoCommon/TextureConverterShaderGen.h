@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <fmt/format.h>
-#include <string>
-
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureDecoder.h"
+
+#include <fmt/format.h>
+
+#include <string>
 
 enum class APIType;
 

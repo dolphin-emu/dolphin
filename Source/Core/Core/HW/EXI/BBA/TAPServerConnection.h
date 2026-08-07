@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <functional>
-#include <string>
-#include <thread>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/SocketContext.h"
+
+#include <functional>
+#include <string>
+#include <thread>
 
 namespace ExpansionInterface
 {

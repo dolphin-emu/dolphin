@@ -1,17 +1,16 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
-
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
+
+#include <fmt/format.h>
+#include <gtest/gtest.h>
 
 #include "DSPTestBinary.h"
 #include "DSPTestText.h"
 #include "HermesBinary.h"
 #include "HermesText.h"
-
-#include <gtest/gtest.h>
 
 static bool RoundTrippableDisassemble(std::span<const u16> code, std::string& text)
 {

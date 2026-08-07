@@ -3,8 +3,6 @@
 
 #include "Core/HW/EXI/EXI_Device.h"
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
@@ -17,12 +15,13 @@
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #ifdef HAVE_CUBEB
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #else
 #include "Common/MsgHandler.h"
 #endif
+
+#include <memory>
 
 namespace ExpansionInterface
 {

@@ -4,15 +4,14 @@
 
 #include "Core/DSP/DSPCore.h"
 
-#include <atomic>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
-
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
+
+#include <atomic>
 
 namespace DSP
 {

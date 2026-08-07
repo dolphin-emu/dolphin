@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
-
+#include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoCommon/AbstractGfx.h"
 
-#include "VideoBackends/Metal/MRCHelpers.h"
+#include <Metal/Metal.h>
+#include <QuartzCore/QuartzCore.h>
 
 namespace Metal
 {

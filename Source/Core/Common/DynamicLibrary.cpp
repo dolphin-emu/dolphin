@@ -3,8 +3,6 @@
 
 #include "Common/DynamicLibrary.h"
 
-#include <cstring>
-
 #include <fmt/format.h>
 
 #ifdef _WIN32
@@ -12,6 +10,8 @@
 #else
 #include <dlfcn.h>
 #endif
+
+#include <cstring>
 
 namespace Common
 {

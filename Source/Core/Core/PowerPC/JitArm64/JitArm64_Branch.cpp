@@ -5,12 +5,9 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
-
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 

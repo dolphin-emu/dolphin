@@ -3,20 +3,19 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <memory>
-#include <vector>
-
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
-#include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <memory>
+#include <vector>
 
 namespace ciface::WiimoteController
 {

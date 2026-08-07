@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
+
+#include <functional>
+#include <memory>
+#include <span>
+#include <string>
+#include <vector>
 
 namespace IOS::HLE
 {

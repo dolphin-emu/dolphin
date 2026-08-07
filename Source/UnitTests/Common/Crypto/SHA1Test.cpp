@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "Common/Crypto/SHA1.h"
+
+#include <gtest/gtest.h>
 
 // Just a few quick sanity checks
 TEST(SHA1, Vectors)

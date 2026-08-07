@@ -3,22 +3,20 @@
 
 #include "Core/FifoPlayer/FifoRecorder.h"
 
-#include <algorithm>
-#include <cstring>
-#include <utility>
-
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <cstring>
+#include <utility>
 
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
 {

@@ -3,21 +3,6 @@
 
 #include "Core/Movie.h"
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <iterator>
-#include <locale>
-#include <mbedtls/md.h>
-#include <mutex>
-#include <thread>
-#include <utility>
-#include <variant>
-#include <vector>
-
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -31,7 +16,6 @@
 #include "Common/Timer.h"
 #include "Common/VariantUtil.h"
 #include "Common/Version.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/AchievementSettings.h"
@@ -60,11 +44,23 @@
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"
-#include "Core/WiiUtils.h"
-
 #include "InputCommon/GCPadStatus.h"
-
 #include "VideoCommon/VideoBackendBase.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+#include <mbedtls/md.h>
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <iterator>
+#include <locale>
+#include <mutex>
+#include <thread>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace Movie
 {

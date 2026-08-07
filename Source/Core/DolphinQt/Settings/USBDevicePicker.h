@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <optional>
-#include <vector>
+#include "Core/USBUtils.h"
 
 #include <QDialog>
 
-#include "Core/USBUtils.h"
+#include <optional>
+#include <vector>
 
 class QTimer;
 class QDialog;

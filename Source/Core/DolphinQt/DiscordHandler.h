@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <list>
-#include <mutex>
-#include <thread>
+#include "Common/Event.h"
+#include "Common/Flag.h"
+#include "UICommon/DiscordPresence.h"
 
 #include <QObject>
 
-#include "Common/Event.h"
-#include "Common/Flag.h"
-
-#include "UICommon/DiscordPresence.h"
+#include <list>
+#include <mutex>
+#include <thread>
 
 class DiscordJoinRequestDialog;
 

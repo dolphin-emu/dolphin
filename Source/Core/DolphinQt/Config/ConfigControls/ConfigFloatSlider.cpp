@@ -1,9 +1,9 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <QPointer>
-
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
+
+#include <QPointer>
 
 ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
                                      const Config::Info<float>& setting, float step,

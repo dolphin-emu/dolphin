@@ -3,15 +3,15 @@
 
 #include "Common/SymbolDB.h"
 
+#include "Common/CWDemangler.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+
 #include <cstring>
 #include <map>
 #include <mutex>
 #include <string>
 #include <utility>
-
-#include "Common/CWDemangler.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 
 namespace Common
 {

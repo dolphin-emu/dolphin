@@ -3,18 +3,12 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <algorithm>
-
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;
 

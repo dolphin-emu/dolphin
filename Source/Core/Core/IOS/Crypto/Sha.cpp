@@ -3,18 +3,18 @@
 
 #include "Core/IOS/Crypto/Sha.h"
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/Memmap.h"
+#include "Core/System.h"
+
+#include <mbedtls/sha1.h>
+
 #include <algorithm>
 #include <array>
 #include <iterator>
 #include <optional>
 #include <vector>
-
-#include <mbedtls/sha1.h>
-
-#include "Common/CommonTypes.h"
-#include "Core/HW/MMIO.h"
-#include "Core/HW/Memmap.h"
-#include "Core/System.h"
 
 namespace IOS::HLE
 {

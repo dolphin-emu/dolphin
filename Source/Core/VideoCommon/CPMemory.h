@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <type_traits>
-#include <utility>
-
 #include "Common/BitField.h"
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
+
+#include <array>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 enum
 {

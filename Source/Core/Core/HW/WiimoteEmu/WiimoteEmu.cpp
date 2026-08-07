@@ -3,14 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include <algorithm>
-#include <fstream>
-#include <memory>
-#include <optional>
-#include <string_view>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -18,11 +10,9 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
-
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -37,7 +27,6 @@
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -49,6 +38,14 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <fstream>
+#include <memory>
+#include <optional>
+#include <string_view>
 
 namespace WiimoteEmu
 {

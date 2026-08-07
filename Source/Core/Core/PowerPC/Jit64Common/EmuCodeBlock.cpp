@@ -3,8 +3,6 @@
 
 #include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
 
-#include <functional>
-
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/FloatUtils.h"
@@ -19,6 +17,8 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <functional>
 
 using namespace Gen;
 

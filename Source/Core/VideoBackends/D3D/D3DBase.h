@@ -3,15 +3,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/HRWrap.h"
+
+#include <fmt/format.h>
+
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
 #include <dxgi1_6.h>
-#include <fmt/format.h>
-#include <vector>
 #include <wrl/client.h>
 
-#include "Common/CommonTypes.h"
-#include "Common/HRWrap.h"
+#include <vector>
 
 namespace DX11
 {

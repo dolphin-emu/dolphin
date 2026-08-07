@@ -1,8 +1,6 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <jni.h>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/HW/GCKeyboard.h"
@@ -19,6 +17,8 @@
 #include "jni/Input/ControlGroup.h"
 #include "jni/Input/ControlReference.h"
 #include "jni/Input/NumericSetting.h"
+
+#include <jni.h>
 
 ControllerEmu::ControlGroupContainer* ControlGroupContainerFromJava(JNIEnv* env, jobject obj)
 {

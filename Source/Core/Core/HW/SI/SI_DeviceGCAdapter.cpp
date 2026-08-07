@@ -3,8 +3,6 @@
 
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
@@ -13,6 +11,8 @@
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
+
+#include <cstring>
 
 namespace SerialInterface
 {

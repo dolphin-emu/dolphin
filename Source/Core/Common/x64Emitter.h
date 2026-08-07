@@ -5,17 +5,17 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstring>
-#include <functional>
-#include <tuple>
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
+
+#include <cstddef>
+#include <cstring>
+#include <functional>
+#include <tuple>
+#include <type_traits>
 
 namespace Gen
 {
@@ -546,7 +546,10 @@ public:
   void OR(int bits, const OpArg& a1, const OpArg& a2);
   void XOR(int bits, const OpArg& a1, const OpArg& a2);
   void MOV(int bits, const OpArg& a1, const OpArg& a2);
+#pragma push_macro("TEST")
+#undef TEST
   void TEST(int bits, const OpArg& a1, const OpArg& a2);
+#pragma pop_macro("TEST")
 
   void CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2);
   void MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2);

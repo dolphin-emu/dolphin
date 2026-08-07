@@ -3,25 +3,20 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <cstddef>
-#include <optional>
-#include <string>
-
 #include "Common/Align.h"
 #include "Common/BitSet.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
-
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <optional>
+#include <string>
 
 using namespace Arm64Gen;
 

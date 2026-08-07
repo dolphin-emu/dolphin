@@ -3,10 +3,10 @@
 
 #include "Core/DSPEmulator.h"
 
-#include <memory>
-
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPLLE/DSPLLE.h"
+
+#include <memory>
 
 DSPEmulator::~DSPEmulator() = default;
 

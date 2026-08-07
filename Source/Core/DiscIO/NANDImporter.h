@@ -3,18 +3,18 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
+#include "Common/Swap.h"
+
+#include <fmt/format.h>
+
 #include <array>
 #include <bitset>
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/AES.h"
-#include "Common/Swap.h"
 
 namespace DiscIO
 {

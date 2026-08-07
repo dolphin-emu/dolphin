@@ -3,6 +3,17 @@
 
 #include "Core/IOS/USB/LibusbDevice.h"
 
+#include "Common/Assert.h"
+#include "Common/Config/Config.h"
+#include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
+#include "Core/System.h"
+
+#include <libusb.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -12,17 +23,6 @@
 #include <mutex>
 #include <utility>
 #include <vector>
-
-#include <libusb.h>
-
-#include "Common/Assert.h"
-#include "Common/Config/Config.h"
-#include "Common/Logging/Log.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/IOS.h"
-#include "Core/System.h"
 
 namespace IOS::HLE::USB
 {

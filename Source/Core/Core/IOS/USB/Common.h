@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
 
 namespace IOS::HLE::USB
 {

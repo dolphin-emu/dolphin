@@ -3,20 +3,18 @@
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
-#include "DolphinQt/QtUtils/QtUtils.h"
-
-#include "InputCommon/InputConfig.h"
 
 WiimoteEmuExtensionMotionInput::WiimoteEmuExtensionMotionInput(MappingWindow* window)
     : MappingWidget(window)

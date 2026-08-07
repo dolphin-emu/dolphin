@@ -3,12 +3,12 @@
 
 #include "VideoCommon/NetPlayGolfUI.h"
 
-#include <utility>
+#include "Core/NetPlayClient.h"
 
 #include <fmt/format.h>
 #include <imgui.h>
 
-#include "Core/NetPlayClient.h"
+#include <utility>
 
 constexpr float DEFAULT_WINDOW_WIDTH = 220.0f;
 constexpr float DEFAULT_WINDOW_HEIGHT = 45.0f;

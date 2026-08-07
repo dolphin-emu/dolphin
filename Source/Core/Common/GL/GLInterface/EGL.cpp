@@ -3,11 +3,11 @@
 
 #include "Common/GL/GLInterface/EGL.h"
 
+#include "Common/Logging/Log.h"
+
 #include <array>
 #include <sstream>
 #include <vector>
-
-#include "Common/Logging/Log.h"
 
 #ifndef EGL_KHR_create_context
 #define EGL_KHR_create_context 1

@@ -3,11 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <queue>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
@@ -18,6 +13,11 @@
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
 #include "Core/IOS/Network/KD/NetKDTime.h"
+
+#include <array>
+#include <memory>
+#include <queue>
+#include <string>
 
 namespace IOS::HLE
 {

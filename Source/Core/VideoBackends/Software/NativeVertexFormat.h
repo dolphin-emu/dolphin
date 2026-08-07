@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
+
+#include <array>
+#include <cstddef>
 
 struct InputVertexData
 {

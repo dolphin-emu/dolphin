@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/IOS/IOSC.h"
+
 #include <array>
 #include <deque>
 #include <map>
@@ -10,11 +15,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-
-#include "Common/CommonTypes.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 

@@ -3,9 +3,10 @@
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 
-#include <cmath>
-
-#include <fmt/format.h>
+#include "Common/Contains.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+#include "DolphinQt/Settings.h"
 
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -13,12 +14,9 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <fmt/format.h>
 
-#include "Common/Contains.h"
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-
-#include "DolphinQt/Settings.h"
+#include <cmath>
 
 static QString GetPlayerNameFromPID(int pid)
 {

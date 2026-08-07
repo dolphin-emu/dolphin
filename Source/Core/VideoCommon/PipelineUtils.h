@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <xxh3.h>
-
 #include "VideoCommon/GXPipelineTypes.h"
+
+#include <xxh3.h>
 
 namespace VideoCommon
 {

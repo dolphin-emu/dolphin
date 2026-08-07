@@ -16,18 +16,18 @@
 // inside callback:
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
-#include <mutex>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Functional.h"
 #include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
+
+#include <mutex>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
 
 class PointerWrap;
 

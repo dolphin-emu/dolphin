@@ -33,12 +33,12 @@
 
 #include "Common/GekkoDisassembler.h"
 
-#include <array>
-#include <string>
+#include "Common/CommonTypes.h"
 
 #include <fmt/format.h>
 
-#include "Common/CommonTypes.h"
+#include <array>
+#include <string>
 
 namespace Common
 {

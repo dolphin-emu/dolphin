@@ -3,15 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/HW/Triforce/IOPorts.h"
+#include "Core/HW/Triforce/SerialDevice.h"
+
 #include <array>
 #include <expected>
 #include <span>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-
-#include "Core/HW/Triforce/IOPorts.h"
-#include "Core/HW/Triforce/SerialDevice.h"
 
 class PointerWrap;
 

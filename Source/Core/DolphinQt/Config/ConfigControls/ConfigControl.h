@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <QFont>
-#include <QMouseEvent>
-
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
 #include "DolphinQt/Settings.h"
+
+#include <QFont>
+#include <QMouseEvent>
 
 namespace Config
 {

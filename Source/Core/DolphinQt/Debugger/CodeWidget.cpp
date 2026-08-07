@@ -3,9 +3,18 @@
 
 #include "DolphinQt/Debugger/CodeWidget.h"
 
-#include <chrono>
-
-#include <fmt/format.h>
+#include "Common/Event.h"
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/CPU.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+#include "DolphinQt/Debugger/BranchWatchDialog.h"
+#include "DolphinQt/Host.h"
+#include "DolphinQt/Resources.h"
+#include "DolphinQt/Settings.h"
 
 #include <QGridLayout>
 #include <QGroupBox>
@@ -21,19 +30,9 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <fmt/format.h>
 
-#include "Common/Event.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HW/CPU.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-#include "DolphinQt/Debugger/BranchWatchDialog.h"
-#include "DolphinQt/Host.h"
-#include "DolphinQt/Resources.h"
-#include "DolphinQt/Settings.h"
+#include <chrono>
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "

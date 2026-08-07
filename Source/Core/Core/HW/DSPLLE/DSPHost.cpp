@@ -3,9 +3,8 @@
 
 #include "Core/DSP/DSPHost.h"
 
-#include <string>
-
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
@@ -17,6 +16,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <string>
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation

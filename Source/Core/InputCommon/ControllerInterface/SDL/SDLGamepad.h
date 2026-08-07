@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include <array>
+#include "Common/MathUtil.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_haptic.h>
 #include <fmt/format.h>
 
-#include "Common/MathUtil.h"
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include <array>
 
 namespace
 {

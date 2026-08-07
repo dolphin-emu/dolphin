@@ -1,18 +1,19 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "UICommon/GameFileCache.h"
+
+#include "Core/Config/MainSettings.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+#include "jni/GameList/GameFile.h"
+
+#include <jni.h>
+
 #include <algorithm>
 #include <iterator>
 #include <memory>
 #include <vector>
-
-#include <jni.h>
-
-#include "Core/Config/MainSettings.h"
-#include "UICommon/GameFileCache.h"
-#include "jni/AndroidCommon/AndroidCommon.h"
-#include "jni/AndroidCommon/IDCache.h"
-#include "jni/GameList/GameFile.h"
 
 static UICommon::GameFileCache* GetPointer(JNIEnv* env, jobject obj)
 {

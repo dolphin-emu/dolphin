@@ -3,9 +3,9 @@
 
 #include "VideoCommon/TextureConfig.h"
 
-#include <tuple>
-
 #include "VideoCommon/AbstractTexture.h"
+
+#include <tuple>
 
 bool TextureConfig::operator==(const TextureConfig& o) const
 {

@@ -3,7 +3,8 @@
 
 #include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
 
-#include <memory>
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Settings.h"
 
 #include <QApplication>
 #include <QBitmap>
@@ -20,13 +21,11 @@
 #include <QSize>
 #include <QString>
 #include <QVBoxLayout>
-
 #if defined(__APPLE__)
 #include <QToolTip>
 #endif
 
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/Settings.h"
+#include <memory>
 
 namespace
 {

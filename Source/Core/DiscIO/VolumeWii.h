@@ -3,15 +3,8 @@
 
 #pragma once
 
-#include <array>
-#include <functional>
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Lazy.h"
 #include "Core/IOS/ES/Formats.h"
@@ -19,7 +12,13 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
 
-#include "Common/Crypto/AES.h"
+#include <array>
+#include <functional>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace DiscIO
 {

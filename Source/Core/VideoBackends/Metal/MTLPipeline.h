@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
-
 #include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLShader.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
+
+#include <Metal/Metal.h>
 
 namespace Metal
 {

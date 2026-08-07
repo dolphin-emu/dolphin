@@ -3,16 +3,11 @@
 
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
@@ -20,6 +15,10 @@
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/x64/DSPJitTables.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
 
 using namespace Gen;
 

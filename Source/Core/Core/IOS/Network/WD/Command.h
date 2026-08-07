@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <deque>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Common/Flag.h"
 #include "Common/Network.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
+
+#include <deque>
+#include <string>
 
 namespace IOS::HLE::WD
 {

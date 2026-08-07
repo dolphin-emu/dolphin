@@ -3,12 +3,12 @@
 
 #include "DolphinQt/Config/Mapping/GBAPadEmu.h"
 
-#include <QGridLayout>
-#include <QGroupBox>
-
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GBAPadEmu.h"
 #include "InputCommon/InputConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
 
 GBAPadEmu::GBAPadEmu(MappingWindow* window) : MappingWidget(window)
 {

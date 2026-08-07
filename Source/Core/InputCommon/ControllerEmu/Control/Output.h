@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <string>
 #include "InputCommon/ControllerEmu/Control/Control.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

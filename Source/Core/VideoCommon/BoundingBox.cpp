@@ -3,8 +3,6 @@
 
 #include "VideoCommon/BoundingBox.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

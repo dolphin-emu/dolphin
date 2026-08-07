@@ -3,8 +3,10 @@
 
 #include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
 
-#include <regex>
-#include <string>
+#include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include <QDialogButtonBox>
 #include <QLabel>
@@ -12,9 +14,8 @@
 #include <QString>
 #include <QVBoxLayout>
 
-#include "Common/StringUtil.h"
-#include "Core/Config/MainSettings.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include <regex>
+#include <string>
 
 BroadbandAdapterSettingsDialog::BroadbandAdapterSettingsDialog(QWidget* parent, Type bba_type)
     : QDialog(parent)

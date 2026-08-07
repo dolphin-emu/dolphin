@@ -1,14 +1,6 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <string>
-#include <vector>
-
-#include <jni.h>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -17,6 +9,14 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Cheats/Cheats.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <jni.h>
+
+#include <string>
+#include <vector>
 
 static Gecko::GeckoCode* GetPointer(JNIEnv* env, jobject obj)
 {

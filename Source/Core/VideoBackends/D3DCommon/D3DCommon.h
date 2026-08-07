@@ -3,13 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <d3dcompiler.h>
 #include <dxgiformat.h>
-#include <string>
-#include <vector>
 #include <wrl/client.h>
 
-#include "Common/CommonTypes.h"
+#include <string>
+#include <vector>
 
 struct IDXGIFactory;
 

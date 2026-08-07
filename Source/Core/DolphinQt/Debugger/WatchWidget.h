@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QDockWidget>
-
 #include "Common/CommonTypes.h"
+
+#include <QDockWidget>
 
 class QAction;
 class QCloseEvent;

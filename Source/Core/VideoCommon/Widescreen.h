@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <memory>
+#include "Common/HookableEvent.h"
 
-#include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VideoEvents.h"
+#include <memory>
+#include <optional>
 
 class PointerWrap;
 

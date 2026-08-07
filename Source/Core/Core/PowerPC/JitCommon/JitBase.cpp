@@ -3,21 +3,17 @@
 
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#include <algorithm>
-#include <array>
-#include <utility>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
-
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -30,6 +26,10 @@
 #else
 #include <unistd.h>
 #endif
+
+#include <algorithm>
+#include <array>
+#include <utility>
 
 // The BLR optimization is nice, but it means that JITted code can overflow the
 // native stack by repeatedly running BL.  (The chance of this happening in any

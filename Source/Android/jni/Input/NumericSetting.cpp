@@ -3,10 +3,6 @@
 
 #include "jni/Input/NumericSetting.h"
 
-#include <string>
-
-#include <jni.h>
-
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -14,6 +10,10 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Input/ControlReference.h"
+
+#include <jni.h>
+
+#include <string>
 
 static const char* NullStringToEmptyString(const char* str)
 {

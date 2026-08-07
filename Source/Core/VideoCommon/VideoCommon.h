@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <algorithm>
-#include <bit>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/BPMemory.h"
+
+#include <algorithm>
+#include <bit>
 
 // These are accurate (disregarding AA modes).
 constexpr u32 EFB_WIDTH = 640u;

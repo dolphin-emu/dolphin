@@ -3,11 +3,7 @@
 
 #include "VideoCommon/Resources/ShaderResource.h"
 
-#include <string_view>
-#include <utility>
-
-#include <fmt/format.h>
-
+#include "Common/StringUtil.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetCache.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
@@ -17,6 +13,11 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+
+#include <string_view>
+#include <utility>
 
 namespace VideoCommon
 {

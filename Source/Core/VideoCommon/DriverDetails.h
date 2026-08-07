@@ -1,8 +1,8 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+
 #include <string>
-#include "Common/CommonTypes.h"
 
 #undef OS  // CURL defines that, nobody uses it...
 

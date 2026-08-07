@@ -3,23 +3,19 @@
 
 #pragma once
 
-#include <array>
-#include <bit>
-#include <cstring>
-#include <functional>
-#include <optional>
-#include <type_traits>
-#include <utility>
-
 #include "Common/ArmCommon.h"
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/BitUtils.h"
 #include "Common/CodeBlock.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
+
+#include <array>
+#include <bit>
+#include <cstring>
+#include <functional>
+#include <type_traits>
 
 namespace Arm64Gen
 {

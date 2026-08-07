@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+
+#include <memory>
+#include <vector>
 
 namespace Null
 {

@@ -2,11 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <chrono>
-#include <string>
-#include <vector>
-
-#include <jni.h>
+#include "InputCommon/ControllerInterface/MappingCommon.h"
 
 #include "Core/FreeLookManager.h"
 #include "Core/HW/GBAPad.h"
@@ -15,8 +11,13 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/MappingCommon.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+
+#include <jni.h>
+
+#include <chrono>
+#include <string>
+#include <vector>
 
 extern "C" {
 

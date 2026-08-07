@@ -1,7 +1,5 @@
 #pragma once
 
-#include "pch.h"
-
 #include <QComboBox>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -12,3 +10,5 @@
 #include <QString>
 #include <QTableWidget>
 #include <QWidget>
+
+#include "pch.h"

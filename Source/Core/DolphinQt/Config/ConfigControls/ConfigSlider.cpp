@@ -1,12 +1,13 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cassert>
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+
+#include "DolphinQt/Settings.h"
 
 #include <QFont>
 
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
-#include "DolphinQt/Settings.h"
+#include <cassert>
 
 ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
     : ConfigSlider(minimum, maximum, setting, nullptr, tick)

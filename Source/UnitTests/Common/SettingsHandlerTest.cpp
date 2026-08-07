@@ -1,11 +1,11 @@
 // Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
+#include "Common/SettingsHandler.h"
 
 #include <gtest/gtest.h>
 
-#include "Common/SettingsHandler.h"
+#include <algorithm>
 
 namespace
 {

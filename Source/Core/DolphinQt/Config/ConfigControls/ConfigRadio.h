@@ -3,10 +3,9 @@
 
 #pragma once
 
+#include "Common/Config/ConfigInfo.h"
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipRadioButton.h"
-
-#include "Common/Config/ConfigInfo.h"
 
 class ConfigRadioInt final : public ConfigControl<ToolTipRadioButton>
 {

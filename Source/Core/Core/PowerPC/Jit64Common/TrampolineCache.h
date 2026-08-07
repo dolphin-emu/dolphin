@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <cstddef>
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
+
+#include <cstddef>
 
 struct TrampolineInfo;
 

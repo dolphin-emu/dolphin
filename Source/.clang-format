@@ -44,13 +44,29 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat:   false
 ForEachMacros:   []
+IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:           '^<[Ww]indows\.h>$'
-    Priority:        1
-  - Regex:           '^<'
-    Priority:        2
-  - Regex:           '^"'
-    Priority:        3
+  - Regex: '^"(AudioCommon|Common|Core|DiscIO|Dolphin.*|InputCommon|jni|MacUpdater|UICommon|UpdaterCommon|VideoBackends|VideoCommon|WinUpdater)/.*"$'
+    Priority: 1
+    SortPriority: 10
+    CaseSensitive: true
+  - Regex: '^<(((bochs|bzlib|libipc|cpp-optparse|cubeb|curl|discord|ed25519|enet|expr|FatFs|fmt|FreeSurround|glslang|gtest|hidapi|imgui|implot|adrenotools|iconv|lzma|spng|libudev|libusb|lz4|lzo|mbedtls|mgba|mini|upnp|mz|picojson|pugixml|rcheevos|SDL3|SFML|spirv|tinygtlf|vulkan|vk_mem_alloc|wtr|wil|xx|zlib|zstd)(.*)?\.h(pp)?)|(Q(t|[A-Z])[a-zA-Z]+))>$'
+    Priority: 2
+    SortPriority: 20
+    CaseSensitive: true
+    # List of C headers from https://cppreference.com/c/header
+  - Regex: '^<(([a-z_]+)|((assert|complex|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|stdalign|stdarg|stdatomic|stdbit|stdbool|stdckdint|stddef|stdint|stdio|stdlib|stdmchar|stdnoreturn|string|tgmath|threads|time|uchar|wchar|wctype)\.h))>$'
+    Priority: 4
+    SortPriority: 40
+    CaseSensitive: true
+  - Regex: '^<windows\.h>$'
+    Priority: 3
+    SortPriority: 30
+    CaseSensitive: false
+  - Regex: '^<.*\.h>$'
+    Priority: 3
+    SortPriority: 31
+IncludeIsMainRegex: ''
 IndentCaseLabels: false
 IndentWidth:     2
 IndentWrappedFunctionNames: false

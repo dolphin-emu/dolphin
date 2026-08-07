@@ -22,6 +22,14 @@
 
 #endif
 
+#include "Common/Common.h"
+#include "Common/Thread.h"
+
+#include <fmt/format.h>
+
+#include <fcntl.h>
+#include <memory.h>
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -39,21 +47,10 @@
 #include <ctype.h>
 #include <deque>
 #include <errno.h>
-#if !defined ANDROID && !defined _WIN32
-#include <execinfo.h>
-#endif
-#include <fcntl.h>
 #include <filesystem>
 #include <float.h>
-#include <fmt/format.h>
 #include <fstream>
 #include <functional>
-#ifndef _WIN32
-#include <getopt.h>
-#endif
-#if defined _WIN32 && defined _M_X86_64
-#include <intrin.h>
-#endif
 #include <iomanip>
 #include <iostream>
 #include <limits.h>
@@ -62,14 +59,10 @@
 #include <locale.h>
 #include <map>
 #include <math.h>
-#include <memory.h>
 #include <memory>
 #include <mutex>
 #include <numeric>
 #include <optional>
-#ifndef _WIN32
-#include <pthread.h>
-#endif
 #include <queue>
 #include <set>
 #include <sstream>
@@ -84,9 +77,6 @@
 #include <thread>
 #include <time.h>
 #include <type_traits>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -95,7 +85,14 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#ifdef _M_X86_64
+#include <intrin.h>
 #endif
-
-#include "Common/Common.h"
-#include "Common/Thread.h"
+#else
+#include <getopt.h>
+#include <pthread.h>
+#include <unistd.h>
+#endif
+#if __has_include(<execinfo.h>)
+#include <execinfo.h>
+#endif

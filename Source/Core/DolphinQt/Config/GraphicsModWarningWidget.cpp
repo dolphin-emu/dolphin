@@ -3,14 +3,14 @@
 
 #include "DolphinQt/Config/GraphicsModWarningWidget.h"
 
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/Settings.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
 #include <QPushButton>
 #include <QStyle>
-
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/Settings.h"
 
 GraphicsModWarningWidget::GraphicsModWarningWidget(QWidget* parent) : QWidget(parent)
 {

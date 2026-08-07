@@ -3,7 +3,18 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-#include <fmt/core.h>
+#include "DolphinQt/Config/Mapping/IOWindow.h"
+#include "DolphinQt/Config/Mapping/MappingButton.h"
+#include "DolphinQt/Config/Mapping/MappingIndicator.h"
+#include "DolphinQt/Config/Mapping/MappingNumeric.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -12,20 +23,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-
-#include "DolphinQt/Config/Mapping/IOWindow.h"
-#include "DolphinQt/Config/Mapping/MappingButton.h"
-#include "DolphinQt/Config/Mapping/MappingIndicator.h"
-#include "DolphinQt/Config/Mapping/MappingNumeric.h"
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include <fmt/core.h>
 
 MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {

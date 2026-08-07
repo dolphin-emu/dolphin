@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ciface::ExpressionParser
 {

@@ -3,9 +3,6 @@
 
 #include "Core/IOS/USB/USB_KBD.h"
 
-#include <array>
-#include <queue>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -19,6 +16,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+#include <array>
+#include <queue>
 
 namespace IOS::HLE
 {

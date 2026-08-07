@@ -5,14 +5,13 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <utility>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/ec.h"
+
+#include <array>
+#include <cstddef>
+#include <vector>
 
 class PointerWrap;
 

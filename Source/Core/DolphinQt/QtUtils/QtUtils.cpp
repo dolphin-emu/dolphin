@@ -3,6 +3,9 @@
 
 #include "DolphinQt/QtUtils/QtUtils.h"
 
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+
 #include <QDateTimeEdit>
 #include <QDesktopServices>
 #include <QDir>
@@ -10,14 +13,10 @@
 #include <QLabel>
 #include <QProcess>
 #include <QScreen>
-
 #if defined(QT_DBUS_LIB)
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
 #endif
-
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 namespace
 {

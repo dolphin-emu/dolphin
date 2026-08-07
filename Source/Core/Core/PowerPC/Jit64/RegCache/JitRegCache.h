@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+
 #include <array>
 #include <cstddef>
 #include <span>
 #include <type_traits>
 #include <variant>
-
-#include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
 
 class Jit64;
 enum class RCMode;

@@ -3,14 +3,14 @@
 
 #include "VideoCommon/CPMemory.h"
 
-#include <cstring>
-#include <type_traits>
-#include <utility>
-
 #include "Common/Logging/Log.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
+
+#include <cstring>
+#include <type_traits>
+#include <utility>
 
 // CP state
 CPState g_main_cp_state;

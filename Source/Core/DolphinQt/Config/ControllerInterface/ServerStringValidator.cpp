@@ -3,9 +3,9 @@
 
 #include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
 
-#include <string>
-
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
+
+#include <string>
 
 ServerStringValidator::ServerStringValidator(QObject* parent) : QValidator(parent)
 {

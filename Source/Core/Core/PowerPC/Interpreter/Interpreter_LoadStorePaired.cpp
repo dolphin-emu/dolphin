@@ -3,12 +3,6 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include <algorithm>
-#include <bit>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
@@ -16,6 +10,12 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <bit>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 // dequantize table
 const float m_dequantizeTable[] = {

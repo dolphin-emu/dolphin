@@ -3,15 +3,14 @@
 
 #include "VideoBackends/D3D/D3DBoundingBox.h"
 
-#include <algorithm>
-#include <array>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
+
+#include <algorithm>
+#include <array>
 
 namespace DX11
 {

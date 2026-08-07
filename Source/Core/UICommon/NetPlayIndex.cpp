@@ -3,19 +3,19 @@
 
 #include "UICommon/NetPlayIndex.h"
 
-#include <chrono>
-#include <numeric>
-#include <span>
-#include <string>
+#include "Common/Common.h"
+#include "Common/Config/Config.h"
+#include "Common/HttpRequest.h"
+#include "Common/Version.h"
+#include "Core/Config/NetplaySettings.h"
 
 #include <fmt/format.h>
 #include <picojson.h>
 
-#include "Common/Common.h"
-#include "Common/HttpRequest.h"
-#include "Common/Version.h"
-
-#include "Core/Config/NetplaySettings.h"
+#include <chrono>
+#include <numeric>
+#include <span>
+#include <string>
 
 NetPlayIndex::NetPlayIndex() = default;
 

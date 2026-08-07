@@ -3,20 +3,9 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/LinearDiskCache.h"
-
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
@@ -30,7 +19,14 @@
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/VideoEvents.h"
+
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <optional>
+#include <utility>
 
 class NativeVertexFormat;
 enum class AbstractTextureFormat : u32;

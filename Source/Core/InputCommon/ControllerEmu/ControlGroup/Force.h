@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

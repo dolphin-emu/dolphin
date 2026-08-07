@@ -3,6 +3,9 @@
 
 #include "DolphinQt/Config/NewPatchDialog.h"
 
+#include "Core/PatchEngine.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -13,9 +16,6 @@
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
-
-#include "Core/PatchEngine.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 struct NewPatchEntry
 {

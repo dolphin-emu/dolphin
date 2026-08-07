@@ -3,12 +3,8 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-
 #include "Common/HookableEvent.h"
 #include "Common/WorkQueueThread.h"
-
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/Assets/CustomAssetCache.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
@@ -17,6 +13,9 @@
 #include "VideoCommon/Resources/TextureAndSamplerResource.h"
 #include "VideoCommon/Resources/TextureDataResource.h"
 #include "VideoCommon/Resources/TexturePool.h"
+
+#include <map>
+#include <memory>
 
 namespace VideoCommon
 {

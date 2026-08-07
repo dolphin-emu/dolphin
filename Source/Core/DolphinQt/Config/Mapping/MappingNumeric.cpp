@@ -3,9 +3,9 @@
 
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 
-#include <limits>
-
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
+
+#include <limits>
 
 MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting)
     : QDoubleSpinBox(parent), m_setting(*setting)

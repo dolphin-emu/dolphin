@@ -3,16 +3,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Network.h"
+
+#include <SFML/Network.hpp>
+
 #ifdef _WIN32
 #include <winsock2.h>
 using socklen_t = int;
 #else
 #include <netinet/in.h>
 #endif
-
-#include <SFML/Network.hpp>
-#include "Common/CommonTypes.h"
-#include "Common/Network.h"
 
 constexpr u16 TCP_FLAG_SIN = 0x2;
 constexpr u16 TCP_FLAG_ACK = 0x10;

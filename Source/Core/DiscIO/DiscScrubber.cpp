@@ -3,17 +3,16 @@
 
 #include "DiscIO/DiscScrubber.h"
 
-#include <cstddef>
-#include <optional>
-#include <vector>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+
+#include <cstddef>
+#include <optional>
+#include <vector>
 
 namespace DiscIO
 {

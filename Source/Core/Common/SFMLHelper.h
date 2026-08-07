@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <SFML/Network/Packet.hpp>
-
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Common/TypeUtils.h"
+
+#include <SFML/Network/Packet.hpp>
+
+#include <utility>
 
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u16>& data);
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u32>& data);

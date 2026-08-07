@@ -3,21 +3,19 @@
 
 #include "DolphinQt/GCMemcardCreateNewDialog.h"
 
+#include "Common/FileUtil.h"
+#include "Common/Timer.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/Sram.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
-
-#include "Common/FileUtil.h"
-#include "Common/Timer.h"
-
-#include "Core/HW/EXI/EXI_DeviceIPL.h"
-#include "Core/HW/GCMemcard/GCMemcard.h"
-#include "Core/HW/Sram.h"
-
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 
 GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(parent)
 {

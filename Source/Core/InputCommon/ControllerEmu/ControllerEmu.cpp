@@ -3,16 +3,15 @@
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
+#include "Common/IniFile.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <memory>
 #include <mutex>
 #include <string>
 #include <utility>
-
-#include "Common/IniFile.h"
-
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
 {

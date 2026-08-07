@@ -5,7 +5,6 @@ add_library(videoogl
   OGLConfig.h
   OGLGfx.cpp
   OGLGfx.h
-  OGLMain.cpp
   OGLNativeVertexFormat.cpp
   OGLPerfQuery.cpp
   OGLPerfQuery.h
@@ -24,6 +23,7 @@ add_library(videoogl
   SamplerCache.cpp
   SamplerCache.h
   VideoBackend.h
+  VideoBackendOGL.cpp
 )
 
 target_link_libraries(videoogl PUBLIC common videocommon)

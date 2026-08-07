@@ -5,8 +5,6 @@
 
 #include "Core/HW/SI/SI_DeviceGBAEmu.h"
 
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

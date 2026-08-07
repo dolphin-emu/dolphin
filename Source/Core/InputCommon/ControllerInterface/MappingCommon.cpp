@@ -3,24 +3,23 @@
 
 #include "InputCommon/ControllerInterface/MappingCommon.h"
 
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/InputConfig.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <ranges>
 #include <string>
 #include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
-#include "Common/MathUtil.h"
-#include "Common/StringUtil.h"
-
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/CoreDevice.h"
-#include "InputCommon/InputConfig.h"
 
 namespace ciface::MappingCommon
 {

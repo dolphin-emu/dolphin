@@ -5,9 +5,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
-
 #include "UICommon/UICommon.h"
-
 #include "VideoCommon/Assets/CustomAsset.h"
 
 namespace VideoCommon

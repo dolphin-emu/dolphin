@@ -3,14 +3,14 @@
 
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 
-#include <vector>
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+
+#include <vector>
 
 namespace Vulkan
 {

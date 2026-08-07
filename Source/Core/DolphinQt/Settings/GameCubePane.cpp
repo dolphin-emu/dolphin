@@ -3,6 +3,36 @@
 
 #include "DolphinQt/Settings/GameCubePane.h"
 
+#include "Common/Assert.h"
+#include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Config/SettingsWindow.h"
+#include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
+#ifdef HAS_LIBMGBA
+#include "Core/NetPlayProto.h"
+#include "Core/NetPlayServer.h"
+#include "DolphinQt/Config/ConfigControls/ConfigText.h"
+#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
+#endif
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
@@ -19,39 +49,6 @@
 
 #include <array>
 #include <utility>
-
-#include "Common/Assert.h"
-#include "Common/CommonPaths.h"
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/EXI/EXI.h"
-#include "Core/HW/GCMemcard/GCMemcard.h"
-#include "DolphinQt/Config/SettingsWindow.h"
-#ifdef HAS_LIBMGBA
-#include "Core/NetPlayServer.h"
-#endif
-#include "Core/System.h"
-
-#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#ifdef HAS_LIBMGBA
-#include "DolphinQt/Config/ConfigControls/ConfigText.h"
-#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
-#endif
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/GCMemcardManager.h"
-#include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
-#include "DolphinQt/Settings/TriforcePane.h"
 
 constexpr std::initializer_list<ExpansionInterface::Slot> GUI_SLOTS = {
     ExpansionInterface::Slot::A, ExpansionInterface::Slot::B, ExpansionInterface::Slot::SP1};

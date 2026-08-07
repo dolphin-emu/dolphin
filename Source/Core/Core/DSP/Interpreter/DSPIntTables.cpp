@@ -3,11 +3,11 @@
 
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
+
+#include <array>
 
 namespace DSP::Interpreter
 {

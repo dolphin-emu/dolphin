@@ -3,14 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <limits>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <type_traits>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/DirectIOFile.h"
@@ -19,6 +11,14 @@
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/WIACompression.h"
 #include "DiscIO/WiiEncryptionCache.h"
+
+#include <array>
+#include <limits>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <type_traits>
+#include <utility>
 
 namespace DiscIO
 {

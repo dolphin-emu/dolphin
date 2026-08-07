@@ -3,18 +3,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "VideoCommon/Assets/AssetListener.h"
+#include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/Assets/CustomAssetLoader.h"
+
 #include <list>
 #include <map>
 #include <memory>
 #include <set>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-
-#include "VideoCommon/Assets/AssetListener.h"
-#include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 
 namespace VideoCommon
 {

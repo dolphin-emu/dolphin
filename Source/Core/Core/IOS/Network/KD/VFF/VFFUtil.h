@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Network/KD/NWC24Config.h"
+
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/IOS/Network/KD/NWC24Config.h"
 
 namespace IOS::HLE
 {

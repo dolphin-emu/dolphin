@@ -3,14 +3,13 @@
 
 #include "VideoBackends/OGL/OGLPerfQuery.h"
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
 
 namespace OGL
 {

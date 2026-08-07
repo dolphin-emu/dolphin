@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
+
 #include <array>
 #include <queue>
 #include <string>
 #include <type_traits>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/IOS.h"
 
 namespace IOS::HLE
 {

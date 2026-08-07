@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
+#include "DiscIO/Volume.h"
+
 #include <map>
 #include <memory>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/ES/Formats.h"
-#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

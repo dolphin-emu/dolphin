@@ -3,7 +3,11 @@
 
 #include "DolphinQt/Config/CheatWarningWidget.h"
 
-#include <utility>
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/Settings.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -11,12 +15,7 @@
 #include <QPushButton>
 #include <QStyle>
 
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/Settings.h"
+#include <utility>
 
 CheatWarningWidget::CheatWarningWidget(std::string game_id, bool restart_required, QWidget* parent)
     : QWidget(parent), m_game_id(std::move(game_id)), m_restart_required(restart_required)

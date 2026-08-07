@@ -3,17 +3,12 @@
 
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 
-#include <cstdio>
-#include <memory>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
-
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -21,6 +16,10 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
 #include "Core/System.h"
+
+#include <cstdio>
+#include <memory>
+#include <vector>
 
 namespace IOS::HLE
 {

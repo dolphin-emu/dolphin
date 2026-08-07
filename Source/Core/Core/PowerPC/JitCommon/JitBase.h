@@ -3,15 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <iosfwd>
-#include <map>
-#include <string_view>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/ConfigInfo.h"
@@ -24,6 +15,14 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <array>
+#include <cstddef>
+#include <iosfwd>
+#include <string_view>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace Core
 {

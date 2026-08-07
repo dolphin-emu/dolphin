@@ -12,11 +12,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace Common
 {

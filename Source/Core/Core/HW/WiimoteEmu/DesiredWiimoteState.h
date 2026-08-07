@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <array>
-#include <optional>
-
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+#include <array>
+#include <optional>
 
 namespace WiimoteEmu
 {

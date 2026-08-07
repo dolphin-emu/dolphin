@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include <glslang/Public/ShaderLang.h>
+
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <glslang/Public/ShaderLang.h>
 
 namespace VideoCommon
 {

@@ -3,12 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 
-#include <string>
-
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "InputCommon/ControllerEmu/Control/Control.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

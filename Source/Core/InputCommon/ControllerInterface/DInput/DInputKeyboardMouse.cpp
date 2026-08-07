@@ -3,15 +3,13 @@
 
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
-#include <algorithm>
-
 #include "Common/Logging/Log.h"
-
 #include "Core/Core.h"
 #include "Core/Host.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+
+#include <algorithm>
 
 // (lower would be more sensitive) user can lower sensitivity by setting range
 // seems decent here ( at 8 ), I don't think anyone would need more sensitive than this

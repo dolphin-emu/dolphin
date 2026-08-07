@@ -3,23 +3,6 @@
 
 #include "Core/NetPlayClient.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstring>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <span>
-#include <thread>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -33,7 +16,6 @@
 #include "Common/SFMLHelper.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
-
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -44,20 +26,15 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
-#ifdef HAS_LIBMGBA
-#include "Core/HW/GBACore.h"
-#endif
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
@@ -67,10 +44,29 @@
 #include "Core/SyncIdentifier.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
-
 #include "InputCommon/GCAdapter.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#endif
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <span>
+#include <thread>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace NetPlay
 {

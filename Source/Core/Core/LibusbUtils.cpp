@@ -3,17 +3,17 @@
 
 #include "Core/LibusbUtils.h"
 
-#include <mutex>
-#include <thread>
+#include "Common/Flag.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #if defined(__LIBUSB__)
 #include <libusb.h>
 #endif
 
-#include "Common/Flag.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Common/Thread.h"
+#include <mutex>
+#include <thread>
 
 namespace LibusbUtils
 {

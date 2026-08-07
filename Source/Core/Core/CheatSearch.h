@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/MMU.h"
+
 #include <expected>
 #include <functional>
 #include <memory>
@@ -11,9 +14,6 @@
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/PowerPC/MMU.h"
 
 namespace Core
 {

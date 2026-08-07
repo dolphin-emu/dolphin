@@ -3,17 +3,17 @@
 
 #include "Core/IOS/Crypto/AesDevice.h"
 
-#include <algorithm>
-#include <array>
-#include <memory>
-#include <optional>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <array>
+#include <memory>
+#include <optional>
+#include <vector>
 
 namespace IOS::HLE
 {

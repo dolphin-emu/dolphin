@@ -3,6 +3,31 @@
 
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
 
+#include "Common/Config/Config.h"
+#include "Common/WorkQueueThread.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
+#include "Core/NetPlayProto.h"
+#include "Core/System.h"
+#include "Core/USBUtils.h"
+#include "Core/WiiUtils.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/USBDevicePicker.h"
+#if defined(_WIN32)
+#include "Core/HW/WiimoteReal/IOWin.h"
+#endif
+
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
@@ -17,34 +42,6 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QVariant>
-
-#include "Common/Config/Config.h"
-#include "Common/WorkQueueThread.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
-#include "Core/NetPlayProto.h"
-#include "Core/System.h"
-#include "Core/USBUtils.h"
-#include "Core/WiiUtils.h"
-
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
-#include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/USBDevicePicker.h"
-
-#if defined(_WIN32)
-#include "Core/HW//WiimoteReal/IOWin.h"
-#endif
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {

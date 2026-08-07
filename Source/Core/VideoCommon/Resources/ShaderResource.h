@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <atomic>
-#include <optional>
-
-#include "VideoCommon/Resources/Resource.h"
-
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/GXPipelineTypes.h"
+#include "VideoCommon/Resources/Resource.h"
 #include "VideoCommon/ShaderGenCommon.h"
+
+#include <atomic>
+#include <optional>
 
 namespace VideoCommon
 {

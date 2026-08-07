@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <string>
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <string>
 
 namespace ControllerEmu
 {

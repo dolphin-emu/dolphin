@@ -11,11 +11,7 @@
 #error AXVoice.h included without specifying version
 #endif
 
-#include <algorithm>
-#include <bit>
-#include <functional>
-#include <memory>
-
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DolphinAnalytics.h"
@@ -24,6 +20,10 @@
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <bit>
+#include <functional>
 
 namespace DSP::HLE
 {

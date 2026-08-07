@@ -3,14 +3,14 @@
 
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
-#include <cstring>
-
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
+
+#include <cstring>
 
 namespace IOS::HLE::NWC24
 {

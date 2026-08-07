@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Common/Flag.h"
+#include "VideoCommon/Assets/CustomAsset.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <list>
@@ -10,9 +13,6 @@
 #include <set>
 #include <thread>
 #include <vector>
-
-#include "Common/Flag.h"
-#include "VideoCommon/Assets/CustomAsset.h"
 
 namespace VideoCommon
 {

@@ -8,7 +8,6 @@
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Core/System.h"
-
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"

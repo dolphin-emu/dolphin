@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <concepts>
-#include <cstddef>
-#include <memory>
-#include <span>
-#include <string>
-
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 #include "Common/Swap.h"
 #include "Core/Debugger/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
+
+#include <concepts>
+#include <cstddef>
+#include <memory>
+#include <span>
+#include <string>
 
 namespace Core
 {

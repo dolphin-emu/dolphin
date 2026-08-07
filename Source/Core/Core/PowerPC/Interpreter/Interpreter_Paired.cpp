@@ -3,11 +3,11 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include <cmath>
-
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <cmath>
 
 // These "binary instructions" do not alter FPSCR.
 void Interpreter::ps_sel(Interpreter& interpreter, UGeckoInstruction inst)

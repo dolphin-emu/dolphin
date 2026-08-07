@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <functional>
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ShaderGenCommon.h"
+
+#include <functional>
 
 enum class APIType;
 

@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <memory>
-#include <mutex>
-#include <string>
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 #include <QComboBox>
 #include <QDialog>
 #include <QString>
 
-#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include <memory>
+#include <mutex>
+#include <string>
 
 class ControlReference;
 class MappingWindow;

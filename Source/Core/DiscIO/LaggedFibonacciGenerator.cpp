@@ -2,14 +2,14 @@
 
 #include "DiscIO/LaggedFibonacciGenerator.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
 
 namespace DiscIO
 {

@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
-#include <picojson.h>
-
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModFeature.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsTargetGroup.h"
+
+#include <picojson.h>
+
+#include <optional>
+#include <string>
+#include <vector>
 
 struct GraphicsModConfig
 {

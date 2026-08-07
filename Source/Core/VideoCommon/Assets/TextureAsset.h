@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <fmt/format.h>
-#include <picojson.h>
-
-#include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/RenderState.h"
+
+#include <fmt/format.h>
+#include <picojson.h>
 
 namespace VideoCommon
 {

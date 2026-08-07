@@ -3,10 +3,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-#include <algorithm>
-#include <array>
-#include <map>
-
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -19,6 +15,10 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <array>
+#include <map>
 
 namespace DSP::HLE
 {

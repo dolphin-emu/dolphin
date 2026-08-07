@@ -3,11 +3,12 @@
 
 #pragma once
 
-#include <array>
-#include <d3d12.h>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+#include <d3d12.h>
+
+#include <array>
 
 enum class ShaderAttrib : u32;
 

@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#include <chrono>
-#include <filesystem>
-#include <map>
-#include <mutex>
-#include <string>
 
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/Assets/Types.h"
 #include "VideoCommon/Assets/WatchableFilesystemAssetLibrary.h"
+
+#include <map>
+#include <mutex>
+#include <string>
 
 namespace VideoCommon
 {

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Core/PowerPC/JitCommon/JitCache.h"
+
+#include <vector>
 
 class JitBase;
 

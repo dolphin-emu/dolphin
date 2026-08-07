@@ -1,12 +1,13 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstdio>
-#include <thread>
+#include "DolphinNoGUI/Platform.h"
 
 #include "Core/Core.h"
 #include "Core/System.h"
-#include "DolphinNoGUI/Platform.h"
+
+#include <cstdio>
+#include <thread>
 
 namespace
 {

@@ -3,6 +3,15 @@
 
 #include "Core/PowerPC/Expression.h"
 
+#include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -23,15 +32,6 @@
 using std::isinf;
 using std::isnan;
 #include <expr.h>
-
-#include "Common/BitSet.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
 template <typename T>
 static T HostRead(const Core::CPUThreadGuard& guard, u32 address)

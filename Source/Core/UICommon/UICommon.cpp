@@ -3,19 +3,6 @@
 
 #include "UICommon/UICommon.h"
 
-#include <algorithm>
-#include <clocale>
-#include <cmath>
-#include <locale>
-#include <memory>
-#ifdef _WIN32
-#include <shlobj.h>  // for SHGetFolderPath
-
-#include <wil/resource.h>
-#endif
-
-#include <fmt/format.h>
-
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -23,7 +10,6 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -39,23 +25,31 @@
 #include "Core/IOS/STM/STM.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
-
 #include "UICommon/DiscordPresence.h"
-
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
-
 #ifdef HAVE_QTDBUS
 #include "UICommon/DBusUtils.h"
 #endif
 
-#ifdef __APPLE__
+#include <fmt/format.h>
+
+#ifdef _WIN32
+#include <shlobj.h>
+// shlobj needs to be included before wil/resource
+#include <wil/resource.h>
+#elifdef __APPLE__
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
+
+#include <algorithm>
+#include <clocale>
+#include <cmath>
+#include <locale>
+#include <memory>
 
 namespace UICommon
 {

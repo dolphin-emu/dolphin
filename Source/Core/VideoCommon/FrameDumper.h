@@ -6,11 +6,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/HookableEvent.h"
 #include "Common/MathUtil.h"
-#include "Common/Thread.h"
-
 #include "VideoCommon/FrameDumpFFMpeg.h"
-#include "VideoCommon/VideoEvents.h"
+
+#include <thread>
 
 class AbstractStagingTexture;
 class AbstractTexture;

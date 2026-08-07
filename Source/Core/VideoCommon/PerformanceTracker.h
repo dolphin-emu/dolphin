@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/SPSCQueue.h"
+
 #include <atomic>
 #include <deque>
 #include <fstream>
 #include <optional>
-
-#include "Common/CommonTypes.h"
-#include "Common/SPSCQueue.h"
 
 class PerformanceTracker
 {

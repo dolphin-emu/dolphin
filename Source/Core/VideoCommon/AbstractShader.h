@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include <cstddef>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
+
+#include <vector>
 
 // Note: not directly used in this file
 // but done here to avoid specifying in

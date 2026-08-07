@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QWidget>
-
 #include "Common/CommonTypes.h"
+
+#include <QWidget>
 
 class ConfigBool;
 template <typename T>

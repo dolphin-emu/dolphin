@@ -1,11 +1,11 @@
 // Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <jni.h>
-
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 #include "UICommon/UICommon.h"
+
+#include <jni.h>
 
 extern "C" {
 

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"

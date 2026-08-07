@@ -3,13 +3,13 @@
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 
-#include <cstddef>
-#include <string>
-
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
+
+#include <cstddef>
+#include <string>
 
 namespace Vulkan::ShaderCompiler
 {

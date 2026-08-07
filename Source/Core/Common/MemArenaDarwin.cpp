@@ -3,10 +3,10 @@
 
 #include "Common/MemArena.h"
 
-#include <unistd.h>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+
+#include <unistd.h>
 
 namespace Common
 {

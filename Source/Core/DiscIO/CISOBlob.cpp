@@ -3,12 +3,12 @@
 
 #include "DiscIO/CISOBlob.h"
 
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
+
 #include <algorithm>
 #include <memory>
 #include <utility>
-
-#include "Common/BitUtils.h"
-#include "Common/CommonTypes.h"
 
 namespace DiscIO
 {

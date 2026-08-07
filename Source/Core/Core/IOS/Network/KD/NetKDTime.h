@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
+
+#include <string>
 
 namespace IOS::HLE
 {

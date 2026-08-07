@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <QByteArray>
-#include <QDockWidget>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <QByteArray>
+#include <QDockWidget>
 
 class MemoryViewWidget;
 class QCheckBox;

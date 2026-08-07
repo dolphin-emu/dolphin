@@ -3,10 +3,10 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyGBA.h"
 
+#include "Core/HotkeyManager.h"
+
 #include <QGroupBox>
 #include <QHBoxLayout>
-
-#include "Core/HotkeyManager.h"
 
 HotkeyGBA::HotkeyGBA(MappingWindow* window) : MappingWidget(window)
 {

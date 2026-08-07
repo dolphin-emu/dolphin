@@ -3,17 +3,10 @@
 
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
-#include <algorithm>
-#include <numeric>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -33,6 +26,12 @@
 #include "Core/HW/Triforce/Touchscreen.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <numeric>
+#include <string>
 
 namespace
 {

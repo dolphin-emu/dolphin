@@ -3,11 +3,11 @@
 
 #include "DolphinQt/Config/ControllersPane.h"
 
-#include <QVBoxLayout>
-
 #include "DolphinQt/Config/CommonControllersWidget.h"
 #include "DolphinQt/Config/GamecubeControllersWidget.h"
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
+
+#include <QVBoxLayout>
 
 ControllersPane::ControllersPane()
 {

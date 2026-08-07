@@ -3,25 +3,23 @@
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QVBoxLayout>
-
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
-
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/Settings.h"
-
 #include "VideoCommon/VideoConfig.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QVBoxLayout>
 
 AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
 {

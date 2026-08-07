@@ -3,13 +3,12 @@
 
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 
-#include <cstring>
-
 #include "Common/Assert.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
+
+#include <cstring>
 
 namespace Vulkan
 {

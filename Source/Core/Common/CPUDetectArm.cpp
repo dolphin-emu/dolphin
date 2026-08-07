@@ -3,41 +3,40 @@
 
 #include "Common/CPUDetect.h"
 
-#include <cstring>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <thread>
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#ifdef _WIN32
+#include "Common/WindowsRegistry.h"
+#endif
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
-#elif defined(_WIN32)
+#elifdef _WIN32
 #include <windows.h>
 #include <arm64intr.h>
-#include "Common/WindowsRegistry.h"
-#elif defined(__linux__)
+#elifdef __linux__
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
-#elif defined(HAVE_ELF_AUX_INFO)
+#elif __has_include(<sys/auxv.h>)
 #include <sys/auxv.h>
-#elif defined(__OpenBSD__)
+#elifdef __OpenBSD__
 #include <machine/armreg.h>
 #include <machine/cpu.h>
-#endif
-
-#ifdef __OpenBSD__
 // clang-format off
 #include <sys/types.h>
 #include <sys/sysctl.h>
 // clang-format on
 #endif
 
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <thread>
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 
@@ -147,13 +146,13 @@ static bool Read_MIDR_EL1_Sysfs(u64* value)
 
 #endif
 
-#if defined(__linux__) || defined(HAVE_ELF_AUX_INFO)
+#if defined(__linux__) || __has_include(<sys/auxv.h>)
 
 static u32 ReadHwCap(u32 type)
 {
 #if defined(__linux__)
   return getauxval(type);
-#elif defined(HAVE_ELF_AUX_INFO)
+#elif __has_include(<sys/auxv.h>)
   u_long hwcap = 0;
   elf_aux_info(type, &hwcap, sizeof(hwcap));
   return hwcap;
@@ -194,7 +193,7 @@ static bool Read_MIDR_EL1(u64* value)
 
 #endif
 
-#if defined(_WIN32) || defined(__linux__) || defined(HAVE_ELF_AUX_INFO)
+#if defined(_WIN32) || defined(__linux__) || __has_include(<sys/auxv.h>)
 
 static std::string MIDRToString(u64 midr)
 {
@@ -259,7 +258,7 @@ void CPUInfo::Detect()
   {
     cpu_id = MIDRToString(reg);
   }
-#elif defined(__linux__) || defined(HAVE_ELF_AUX_INFO)
+#elif defined(__linux__) || __has_include(<sys/auxv.h>)
   // Linux, Android, FreeBSD and OpenBSD with elf_aux_info
 
 #if defined(__FreeBSD__)

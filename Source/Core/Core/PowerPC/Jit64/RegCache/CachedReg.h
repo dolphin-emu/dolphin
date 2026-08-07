@@ -3,13 +3,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <optional>
-
 #include "Common/Assert.h"
-#include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
+
+#include <cstddef>
 
 using preg_t = size_t;
 

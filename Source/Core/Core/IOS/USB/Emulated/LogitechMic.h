@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <atomic>
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Microphone.h"
+
+#include <atomic>
+#include <memory>
+#include <vector>
 
 namespace IOS::HLE::USB
 {

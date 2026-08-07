@@ -3,14 +3,13 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
-#include <optional>
-
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <optional>
 
 namespace ControllerEmu
 {

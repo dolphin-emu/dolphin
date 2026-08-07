@@ -3,32 +3,12 @@
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 
-#include <QAction>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QDesktopServices>
-#include <QDialogButtonBox>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QScreen>
-#include <QTabWidget>
-#include <QTimer>
-#include <QToolButton>
-#include <QUrl>
-#include <QVBoxLayout>
-
-#include "Core/HotkeyManager.h"
-
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
-
-#include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
-
+#include "Core/HotkeyManager.h"
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 #include "DolphinQt/Config/Mapping/GBAPadEmu.h"
@@ -59,11 +39,25 @@
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
-
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
+
+#include <QAction>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDesktopServices>
+#include <QDialogButtonBox>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QScreen>
+#include <QTabWidget>
+#include <QTimer>
+#include <QToolButton>
+#include <QUrl>
+#include <QVBoxLayout>
 
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)

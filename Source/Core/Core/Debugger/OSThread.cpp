@@ -3,9 +3,9 @@
 
 #include "Core/Debugger/OSThread.h"
 
-#include <fmt/format.h>
-
 #include "Core/PowerPC/MMU.h"
+
+#include <fmt/format.h>
 
 namespace Core::Debug
 {

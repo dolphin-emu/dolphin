@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <deque>
-#include <optional>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "DiscIO/Volume.h"
+
+#include <deque>
+#include <optional>
+#include <string>
 
 class CBoot;
 class PointerWrap;

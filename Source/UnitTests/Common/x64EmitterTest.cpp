@@ -1,9 +1,10 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
-#include <disasm.h>  // From Bochs, fallback included in Externals.
+#include <bochs/disasm.h>
 #include <gtest/gtest.h>
+
+#include <cstring>
 #include <memory>
 #include <vector>
 

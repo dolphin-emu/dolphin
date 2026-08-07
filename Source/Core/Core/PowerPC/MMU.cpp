@@ -25,25 +25,12 @@
 
 #include "Core/PowerPC/MMU.h"
 
-#include <algorithm>
-#include <bit>
-#include <cstddef>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <utility>
-
-#ifdef _M_X86_64
-#include <emmintrin.h>
-#endif
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -54,8 +41,19 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
 #include "VideoCommon/EFBInterface.h"
+
+#ifdef _M_X86_64
+#include <emmintrin.h>
+#endif
+
+#include <algorithm>
+#include <bit>
+#include <cstddef>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace PowerPC
 {

@@ -3,6 +3,17 @@
 
 #include "DolphinQt/Config/GraphicsModListWidget.h"
 
+#include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/System.h"
+#include "DolphinQt/Config/GraphicsModWarningWidget.h"
+#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
+#include "DolphinQt/Settings.h"
+#include "UICommon/GameFile.h"
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
+#include "VideoCommon/VideoConfig.h"
+
 #include <QCheckBox>
 #include <QDesktopServices>
 #include <QHBoxLayout>
@@ -14,17 +25,6 @@
 #include <QWidget>
 
 #include <set>
-
-#include "Common/FileUtil.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/System.h"
-#include "DolphinQt/Config/GraphicsModWarningWidget.h"
-#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
-#include "DolphinQt/Settings.h"
-#include "UICommon/GameFile.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
-#include "VideoCommon/VideoConfig.h"
 
 GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
     : m_game_id(game.GetGameID()), m_mod_group(m_game_id)

@@ -4,16 +4,15 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementLeaderboardWidget.h"
 
+#include "Common/CommonTypes.h"
+#include "Core/AchievementManager.h"
+#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
+
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QString>
 #include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
-#include "Core/AchievementManager.h"
-
-#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
 
 AchievementLeaderboardWidget::AchievementLeaderboardWidget(QWidget* parent) : QWidget(parent)
 {

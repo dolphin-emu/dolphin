@@ -3,17 +3,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
+#include "Common/DirectIOFile.h"
+#include "DiscIO/Blob.h"
+
 #include <array>
 #include <limits>
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/AES.h"
-#include "Common/DirectIOFile.h"
-#include "DiscIO/Blob.h"
 
 // This is the file format used for Wii games released on the Wii U eShop.
 

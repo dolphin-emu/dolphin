@@ -3,12 +3,7 @@
 
 #include "VideoCommon/Resources/MaterialResource.h"
 
-#include <utility>
-
-#include <xxh3.h>
-
 #include "Common/VariantUtil.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetCache.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
@@ -16,6 +11,10 @@
 #include "VideoCommon/PipelineUtils.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <xxh3.h>
+
+#include <utility>
 
 namespace
 {

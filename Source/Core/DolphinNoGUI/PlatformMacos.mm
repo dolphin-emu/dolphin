@@ -3,6 +3,7 @@
 
 #include "DolphinNoGUI/Platform.h"
 
+#include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -14,6 +15,7 @@
 #include <AppKit/AppKit.h>
 #include <Carbon/Carbon.h>
 #include <Foundation/Foundation.h>
+
 #include <array>
 #include <chrono>
 #include <climits>

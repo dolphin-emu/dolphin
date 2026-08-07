@@ -3,13 +3,6 @@
 
 #include "UICommon/AutoUpdate.h"
 
-#include <atomic>
-#include <cstdlib>
-#include <string>
-
-#include <fmt/format.h>
-#include <picojson.h>
-
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -17,22 +10,28 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
-
-#ifdef __APPLE__
-#include <sys/stat.h>
-#endif
-
 #if defined(_WIN32) || defined(__APPLE__)
 #define OS_SUPPORTS_UPDATER
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #endif
+
+#include <fmt/format.h>
+#include <picojson.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#ifdef __APPLE__
+#include <sys/stat.h>
+#endif
+#endif
+
+#include <atomic>
+#include <cstdlib>
+#include <string>
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 

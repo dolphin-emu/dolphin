@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+
+#include <memory>
 
 class AbstractTexture;
 class GLContext;

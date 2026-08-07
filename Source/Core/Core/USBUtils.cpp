@@ -3,6 +3,35 @@
 
 #include "Core/USBUtils.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
+#include "Core/LibusbUtils.h"
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#include "Common/WindowsDevice.h"
+#endif
+
+#include <fmt/format.h>
+#ifdef _WIN32
+#include <fmt/xchar.h>
+#endif
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+#ifdef HAVE_LIBUDEV
+#include <libudev.h>
+#endif
+
+#ifdef _WIN32
+#include <cfgmgr32.h>
+#include <devpkey.h>
+#include <initguid.h>
+// initguid.h must be included before usbiodef.h
+#include <usbiodef.h>
+#endif
+
 #include <array>
 #include <charconv>
 #include <cwchar>
@@ -12,32 +41,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <fmt/format.h>
-#ifdef HAVE_LIBUDEV
-#include <libudev.h>
-#endif
-#ifdef __LIBUSB__
-#include <libusb.h>
-#endif
-#ifdef _WIN32
-#include <cfgmgr32.h>
-#include <devpkey.h>
-#include <initguid.h>
-// initguid.h must be included before usbiodef.h
-#include <usbiodef.h>
-
-#include <fmt/xchar.h>
-
-#include "Common/StringUtil.h"
-#include "Common/WindowsDevice.h"
-#endif
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/ScopeGuard.h"
-#include "Core/LibusbUtils.h"
 
 // Device names for known Wii peripherals.
 static const std::map<USBUtils::DeviceInfo, std::string> s_known_devices{{

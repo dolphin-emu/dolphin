@@ -3,11 +3,6 @@
 
 #include "VideoCommon/VertexShaderManager.h"
 
-#include <array>
-#include <cmath>
-#include <cstring>
-#include <iterator>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -25,6 +20,11 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <iterator>
 
 void VertexShaderManager::Init()
 {

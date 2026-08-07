@@ -3,11 +3,6 @@
 
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 
-#include <cstring>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -25,6 +20,11 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
 #include "Core/IOS/USB/Bluetooth/l2cap.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <cstring>
+#include <utility>
 
 namespace IOS::HLE
 {

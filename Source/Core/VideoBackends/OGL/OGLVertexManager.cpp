@@ -3,21 +3,19 @@
 
 #include "VideoBackends/OGL/OGLVertexManager.h"
 
-#include <memory>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/GL/GLUtil.h"
-
 #include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
 
 namespace OGL
 {

@@ -3,15 +3,15 @@
 
 #include "Core/IOS/USB/OH0/OH0Device.h"
 
+#include "Common/ChunkFile.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/OH0/OH0.h"
+
 #include <memory>
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
-
-#include "Common/ChunkFile.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/OH0/OH0.h"
 
 namespace IOS::HLE
 {

@@ -3,14 +3,10 @@
 
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 
-#include <algorithm>
-#include <cstdint>
-
 #include "Common/Assert.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
@@ -20,6 +16,9 @@
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
 #endif
+
+#include <algorithm>
+#include <cstdint>
 
 namespace Vulkan
 {

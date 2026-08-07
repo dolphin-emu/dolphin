@@ -3,9 +3,6 @@
 
 #include "Core/IOS/DI/DI.h"
 
-#include <memory>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -22,6 +19,9 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/System.h"
 #include "DiscIO/Volume.h"
+
+#include <memory>
+#include <vector>
 
 constexpr u32 ADDRESS_DISR = 0x0D806000;
 constexpr u32 ADDRESS_DICVR = 0x0D806004;

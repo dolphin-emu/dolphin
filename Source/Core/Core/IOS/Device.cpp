@@ -3,16 +3,16 @@
 
 #include "Core/IOS/Device.h"
 
-#include <algorithm>
-#include <map>
-#include <utility>
-
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <map>
+#include <utility>
 
 namespace IOS::HLE
 {

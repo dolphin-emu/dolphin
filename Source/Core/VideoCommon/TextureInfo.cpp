@@ -3,11 +3,6 @@
 
 #include "VideoCommon/TextureInfo.h"
 
-#include <span>
-
-#include <fmt/format.h>
-#include <xxhash.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -16,6 +11,11 @@
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
+
+#include <fmt/format.h>
+#include <xxhash.h>
+
+#include <span>
 
 TextureInfo TextureInfo::FromStage(u32 stage)
 {

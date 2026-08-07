@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/Inline.h"
 #include "Common/Swap.h"
+
+#include <cstring>
 
 extern const u8* g_video_buffer_read_ptr;
 extern u8* g_vertex_manager_write_ptr;

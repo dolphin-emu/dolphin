@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+#include <optional>
+#include <string>
 
 class GraphicsModWarningWidget;
 class QHBoxLayout;

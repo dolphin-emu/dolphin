@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "Common/Flag.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -13,10 +17,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
 
 namespace VideoCommon
 {

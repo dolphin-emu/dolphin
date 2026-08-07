@@ -1,15 +1,16 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+
 #include <jni.h>
 
 #include <set>
 #include <vector>
-
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
-#include "jni/AndroidCommon/AndroidCommon.h"
-#include "jni/AndroidCommon/IDCache.h"
 
 static GraphicsModGroupConfig* GetPointer(JNIEnv* env, jobject obj)
 {

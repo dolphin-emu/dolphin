@@ -5,11 +5,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2022 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
-#include <jni.h>
-
-#include <utility>
-
 #include "Common/IniFile.h"
+#include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -17,10 +15,10 @@
 #include <fcntl.h>
 #include <jni.h>
 #include <unistd.h>
-#include "adrenotools/driver.h"
 
-#include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoBackends/Vulkan/VulkanLoader.h"
+#include <utility>
+
+#include "adrenotools/driver.h"
 
 extern "C" {
 

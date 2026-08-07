@@ -23,14 +23,10 @@
 
 #include "Core/HW/DSP.h"
 
-#include <memory>
-
 #include "AudioCommon/AudioCommon.h"
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
-
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/HW/HSP/HSP.h"
@@ -39,6 +35,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#include <memory>
 
 namespace DSP
 {

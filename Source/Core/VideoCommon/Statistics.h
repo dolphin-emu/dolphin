@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "VideoCommon/BPFunctions.h"
+
 #include <array>
 #include <vector>
-
-#include "VideoCommon/BPFunctions.h"
 
 struct Statistics
 {

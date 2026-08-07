@@ -3,16 +3,16 @@
 
 #include "Core/NetPlayCommon.h"
 
-#include <algorithm>
-
-#include <fmt/format.h>
-#include <lzo/lzo1x.h>
-
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
+
+#include <fmt/format.h>
+#include <lzo/lzo1x.h>
+
+#include <algorithm>
 
 namespace NetPlay
 {

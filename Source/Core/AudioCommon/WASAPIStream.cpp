@@ -5,18 +5,6 @@
 
 #ifdef _WIN32
 
-// clang-format off
-#include <initguid.h>
-#include <audioclient.h>
-#include <mmdeviceapi.h>
-#include <functiondiscoverykeys_devpkey.h>
-#include <wil/resource.h>
-// clang-format on
-
-#include <thread>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
@@ -24,6 +12,18 @@
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <fmt/format.h>
+#include <wil/resource.h>
+
+// clang-format off
+#include <initguid.h>
+#include <audioclient.h>
+#include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
+// clang-format on
+
+#include <thread>
 
 using Microsoft::WRL::ComPtr;
 

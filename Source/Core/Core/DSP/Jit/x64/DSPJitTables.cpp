@@ -3,11 +3,11 @@
 
 #include "Core/DSP/Jit/x64/DSPJitTables.h"
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
+
+#include <array>
 
 namespace DSP::JIT::x64
 {

@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Core/HW/EXI/EXI_Device.h"
+
 #include <string>
 #include <vector>
-
-#include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
 

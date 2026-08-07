@@ -3,11 +3,10 @@
 
 #pragma once
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <map>
 #include <string>
-#include <vector>
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Pipes
 {

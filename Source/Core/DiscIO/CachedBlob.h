@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "DiscIO/Blob.h"
+
+#include <memory>
 
 namespace DiscIO
 {

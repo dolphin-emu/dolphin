@@ -3,20 +3,6 @@
 
 #include "DiscIO/VolumeVerifier.h"
 
-#include <algorithm>
-#include <future>
-#include <memory>
-#include <optional>
-#include <string>
-#include <string_view>
-
-#include <mbedtls/md5.h>
-#include <mz.h>
-#include <mz_strm.h>
-#include <mz_zip.h>
-#include <mz_zip_rw.h>
-#include <pugixml.hpp>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
@@ -47,6 +33,20 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
+
+#include <mbedtls/md5.h>
+#include <mz.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
+#include <pugixml.hpp>
+
+#include <algorithm>
+#include <future>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
 
 namespace DiscIO
 {

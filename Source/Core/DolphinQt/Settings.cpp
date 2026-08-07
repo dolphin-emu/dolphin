@@ -3,8 +3,23 @@
 
 #include "DolphinQt/Settings.h"
 
-#include <atomic>
-#include <memory>
+#include "AudioCommon/AudioCommon.h"
+#include "Common/Config/Config.h"
+#include "Common/Contains.h"
+#include "Common/FileUtil.h"
+#include "Core/AchievementManager.h"
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/IOS/IOS.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+#include "Core/System.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
 
 #include <QApplication>
 #include <QColor>
@@ -20,28 +35,8 @@
 #include <QThread>
 #include <QWidget>
 
-#include "AudioCommon/AudioCommon.h"
-
-#include "Common/Config/Config.h"
-#include "Common/Contains.h"
-#include "Common/FileUtil.h"
-
-#include "Core/AchievementManager.h"
-#include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/IOS/IOS.h"
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-#include "Core/System.h"
-
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
-#include "VideoCommon/NetPlayChatUI.h"
-#include "VideoCommon/NetPlayGolfUI.h"
+#include <atomic>
+#include <memory>
 
 static std::unique_ptr<QPalette> s_default_palette;
 

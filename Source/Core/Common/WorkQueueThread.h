@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/Event.h"
+#include "Common/SPSCQueue.h"
+#include "Common/Thread.h"
+
 #include <functional>
 #include <future>
 #include <mutex>
 #include <string>
 #include <thread>
-
-#include "Common/Event.h"
-#include "Common/SPSCQueue.h"
-#include "Common/Thread.h"
 
 namespace Common
 {

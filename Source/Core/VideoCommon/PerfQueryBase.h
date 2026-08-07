@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <atomic>
 #include <memory>
-
-#include "Common/CommonTypes.h"
 
 enum PerfQueryType
 {

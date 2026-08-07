@@ -5,7 +5,6 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-
 #include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLStateTracker.h"
 

@@ -3,13 +3,12 @@
 
 #pragma once
 
-#include <cstdint>
-#include <map>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
+
+#include <map>
+#include <string>
 
 class PointerWrap;
 

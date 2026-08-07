@@ -3,14 +3,6 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <fmt/format.h>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <utility>
-#include <xxhash.h>
-
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -22,6 +14,18 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+#include <xxhash.h>
+
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 constexpr std::string_view s_format_prefix{"tex1_"};
 

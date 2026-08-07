@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <mutex>
-#include <string>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/Config/Enums.h"
 #include "Common/Mutex.h"
 #include "Common/TypeUtils.h"
+
+#include <mutex>
+#include <string>
+#include <utility>
 
 namespace Config
 {

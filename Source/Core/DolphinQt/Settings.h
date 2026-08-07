@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <memory>
+#include "Common/Config/Config.h"
+#include "Common/HookableEvent.h"
+#include "Core/Config/MainSettings.h"
+#include "DiscIO/Enums.h"
 
 #include <QFont>
 #include <QObject>
 #include <QRadioButton>
 #include <QSettings>
 
-#include "Common/Config/Config.h"
-#include "Common/HookableEvent.h"
-#include "Core/Config/MainSettings.h"
-#include "DiscIO/Enums.h"
+#include <memory>
 
 namespace Core
 {

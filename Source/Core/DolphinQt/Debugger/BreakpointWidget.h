@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <optional>
+#include "Common/CommonTypes.h"
 
 #include <QDockWidget>
 #include <QString>
 
-#include "Common/CommonTypes.h"
+#include <optional>
 
 class QAction;
 class QCloseEvent;

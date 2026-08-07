@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common/Arm64Emitter.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+
+#include <vector>
 
 class JitBase;
 

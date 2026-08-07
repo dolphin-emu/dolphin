@@ -3,18 +3,17 @@
 
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 
+#include "DolphinQt/Config/Mapping/IOWindow.h"
+#include "DolphinQt/Config/Mapping/MappingWidget.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMouseEvent>
 #include <QString>
-
-#include "DolphinQt/Config/Mapping/IOWindow.h"
-#include "DolphinQt/Config/Mapping/MappingWidget.h"
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
 

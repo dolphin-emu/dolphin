@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <optional>
+#include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
 
 #include <QString>
 
-#include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
+#include <optional>
 
 class QEnterEvent;
 class QEvent;

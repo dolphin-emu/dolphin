@@ -3,14 +3,6 @@
 
 #include "Core/IOS/FS/FileSystemProxy.h"
 
-#include <algorithm>
-#include <cstring>
-#include <expected>
-#include <string_view>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
@@ -18,6 +10,14 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstring>
+#include <expected>
+#include <string_view>
+#include <utility>
 
 namespace IOS::HLE
 {

@@ -3,15 +3,8 @@
 
 #include "DolphinQt/Config/PropertiesDialog.h"
 
-#include <memory>
-
-#include <QDialogButtonBox>
-#include <QPushButton>
-#include <QVBoxLayout>
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/FilesystemWidget.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
@@ -21,8 +14,13 @@
 #include "DolphinQt/Config/PatchesWidget.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
-
 #include "UICommon/GameFile.h"
+
+#include <QDialogButtonBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+
+#include <memory>
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
     : StackedSettingsWindow{parent}, m_filepath(game.GetFilePath())

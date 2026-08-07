@@ -3,14 +3,15 @@
 
 #pragma once
 
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardBase.h"
+
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
 
 class PointerWrap;
 

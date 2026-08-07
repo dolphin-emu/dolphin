@@ -3,6 +3,9 @@
 
 #include "Common/IniFile.h"
 
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
@@ -11,9 +14,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {

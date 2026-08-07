@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <cmath>
-#include <memory>
-
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <cmath>
+#include <memory>
 
 namespace ControllerEmu
 {

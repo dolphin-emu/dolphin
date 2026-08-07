@@ -3,24 +3,21 @@
 
 #include "DolphinQt/Settings/TriforcePane.h"
 
+#include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/DVD/AMMediaboard.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QVBoxLayout>
-
 #include <fmt/format.h>
 #include <fmt/ranges.h>
-
-#include "Common/Logging/Log.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/HW/DVD/AMMediaboard.h"
-
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/QtUtils.h"
 
 namespace
 {

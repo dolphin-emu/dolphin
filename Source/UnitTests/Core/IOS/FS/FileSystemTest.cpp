@@ -1,19 +1,20 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/FS/FileSystem.h"
+
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Core/IOS/IOS.h"
+#include "UICommon/UICommon.h"
+
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <array>
 #include <memory>
 #include <optional>
 #include <string>
-
-#include <gtest/gtest.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Core/IOS/FS/FileSystem.h"
-#include "Core/IOS/IOS.h"
-#include "UICommon/UICommon.h"
 
 using namespace IOS::HLE::FS;
 

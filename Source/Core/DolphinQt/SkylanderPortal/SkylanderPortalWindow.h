@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <array>
-#include <optional>
+#include "Core/Core.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
 #include <QBrush>
 #include <QFrame>
@@ -13,9 +14,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Core.h"
-#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
-#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
+#include <array>
+#include <optional>
 
 class QCheckBox;
 class QGroupBox;

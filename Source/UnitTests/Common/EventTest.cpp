@@ -1,10 +1,11 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <gtest/gtest.h>
-#include <thread>
-
 #include "Common/Event.h"
+
+#include <gtest/gtest.h>
+
+#include <thread>
 
 using Common::Event;
 

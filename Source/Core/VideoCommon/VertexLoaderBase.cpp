@@ -3,18 +3,9 @@
 
 #include "VideoCommon/VertexLoaderBase.h"
 
-#include <array>
-#include <bit>
-#include <cstring>
-#include <memory>
-#include <vector>
-
-#include <fmt/ranges.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoader_Color.h"
@@ -22,12 +13,19 @@
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VideoConfig.h"
-
 #ifdef _M_X86_64
 #include "VideoCommon/VertexLoaderX64.h"
 #elif defined(_M_ARM_64)
 #include "VideoCommon/VertexLoaderARM64.h"
 #endif
+
+#include <fmt/ranges.h>
+
+#include <array>
+#include <bit>
+#include <cstring>
+#include <memory>
+#include <vector>
 
 // a hacky implementation to compare two vertex loaders
 class VertexLoaderTester : public VertexLoaderBase

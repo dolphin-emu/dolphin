@@ -1,19 +1,20 @@
 // Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <android/log.h>
-
-#include <fmt/format.h>
+#include "jni/NetPlay/NetPlayUICallbacks.h"
 
 #include "Common/TraversalClient.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
 #include "Core/System.h"
-#include "NetPlayUICallbacks.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+
+#include <fmt/format.h>
+
+#include <android/log.h>
 
 namespace
 {

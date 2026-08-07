@@ -3,17 +3,16 @@
 
 #include "VideoCommon/Spirv.h"
 
-#include <fstream>
-
-#include <glslang/SPIRV/GlslangToSpv.h>
-
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Version.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <glslang/SPIRV/GlslangToSpv.h>
+
+#include <fstream>
 
 namespace
 {

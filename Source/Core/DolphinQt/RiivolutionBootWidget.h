@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
+#include "Common/CommonTypes.h"
+#include "DiscIO/RiivolutionParser.h"
 
 #include <QDialog>
 
-#include "Common/CommonTypes.h"
-#include "DiscIO/RiivolutionParser.h"
+#include <optional>
+#include <string>
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;

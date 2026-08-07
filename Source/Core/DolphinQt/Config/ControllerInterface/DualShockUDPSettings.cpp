@@ -3,11 +3,11 @@
 
 #include "DualShockUDPSettings.h"
 
-#include <fmt/format.h>
-
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
+
+#include <fmt/format.h>
 
 namespace
 {

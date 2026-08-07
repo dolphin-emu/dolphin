@@ -3,10 +3,10 @@
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreterEmitter.h"
 
+#include "Common/Assert.h"
+
 #include <algorithm>
 #include <cstring>
-
-#include "Common/Assert.h"
 
 void CachedInterpreterEmitter::Write(AnyCallback callback, const void* operands, std::size_t size)
 {

@@ -3,20 +3,18 @@
 
 #include "DolphinTool/ExtractCommand.h"
 
-#include <filesystem>
-#include <iostream>
-
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-
-#include <OptionParser.h>
-
 #include "Common/FileUtil.h"
-
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+
+#include <cpp-optparse/OptionParser.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#include <filesystem>
+#include <iostream>
 
 namespace DolphinTool
 {

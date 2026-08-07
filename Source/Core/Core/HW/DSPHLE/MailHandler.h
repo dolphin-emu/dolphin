@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <deque>
 #include <utility>
-
-#include "Common/CommonTypes.h"
 
 namespace DSP
 {

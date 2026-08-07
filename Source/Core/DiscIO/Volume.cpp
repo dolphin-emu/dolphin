@@ -3,6 +3,20 @@
 
 #include "DiscIO/Volume.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/IOS/ES/Formats.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/CachedBlob.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/VolumeDisc.h"
+#include "DiscIO/VolumeGC.h"
+#include "DiscIO/VolumeWad.h"
+#include "DiscIO/VolumeWii.h"
+
 #include <cstring>
 #include <functional>
 #include <map>
@@ -13,22 +27,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/StringUtil.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/IOS/ES/Formats.h"
-
-#include "DiscIO/Blob.h"
-#include "DiscIO/CachedBlob.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/VolumeDisc.h"
-#include "DiscIO/VolumeGC.h"
-#include "DiscIO/VolumeWad.h"
-#include "DiscIO/VolumeWii.h"
 
 namespace DiscIO
 {

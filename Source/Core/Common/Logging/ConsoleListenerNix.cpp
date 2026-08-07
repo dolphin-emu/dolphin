@@ -3,14 +3,14 @@
 
 #include "Common/Logging/ConsoleListener.h"
 
-#include <cstdio>
-#include <cstring>
+#include "Common/Logging/Log.h"
 
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
-#include "Common/Logging/Log.h"
+#include <cstdio>
+#include <cstring>
 
 ConsoleListener::ConsoleListener()
 {

@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <functional>
+#include "Common/CommonTypes.h"
+#include "DolphinQt/Debugger/RegisterColumn.h"
 
 #include <QDockWidget>
 
-#include "Common/CommonTypes.h"
-#include "DolphinQt/Debugger/RegisterColumn.h"
+#include <functional>
 
 class QTableWidget;
 class QCloseEvent;

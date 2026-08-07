@@ -3,22 +3,11 @@
 
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 
-#include <array>
-#include <cmath>
-#include <numbers>
-
-#include <fmt/format.h>
-
-#include <QAction>
-#include <QDateTime>
-#include <QEasingCurve>
-#include <QPainter>
-#include <QPainterPath>
-
 #include "Common/MathUtil.h"
-
 #include "Core/HW/WiimoteEmu/Camera.h"
-
+#include "DolphinQt/Config/Mapping/MappingWidget.h"
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Settings.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
@@ -27,9 +16,16 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
 
-#include "DolphinQt/Config/Mapping/MappingWidget.h"
-#include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/Settings.h"
+#include <QAction>
+#include <QDateTime>
+#include <QEasingCurve>
+#include <QPainter>
+#include <QPainterPath>
+#include <fmt/format.h>
+
+#include <array>
+#include <cmath>
+#include <numbers>
 
 namespace
 {

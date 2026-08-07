@@ -3,15 +3,12 @@
 
 #pragma once
 
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
 
 namespace Vulkan
 {

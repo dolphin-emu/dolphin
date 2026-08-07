@@ -4,11 +4,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
-
 #include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexShaderGen.h"
 

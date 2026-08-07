@@ -3,9 +3,6 @@
 
 #include "Core/PowerPC/Jit64/JitAsm.h"
 
-#include <climits>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -17,6 +14,9 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/System.h"
+
+#include <climits>
+#include <utility>
 
 using namespace Gen;
 

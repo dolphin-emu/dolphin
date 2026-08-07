@@ -3,16 +3,6 @@
 
 #include "DiscIO/DirectoryBlob.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <utility>
-#include <variant>
-#include <vector>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -27,6 +17,16 @@
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
+
+#include <algorithm>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace DiscIO
 {

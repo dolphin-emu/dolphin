@@ -3,10 +3,10 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <array>
-
 #include "Common/Assert.h"
 #include "Core/PowerPC/Gekko.h"
+
+#include <array>
 
 namespace
 {

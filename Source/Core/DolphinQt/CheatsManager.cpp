@@ -3,25 +3,22 @@
 
 #include "DolphinQt/CheatsManager.h"
 
-#include <QDialogButtonBox>
-#include <QVBoxLayout>
-
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
-
-#include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
-
 #include "DolphinQt/CheatSearchFactoryWidget.h"
 #include "DolphinQt/CheatSearchWidget.h"
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/QtUtils/PartiallyClosableTabWidget.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
-
 #include "VideoCommon/VideoEvents.h"
+
+#include <QDialogButtonBox>
+#include <QVBoxLayout>
 
 CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
     : QDialog(parent), m_system(system)

@@ -3,23 +3,15 @@
 
 #include "VideoCommon/BPStructs.h"
 
-#include <algorithm>
-#include <cstring>
-#include <string>
-
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
-
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
@@ -40,6 +32,12 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFStateManager.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <cstring>
+#include <string>
 
 using namespace BPFunctions;
 

@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Core/GeckoCode.h"
+
 #include <expected>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Core/GeckoCode.h"
 
 namespace Common
 {

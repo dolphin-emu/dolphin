@@ -3,11 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 
-#include <algorithm>
-
 #include "Common/Common.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+
+#include <algorithm>
 
 namespace ControllerEmu
 {

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
+
+#include <string>
 
 namespace Core
 {

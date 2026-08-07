@@ -3,25 +3,10 @@
 
 #include "DolphinQt/MenuBar.h"
 
-#include <future>
-
-#include <QAction>
-#include <QActionGroup>
-#include <QDesktopServices>
-#include <QDirIterator>
-#include <QFileDialog>
-#include <QFontDialog>
-#include <QInputDialog>
-#include <QMap>
-#include <QUrl>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-
 #include "Core/AchievementManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
@@ -47,29 +32,38 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
-
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
-
 #include "DolphinQt/Host.h"
 #include "DolphinQt/NANDRepairDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#endif
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
-
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include "DolphinQt/QtUtils/QueueOnObject.h"
+#endif
 
+#include <QAction>
+#include <QActionGroup>
+#include <QDesktopServices>
+#include <QDirIterator>
+#include <QFileDialog>
+#include <QFontDialog>
+#include <QInputDialog>
+#include <QMap>
+#include <QUrl>
+#include <fmt/format.h>
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
 #include <rcheevos/include/rc_client_raintegration.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
+#include <future>
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 

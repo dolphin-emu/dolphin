@@ -2,17 +2,17 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/ENet.h"
+#include "Common/TraversalProto.h"
+
+#include <enet/enet.h>
+
 #include <cstddef>
 #include <list>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include <enet/enet.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/ENet.h"
-#include "Common/TraversalProto.h"
 
 namespace Common
 {

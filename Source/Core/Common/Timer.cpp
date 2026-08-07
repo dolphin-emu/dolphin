@@ -3,17 +3,17 @@
 
 #include "Common/Timer.h"
 
-#include <chrono>
-#include <thread>
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #include <timeapi.h>
 #endif
 
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
+#include <chrono>
+#include <thread>
 
 namespace Common
 {

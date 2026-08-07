@@ -3,30 +3,29 @@
 
 #include "Common/FatFsUtil.h"
 
-#include <algorithm>
-#include <cstdlib>
-#include <mutex>
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include <fmt/format.h>
-
-// Does not compile if diskio.h is included first.
-// clang-format off
-#include "ff.h"
-#include "diskio.h"
-// clang-format on
-
 #include "Common/Align.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/TimeUtil.h"
-
 #include "Core/Config/MainSettings.h"
+
+#include <fmt/format.h>
+// Does not compile if diskio.h is included first.
+// clang-format off
+#include <FatFs/ff.h>
+#include <FatFs/diskio.h>
+// clang-format on
+
+#include <algorithm>
+#include <cstdlib>
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <vector>
 
 enum : u32
 {

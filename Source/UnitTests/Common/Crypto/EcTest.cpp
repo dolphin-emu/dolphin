@@ -1,12 +1,14 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <array>
+#include "Common/Crypto/ec.h"
+
+#include "Core/IOS/ES/Formats.h"
+
 #include <gtest/gtest.h>
 
-#include "Common/Crypto/ec.h"
-#include "Core/IOS/ES/Formats.h"
+#include <algorithm>
+#include <array>
 
 constexpr std::array<u8, 30> PRIVATE_KEY{{0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9,
                                           0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9,

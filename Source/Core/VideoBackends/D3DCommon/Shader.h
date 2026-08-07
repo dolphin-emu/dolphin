@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include <optional>
-#include <string_view>
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/AbstractShader.h"
+
+#include <optional>
+#include <string_view>
 
 namespace D3DCommon
 {

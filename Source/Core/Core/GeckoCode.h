@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <span>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 class PointerWrap;
 

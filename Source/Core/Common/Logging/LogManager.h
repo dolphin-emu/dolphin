@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <cstdarg>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
+
+#include <array>
+#include <atomic>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Common::Log
 {

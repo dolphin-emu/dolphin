@@ -3,9 +3,8 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "Core/DSP/Interpreter/DSPInterpreter.h"
-
 #include "Common/CommonTypes.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 namespace DSP::Interpreter
 {

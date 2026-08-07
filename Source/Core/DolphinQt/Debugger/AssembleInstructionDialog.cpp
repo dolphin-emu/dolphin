@@ -3,15 +3,15 @@
 
 #include "DolphinQt/Debugger/AssembleInstructionDialog.h"
 
+#include "Common/Assembler/GekkoAssembler.h"
+#include "Common/StringUtil.h"
+
 #include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include "Common/Assembler/GekkoAssembler.h"
-#include "Common/StringUtil.h"
 
 namespace
 {

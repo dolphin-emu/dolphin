@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <dxgi1_5.h>
-#include <wrl/client.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <dxgi1_5.h>
+#include <wrl/client.h>
 
 namespace D3DCommon
 {

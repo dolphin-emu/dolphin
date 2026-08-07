@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <fmt/format.h>
 
 #include <functional>
 #include <memory>
 #include <optional>
 #include <utility>
-
-#include "Common/CommonTypes.h"
 
 struct libusb_config_descriptor;
 struct libusb_context;

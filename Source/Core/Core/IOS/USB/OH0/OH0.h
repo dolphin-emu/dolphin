@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/USB/Host.h"
+
 #include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
 #include <utility>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/USB/Host.h"
 
 class PointerWrap;
 

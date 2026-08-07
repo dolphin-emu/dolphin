@@ -3,16 +3,16 @@
 
 #include "Core/Boot/DolReader.h"
 
-#include <cstring>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "Common/IOFile.h"
 #include "Common/Swap.h"
 #include "Core/Boot/AncastTypes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <cstring>
+#include <string>
+#include <utility>
+#include <vector>
 
 DolReader::DolReader(std::vector<u8> buffer) : BootExecutableReader(std::move(buffer))
 {

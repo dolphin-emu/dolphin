@@ -3,13 +3,9 @@
 
 #include "VideoCommon/VideoConfig.h"
 
-#include <algorithm>
-#include <optional>
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
-
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -17,7 +13,6 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -32,6 +27,9 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/XFMemory.h"
+
+#include <algorithm>
+#include <optional>
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;

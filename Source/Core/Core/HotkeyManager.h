@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
+
+#include <array>
+#include <string>
 
 namespace ControllerEmu
 {

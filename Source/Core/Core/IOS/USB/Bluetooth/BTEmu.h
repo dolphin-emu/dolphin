@@ -3,12 +3,6 @@
 
 #pragma once
 
-#include <cstddef>
-#include <deque>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/Device.h"
@@ -17,6 +11,11 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/IOS/USB/USBV0.h"
+
+#include <cstddef>
+#include <deque>
+#include <memory>
+#include <string>
 
 class PointerWrap;
 

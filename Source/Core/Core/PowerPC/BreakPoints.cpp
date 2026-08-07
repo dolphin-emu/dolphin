@@ -3,13 +3,6 @@
 
 #include "Core/PowerPC/BreakPoints.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <optional>
-#include <sstream>
-#include <string>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -20,6 +13,13 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
 BreakPoints::BreakPoints(Core::System& system) : m_system(system)
 {

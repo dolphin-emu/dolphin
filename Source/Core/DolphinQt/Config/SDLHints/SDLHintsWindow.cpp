@@ -4,9 +4,7 @@
 #include "DolphinQt/Config/SDLHints/SDLHintsWindow.h"
 
 #include "Common/Config/Config.h"
-
 #include "Core/Config/MainSettings.h"
-
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"

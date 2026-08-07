@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #ifdef HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
 #include <X11/Xlib.h>
+
+#include <string>
+#include <vector>
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec

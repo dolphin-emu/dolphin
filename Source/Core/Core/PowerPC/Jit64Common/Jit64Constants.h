@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include "Common/x64Reg.h"
+
+#include <cstddef>
 
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.

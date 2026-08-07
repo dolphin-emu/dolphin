@@ -3,11 +3,11 @@
 
 #include "Common/GL/GLInterface/BGL.h"
 
+#include "Common/Assert.h"
+
 #include <GLView.h>
 #include <Size.h>
 #include <Window.h>
-
-#include "Common/Assert.h"
 
 BGLView* GLContextBGL::s_current = nullptr;
 

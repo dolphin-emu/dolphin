@@ -3,10 +3,10 @@
 
 #include "AudioCommon/AlsaSoundStream.h"
 
-#include <mutex>
-
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
+
+#include <mutex>
 
 AlsaSound::AlsaSound()
     : m_thread_status(ALSAThreadStatus::STOPPED), handle(nullptr),

@@ -4,6 +4,14 @@
 
 #include "Core/DSP/DSPAssembler.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
+#include "Core/DSP/DSPTables.h"
+
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
@@ -14,15 +22,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-
-#include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPDisassembler.h"
-#include "Core/DSP/DSPTables.h"
 
 template <>
 struct fmt::formatter<DSP::DSPAssembler::LocationContext>

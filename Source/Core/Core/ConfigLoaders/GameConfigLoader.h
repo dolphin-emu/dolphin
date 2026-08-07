@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 namespace Config
 {

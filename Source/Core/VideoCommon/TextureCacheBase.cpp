@@ -3,20 +3,6 @@
 
 #include "VideoCommon/TextureCacheBase.h"
 
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-#if defined(_M_X86_64)
-#include <pmmintrin.h>
-#endif
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -26,14 +12,12 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
-
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
@@ -47,7 +31,7 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/Resources/CustomResourceManager.h"
+#include "VideoCommon/Resources/TextureDataResource.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -57,6 +41,21 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <fmt/format.h>
+
+#if defined(_M_X86_64)
+#include <pmmintrin.h>
+#endif
+
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 static const u64 TEXHASH_INVALID = 0;
 // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation

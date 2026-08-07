@@ -3,16 +3,15 @@
 
 #include "VideoCommon/TextureUtils.h"
 
-#include <fmt/format.h>
-
+#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
-
 #include "VideoCommon/AbstractTexture.h"
+
+#include <fmt/format.h>
 
 namespace
 {

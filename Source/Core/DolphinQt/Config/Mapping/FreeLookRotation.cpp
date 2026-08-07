@@ -3,15 +3,15 @@
 
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 
+#include "Core/FreeLookManager.h"
+#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "InputCommon/InputConfig.h"
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-
-#include "Core/FreeLookManager.h"
-#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
-#include "InputCommon/InputConfig.h"
 
 FreeLookRotation::FreeLookRotation(MappingWindow* window) : MappingWidget(window)
 {

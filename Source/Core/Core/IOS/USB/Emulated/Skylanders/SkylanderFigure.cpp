@@ -3,14 +3,6 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
-#include <array>
-#include <cstring>
-#include <span>
-#include <string>
-
-#include <mbedtls/aes.h>
-#include <mbedtls/md5.h>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -19,6 +11,14 @@
 #include "Common/StringUtil.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
+
+#include <mbedtls/aes.h>
+#include <mbedtls/md5.h>
+
+#include <array>
+#include <cstring>
+#include <span>
+#include <string>
 
 using namespace IOS::HLE::USB::SkylanderCrypto;
 

@@ -4,16 +4,16 @@
 #pragma once
 
 #if defined(__LIBUSB__)
+#include "Common/CommonTypes.h"
+#include "Core/IOS/USB/Common.h"
+#include "Core/LibusbUtils.h"
+
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Core/IOS/USB/Common.h"
-#include "Core/LibusbUtils.h"
 
 struct libusb_device;
 struct libusb_device_descriptor;

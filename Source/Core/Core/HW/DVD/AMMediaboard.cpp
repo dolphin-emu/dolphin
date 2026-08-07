@@ -3,21 +3,12 @@
 
 #include "Core/HW/DVD/AMMediaboard.h"
 
-#include <algorithm>
-#include <bit>
-#include <random>
-#include <string>
-#include <unordered_map>
-
-#include <fmt/format.h>
-
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -28,16 +19,23 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
 #include "DiscIO/CachedBlob.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
+#include <bit>
+#include <random>
+#include <string>
+#include <unordered_map>
 
 #if defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or     \
     defined(__HAIKU__)
 
-#include <unistd.h>
-
 #include "Common/UnixUtil.h"
+
+#include <unistd.h>
 
 static constexpr auto* closesocket = close;
 static auto ioctlsocket(auto... args)

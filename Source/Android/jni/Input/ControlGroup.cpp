@@ -3,8 +3,6 @@
 
 #include "jni/Input/ControlGroup.h"
 
-#include <jni.h>
-
 #include "Common/MsgHandler.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -12,6 +10,8 @@
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Input/Control.h"
 #include "jni/Input/NumericSetting.h"
+
+#include <jni.h>
 
 static ControllerEmu::ControlGroup* GetPointer(JNIEnv* env, jobject obj)
 {

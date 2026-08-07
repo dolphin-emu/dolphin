@@ -3,6 +3,10 @@
 
 #include "DolphinQt/NKitWarningDialog.h"
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
+#include "DolphinQt/Resources.h"
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QHBoxLayout>
@@ -11,10 +15,6 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QVBoxLayout>
-
-#include "Common/Config/Config.h"
-#include "Core/Config/MainSettings.h"
-#include "DolphinQt/Resources.h"
 
 bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
 {

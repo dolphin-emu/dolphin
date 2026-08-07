@@ -3,14 +3,13 @@
 
 #include "VideoBackends/OGL/OGLShader.h"
 
-#include <algorithm>
-#include <cctype>
-
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-
 #include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <cctype>
 
 namespace OGL
 {

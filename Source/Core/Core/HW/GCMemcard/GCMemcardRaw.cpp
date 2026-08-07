@@ -3,16 +3,6 @@
 
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
 
-#include <chrono>
-#include <cstring>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <utility>
-
-#include <fmt/format.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -22,7 +12,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -31,6 +20,16 @@
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/Sram.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <chrono>
+#include <cstring>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
 
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000

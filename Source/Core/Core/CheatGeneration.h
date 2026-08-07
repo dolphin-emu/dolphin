@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <expected>
-
 #include "Core/ActionReplay.h"
+
+#include <expected>
 
 namespace Cheats
 {

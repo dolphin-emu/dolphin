@@ -3,17 +3,15 @@
 
 #pragma once
 
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#include <QDialog>
+
 #include <map>
 #include <optional>
 #include <string_view>
 #include <utility>
-
-#include <QDialog>
-
-#include "Common/CommonTypes.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class QCheckBox;
 class QDialog;

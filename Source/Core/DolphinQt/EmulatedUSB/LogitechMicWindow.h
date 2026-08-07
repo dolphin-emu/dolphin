@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <QVBoxLayout>
-#include <QWidget>
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+
+#include <QVBoxLayout>
+#include <QWidget>
 
 class ConfigBool;
 class QComboBox;

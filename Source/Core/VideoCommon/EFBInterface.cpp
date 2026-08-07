@@ -3,14 +3,9 @@
 
 #include "VideoCommon/EFBInterface.h"
 
-#include <algorithm>
-#include <memory>
-
 #include "Common/MsgHandler.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
@@ -18,6 +13,9 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <algorithm>
+#include <memory>
 
 std::unique_ptr<EFBInterfaceBase> g_efb_interface;
 

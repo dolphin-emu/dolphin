@@ -3,18 +3,16 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/x64Emitter.h"
+#include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/Jit/DSPEmitterBase.h"
+#include "Core/DSP/Jit/x64/DSPJitRegCache.h"
+
 #include <array>
 #include <cstddef>
 #include <list>
 #include <vector>
-
-#include "Common/CommonTypes.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
-
-#include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPEmitterBase.h"
-#include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 class PointerWrap;
 

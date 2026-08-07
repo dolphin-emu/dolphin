@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+
+#include <optional>
+#include <string>
 
 namespace ControllerEmu
 {

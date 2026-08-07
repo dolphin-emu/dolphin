@@ -3,20 +3,19 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/Matrix.h"
+#include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/RenderState.h"
+
+#include <picojson.h>
+
 #include <map>
 #include <memory>
 #include <span>
 #include <string>
 #include <string_view>
-
-#include <picojson.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Matrix.h"
-
-#include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/RenderState.h"
 
 namespace File
 {

@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Core/ActionReplay.h"
+#include "Core/CheatSearch.h"
+
 #include <QWidget>
 
 #include <string>
 #include <unordered_map>
-
-#include "Common/CommonTypes.h"
-#include "Core/ActionReplay.h"
-#include "Core/CheatSearch.h"
 
 namespace Core
 {

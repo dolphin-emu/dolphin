@@ -3,6 +3,15 @@
 
 #include "Common/Logging/LogManager.h"
 
+#include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -11,15 +20,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/ConsoleListener.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 namespace Common::Log
 {

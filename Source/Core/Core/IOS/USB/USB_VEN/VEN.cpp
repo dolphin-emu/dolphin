@@ -3,16 +3,16 @@
 
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <mutex>
-
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/System.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <mutex>
 
 namespace IOS::HLE
 {

@@ -3,16 +3,15 @@
 
 #include "VideoCommon/VertexLoader_Color.h"
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
+#include <cstring>
 
 namespace
 {

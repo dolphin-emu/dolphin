@@ -7,9 +7,6 @@
 
 #pragma once
 
-#include <chrono>
-#include <cstdint>
-
 #ifdef _WIN32
 #include <tchar.h>
 #else
@@ -17,6 +14,9 @@
 #define TCHAR char
 #define LONG int
 #endif
+
+#include <chrono>
+#include <cstdint>
 
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;

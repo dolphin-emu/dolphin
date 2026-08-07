@@ -3,10 +3,6 @@
 
 #include "AudioCommon/WaveFile.h"
 
-#include <string>
-
-#include <fmt/format.h>
-
 #include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -16,6 +12,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
+
+#include <fmt/format.h>
+
+#include <string>
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
 

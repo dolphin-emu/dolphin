@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include "Common/Event.h"
 #include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardBase.h"
 #include "DiscIO/Enums.h"
+
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 // #define _WRITE_MC_HEADER 1

@@ -3,18 +3,18 @@
 
 #include "InputCommon/ControllerEmu/StickGate.h"
 
-#include <algorithm>
-#include <cmath>
-#include <ranges>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <algorithm>
+#include <cmath>
+#include <ranges>
 
 namespace
 {

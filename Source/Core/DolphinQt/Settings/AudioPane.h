@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <array>
-
 #include <QWidget>
+
+#include <array>
 
 namespace AudioCommon
 {

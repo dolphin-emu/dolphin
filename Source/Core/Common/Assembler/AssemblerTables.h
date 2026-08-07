@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include "Common/Assembler/AssemblerShared.h"
+#include "Common/Assembler/CaseInsensitiveDict.h"
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <cstddef>
 #include <optional>
 #include <string_view>
 #include <vector>
-
-#include "Common/Assembler/AssemblerShared.h"
-#include "Common/Assembler/CaseInsensitiveDict.h"
-#include "Common/CommonTypes.h"
 
 namespace Common::GekkoAssembler::detail
 {

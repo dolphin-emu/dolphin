@@ -3,24 +3,9 @@
 
 #pragma once
 
-#include <array>
-#include <filesystem>
-#include <fmt/format.h>
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Common/MathUtil.h"
-
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/BPMemory.h"
@@ -30,6 +15,19 @@
 #include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/TextureUtils.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <fmt/format.h>
+
+#include <array>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;

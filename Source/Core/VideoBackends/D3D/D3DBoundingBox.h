@@ -5,7 +5,6 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
-
 #include "VideoCommon/BoundingBox.h"
 
 namespace DX11

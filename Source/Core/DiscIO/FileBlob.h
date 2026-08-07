@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
+
+#include <memory>
+#include <string>
 
 namespace DiscIO
 {

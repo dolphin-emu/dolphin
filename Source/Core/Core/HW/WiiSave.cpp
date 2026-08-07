@@ -8,19 +8,6 @@
 
 #include "Core/HW/WiiSave.h"
 
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <cstring>
-#include <mbedtls/md5.h>
-#include <memory>
-#include <optional>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
-
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
@@ -39,6 +26,19 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/WiiUtils.h"
+
+#include <fmt/format.h>
+#include <mbedtls/md5.h>
+
+#include <algorithm>
+#include <array>
+#include <cstdio>
+#include <cstring>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace WiiSave
 {

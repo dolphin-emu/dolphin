@@ -3,30 +3,29 @@
 
 #include "Core/IOS/USB/Emulated/Microphone.h"
 
-#include <algorithm>
-#include <cmath>
-#include <ranges>
-#include <span>
-
-#ifdef HAVE_CUBEB
-#include <cubeb/cubeb.h>
-
-#include "AudioCommon/CubebUtils.h"
-#endif
-
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/System.h"
+#ifdef HAVE_CUBEB
+#include "AudioCommon/CubebUtils.h"
+#endif
+
+#ifdef HAVE_CUBEB
+#include <cubeb/cubeb.h>
+#endif
 
 #ifdef _WIN32
 #include <objbase.h>
-#endif
-
-#ifdef ANDROID
+#elifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
+
+#include <algorithm>
+#include <cmath>
+#include <ranges>
+#include <span>
 
 namespace IOS::HLE::USB
 {

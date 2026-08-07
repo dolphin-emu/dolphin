@@ -3,6 +3,16 @@
 
 #pragma once
 
+#include "Common/Config/Config.h"
+#include "Common/Event.h"
+#include "Common/Flag.h"
+#include "Common/SPSCQueue.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/USBUtils.h"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -10,18 +20,6 @@
 #include <string_view>
 #include <thread>
 #include <vector>
-
-#include "Common/Config/Config.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
-#include "Common/SPSCQueue.h"
-#include "Common/WorkQueueThread.h"
-
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
-#include "Core/USBUtils.h"
 
 class PointerWrap;
 

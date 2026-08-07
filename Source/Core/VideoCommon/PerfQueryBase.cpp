@@ -3,9 +3,9 @@
 
 #include "VideoCommon/PerfQueryBase.h"
 
-#include <memory>
-
 #include "VideoCommon/VideoConfig.h"
+
+#include <memory>
 
 std::unique_ptr<PerfQueryBase> g_perf_query;
 

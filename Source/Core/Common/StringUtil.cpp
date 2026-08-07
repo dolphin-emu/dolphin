@@ -3,6 +3,28 @@
 
 #include "Common/StringUtil.h"
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#ifdef _WIN32
+#include "Common/Swap.h"
+#endif
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+#ifndef _WIN32
+#include <iconv.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+constexpr u32 CODEPAGE_SHIFT_JIS = 932;
+constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
+#else
+#include <locale.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -16,25 +38,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
-
-#include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#include <shellapi.h>
-constexpr u32 CODEPAGE_SHIFT_JIS = 932;
-constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
-
-#include "Common/Swap.h"
-#else
+#ifndef _WIN32
 #include <cerrno>
-#include <iconv.h>
-#include <locale.h>
 #endif
 
 #if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \

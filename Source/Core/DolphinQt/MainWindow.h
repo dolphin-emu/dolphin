@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "Core/Boot/Boot.h"
+#include "DolphinQt/FIFO/FIFOPlayerWindow.h"
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include "Common/Config/Config.h"
+#endif  // USE_RETRO_ACHIEVEMENTS
+
 #include <QMainWindow>
 #include <QStringList>
 
@@ -10,13 +16,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-
-#ifdef USE_RETRO_ACHIEVEMENTS
-#include "Common/Config/Config.h"
-#endif  // USE_RETRO_ACHIEVEMENTS
-
-#include "Core/Boot/Boot.h"
-#include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 
 class QMenu;
 class QStackedWidget;

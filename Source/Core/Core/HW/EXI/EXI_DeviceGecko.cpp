@@ -3,19 +3,19 @@
 
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Thread.h"
+#include "Core/Core.h"
+
+#include <fmt/format.h>
+
 #include <array>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
-
-#include <fmt/format.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Thread.h"
-#include "Core/Core.h"
 
 namespace ExpansionInterface
 {

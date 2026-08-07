@@ -3,21 +3,10 @@
 
 #include "DolphinQt/Config/GameConfigWidget.h"
 
-#include <QFont>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QIcon>
-#include <QLabel>
-#include <QTabWidget>
-#include <QTimer>
-#include <QToolTip>
-#include <QVBoxLayout>
-
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
 #include "Common/FileUtil.h"
-
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
@@ -31,8 +20,17 @@
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
-
 #include "UICommon/GameFile.h"
+
+#include <QFont>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QTabWidget>
+#include <QTimer>
+#include <QToolTip>
+#include <QVBoxLayout>
 
 static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
                         u16 revision, bool read_only)

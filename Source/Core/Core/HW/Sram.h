@@ -33,11 +33,11 @@ distribution.
 -------------------------------------------------------------*/
 #pragma once
 
-#include <array>
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+#include <array>
+#include <string>
 
 namespace ExpansionInterface
 {

@@ -4,8 +4,9 @@
 #pragma once
 
 #ifdef _WIN32
-#include <mutex>
 #include <winsock2.h>
+
+#include <mutex>
 #endif
 
 namespace Common

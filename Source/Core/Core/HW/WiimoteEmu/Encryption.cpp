@@ -5,10 +5,10 @@
 
 #include "Core/HW/WiimoteEmu/Encryption.h"
 
+#include "Common/Logging/Log.h"
+
 #include <algorithm>
 #include <bit>
-
-#include "Common/Logging/Log.h"
 namespace
 {
 using WiimoteEmu::SBox;

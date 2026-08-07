@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <pthread.h>
+#include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
 
 #if defined(__linux__)
 #include <sys/eventfd.h>
 #endif
 
-#include "Common/CommonFuncs.h"
-#include "Common/Logging/Log.h"
+#include <pthread.h>
 
 namespace UnixUtil
 {

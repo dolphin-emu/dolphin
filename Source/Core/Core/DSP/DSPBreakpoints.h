@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <cstring>
 #include "Common/CommonTypes.h"
+
+#include <cstring>
 
 namespace DSP
 {

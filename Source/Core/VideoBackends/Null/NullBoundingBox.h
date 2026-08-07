@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/BoundingBox.h"
 
 namespace Null

@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <memory>
+#include "DiscIO/Blob.h"
 
 #include <QDialog>
 #include <QList>
 
-#include "DiscIO/Blob.h"
+#include <memory>
 
 class QCheckBox;
 class QComboBox;

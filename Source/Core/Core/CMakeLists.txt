@@ -91,11 +91,11 @@ add_library(core
   DSP/DSPCommon.h
   DSP/DSPCore.cpp
   DSP/DSPCore.h
+  DSP/DSPCoreHWInterface.cpp
+  DSP/DSPCoreMemoryMap.cpp
+  DSP/DSPCoreStacks.cpp
   DSP/DSPDisassembler.cpp
   DSP/DSPDisassembler.h
-  DSP/DSPHWInterface.cpp
-  DSP/DSPMemoryMap.cpp
-  DSP/DSPStacks.cpp
   DSP/DSPTables.cpp
   DSP/DSPTables.h
   DSP/Interpreter/DSPIntArithmetic.cpp
@@ -328,7 +328,6 @@ add_library(core
   HW/WiimoteEmu/DesiredWiimoteState.h
   HW/WiimoteEmu/Dynamics.cpp
   HW/WiimoteEmu/Dynamics.h
-  HW/WiimoteEmu/EmuSubroutines.cpp
   HW/WiimoteEmu/Encryption.cpp
   HW/WiimoteEmu/Encryption.h
   HW/WiimoteEmu/Extension/Classic.cpp
@@ -362,6 +361,7 @@ add_library(core
   HW/WiimoteEmu/Speaker.h
   HW/WiimoteEmu/WiimoteEmu.cpp
   HW/WiimoteEmu/WiimoteEmu.h
+  HW/WiimoteEmu/WiimoteEmuSubroutines.cpp
   HW/WiimoteReal/WiimoteReal.cpp
   HW/WiimoteReal/WiimoteReal.h
   HW/WiiSave.cpp
@@ -608,18 +608,18 @@ if(_M_X86_64)
   target_sources(core PRIVATE
     DSP/Jit/x64/DSPEmitter.cpp
     DSP/Jit/x64/DSPEmitter.h
-    DSP/Jit/x64/DSPJitArithmetic.cpp
-    DSP/Jit/x64/DSPJitBranch.cpp
-    DSP/Jit/x64/DSPJitCCUtil.cpp
-    DSP/Jit/x64/DSPJitExtOps.cpp
-    DSP/Jit/x64/DSPJitLoadStore.cpp
-    DSP/Jit/x64/DSPJitMisc.cpp
-    DSP/Jit/x64/DSPJitMultiplier.cpp
+    DSP/Jit/x64/DSPEmitterJitArithmetic.cpp
+    DSP/Jit/x64/DSPEmitterJitBranch.cpp
+    DSP/Jit/x64/DSPEmitterJitCCUtil.cpp
+    DSP/Jit/x64/DSPEmitterJitExtOps.cpp
+    DSP/Jit/x64/DSPEmitterJitLoadStore.cpp
+    DSP/Jit/x64/DSPEmitterJitMisc.cpp
+    DSP/Jit/x64/DSPEmitterJitMultiplier.cpp
+    DSP/Jit/x64/DSPEmitterJitUtil.cpp
     DSP/Jit/x64/DSPJitRegCache.cpp
     DSP/Jit/x64/DSPJitRegCache.h
     DSP/Jit/x64/DSPJitTables.cpp
     DSP/Jit/x64/DSPJitTables.h
-    DSP/Jit/x64/DSPJitUtil.cpp
     PowerPC/Jit64/Jit.cpp
     PowerPC/Jit64/Jit.h
     PowerPC/Jit64/Jit64_Tables.cpp

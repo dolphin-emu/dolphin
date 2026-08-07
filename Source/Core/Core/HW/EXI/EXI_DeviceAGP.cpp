@@ -3,10 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -15,6 +11,10 @@
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/EXI/EXI.h"
+
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace ExpansionInterface
 {

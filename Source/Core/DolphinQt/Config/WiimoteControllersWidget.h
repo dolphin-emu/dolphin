@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <array>
-#include <span>
+#include "Common/WorkQueueThread.h"
+#include "Core/USBUtils.h"
 
 #include <QWidget>
 
-#include "Common/WorkQueueThread.h"
-#include "Core/USBUtils.h"
+#include <array>
+#include <span>
 
 class QAction;
 class QCheckBox;

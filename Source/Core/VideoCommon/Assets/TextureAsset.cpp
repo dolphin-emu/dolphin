@@ -3,12 +3,12 @@
 
 #include "VideoCommon/Assets/TextureAsset.h"
 
-#include <optional>
-
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/BPMemory.h"
+
+#include <optional>
 
 namespace VideoCommon
 {

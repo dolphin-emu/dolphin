@@ -3,15 +3,15 @@
 
 #include "Core/Debugger/RSO.h"
 
+#include "Common/Logging/Log.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+
 #include <cstddef>
 #include <list>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Common/Logging/Log.h"
-#include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
 
 void RSOHeaderView::Load(const Core::CPUThreadGuard& guard, u32 address)
 {

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/TextureConfig.h"
+
+#include <memory>
+#include <unordered_map>
 
 namespace VideoCommon
 {

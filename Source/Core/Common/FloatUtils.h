@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <array>
 #include <bit>
 #include <limits>
-
-#include "Common/CommonTypes.h"
 
 namespace Common
 {

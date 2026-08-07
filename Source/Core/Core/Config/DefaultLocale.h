@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <optional>
-
 #include "Common/CommonTypes.h"
+
+#include <optional>
 
 namespace DiscIO
 {

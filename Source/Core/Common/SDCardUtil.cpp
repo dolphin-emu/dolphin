@@ -33,17 +33,17 @@
 
 #include "Common/SDCardUtil.h"
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <string>
-
-#include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
-#include "Common/Logging/Log.h"
 
 #ifndef _WIN32
 #include <unistd.h>  // for unlink()

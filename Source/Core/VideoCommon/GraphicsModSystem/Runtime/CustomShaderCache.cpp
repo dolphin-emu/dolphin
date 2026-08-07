@@ -3,11 +3,11 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomShaderCache.h"
 
-#include <utility>
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+
+#include <utility>
 
 CustomShaderCache::CustomShaderCache()
 {

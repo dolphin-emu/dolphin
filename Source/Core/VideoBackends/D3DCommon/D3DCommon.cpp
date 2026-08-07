@@ -3,19 +3,17 @@
 
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
-#include <d3d11_4.h>
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <wrl/client.h>
-
-#include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/HRWrap.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
+
+#include <d3d11_4.h>
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <wrl/client.h>
 
 namespace D3DCommon
 {

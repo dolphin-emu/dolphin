@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
+
+#include <array>
+#include <memory>
 
 namespace OGL
 {

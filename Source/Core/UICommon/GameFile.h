@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <array>
-#include <map>
-#include <string>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/SyncIdentifier.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+
+#include <array>
+#include <map>
+#include <string>
+#include <vector>
 
 class PointerWrap;
 

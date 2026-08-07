@@ -3,16 +3,16 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include "Common/WorkQueueThread.h"
+#endif
+
 #include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#ifdef _WIN32
-#include "Common/WorkQueueThread.h"
-#endif
 
 struct cubeb;
 

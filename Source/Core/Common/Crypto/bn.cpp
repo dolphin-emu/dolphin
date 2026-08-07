@@ -3,11 +3,11 @@
 
 #include "Common/Crypto/bn.h"
 
+#include "Common/CommonTypes.h"
+
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-
-#include "Common/CommonTypes.h"
 
 static void bn_zero(u8* d, const size_t n)
 {

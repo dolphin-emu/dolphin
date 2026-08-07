@@ -1,14 +1,15 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/StringUtil.h"
+
+#include "Common/Network.h"
+#include "Common/Swap.h"
+
 #include <gtest/gtest.h>
 
 #include <string>
 #include <vector>
-
-#include "Common/Network.h"
-#include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 TEST(StringUtil, StringPopBackIf)
 {

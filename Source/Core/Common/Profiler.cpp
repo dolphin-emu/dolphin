@@ -3,14 +3,14 @@
 
 #include "Common/Profiler.h"
 
+#include "Common/Timer.h"
+
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <ios>
 #include <sstream>
 #include <utility>
-
-#include "Common/Timer.h"
 
 namespace Common
 {

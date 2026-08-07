@@ -3,9 +3,6 @@
 
 #include "VideoCommon/CommandProcessor.h"
 
-#include <atomic>
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -19,6 +16,10 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
+
+#include <fmt/format.h>
+
+#include <atomic>
 
 namespace CommandProcessor
 {

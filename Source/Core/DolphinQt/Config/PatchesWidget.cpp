@@ -3,20 +3,17 @@
 
 #include "DolphinQt/Config/PatchesWidget.h"
 
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/PatchEngine.h"
+#include "DolphinQt/Config/HardcoreWarningWidget.h"
+#include "DolphinQt/Config/NewPatchDialog.h"
+#include "UICommon/GameFile.h"
+
 #include <QGridLayout>
 #include <QListWidget>
 #include <QPushButton>
-
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-
-#include "Core/ConfigManager.h"
-#include "Core/PatchEngine.h"
-
-#include "DolphinQt/Config/HardcoreWarningWidget.h"
-#include "DolphinQt/Config/NewPatchDialog.h"
-
-#include "UICommon/GameFile.h"
 
 PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
     : m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())

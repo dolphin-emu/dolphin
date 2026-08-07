@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <cstring>
-#include <functional>  // for hash
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
+
+#include <cstring>
+#include <functional>
 
 // m_components
 enum : u32

@@ -3,10 +3,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
-#include <array>
-#include <cstring>
-#include <iterator>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -21,9 +17,12 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
-
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
+
+#include <array>
+#include <cstring>
+#include <iterator>
 
 namespace DSP::HLE
 {

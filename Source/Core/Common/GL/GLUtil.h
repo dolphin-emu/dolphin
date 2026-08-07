@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <string>
-
 #include "Common/GL/GLExtensions/GLExtensions.h"
+
+#include <string>
 
 class GLContext;
 

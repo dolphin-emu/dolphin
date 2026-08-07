@@ -3,6 +3,11 @@
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
+#include "Common/Logging/Log.h"
+#include "Core/Host.h"
+
+#include <fmt/format.h>
+
 #include <X11/XKBlib.h>
 #include <X11/extensions/XInput2.h>
 
@@ -10,12 +15,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
-
-#include <fmt/format.h>
-
-#include "Common/Logging/Log.h"
-
-#include "Core/Host.h"
 
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
 // loosely based on the old XLib plugin. (Has nothing to do with the XInput

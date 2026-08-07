@@ -3,15 +3,15 @@
 
 #include "Core/IOS/USB/Common.h"
 
-#include <algorithm>
-
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <fmt/format.h>
+
+#include <algorithm>
 
 namespace IOS::HLE::USB
 {

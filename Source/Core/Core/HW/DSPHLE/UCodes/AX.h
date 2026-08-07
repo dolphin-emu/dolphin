@@ -11,17 +11,15 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <optional>
-
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/Swap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#include <array>
+#include <memory>
+#include <optional>
 
 namespace DSP
 {

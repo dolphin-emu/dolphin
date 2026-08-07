@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Common/GL/GLExtensions/GLExtensions.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
 #include <string_view>
 #include <unordered_map>
-
-#include "Common/GL/GLExtensions/GLExtensions.h"
-#include "VideoCommon/AsyncShaderCompiler.h"
 
 namespace OGL
 {

@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <cstddef>
-#include <functional>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "Common/MathUtil.h"
+
+#include <cstddef>
+#include <functional>
 
 enum class AbstractTextureFormat : u32
 {

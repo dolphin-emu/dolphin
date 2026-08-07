@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <optional>
-
 #include <QDialog>
+
+#include <optional>
 
 class QDialogButtonBox;
 class QGridLayout;
