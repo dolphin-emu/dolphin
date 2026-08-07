@@ -119,6 +119,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
+option(ENABLE_DRM "Enables DRM support" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -488,6 +489,10 @@ set_property(CACHE OpenGL_GL_PREFERENCE PROPERTY STRINGS GLVND LEGACY)
 find_package(OpenGL)
 if (OPENGL_GL)
   include_directories(${OPENGL_INCLUDE_DIR})
+endif()
+
+if(ENABLE_DRM)
+  add_definitions(-DHAVE_DRM)
 endif()
 
 if(ENABLE_X11)
