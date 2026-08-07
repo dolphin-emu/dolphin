@@ -60,7 +60,7 @@ set(AppleClang_min_version 14.0.3)
 set(MSVC_min_version 19.32)
 # Standard libraries
 set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
-set(libc++_min_version 150000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz" 
+set(libc++_min_version 150000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz"
 
 dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
 dolphin_check_toolset_version("MSVC Toolset" MSVC_TOOLSET_VERSION ${MSVC_toolset_min_version})
@@ -273,6 +273,7 @@ if(MSVC)
 
   # Additional warnings
   add_compile_options(
+    /w15262 # Unannotated fallthrough between switch labels
     /w44263 # Non-virtual member function hides base class virtual function
     /w44265 # Class has virtual functions, but destructor is not virtual
     /w44946 # Reinterpret cast between related types
