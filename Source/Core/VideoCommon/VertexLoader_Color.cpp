@@ -3,8 +3,6 @@
 
 #include "VideoCommon/VertexLoader_Color.h"
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"

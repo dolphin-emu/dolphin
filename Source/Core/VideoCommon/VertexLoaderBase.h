@@ -5,7 +5,6 @@
 
 #include <array>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"

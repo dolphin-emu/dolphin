@@ -4,7 +4,6 @@
 #pragma once
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
 
 class CPUCull
