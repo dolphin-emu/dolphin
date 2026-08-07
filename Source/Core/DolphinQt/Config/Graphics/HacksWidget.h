@@ -31,6 +31,7 @@ private:
   void UpdateBoundingBoxEnabled(const QString& backend_name);
   void UpdateDeferEFBCopiesEnabled();
   void UpdateSkipPresentingDuplicateFramesEnabled();
+  void UpdateFrameGenerationConflictsEnabled();
 
   void OnBackendChanged(const QString& backend_name);
 

@@ -16,7 +16,8 @@ class OGLTexture;
 class OGLGfx final : public AbstractGfx
 {
 public:
-  OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
+  OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale,
+         float backbuffer_refresh_rate);
   ~OGLGfx() override;
 
   bool IsHeadless() const override;
@@ -114,6 +115,7 @@ private:
   u32 m_shared_read_framebuffer = 0;
   u32 m_shared_draw_framebuffer = 0;
   float m_backbuffer_scale;
+  float m_backbuffer_refresh_rate;
 };
 
 inline OGLGfx* GetOGLGfx()

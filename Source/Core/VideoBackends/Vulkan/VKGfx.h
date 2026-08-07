@@ -23,7 +23,8 @@ class VKTexture;
 class VKGfx final : public ::AbstractGfx
 {
 public:
-  VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale,
+        float backbuffer_refresh_rate);
   ~VKGfx() override;
 
   static VKGfx* GetInstance() { return static_cast<VKGfx*>(g_gfx.get()); }
@@ -98,6 +99,7 @@ private:
 
   std::unique_ptr<SwapChain> m_swap_chain;
   float m_backbuffer_scale;
+  float m_backbuffer_refresh_rate;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};

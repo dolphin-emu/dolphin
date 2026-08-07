@@ -112,6 +112,13 @@ public:
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
                 bool clear_z, u32 color, u32 z, PixelFormat pixel_format);
 
+  // Clears a framebuffer laid out like the EFB, taking the rectangle in native coordinates. Used
+  // by the frame generator to reproduce a clear into its own copy of the EFB, so that the
+  // coordinate conversion and the alpha rules stay in one place.
+  void ClearFramebuffer(AbstractFramebuffer* framebuffer, const MathUtil::Rectangle<int>& rc,
+                        bool clear_color, bool clear_alpha, bool clear_z, u32 color, u32 z,
+                        PixelFormat pixel_format);
+
   AbstractPipeline* GetClearPipeline(bool clear_color, bool clear_alpha, bool clear_z) const;
 
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.

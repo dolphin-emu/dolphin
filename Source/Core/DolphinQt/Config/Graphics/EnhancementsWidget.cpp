@@ -24,6 +24,7 @@
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -56,6 +57,22 @@ constexpr int ANISO_16X = std::to_underlying(AnisotropicFilteringMode::Force16x)
 constexpr int FILTERING_DEFAULT = std::to_underlying(TextureFilteringMode::Default);
 constexpr int FILTERING_NEAREST = std::to_underlying(TextureFilteringMode::Nearest);
 constexpr int FILTERING_LINEAR = std::to_underlying(TextureFilteringMode::Linear);
+
+template <typename T>
+void EnhancementsWidget::SetInLayer(const Config::Info<T>& setting, const T& value)
+{
+  // The same two cases ConfigControl::SaveValue covers: a game properties window edits its own
+  // layer and has to tell the config system itself, while the global window writes through to
+  // whichever of base or current is in force.
+  if (m_game_layer != nullptr)
+  {
+    m_game_layer->Set(setting.GetLocation(), value);
+    Config::OnConfigChanged();
+    return;
+  }
+
+  Config::SetBaseOrCurrent(setting, value);
+}
 
 void EnhancementsWidget::CreateWidgets()
 {
@@ -163,6 +180,15 @@ void EnhancementsWidget::CreateWidgets()
       new ConfigBool(tr("Arbitrary Mipmap Detection"),
                      Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
   m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
+  m_frame_generation =
+      new ConfigBool(tr("Frame Generation"), Config::GFX_FRAME_GENERATION_ENABLED, m_game_layer);
+  m_frame_generation_multiplier =
+      new ConfigChoiceMap<u32>({{tr("2x frame rate"), 2u},
+                                {tr("4x frame rate"), 4u},
+                                {tr("8x frame rate"), 8u},
+                                {tr("16x frame rate"), 16u},
+                                {tr("32x frame rate"), 32u}},
+                               Config::GFX_FRAME_GENERATION_MULTIPLIER, m_game_layer);
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -204,6 +230,10 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
   enhancements_layout->addWidget(m_hdr, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(m_frame_generation, row, 0);
+  enhancements_layout->addWidget(m_frame_generation_multiplier, row, 1, 1, -1);
   ++row;
 
   // Stereoscopy
@@ -284,6 +314,39 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_3d_convergence, &ConfigFloatSlider::valueChanged, this, [this] {
     m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
   });
+
+  // Two settings frame generation cannot be combined with. Switching it on turns them off rather
+  // than the other way round: the dependency runs from the thing being asked for to the things that
+  // have to give way, and reading it in the other direction -- a checkbox greyed out with no
+  // indication of what is holding it -- leaves the user hunting for the reason.
+  //
+  // Anti-aliasing gives the EFB more than one sample per pixel, and a generated frame has no way to
+  // bring those back down to one. Immediate presentation hands each picture over when the game
+  // finishes drawing rather than when the field is due, so a thirty frame per second game presents
+  // thirty times a second and there is nowhere for the generated frames to go.
+  //
+  // Skipping duplicate frames is deliberately not among these. It is on by default, and VideoConfig
+  // switches it off while generation runs rather than treating it as a conflict -- generated fields
+  // are not duplicates, so what that setting describes stops applying.
+  connect(m_frame_generation, &QCheckBox::toggled, this, [this](bool enabled) {
+    if (!enabled)
+      return;
+
+    SetInLayer(Config::GFX_MSAA, 1u);
+    SetInLayer(Config::GFX_SSAA, false);
+    SetInLayer(Config::GFX_HACK_IMMEDIATE_XFB, false);
+  });
+
+  // With it on, those two stay off and say so, which is what makes the exclusion visible from both
+  // sides rather than only at the moment it is applied.
+  const auto update_frame_generation = [this] {
+    const bool generating = Get(m_game_layer, Config::GFX_FRAME_GENERATION_ENABLED);
+    m_antialiasing_combo->setEnabled(!generating);
+    m_frame_generation_multiplier->setEnabled(generating);
+  };
+  connect(m_frame_generation, &QCheckBox::toggled, this, update_frame_generation);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, update_frame_generation);
+  update_frame_generation();
 }
 
 void EnhancementsWidget::LoadPostProcessingShaders()
@@ -567,6 +630,31 @@ void EnhancementsWidget::AddDescriptions()
       "post-process shaders to work, and allows to fully display the PAL and NTSC-J color spaces."
       "<br><br>Note that games still render in SDR internally."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_FRAME_GENERATION_DESCRIPTION[] = QT_TR_NOOP(
+      "Draws extra frames in between the ones the game produces, by rendering its geometry again "
+      "with every transform part way between where it was and where it ended up. A game running "
+      "at 30 FPS is displayed at the console's full 60 FPS field rate."
+      "<br><br>Each displayed frame is the average of several in-between frames spread across the "
+      "time it is on screen, which smooths out motion in the same way a camera's shutter does and "
+      "costs nothing extra to display."
+      "<br><br>Only movement that the console itself performed with a matrix is followed, which "
+      "covers the camera, moving objects and animated characters. Effects the game builds by "
+      "rewriting geometry outright, such as particles and some water, hold still between real "
+      "frames instead. Because a generated frame lies between two frames that have both already "
+      "happened, the picture is held back by one frame."
+      "<br><br>Not available with anti-aliasing or Immediate XFB enabled. Turns off Skip "
+      "Presenting Duplicate Frames while it is running, since generated frames are not duplicates."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_FRAME_GENERATION_MULTIPLIER_DESCRIPTION[] = QT_TR_NOOP(
+      "How many frames are generated for each frame the game produces."
+      "<br><br>These are shared out across every image your display is given, so a faster display "
+      "spends them on more distinct pictures rather than on more motion blur. Once there is one "
+      "generated frame per image, each picture is sharp and raising this further lengthens the "
+      "exposure instead."
+      "<br><br>Costs GPU time in proportion. This is set by hand rather than chosen automatically, "
+      "because finding out how much of a frame the graphics card has spent means stopping to ask "
+      "every frame, which stutters worse than the frames are worth."
+      "<br><br><dolphin_emphasis>If unsure, select 8x frame rate.</dolphin_emphasis>");
 
   m_ir_combo->SetTitle(tr("Internal Resolution"));
   m_ir_combo->SetDescription(tr(TR_INTERNAL_RESOLUTION_DESCRIPTION));
@@ -601,6 +689,10 @@ void EnhancementsWidget::AddDescriptions()
   m_arbitrary_mipmap_detection->SetDescription(tr(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
 
   m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
+
+  m_frame_generation->SetDescription(tr(TR_FRAME_GENERATION_DESCRIPTION));
+  m_frame_generation_multiplier->SetTitle(tr("Frame Generation Rate"));
+  m_frame_generation_multiplier->SetDescription(tr(TR_FRAME_GENERATION_MULTIPLIER_DESCRIPTION));
 
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
   m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));
