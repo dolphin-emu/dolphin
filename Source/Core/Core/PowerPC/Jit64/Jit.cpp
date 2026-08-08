@@ -1214,10 +1214,10 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         RCForkGuard gpr_guard = gpr.Fork();
         RCForkGuard fpr_guard = fpr.Fork();
 
-        gpr.Revert();
-        fpr.Revert();
-        gpr.Flush();
-        fpr.Flush();
+        BitSet32 gpr_revertable = gpr.RegistersRevertable();
+        BitSet32 fpr_revertable = fpr.RegistersRevertable();
+        gpr.Flush(~gpr_revertable);
+        fpr.Flush(~fpr_revertable);
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         WriteExceptionExit();

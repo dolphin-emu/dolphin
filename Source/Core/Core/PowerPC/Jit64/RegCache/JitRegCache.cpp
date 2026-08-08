@@ -357,14 +357,16 @@ void RegCache::Reset(BitSet32 pregs)
   }
 }
 
-void RegCache::Revert()
+BitSet32 RegCache::RegistersRevertable() const
 {
   ASSERT(IsAllUnlocked());
-  for (auto& reg : m_regs)
+  BitSet32 result;
+  for (size_t i = 0; i < m_regs.size(); i++)
   {
-    if (reg.IsRevertable())
-      reg.SetRevert();
+    if (m_regs[i].IsRevertable())
+      result[i] = true;
   }
+  return result;
 }
 
 void RegCache::Commit()
