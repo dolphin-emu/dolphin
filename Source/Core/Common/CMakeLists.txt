@@ -87,6 +87,8 @@ add_library(common
   HostDisassembler.h
   HttpRequest.cpp
   HttpRequest.h
+  HttpServer.cpp
+  HttpServer.h
   Image.cpp
   Image.h
   IniFile.cpp
@@ -143,6 +145,8 @@ add_library(common
   SocketContext.h
   SpanUtils.h
   SPSCQueue.h
+  StbImage.cpp
+  StbImage.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp
@@ -190,6 +194,7 @@ PRIVATE
   CURL::libcurl
   FatFs
   spng::spng
+  stb
   watcher
   ${VTUNE_LIBRARIES}
 )

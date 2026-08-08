@@ -3,28 +3,49 @@
 
 #include "DolphinQt/Settings/TriforcePane.h"
 
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
+#include <QLatin1Char>
 #include <QPushButton>
+#include <QString>
 #include <QTableWidget>
+#include <QTimer>
 #include <QVBoxLayout>
+#include <QWidget>
+#include <chrono>
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
+#include <stb_image.h>
 
+#include "CameraCommon/CameraOrchestrator.h"
+#include "CameraCommon/CameraQualifier.h"
+
+#include "Common/Config/Config.h"
+#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
+#include "Common/Network.h"
+#include "Common/StbImage.h"
 
+#include "Common/ScopeGuard.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/DVD/AMMediaboard.h"
+#include "Core/HW/Triforce/Camera.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/CameraWidget.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 
 namespace
 {
-
 constexpr int COLUMN_EMULATED = 0;
 constexpr int COLUMN_REAL = 1;
 constexpr int COLUMN_DESCRIPTION = 2;
@@ -45,42 +66,6 @@ private:
 };
 
 }  // namespace
-
-TriforcePane::TriforcePane()
-{
-  auto* const main_layout = new QVBoxLayout{this};
-
-  auto* const controllers_group = new QGroupBox{tr("Controllers")};
-  main_layout->addWidget(controllers_group);
-
-  auto* const controllers_layout = new QVBoxLayout{controllers_group};
-
-  auto* const configure_controllers_button = new NonDefaultQPushButton{tr("Configure")};
-  controllers_layout->addWidget(configure_controllers_button);
-
-  connect(configure_controllers_button, &QPushButton::clicked, this, [this] {
-    auto* const window = new MappingWindow(this, MappingWindow::Type::MAPPING_AM_BASEBOARD, 0);
-    window->setAttribute(Qt::WA_DeleteOnClose, true);
-    window->setWindowModality(Qt::WindowModality::WindowModal);
-    window->show();
-  });
-
-  auto* const ip_redirection_group = new QGroupBox{tr("IP Address Redirections")};
-  main_layout->addWidget(ip_redirection_group);
-
-  auto* const ip_redirection_layout = new QVBoxLayout{ip_redirection_group};
-
-  auto* const configure_ip_redirections_button = new NonDefaultQPushButton{tr("Configure")};
-  ip_redirection_layout->addWidget(configure_ip_redirections_button);
-
-  connect(configure_ip_redirections_button, &QPushButton::clicked, this, [this] {
-    auto* const ip_redirections = new IPRedirectionsDialog{this};
-    ip_redirections->setAttribute(Qt::WA_DeleteOnClose);
-    ip_redirections->open();
-  });
-
-  main_layout->addStretch(1);
-}
 
 IPRedirectionsDialog::IPRedirectionsDialog(QWidget* parent) : QDialog{parent}
 {
@@ -218,4 +203,235 @@ void IPRedirectionsDialog::OnClear()
   m_ip_redirections_table->setRowCount(0);
   // Add the final empty row.
   m_ip_redirections_table->insertRow(0);
+}
+
+TriforcePane::TriforcePane()
+{
+  CreateWidgets();
+  ConnectWidgets();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &TriforcePane::LoadSettings);
+  LoadSettings();
+}
+
+void TriforcePane::hideEvent(QHideEvent* event)
+{
+  QWidget::hideEvent(event);
+  if (m_camera_feed_preview)
+    m_camera_feed_preview->setChecked(false);
+}
+
+void TriforcePane::CreateWidgets()
+{
+  m_camera_feed_timer = new QTimer(this);
+  // ~10 FPS, this is intended to be a preview not a live feed
+  m_camera_feed_timer->setInterval(100);
+
+  QVBoxLayout* const main_layout = new QVBoxLayout(this);
+
+  auto* const controllers_group = new QGroupBox{tr("Controllers")};
+  main_layout->addWidget(controllers_group);
+
+  auto* const controllers_layout = new QVBoxLayout{controllers_group};
+
+  m_configure_controllers_button = new NonDefaultQPushButton{tr("Configure")};
+  controllers_layout->addWidget(m_configure_controllers_button);
+
+  auto* const ip_redirection_group = new QGroupBox{tr("IP Address Redirections")};
+  main_layout->addWidget(ip_redirection_group);
+
+  auto* const ip_redirection_layout = new QVBoxLayout{ip_redirection_group};
+
+  m_configure_ip_redirections_button = new NonDefaultQPushButton{tr("Configure")};
+  ip_redirection_layout->addWidget(m_configure_ip_redirections_button);
+
+  QGroupBox* camera_box = new QGroupBox(tr("Camera Settings"), this);
+  QVBoxLayout* camera_box_layout = new QVBoxLayout();
+  camera_box->setLayout(camera_box_layout);
+
+  m_integrated_camera =
+      new ConfigBool(tr("Integrated camera server"), Config::MAIN_TRIFORCE_INTEGRATED_CAMERA);
+  m_integrated_camera_subgroup = new QWidget();
+  QVBoxLayout* integrated_camera_layout = new QVBoxLayout(m_integrated_camera_subgroup);
+
+  QHBoxLayout* camera_selection_layout = new QHBoxLayout();
+  m_camera_combo_label = new QLabel(tr("Camera:"));
+  m_camera_combo = new QComboBox();
+  m_camera_refresh_button = new NonDefaultQPushButton(tr("Refresh"));
+
+  camera_selection_layout->addWidget(m_camera_combo_label);
+  camera_selection_layout->addWidget(m_camera_combo, 1);
+  camera_selection_layout->addWidget(m_camera_refresh_button);
+
+  integrated_camera_layout->addLayout(camera_selection_layout);
+
+  m_camera_feed_label = new QLabel(tr("Camera Feed"));
+  m_camera_feed = new CameraWidget();
+  m_camera_feed_preview = new QCheckBox(tr("Enable Preview"));
+
+  camera_box_layout->addWidget(m_integrated_camera);
+  camera_box_layout->addWidget(m_integrated_camera_subgroup);
+
+  camera_box_layout->addWidget(m_camera_feed_label, 0, Qt::AlignmentFlag::AlignHCenter);
+  camera_box_layout->addWidget(m_camera_feed, 0, Qt::AlignmentFlag::AlignHCenter);
+  camera_box_layout->addWidget(m_camera_feed_preview);
+
+  main_layout->addWidget(camera_box);
+
+  main_layout->addStretch();
+  setLayout(main_layout);
+}
+
+void TriforcePane::ConnectWidgets()
+{
+  connect(m_configure_ip_redirections_button, &QPushButton::clicked, this, [this] {
+    auto* const ip_redirections = new IPRedirectionsDialog{this};
+    connect(ip_redirections, &QDialog::accepted, this, &TriforcePane::OnCameraChanged);
+    ip_redirections->setAttribute(Qt::WA_DeleteOnClose);
+    ip_redirections->open();
+  });
+  connect(m_configure_controllers_button, &QPushButton::clicked, this, [this] {
+    auto* const window = new MappingWindow(this, MappingWindow::Type::MAPPING_AM_BASEBOARD, 0);
+    window->setAttribute(Qt::WA_DeleteOnClose, true);
+    window->setWindowModality(Qt::WindowModality::WindowModal);
+    window->show();
+  });
+  connect(m_integrated_camera, &QCheckBox::stateChanged, this,
+          &TriforcePane::OnIntegratedCameraChanged);
+  connect(m_camera_feed_preview, &QCheckBox::stateChanged, this, &TriforcePane::ToggleCameraFeed);
+  connect(m_camera_combo, &QComboBox::activated, this, &TriforcePane::OnCameraDeviceChanged);
+  connect(m_camera_refresh_button, &QPushButton::clicked, this, &TriforcePane::RefreshCameras);
+  connect(m_camera_feed_timer, &QTimer::timeout, this, &TriforcePane::UpdateCameraFrame);
+}
+
+void TriforcePane::LoadSettings()
+{
+  RefreshCameras();
+}
+
+void TriforcePane::OnCameraDeviceChanged(int index)
+{
+  std::optional<std::string> camera;
+  Common::ScopeGuard guard([this] { OnCameraChanged(); });
+  // "Automatic" selection
+  if (index == 0)
+  {
+    Config::DeleteKey(
+        Config::GetActiveLayerForConfig(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE),
+        Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE);
+    return;
+  }
+  // "Static image" selection
+  else if (index == m_camera_combo->count() - 1)
+  {
+    camera = "static";
+    const QString path = DolphinFileDialog::getOpenFileName(
+        this, tr("Select an image"), QDir::currentPath(),
+        QStringLiteral("%1 (*.jpeg *.jpg);; All Files (*)").arg(tr("Image file")));
+    if (!path.isEmpty())
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_STATIC_IMAGE,
+                               path.toStdString());
+    }
+  }
+  else
+  {
+    camera = m_camera_combo->itemText(index).toStdString();
+  }
+  if (camera.has_value())
+    Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE, *camera);
+}
+
+void TriforcePane::RefreshCameras()
+{
+  m_camera_combo->clear();
+  m_camera_combo->addItem(tr("Automatic"));
+
+  const std::string configured_camera = Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE);
+  bool current_camera_found = false;
+
+  const auto& cameras = CameraOrchestrator::GetInstance().EnumerateCameras();
+  for (const auto& camera : cameras)
+  {
+    const std::string camera_qualifier = CameraQualifier(camera.get()).ToString();
+    m_camera_combo->addItem(QString::fromStdString(camera_qualifier));
+    if (!current_camera_found && camera_qualifier == configured_camera)
+    {
+      m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+      current_camera_found = true;
+    }
+  }
+
+  m_camera_combo->addItem(tr("Static image"));
+  if (current_camera_found)
+    return;
+
+  if (configured_camera == "static")
+  {
+    m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+    current_camera_found = true;
+  }
+  else if (!configured_camera.empty())
+  {
+    m_camera_combo->addItem(QString::fromStdString(configured_camera) + QLatin1Char{' '} +
+                            tr("[Disconnected]"));
+    m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+  }
+}
+
+void TriforcePane::OnIntegratedCameraChanged()
+{
+  const bool using_integrated_camera = m_integrated_camera->isChecked();
+  m_integrated_camera_subgroup->setEnabled(using_integrated_camera);
+  OnCameraChanged();
+}
+
+void TriforcePane::OnCameraChanged()
+{
+  Triforce::Camera::GetInstance().Recreate();
+}
+
+void TriforcePane::ToggleCameraFeed()
+{
+  if (m_camera_feed_preview->isChecked())
+  {
+    m_camera_feed_timer->start();
+  }
+  else
+  {
+    m_camera_feed_timer->stop();
+    m_camera_feed->setFrame(QImage());
+  }
+}
+
+void TriforcePane::UpdateCameraFrame()
+{
+  const std::optional<Common::IPv4Port> address = Triforce::Camera::GetInstance().GetAddress();
+  if (!address)
+  {
+    m_camera_feed->setFrame(QImage());
+    return;
+  }
+  const std::string url = fmt::format("http://{}/img.jpg", address->ToString());
+
+  Common::HttpRequest request(std::chrono::milliseconds{100});
+  const auto response = request.Get(url);
+
+  if (!response)
+  {
+    m_camera_feed->setFrame(QImage());
+    return;
+  }
+
+  auto image = Common::StbImage::LoadFromMemory(*response, STBI_rgb);
+
+  if (!image)
+  {
+    m_camera_feed->setFrame(QImage());
+    return;
+  }
+
+  QImage frame(image->GetData().data(), image->GetWidth(), image->GetHeight(),
+               image->GetWidth() * image->GetChannels(), QImage::Format_RGB888);
+  m_camera_feed->setFrame(frame.copy());
 }

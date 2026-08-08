@@ -101,6 +101,8 @@
     <string name="wii_screensaver_description">Dims the screen after five minutes of inactivity.</string>
     <string name="wii_enable_wiilink">Enable WiiConnect24 via WiiLink</string>
     <string name="wii_enable_wiilink_description">Enables the WiiLink service for WiiConnect24 channels. Read the Terms of Service at https://www.wiilink24.com/tos</string>
+    <string name="triforce_submenu">Triforce</string>
+    <string name="triforce_camera">Camera</string>
     <string name="sound_mode">Sound</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
@@ -690,6 +692,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
     <string name="disabled_gc_overlay_notice">The selected GameCube controller is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
+
+    <!-- Camera Selection -->
+    <string name="camera_device">Camera Device</string>
+    <string name="camera_device_description">Camera Device Description</string>
+    <string name="camera_automatic">Automatic</string>
+    <string name="camera_preview">Camera Preview</string>
+    <string name="camera_preview_description">Show a live preview of the camera feed</string>
 
     <!-- UI CPU Core selection -->
     <string name="jit_recompiler_x86">JIT Recompiler for x86–64 (recommended)</string>
