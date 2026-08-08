@@ -48,7 +48,7 @@ class GameRowPresenter : Presenter() {
 
         holder.apply {
             imageScreenshot.setImageDrawable(null)
-            cardParent.titleText = gameFile.getTitle()
+            cardParent.titleText = gameFile.getTitle(GameFileCacheManager.getTitleDatabase())
             holder.gameFile = gameFile
 
             // Set the background color of the card
