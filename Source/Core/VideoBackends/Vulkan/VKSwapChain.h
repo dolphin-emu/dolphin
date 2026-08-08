@@ -54,9 +54,9 @@ public:
   }
   VkResult AcquireNextImage();
 
-  bool RecreateSurface(void* native_handle);
-  bool ResizeSwapChain();
-  bool RecreateSwapChain();
+  bool RecreateSurface(void* native_handle, u32 width, u32 height);
+  bool ResizeSwapChain(u32 width, u32 height);
+  bool RecreateSwapChain(u32 width, u32 height);
 
   // Change vsync enabled state. This may fail as it causes a swapchain recreation.
   bool SetVSync(bool enabled);
@@ -76,7 +76,7 @@ private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
 
-  bool CreateSwapChain();
+  bool CreateSwapChain(u32 width, u32 height);
   void DestroySwapChain();
 
   bool SetupSwapChainImages();
