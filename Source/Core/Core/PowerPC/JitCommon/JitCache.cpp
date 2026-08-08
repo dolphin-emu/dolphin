@@ -79,9 +79,9 @@ void JitBaseBlockCache::Clear()
 #if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
-  m_jit.js.fifoWriteAddresses.clear();
-  m_jit.js.pairedQuantizeAddresses.clear();
-  m_jit.js.noSpeculativeConstantsAddresses.clear();
+  m_jit.js.fifoWriteAddresses.Clear();
+  m_jit.js.pairedQuantizeAddresses.Clear();
+  m_jit.js.noSpeculativeConstantsAddresses.Clear();
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
@@ -338,12 +338,11 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
     // being in the right place between instructions).
     if (!forced)
     {
-      for (u32 i = address; i < address + length; i += 4)
-      {
-        m_jit.js.fifoWriteAddresses.erase(i);
-        m_jit.js.pairedQuantizeAddresses.erase(i);
-        m_jit.js.noSpeculativeConstantsAddresses.erase(i);
-      }
+      const size_t start_bit = address / 4;
+      const size_t end_bit = (address + length) / 4;
+      m_jit.js.fifoWriteAddresses.ClearBits(start_bit, end_bit);
+      m_jit.js.pairedQuantizeAddresses.ClearBits(start_bit, end_bit);
+      m_jit.js.noSpeculativeConstantsAddresses.ClearBits(start_bit, end_bit);
     }
   }
 }

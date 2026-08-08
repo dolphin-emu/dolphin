@@ -8,13 +8,13 @@
 #include <iosfwd>
 #include <map>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/ConfigInfo.h"
+#include "Common/LazyMemoryRegionBitSet.h"
 #include "Common/x64Emitter.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/ConfigManager.h"
@@ -80,6 +80,9 @@ protected:
   static constexpr size_t GUARD_SIZE = 64 * 1024;
   static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
 
+  // 4 GiB divided by the size of one instruction
+  static constexpr size_t INSTRUCTION_BIT_SET_SIZE = 1024 * 1024 * 1024;
+
   struct JitOptions
   {
     bool enableBlocklink;
@@ -128,9 +131,9 @@ protected:
 
     JitBlock* curBlock;
 
-    std::unordered_set<u32> fifoWriteAddresses;
-    std::unordered_set<u32> pairedQuantizeAddresses;
-    std::unordered_set<u32> noSpeculativeConstantsAddresses;
+    Common::LazyMemoryRegionBitSet fifoWriteAddresses{INSTRUCTION_BIT_SET_SIZE};
+    Common::LazyMemoryRegionBitSet pairedQuantizeAddresses{INSTRUCTION_BIT_SET_SIZE};
+    Common::LazyMemoryRegionBitSet noSpeculativeConstantsAddresses{INSTRUCTION_BIT_SET_SIZE};
   };
 
   PPCAnalyst::CodeBlock code_block;
