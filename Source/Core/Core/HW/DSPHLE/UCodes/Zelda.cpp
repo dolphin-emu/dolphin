@@ -1715,6 +1715,12 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     return;
   }
 
+  if (vpb->afc_remaining_decoded_samples > 0x10) [[unlikely]]
+  {
+    ERROR_LOG_FMT(DSPHLE, "afc_remaining_decoded_samples > 0x10");
+    vpb->afc_remaining_decoded_samples = 0x10;
+  }
+
   // Try several things until we have output enough samples.
   while (true)
   {
