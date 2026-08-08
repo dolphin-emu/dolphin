@@ -14,7 +14,6 @@
 #include "Common/VariantUtil.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -252,36 +251,6 @@ bool RegCache::SanityCheck() const
       return false;
   }
   return true;
-}
-
-RCOpArg RegCache::Use(preg_t preg, RCMode mode)
-{
-  m_guests_constraints[preg].AddUse(mode);
-  return RCOpArg{this, preg};
-}
-
-RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode)
-{
-  m_guests_constraints[preg].AddUseNoImm(mode);
-  return RCOpArg{this, preg};
-}
-
-RCOpArg RegCache::BindOrImm(preg_t preg, RCMode mode)
-{
-  m_guests_constraints[preg].AddBindOrImm(mode);
-  return RCOpArg{this, preg};
-}
-
-RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
-{
-  m_guests_constraints[preg].AddBind(mode);
-  return RCX64Reg{this, preg};
-}
-
-RCX64Reg RegCache::RevertableBind(preg_t preg, RCMode mode)
-{
-  m_guests_constraints[preg].AddRevertableBind(mode);
-  return RCX64Reg{this, preg};
 }
 
 RCX64Reg RegCache::Scratch()
@@ -567,8 +536,7 @@ void RegCache::Lock(preg_t preg)
 void RegCache::Unlock(preg_t preg)
 {
   m_state.m_guests_is_locked[preg] = false;
-  // Reset realization state.
-  m_guests_constraints[preg] = {};
+  m_guests_constraints.Reset(preg);
 }
 
 void RegCache::LockX(X64Reg xr)
@@ -581,27 +549,22 @@ void RegCache::UnlockX(X64Reg xr)
   m_state.m_hosts_is_locked[xr] = false;
 }
 
-bool RegCache::IsRealized(preg_t preg) const
-{
-  return m_guests_constraints[preg].IsRealized();
-}
-
 void RegCache::Realize(preg_t preg)
 {
-  if (m_guests_constraints[preg].IsRealized())
+  if (m_guests_constraints.IsRealized(preg))
     return;
 
-  const bool load = m_guests_constraints[preg].ShouldLoad();
-  const bool dirty = m_guests_constraints[preg].ShouldDirty();
-  const bool kill_imm = m_guests_constraints[preg].ShouldKillImmediate();
-  const bool kill_mem = m_guests_constraints[preg].ShouldKillMemory();
+  const bool load = m_guests_constraints.ShouldLoad(preg);
+  const bool dirty = m_guests_constraints.ShouldDirty(preg);
+  const bool kill_imm = m_guests_constraints.ShouldKillImmediate(preg);
+  const bool kill_mem = m_guests_constraints.ShouldKillMemory(preg);
 
   const auto do_bind = [&] {
     BindToRegister(preg, load, dirty);
-    m_guests_constraints[preg].Realized(RCConstraint::RealizedLoc::Bound);
+    m_guests_constraints.Realized(preg, RCConstraints::RealizedLoc::Bound);
   };
 
-  if (m_guests_constraints[preg].ShouldBeRevertable())
+  if (m_guests_constraints.ShouldBeRevertable(preg))
   {
     StoreFromRegister(preg, FlushMode::Undirty);
     do_bind();
@@ -614,22 +577,17 @@ void RegCache::Realize(preg_t preg)
     if (dirty || kill_imm)
       do_bind();
     else
-      m_guests_constraints[preg].Realized(RCConstraint::RealizedLoc::Imm);
+      m_guests_constraints.Realized(preg, RCConstraints::RealizedLoc::Imm);
   }
   else if (!m_state.m_guests_in_host_register[preg])
   {
     if (kill_mem)
       do_bind();
     else
-      m_guests_constraints[preg].Realized(RCConstraint::RealizedLoc::Mem);
+      m_guests_constraints.Realized(preg, RCConstraints::RealizedLoc::Mem);
   }
   else
   {
     do_bind();
   }
-}
-
-bool RegCache::IsAnyConstraintActive() const
-{
-  return std::ranges::any_of(m_guests_constraints, &RCConstraint::IsActive);
 }
