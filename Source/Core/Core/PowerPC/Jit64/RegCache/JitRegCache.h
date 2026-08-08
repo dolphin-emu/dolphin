@@ -140,22 +140,25 @@ private:
   RegsState m_state;
 };
 
-class RCConstraint
+class RCConstraints
 {
 public:
-  bool IsRealized() const { return realized != RealizedLoc::Invalid; }
-  bool IsActive() const
+  bool IsRealized(preg_t preg) const { return m_realized[preg] != RealizedLoc::Invalid; }
+  bool IsAnyConstraintActive() const
   {
-    return IsRealized() || write || read || kill_imm || kill_mem || revertable;
+    constexpr std::array<RealizedLoc, NUM_GUEST_REGS> all_invalid{};
+    // memcmp is faster, since compilers aren't able to vectorize multiple enum comparisons.
+    return std::memcmp(m_realized.data(), all_invalid.data(), NUM_GUEST_REGS) != 0 ||
+           (m_write | m_read | m_kill_imm | m_kill_mem | m_revertable);
   }
 
-  bool ShouldLoad() const { return read; }
-  bool ShouldDirty() const { return write; }
-  bool ShouldBeRevertable() const { return revertable; }
-  bool ShouldKillImmediate() const { return kill_imm; }
-  bool ShouldKillMemory() const { return kill_mem; }
+  bool ShouldLoad(preg_t preg) const { return m_read[preg]; }
+  bool ShouldDirty(preg_t preg) const { return m_write[preg]; }
+  bool ShouldBeRevertable(preg_t preg) const { return m_revertable[preg]; }
+  bool ShouldKillImmediate(preg_t preg) const { return m_kill_imm[preg]; }
+  bool ShouldKillMemory(preg_t preg) const { return m_kill_mem[preg]; }
 
-  enum class RealizedLoc
+  enum class RealizedLoc : u8
   {
     Invalid,
     Bound,
@@ -163,13 +166,13 @@ public:
     Mem,
   };
 
-  void Realized(RealizedLoc loc)
+  void Realized(preg_t preg, RealizedLoc loc)
   {
-    realized = loc;
-    ASSERT(IsRealized());
+    m_realized[preg] = loc;
+    ASSERT(IsRealized(preg));
   }
 
-  enum class ConstraintLoc
+  enum class ConstraintLoc : u8
   {
     Bound,
     BoundOrImm,
@@ -177,35 +180,54 @@ public:
     Any,
   };
 
-  void AddUse(RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
-  void AddUseNoImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
-  void AddBindOrImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
-  void AddBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
-  void AddRevertableBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
+  void AddUse(preg_t preg, RCMode mode) { AddConstraint(preg, mode, ConstraintLoc::Any, false); }
+  void AddUseNoImm(preg_t preg, RCMode mode)
+  {
+    AddConstraint(preg, mode, ConstraintLoc::BoundOrMem, false);
+  }
+  void AddBindOrImm(preg_t preg, RCMode mode)
+  {
+    AddConstraint(preg, mode, ConstraintLoc::BoundOrImm, false);
+  }
+  void AddBind(preg_t preg, RCMode mode) { AddConstraint(preg, mode, ConstraintLoc::Bound, false); }
+  void AddRevertableBind(preg_t preg, RCMode mode)
+  {
+    AddConstraint(preg, mode, ConstraintLoc::Bound, true);
+  }
+
+  void Reset(preg_t preg)
+  {
+    m_realized[preg] = {};
+    m_write[preg] = false;
+    m_read[preg] = false;
+    m_kill_imm[preg] = false;
+    m_kill_mem[preg] = false;
+    m_revertable[preg] = false;
+  }
 
 private:
-  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable)
+  void AddConstraint(preg_t preg, RCMode mode, ConstraintLoc loc, bool should_revertable)
   {
-    if (IsRealized())
+    if (IsRealized(preg))
     {
-      ASSERT(IsCompatible(mode, loc, should_revertable));
+      ASSERT(IsCompatible(preg, mode, loc, should_revertable));
       return;
     }
 
     if (should_revertable)
-      revertable = true;
+      m_revertable[preg] = true;
 
     switch (loc)
     {
     case ConstraintLoc::Bound:
-      kill_imm = true;
-      kill_mem = true;
+      m_kill_imm[preg] = true;
+      m_kill_mem[preg] = true;
       break;
     case ConstraintLoc::BoundOrImm:
-      kill_mem = true;
+      m_kill_mem[preg] = true;
       break;
     case ConstraintLoc::BoundOrMem:
-      kill_imm = true;
+      m_kill_imm[preg] = true;
       break;
     case ConstraintLoc::Any:
       break;
@@ -214,21 +236,21 @@ private:
     switch (mode)
     {
     case RCMode::Read:
-      read = true;
+      m_read[preg] = true;
       break;
     case RCMode::Write:
-      write = true;
+      m_write[preg] = true;
       break;
     case RCMode::ReadWrite:
-      read = true;
-      write = true;
+      m_read[preg] = true;
+      m_write[preg] = true;
       break;
     }
   }
 
-  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable) const
+  bool IsCompatible(preg_t preg, RCMode mode, ConstraintLoc loc, bool should_revertable) const
   {
-    if (should_revertable && !revertable)
+    if (should_revertable && !m_revertable[preg])
     {
       return false;
     }
@@ -237,11 +259,11 @@ private:
       switch (loc)
       {
       case ConstraintLoc::Bound:
-        return realized == RealizedLoc::Bound;
+        return m_realized[preg] == RealizedLoc::Bound;
       case ConstraintLoc::BoundOrImm:
-        return realized == RealizedLoc::Bound || realized == RealizedLoc::Imm;
+        return m_realized[preg] == RealizedLoc::Bound || m_realized[preg] == RealizedLoc::Imm;
       case ConstraintLoc::BoundOrMem:
-        return realized == RealizedLoc::Bound || realized == RealizedLoc::Mem;
+        return m_realized[preg] == RealizedLoc::Bound || m_realized[preg] == RealizedLoc::Mem;
       case ConstraintLoc::Any:
         return true;
       }
@@ -249,15 +271,15 @@ private:
       return false;
     }();
 
-    const bool is_mode_compatible = [&] {
+    const bool is_mode_compatible = [&] -> bool {
       switch (mode)
       {
       case RCMode::Read:
-        return read;
+        return m_read[preg];
       case RCMode::Write:
-        return write;
+        return m_write[preg];
       case RCMode::ReadWrite:
-        return read && write;
+        return m_read[preg] && m_write[preg];
       }
       ASSERT(false);
       return false;
@@ -266,12 +288,12 @@ private:
     return is_loc_compatible && is_mode_compatible;
   }
 
-  RealizedLoc realized = RealizedLoc::Invalid;
-  bool write = false;
-  bool read = false;
-  bool kill_imm = false;
-  bool kill_mem = false;
-  bool revertable = false;
+  std::array<RealizedLoc, NUM_GUEST_REGS> m_realized{};
+  BitSetGuest m_write;
+  BitSetGuest m_read;
+  BitSetGuest m_kill_imm;
+  BitSetGuest m_kill_mem;
+  BitSetGuest m_revertable;
 };
 
 class RegCache
@@ -325,11 +347,35 @@ public:
 
   bool IsBound(preg_t preg) const { return m_state.m_guests_in_host_register[preg]; }
 
-  RCOpArg Use(preg_t preg, RCMode mode);
-  RCOpArg UseNoImm(preg_t preg, RCMode mode);
-  RCOpArg BindOrImm(preg_t preg, RCMode mode);
-  RCX64Reg Bind(preg_t preg, RCMode mode);
-  RCX64Reg RevertableBind(preg_t preg, RCMode mode);
+  RCOpArg Use(preg_t preg, RCMode mode)
+  {
+    m_guests_constraints.AddUse(preg, mode);
+    return RCOpArg{this, preg};
+  }
+
+  RCOpArg UseNoImm(preg_t preg, RCMode mode)
+  {
+    m_guests_constraints.AddUseNoImm(preg, mode);
+    return RCOpArg{this, preg};
+  }
+
+  RCOpArg BindOrImm(preg_t preg, RCMode mode)
+  {
+    m_guests_constraints.AddBindOrImm(preg, mode);
+    return RCOpArg{this, preg};
+  }
+
+  RCX64Reg Bind(preg_t preg, RCMode mode)
+  {
+    m_guests_constraints.AddBind(preg, mode);
+    return RCX64Reg{this, preg};
+  }
+
+  RCX64Reg RevertableBind(preg_t preg, RCMode mode)
+  {
+    m_guests_constraints.AddRevertableBind(preg, mode);
+    return RCX64Reg{this, preg};
+  }
   RCX64Reg Scratch();
   RCX64Reg Scratch(Gen::X64Reg xr);
 
@@ -381,14 +427,13 @@ protected:
   void Unlock(preg_t preg);
   void LockX(Gen::X64Reg xr);
   void UnlockX(Gen::X64Reg xr);
-  bool IsRealized(preg_t preg) const;
+  bool IsRealized(preg_t preg) const { return m_guests_constraints.IsRealized(preg); }
+  bool IsAnyConstraintActive() const { return m_guests_constraints.IsAnyConstraintActive(); }
   void Realize(preg_t preg);
-
-  bool IsAnyConstraintActive() const;
 
   Jit64& m_jit;
   Gen::XEmitter& m_emitter;
 
   RegsState m_state{};
-  std::array<RCConstraint, NUM_GUEST_REGS> m_guests_constraints;
+  RCConstraints m_guests_constraints{};
 };
