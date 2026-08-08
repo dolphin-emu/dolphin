@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <span>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/SpanUtils.h"
@@ -288,7 +289,7 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
     {
       for (int x = 0; x < xcnt; x++)
       {
-        int* dtp = (int*)dst;
+        int* dtp = Common::BitCastPtr<int*>(dst);
         dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
       }
       ptr += 9;
@@ -300,7 +301,8 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
 void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFormat texformat,
                        const u8* tlut, TLUTFormat tlutfmt)
 {
-  _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlut, tlutfmt);
+  _TexDecoder_DecodeImpl(Common::BitCastPtr<u32*>(dst), src, width, height, texformat, tlut,
+                         tlutfmt);
 
   if (TexFmt_Overlay_Enable)
     TexDecoder_DrawOverlay(dst, width, height, texformat);
@@ -390,7 +392,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u8 val = (Common::SafeSpanRead<u8>(src, offset) >> rs) & 0xF;
     u16 pixel = Common::SafeSpanRead<u16>(tlut_, sizeof(u16) * val);
 
-    *((u32*)dst) = DecodePixel_Paletted(pixel, tlutfmt);
+    Common::BitCastPtr<u32>(dst) = DecodePixel_Paletted(pixel, tlutfmt);
   }
   break;
   case TextureFormat::I4:
@@ -444,7 +446,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u8 val = Common::SafeSpanRead<u8>(src, base + blkOff);
     u16 pixel = Common::SafeSpanRead<u16>(tlut_, sizeof(u16) * val);
 
-    *((u32*)dst) = DecodePixel_Paletted(pixel, tlutfmt);
+    Common::BitCastPtr<u32>(dst) = DecodePixel_Paletted(pixel, tlutfmt);
   }
   break;
   case TextureFormat::IA4:
@@ -479,7 +481,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u32 offset = (base + blkOff) << 1;
     u16 val = Common::SafeSpanRead<u16>(src, offset);
 
-    *((u32*)dst) = DecodePixel_IA8(val);
+    Common::BitCastPtr<u32>(dst) = DecodePixel_IA8(val);
   }
   break;
   case TextureFormat::C14X2:
@@ -496,7 +498,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u16 val = Common::swap16(Common::SafeSpanRead<u16>(src, offset)) & 0x3FFF;
     u16 pixel = Common::SafeSpanRead<u16>(tlut_, sizeof(u16) * val);
 
-    *((u32*)dst) = DecodePixel_Paletted(pixel, tlutfmt);
+    Common::BitCastPtr<u32>(dst) = DecodePixel_Paletted(pixel, tlutfmt);
   }
   break;
   case TextureFormat::RGB565:
@@ -512,7 +514,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u32 offset = (base + blkOff) << 1;
     u16 val = Common::SafeSpanRead<u16>(src, offset);
 
-    *((u32*)dst) = DecodePixel_RGB565(Common::swap16(val));
+    Common::BitCastPtr<u32>(dst) = DecodePixel_RGB565(Common::swap16(val));
   }
   break;
   case TextureFormat::RGB5A3:
@@ -528,7 +530,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u32 offset = (base + blkOff) << 1;
     u16 val = Common::SafeSpanRead<u16>(src, offset);
 
-    *((u32*)dst) = DecodePixel_RGB5A3(Common::swap16(val));
+    Common::BitCastPtr<u32>(dst) = DecodePixel_RGB5A3(Common::swap16(val));
   }
   break;
   case TextureFormat::RGBA8:
@@ -614,7 +616,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
       break;
     }
 
-    *((u32*)dst) = color;
+    Common::BitCastPtr<u32>(dst) = color;
   }
   break;
   case TextureFormat::XFB:
@@ -622,17 +624,17 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     size_t offset = (t * imageWidth + (s & (~1))) * 2;
 
     // We do this one color sample (aka 2 RGB pixles) at a time
-    int Y = int((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
-    int U = int(src[offset + 1]) - 128;
-    int V = int(src[offset + 3]) - 128;
+    int Y = static_cast<int>((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
+    int U = static_cast<int>(src[offset + 1]) - 128;
+    int V = static_cast<int>(src[offset + 3]) - 128;
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
     // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
     // in a real texture format, so does this conversion actually ever happen?)
-    u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
-    u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
-    u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
+    u8 R = MathUtil::SaturatingCast<int>(1.164f * Y + 1.596f * V);
+    u8 G = MathUtil::SaturatingCast<int>(1.164f * Y - 0.392f * U - 0.813f * V);
+    u8 B = MathUtil::SaturatingCast<int>(1.164f * Y + 2.017f * U);
     dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
   }
   break;
@@ -710,22 +712,22 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
     for (u32 x = 0; x < width; x += 2)
     {
       // We do this one color sample (aka 2 RGB pixels) at a time
-      int Y1 = int(*(row_ptr++)) - 16;
-      int U = int(*(row_ptr++)) - 128;
-      int Y2 = int(*(row_ptr++)) - 16;
-      int V = int(*(row_ptr++)) - 128;
+      int Y1 = static_cast<int>(*(row_ptr++)) - 16;
+      int U = static_cast<int>(*(row_ptr++)) - 128;
+      int Y2 = static_cast<int>(*(row_ptr++)) - 16;
+      int V = static_cast<int>(*(row_ptr++)) - 128;
 
       // We do the inverse BT.601 conversion for YCbCr to RGB
       // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
       // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB
       // isn't in a real texture format, so does this conversion actually ever happen?)
-      u8 R1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
-      u8 G1 = static_cast<u8>(std::clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
+      u8 R1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 + 1.596f * V);
+      u8 G1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 - 0.392f * U - 0.813f * V);
+      u8 B1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 + 2.017f * U);
 
-      u8 R2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
-      u8 G2 = static_cast<u8>(std::clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
+      u8 R2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 + 1.596f * V);
+      u8 G2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 - 0.392f * U - 0.813f * V);
+      u8 B2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 + 2.017f * U);
 
       u32 rgba = 0xff000000 | B1 << 16 | G1 << 8 | R1;
       std::memcpy(dst_ptr, &rgba, sizeof(rgba));
