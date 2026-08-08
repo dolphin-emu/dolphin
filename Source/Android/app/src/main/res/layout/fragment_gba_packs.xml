@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_gba_packs"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="#af000000"
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
+
+    <Button
+        android:id="@+id/gba_pack_player"
+        style="@style/OverlayInGameMenuOption"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

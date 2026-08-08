@@ -18,6 +18,11 @@ static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
 static jmethodID s_finish_emulation_activity;
 
+static jclass s_gba_host_bridge_class;
+static jmethodID s_gba_host_bridge_on_game_changed;
+static jmethodID s_gba_host_bridge_on_core_stopped;
+static jmethodID s_gba_host_bridge_on_frame;
+
 static jclass s_game_file_class;
 static jfieldID s_game_file_pointer;
 static jmethodID s_game_file_constructor;
@@ -209,6 +214,26 @@ jmethodID GetOnTitleChanged()
 jmethodID GetFinishEmulationActivity()
 {
   return s_finish_emulation_activity;
+}
+
+jclass GetGbaHostBridgeClass()
+{
+  return s_gba_host_bridge_class;
+}
+
+jmethodID GetGbaHostBridgeOnGameChanged()
+{
+  return s_gba_host_bridge_on_game_changed;
+}
+
+jmethodID GetGbaHostBridgeOnCoreStopped()
+{
+  return s_gba_host_bridge_on_core_stopped;
+}
+
+jmethodID GetGbaHostBridgeOnFrame()
+{
+  return s_gba_host_bridge_on_frame;
 }
 
 jclass GetAnalyticsClass()
@@ -749,6 +774,17 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(s_native_library_class, "finishEmulationActivity", "()V");
   env->DeleteLocalRef(native_library_class);
 
+  const jclass gba_host_bridge_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/dualscreen/GbaHostBridge");
+  s_gba_host_bridge_class = reinterpret_cast<jclass>(env->NewGlobalRef(gba_host_bridge_class));
+  s_gba_host_bridge_on_game_changed = env->GetStaticMethodID(
+      s_gba_host_bridge_class, "onGameChanged", "(IIIZZLjava/lang/String;)V");
+  s_gba_host_bridge_on_core_stopped =
+      env->GetStaticMethodID(s_gba_host_bridge_class, "onCoreStopped", "(I)V");
+  s_gba_host_bridge_on_frame =
+      env->GetStaticMethodID(s_gba_host_bridge_class, "onFrame", "(III[I)V");
+  env->DeleteLocalRef(gba_host_bridge_class);
+
   const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
   s_game_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_class));
   s_game_file_pointer = env->GetFieldID(game_file_class, "pointer", "J");
@@ -1025,6 +1061,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
     return;
 
   env->DeleteGlobalRef(s_native_library_class);
+  env->DeleteGlobalRef(s_gba_host_bridge_class);
   env->DeleteGlobalRef(s_game_file_class);
   env->DeleteGlobalRef(s_game_file_cache_class);
   env->DeleteGlobalRef(s_netplay_session_class);

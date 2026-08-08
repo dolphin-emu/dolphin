@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
@@ -66,6 +66,29 @@
     <string name="config">Config</string>
     <string name="graphics_settings">Graphics Settings</string>
     <string name="gcpad_settings">GameCube Input</string>
+    <string name="gba_link_settings">GBA Link</string>
+    <string name="gba_controller_0">GBA Input 1 (Port 1)</string>
+    <string name="gba_controller_1">GBA Input 2 (Port 2)</string>
+    <string name="gba_controller_2">GBA Input 3 (Port 3)</string>
+    <string name="gba_controller_3">GBA Input 4 (Port 4)</string>
+    <string name="gba_link_scale_mode">GBA Screen Scale</string>
+    <string name="gba_link_scale_mode_description">Controls how the GBA image is scaled on the internal or external display.</string>
+    <string name="gba_link_scale_fit">Fit, keep aspect ratio</string>
+    <string name="gba_link_scale_stretch">Stretch to full screen</string>
+    <string name="gba_link_scale_integer">Integer scale</string>
+    <string name="gba_link_external_display">Use External Display for GBA Link</string>
+    <string name="gba_link_external_display_description">Shows the active GBA Link screen on a valid external presentation display when one is connected.</string>
+    <string name="gba_link_position">GBA Screen Position</string>
+    <string name="gba_link_position_description">Controls where the GBA image is anchored when it does not fill the display.</string>
+    <string name="gba_link_position_center">Center</string>
+    <string name="gba_link_position_top">Top</string>
+    <string name="gba_link_position_bottom">Bottom</string>
+    <string name="gba_link_position_left">Left</string>
+    <string name="gba_link_position_right">Right</string>
+    <string name="gba_link_hide_touch_controls">Hide Touch Controls with Controller</string>
+    <string name="gba_link_hide_touch_controls_description">Hides the on-screen GBA buttons only when the selected GBA input device is configured and connected.</string>
+    <string name="gba_link_mute_audio">Mute GBA Link</string>
+    <string name="gba_link_mute_audio_description">Silences audio from emulated GBA Link ports without disconnecting the GBA game.</string>
     <string name="wiimote_settings">Wii Input</string>
 
     <!-- General Preference Fragment -->
@@ -87,7 +110,17 @@
     <string name="serial_port_1_device">GameCube Serial Port 1 Device</string>
     <string name="gba_settings">GBA Settings</string>
     <string name="gba_bios_path">BIOS</string>
+    <string name="gba_bios_required_title">GBA BIOS Required</string>
+    <string name="gba_bios_required_message">Configure a 16 KB GBA BIOS when an Emulated GBA port has no ROM.</string>
+    <string name="configure_bios">Configure BIOS</string>
+    <string name="gba_rom_1">GBA ROM 1 (Port 1)</string>
+    <string name="gba_rom_2">GBA ROM 2 (Port 2)</string>
+    <string name="gba_rom_3">GBA ROM 3 (Port 3)</string>
+    <string name="gba_rom_4">GBA ROM 4 (Port 4)</string>
     <string name="gb_player_rom">Game Boy Player ROM</string>
+    <string name="gb_player_boot_path">Game Boy Player Boot Path</string>
+    <string name="gb_player_boot_path_description">Disc, DOL, or ELF used to boot Game Boy Player mode before loading the selected GBA ROM.</string>
+    <string name="gb_player_boot_path_required">Set a Game Boy Player boot path before launching GBA ROMs.</string>
     <string name="gba_saves_path">Saves</string>
     <string name="wii_submenu">Wii</string>
     <string name="wii_misc_settings">Misc Settings</string>
@@ -498,6 +531,7 @@
     <string name="platform_gamecube">GameCube Games</string>
     <string name="platform_wii">Wii Games</string>
     <string name="platform_wiiware">WiiWare Games</string>
+    <string name="platform_gba">GBA Games</string>
     <string name="add_games">Add Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
@@ -633,6 +667,18 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wii Remotes</string>
     <string name="emulation_overlay_controls">Overlay Controls</string>
+    <string name="emulation_show_gba_screen">Show GBA Screen</string>
+    <string name="emulation_show_gamecube_screen">Show GameCube Screen</string>
+    <string name="emulation_gba_packs">GBA Packs</string>
+    <string name="emulation_gba_pack_player">Game Boy Player ROM</string>
+    <string name="emulation_gba_pack_player_with_value">Game Boy Player ROM\n%1$s</string>
+    <string name="emulation_gba_pack_empty">Not configured</string>
+    <string name="emulation_gba_pack_updated">%1$s updated. Reconnect or restart the GBA link if the running game does not reload it automatically.</string>
+    <string name="emulation_gba_screen_no_core">No active GBA screen is available yet.</string>
+    <string name="gba_screen_no_active_link">No GBA link active</string>
+    <string name="gba_screen_title" tools:ignore="PluralsCandidate">GBA %1$d</string>
+    <string name="gba_screen_title_with_game" tools:ignore="PluralsCandidate">GBA %1$d: %2$s</string>
+    <string name="gba_screen_waiting_for_frame" tools:ignore="PluralsCandidate">Waiting for GBA %1$d frame</string>
     <string name="emulation_edit_layout">Edit Layout</string>
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
@@ -834,6 +880,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="gcpad_taru_konga">DK Bongos</string>
     <string name="gcpad_am_baseboard">Triforce Baseboard</string>
     <string name="gcpad_gc_adapter">GameCube Adapter</string>
+    <string name="gcpad_emulated_gba">Emulated GBA</string>
+
+    <string name="dual_screen_external_display">Use External Display</string>
+    <string name="dual_screen_external_display_description">Automatically use an external display when GBA Link or Wii pointer touchpad support is configured.</string>
+    <string name="dual_screen_wii_pointer_touchpad">Use External Display as Wii Pointer Touchpad</string>
+    <string name="dual_screen_wii_pointer_touchpad_description">Uses the external display as a touch surface for Wii pointer input when a Wii game is running.</string>
+    <string name="dual_screen_wii_pointer_touchpad_label">Wii Pointer Touchpad</string>
 
     <!-- Wiimote Types -->
     <string name="wiimote_disabled">None</string>

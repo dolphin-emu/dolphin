@@ -9,15 +9,18 @@ import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
 import com.google.android.material.color.MaterialColors
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.adapters.GbaGameAdapter
 import org.dolphinemu.dolphinemu.adapters.GameAdapter
 import org.dolphinemu.dolphinemu.databinding.FragmentGridBinding
 import org.dolphinemu.dolphinemu.layout.AutofitGridLayoutManager
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
+import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 
 class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private var swipeRefresh: SwipeRefreshLayout? = null
@@ -37,16 +40,21 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         swipeRefresh = binding.swipeRefresh
-        val gameAdapter = GameAdapter()
+        val platformTab = requireArguments().serializable<PlatformTab>(ARG_PLATFORM_TAB)!!
+        val gameAdapter = if (platformTab == PlatformTab.GBA) GbaGameAdapter() else GameAdapter()
         gameAdapter.stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         binding.gridGames.apply {
             adapter = gameAdapter
-            layoutManager = AutofitGridLayoutManager(
-                requireContext(),
-                resources.getDimensionPixelSize(R.dimen.card_width)
-            )
+            layoutManager = if (platformTab == PlatformTab.GBA) {
+                LinearLayoutManager(requireContext())
+            } else {
+                AutofitGridLayoutManager(
+                    requireContext(),
+                    resources.getDimensionPixelSize(R.dimen.card_width)
+                )
+            }
         }
 
         // Set theme color to the refresh animation's background
@@ -73,15 +81,21 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             return
 
         if (binding.gridGames.adapter != null) {
-            val platformTab = requireArguments().getSerializable(ARG_PLATFORM_TAB) as PlatformTab
-            (binding.gridGames.adapter as GameAdapter?)!!.swapDataSet(
-                GameFileCacheManager.getGameFilesForPlatformTab(platformTab)
-            )
+            val platformTab = requireArguments().serializable<PlatformTab>(ARG_PLATFORM_TAB)!!
+            if (platformTab == PlatformTab.GBA) {
+                (binding.gridGames.adapter as GbaGameAdapter).swapDataSet(
+                    GameFileCacheManager.getGbaGameFiles()
+                )
+            } else {
+                (binding.gridGames.adapter as GameAdapter).swapDataSet(
+                    GameFileCacheManager.getGameFilesForPlatformTab(platformTab)
+                )
+            }
         }
     }
 
     override fun refetchMetadata() {
-        (binding.gridGames.adapter as GameAdapter).refetchMetadata()
+        (binding.gridGames.adapter as? GameAdapter)?.refetchMetadata()
     }
 
     fun setOnRefreshListener(listener: OnRefreshListener?) {

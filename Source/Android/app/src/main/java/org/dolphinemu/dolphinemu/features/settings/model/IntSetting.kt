@@ -76,6 +76,18 @@ enum class IntSetting(
         "IRMode",
         InputOverlayPointer.MODE_FOLLOW
     ),
+    MAIN_GBA_LINK_SCALE_MODE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "GBALinkScaleMode",
+        0
+    ),
+    MAIN_GBA_LINK_POSITION(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "GBALinkPosition",
+        0
+    ),
     MAIN_DOUBLE_TAP_BUTTON(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,

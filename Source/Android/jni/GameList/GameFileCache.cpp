@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include <jni.h>
