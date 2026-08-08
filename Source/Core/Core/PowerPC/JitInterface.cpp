@@ -311,7 +311,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
   if (!m_jit)
     return;
 
-  std::unordered_set<u32>* exception_addresses = nullptr;
+  Common::LazyMemoryRegionBitSet* exception_addresses = nullptr;
 
   switch (type)
   {
@@ -327,7 +327,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  if (ppc_state.pc != 0 && !exception_addresses->contains(ppc_state.pc))
+  if (ppc_state.pc != 0 && !exception_addresses->IsBitSet(ppc_state.pc / 4))
   {
     if (type == ExceptionType::FIFOWrite)
     {
@@ -341,7 +341,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(ppc_state.pc);
+    exception_addresses->SetBit(ppc_state.pc / 4);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
