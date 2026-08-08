@@ -26,10 +26,3 @@ if(LibUSB_TYPE STREQUAL Bundled)
 endif()
 
 add_subdirectory(SDL)
-
-if (TARGET SDL3)
-  dolphin_disable_warnings(SDL3)
-endif()
-if (TARGET SDL3-static)
-  dolphin_disable_warnings(SDL3-static)
-endif()
