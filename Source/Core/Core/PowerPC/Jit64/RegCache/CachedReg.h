@@ -62,12 +62,6 @@ public:
     ASSERT(m_in_host_register);
     m_revertable = true;
   }
-  void SetRevert()
-  {
-    ASSERT(m_revertable);
-    m_revertable = false;
-    SetFlushed(false);
-  }
   void SetCommit()
   {
     ASSERT(m_revertable);

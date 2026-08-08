@@ -181,7 +181,7 @@ public:
   void Flush(BitSet32 pregs = BitSet32::AllTrue(32), FlushMode mode = FlushMode::Full,
              IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
   void Reset(BitSet32 pregs);
-  void Revert();
+  BitSet32 RegistersRevertable() const;
   void Commit();
 
   bool IsAllUnlocked() const;
