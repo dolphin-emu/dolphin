@@ -18,7 +18,7 @@ class Texture;
 class Gfx final : public ::AbstractGfx
 {
 public:
-  Gfx(MRCOwned<CAMetalLayer*> layer);
+  Gfx(MRCOwned<CAMetalLayer*> layer, float backbuffer_refresh_rate);
   ~Gfx() override;
 
   bool IsHeadless() const override;
@@ -76,6 +76,7 @@ public:
 
 private:
   MRCOwned<CAMetalLayer*> m_layer;
+  float m_backbuffer_refresh_rate;
   MRCOwned<id<CAMetalDrawable>> m_drawable;
   std::unique_ptr<Texture> m_bb_texture;
   std::unique_ptr<Framebuffer> m_backbuffer;

@@ -3,6 +3,8 @@
 
 #include "VideoCommon/Present.h"
 
+#include <optional>
+
 #include "Common/ChunkFile.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -15,7 +17,9 @@
 
 #include "Present.h"
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/FrameDumper.h"
+#include "VideoCommon/FrameGeneration.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/PostProcessing.h"
@@ -93,7 +97,7 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
   }
 }
 
-Presenter::Presenter()
+Presenter::Presenter() : m_frame_generator(std::make_unique<FrameGenerator>())
 {
   auto& video_events = GetVideoEvents();
 
@@ -345,6 +349,7 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
   m_backbuffer_format = info.format;
+  m_backbuffer_refresh_rate = info.refresh_rate;
   if (m_onscreen_ui)
     m_onscreen_ui->SetScale(info.scale);
 
@@ -933,43 +938,125 @@ void Presenter::Present(PresentInfo* present_info)
 
   UpdateDrawRectangle();
 
-  g_gfx->BeginUtilityDrawing();
-  const bool backbuffer_bound = g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+  // Taken before anything below is drawn: this reads the clock to measure how early the field
+  // arrived and feeds that into the presentation smoother, so it has to happen ahead of the
+  // generation work rather than after it.
+  std::optional<TimePoint> present_time;
+  if (present_info != nullptr)
+    present_time = GetUpdatedPresentationTime(present_info->intended_present_time);
 
-  // Render the XFB to the screen.
-  if (backbuffer_bound && m_xfb_entry)
-  {
-    // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
-    MathUtil::Rectangle<int> render_target_rc = GetTargetRectangle();
-    MathUtil::Rectangle<int> render_source_rc = AdjustForCustomCrop(m_xfb_rect);
-    AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
-                                m_backbuffer_height);
-    RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
-  }
-
+  // The UI is built once for however many images this field ends up putting on screen.
   if (m_onscreen_ui)
-  {
     m_onscreen_ui->Finalize();
-    if (backbuffer_bound)
-      m_onscreen_ui->DrawImGui();
+
+  // How far apart the video interface puts two fields, which is the span any extra images are
+  // spread across.
+  //
+  // Measured from the previous field's own due time rather than from m_next_swap_estimated_time:
+  // that is pushed to this thread as a separate event *after* the swap it belongs to, so by the
+  // time a field is being presented it still holds that field's own time and the difference is
+  // zero. Two consecutive due times are exact and need no assumption about event ordering.
+  DT field = DT::zero();
+  if (present_info != nullptr)
+  {
+    if (m_last_intended_present_time != TimePoint{})
+      field =
+          std::max(present_info->intended_present_time - m_last_intended_present_time, DT::zero());
+    m_last_intended_present_time = present_info->intended_present_time;
   }
 
-  // Present to the window system.
+  // How many images this field hands over: as many as the display can actually show.
+  //
+  // The video interface asks for one per field, so a game at the console's field rate puts sixty
+  // images a second on a display however fast it refreshes. Where the display is quicker, the
+  // field is split into that many images instead, each drawn for its own slice of time, so the
+  // extra refreshes get pictures rather than repeats.
+  const u32 presents = ComputePresentsPerField(field);
+
+  for (u32 part = 0; part < presents; ++part)
   {
-    std::lock_guard<std::mutex> guard(m_swap_mutex);
+    // Deliberately ahead of BeginUtilityDrawing(): the frames this draws come from the emulated
+    // pipelines, which need the render state that goes with them rather than the utility one.
+    m_frame_generator->RenderIntoBucket(part, presents);
 
-    if (present_info != nullptr)
+    // The frames it drew have already been counted where they were drawn, so the frame rate must
+    // not count this presentation on top of them.
+    if (present_info != nullptr && part == 0)
+      present_info->generated_frames = m_frame_generator->GetSampleCount();
+
+    g_gfx->BeginUtilityDrawing();
+    const bool backbuffer_bound = g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+
+    // Render the XFB to the screen.
+    if (backbuffer_bound && m_xfb_entry)
     {
-      const auto present_time = GetUpdatedPresentationTime(present_info->intended_present_time);
+      MathUtil::Rectangle<int> render_target_rc = GetTargetRectangle();
+      MathUtil::Rectangle<int> render_source_rc = m_xfb_rect;
+      const AbstractTexture* render_source_texture = m_xfb_entry->texture.get();
 
-      Core::System::GetInstance().GetCoreTiming().SleepUntil(present_time);
+      // A generated frame stands in for the one the game produced, showing the scene where it is
+      // at this instant rather than where it was when the emulated GPU last finished with it.
+      //
+      // It has already been through the game's own copy to the external framebuffer, so it is laid
+      // out exactly like the real one and m_xfb_rect addresses it unchanged. The size check is what
+      // says the two describe the same copy: if the game has changed video mode since the recording
+      // was made, the rectangle would not mean the same thing on both.
+      //
+      // A stitched XFB is assembled out of several EFB copies, of which a recording only holds the
+      // last, so there the generated image would be one strip of the picture rather than all of
+      // it, and the frame the game produced is the only complete one there is.
+      const AbstractTexture* const generated =
+          m_xfb_entry->references.empty() ? m_frame_generator->GetGeneratedXFB() : nullptr;
+      if (generated != nullptr && generated->GetWidth() == m_xfb_entry->texture->GetWidth() &&
+          generated->GetHeight() == m_xfb_entry->texture->GetHeight())
+      {
+        render_source_texture = generated;
+      }
 
-      // Perhaps in the future a more accurate time can be acquired from the various backends.
-      present_info->actual_present_time = Clock::now();
-      present_info->present_time_accuracy = PresentInfo::PresentTimeAccuracy::PresentInProgress;
+      // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
+      render_source_rc = AdjustForCustomCrop(render_source_rc);
+      AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
+                                  m_backbuffer_height);
+
+      RenderXFBToScreen(render_target_rc, render_source_texture, render_source_rc);
     }
 
-    g_gfx->PresentBackbuffer();
+    // The draw data Finalize() produced stays valid until the next frame is begun, so every image
+    // this field puts up gets the same interface drawn onto it.
+    if (m_onscreen_ui && backbuffer_bound)
+      m_onscreen_ui->DrawImGui();
+
+    // Present to the window system.
+    {
+      std::lock_guard<std::mutex> guard(m_swap_mutex);
+
+      // Only the first image of a field is paced by hand. With vsync on, PresentBackbuffer() itself
+      // blocks until the display is ready for the next one, so sleeping to a computed time first
+      // means two pacing mechanisms in series: land a fraction late and the refresh that was being
+      // aimed for has already gone, and the swap waits for the one after it. With vsync off nothing
+      // else spaces the images out, so the sleep is what does it.
+      const bool pace_by_hand = part == 0 || !g_ActiveConfig.bVSyncActive;
+
+      if (present_info != nullptr)
+      {
+        if (pace_by_hand)
+        {
+          Core::System::GetInstance().GetCoreTiming().SleepUntil(*present_time +
+                                                                 (field * part) / presents);
+        }
+
+        // Perhaps in the future a more accurate time can be acquired from the various backends.
+        if (part == 0)
+        {
+          present_info->actual_present_time = Clock::now();
+          present_info->present_time_accuracy = PresentInfo::PresentTimeAccuracy::PresentInProgress;
+        }
+      }
+
+      g_gfx->PresentBackbuffer();
+    }
+
+    g_gfx->EndUtilityDrawing();
   }
 
   if (m_xfb_entry)
@@ -982,8 +1069,22 @@ void Presenter::Present(PresentInfo* present_info)
 
   if (m_onscreen_ui)
     m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
+}
 
-  g_gfx->EndUtilityDrawing();
+u32 Presenter::ComputePresentsPerField(DT field) const
+{
+  if (!g_ActiveConfig.frame_generation.bEnabled || m_backbuffer_refresh_rate <= 0.0f ||
+      field <= DT::zero())
+  {
+    return 1;
+  }
+
+  const double field_seconds = DT_s(field).count();
+  const double refreshes = field_seconds * m_backbuffer_refresh_rate;
+
+  // A hair under, so that a display reporting 59.97 against a 59.94 field rate still counts as one
+  // refresh per field rather than rounding its way into two.
+  return std::clamp(static_cast<u32>(refreshes + 0.05), 1u, MAX_PRESENTS_PER_FIELD);
 }
 
 TimePoint Presenter::GetUpdatedPresentationTime(TimePoint intended_presentation_time)

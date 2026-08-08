@@ -32,6 +32,8 @@ struct SurfaceInfo
   u32 height = 0;
   float scale = 0.0f;
   AbstractTextureFormat format = {};
+  // How often the display the window is on refreshes, in hertz. Zero where the backend cannot say.
+  float refresh_rate = 0.0f;
 };
 
 namespace VideoCommon
@@ -139,6 +141,9 @@ public:
 
   // Stores the last viewport and scissor, the stored data is restored in 'EndUtilityDrawing'
   void StoreViewportAndScissor(const ViewportAndScissor& viewport_and_scissor);
+
+  // The last viewport and scissor stored by 'StoreViewportAndScissor'.
+  const ViewportAndScissor& GetViewportAndScissor() const { return m_viewport_and_scissor; }
 
   // Sets viewport and scissor to the specified rectangle. rect is assumed to be in framebuffer
   // coordinates, i.e. lower-left origin in OpenGL.

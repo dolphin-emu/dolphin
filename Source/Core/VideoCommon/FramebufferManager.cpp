@@ -862,10 +862,19 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color
   FlushEFBPokes();
   FlagPeekCacheAsOutOfDate();
 
+  ClearFramebuffer(m_efb_framebuffer.get(), rc, color_enable, alpha_enable, z_enable, color, z,
+                   pixel_format);
+}
+
+void FramebufferManager::ClearFramebuffer(AbstractFramebuffer* framebuffer,
+                                          const MathUtil::Rectangle<int>& rc, bool color_enable,
+                                          bool alpha_enable, bool z_enable, u32 color, u32 z,
+                                          PixelFormat pixel_format)
+{
   // Native -> EFB coordinates
   MathUtil::Rectangle<int> target_rc = ConvertEFBRectangle(rc);
-  target_rc = g_gfx->ConvertFramebufferRectangle(target_rc, m_efb_framebuffer.get());
-  target_rc.ClampUL(0, 0, m_efb_framebuffer->GetWidth(), m_efb_framebuffer->GetWidth());
+  target_rc = g_gfx->ConvertFramebufferRectangle(target_rc, framebuffer);
+  target_rc.ClampUL(0, 0, framebuffer->GetWidth(), framebuffer->GetHeight());
 
   // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
   // channel to 0xFF.
@@ -879,6 +888,7 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color
     color &= 0x00FFFFFF;
   }
 
+  g_gfx->SetFramebuffer(framebuffer);
   g_gfx->ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
 }
 

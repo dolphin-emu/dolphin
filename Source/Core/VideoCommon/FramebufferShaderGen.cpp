@@ -647,6 +647,74 @@ std::string GenerateEFBRestorePixelShader()
   return code.GetBuffer();
 }
 
+// The sRGB transfer function, written per channel because a componentwise conditional is not
+// portable between the shading languages this generator targets.
+//
+// Frames have to be averaged as light rather than as the values they are stored as, because the
+// two are not proportional: a pixel that is lit in half the frames and dark in the other half
+// should come out half as bright, and averaging encoded values instead gives roughly a third.
+static void EmitSRGBToLinear(ShaderCode& code)
+{
+  code.Write("float SRGBToLinear(float c)\n"
+             "{{\n"
+             "  return (c <= 0.04045) ? (c / 12.92) : pow((c + 0.055) / 1.055, 2.4);\n"
+             "}}\n\n");
+}
+
+static void EmitLinearToSRGB(ShaderCode& code)
+{
+  code.Write("float LinearToSRGB(float c)\n"
+             "{{\n"
+             "  return (c <= 0.0031308) ? (c * 12.92) : (1.055 * pow(c, 1.0 / 2.4) - 0.055);\n"
+             "}}\n\n");
+}
+
+std::string GenerateFrameAccumulatePixelShader()
+{
+  ShaderCode code;
+  EmitSamplerDeclarations(code, 0, 1, false);
+  EmitUniformBufferDeclaration(code);
+  code.Write("{{\n"
+             "  float4 weight;\n"
+             "}};\n\n");
+  EmitSRGBToLinear(code);
+
+  // The alpha channel carries the weight rather than the sampled alpha, so that a source blend of
+  // SrcAlpha against a destination blend of InvSrcAlpha turns each draw into one step of a running
+  // average. That leaves the target holding the weighted mean of everything drawn so far, so the
+  // bucket never has to be cleared or divided through afterwards.
+  EmitPixelMainDeclaration(code, 1, 0);
+  code.Write("{{\n"
+             "  float3 stored = (");
+  EmitSampleTexture(code, 0, "v_tex0");
+  code.Write(").rgb;\n"
+             "  float3 light = float3(SRGBToLinear(stored.r), SRGBToLinear(stored.g),\n"
+             "                        SRGBToLinear(stored.b));\n"
+             "  ocol0 = float4(light, weight.x);\n"
+             "}}\n");
+  return code.GetBuffer();
+}
+
+std::string GenerateFrameResolvePixelShader()
+{
+  ShaderCode code;
+  EmitSamplerDeclarations(code, 0, 1, false);
+  EmitLinearToSRGB(code);
+
+  // Puts back the curve the accumulation took off, so what comes out is in the same space as the
+  // frame the emulated GPU would have handed over, and everything downstream is none the wiser.
+  EmitPixelMainDeclaration(code, 1, 0);
+  code.Write("{{\n"
+             "  float3 light = max((");
+  EmitSampleTexture(code, 0, "v_tex0");
+  code.Write(
+      ").rgb, float3(0.0, 0.0, 0.0));\n"
+      "  ocol0 = float4(LinearToSRGB(light.r), LinearToSRGB(light.g), LinearToSRGB(light.b),\n"
+      "                 1.0);\n"
+      "}}\n");
+  return code.GetBuffer();
+}
+
 std::string GenerateImGuiVertexShader()
 {
   ShaderCode code;
