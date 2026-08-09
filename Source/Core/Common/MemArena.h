@@ -161,7 +161,7 @@ private:
 class LazyMemoryRegion final
 {
 public:
-  constexpr static size_t WINDOWS_BLOCK_SIZE = 8 * 1024 * 1024;  // size of allocated memory blocks
+  constexpr static size_t WINDOWS_BLOCK_SIZE = 1024 * 1024;  // size of allocated memory blocks
 
   LazyMemoryRegion();
   ~LazyMemoryRegion();
