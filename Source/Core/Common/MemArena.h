@@ -11,6 +11,7 @@
 #include <mach/mach.h>
 #endif
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/DynamicLibrary.h"
 
@@ -207,8 +208,9 @@ public:
   void EnsureMemoryPagesWritable(size_t offset, size_t size)
   {
 #ifdef _WIN32
-    for (const auto end_offset = offset + size; offset < end_offset; offset += BLOCK_SIZE)
-      EnsureMemoryPageWritable(offset);
+    const size_t end_offset = offset + size;
+    for (size_t i = Common::AlignDown(offset, BLOCK_SIZE); i < end_offset; i += BLOCK_SIZE)
+      EnsureMemoryPageWritable(i);
 #endif
   }
 
