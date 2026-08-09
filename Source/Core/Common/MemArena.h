@@ -161,6 +161,8 @@ private:
 class LazyMemoryRegion final
 {
 public:
+  constexpr static size_t WINDOWS_BLOCK_SIZE = 8 * 1024 * 1024;  // size of allocated memory blocks
+
   LazyMemoryRegion();
   ~LazyMemoryRegion();
   LazyMemoryRegion(const LazyMemoryRegion&) = delete;
@@ -199,7 +201,7 @@ public:
   void EnsureMemoryPageWritable(size_t offset)
   {
 #ifdef _WIN32
-    const size_t block_index = offset / BLOCK_SIZE;
+    const size_t block_index = offset / WINDOWS_BLOCK_SIZE;
     if (m_writable_block_handles[block_index] == nullptr)
       MakeMemoryBlockWritable(block_index);
 #endif
@@ -209,8 +211,11 @@ public:
   {
 #ifdef _WIN32
     const size_t end_offset = offset + size;
-    for (size_t i = Common::AlignDown(offset, BLOCK_SIZE); i < end_offset; i += BLOCK_SIZE)
+    for (size_t i = Common::AlignDown(offset, WINDOWS_BLOCK_SIZE); i < end_offset;
+         i += WINDOWS_BLOCK_SIZE)
+    {
       EnsureMemoryPageWritable(i);
+    }
 #endif
   }
 
@@ -220,7 +225,6 @@ private:
 
 #ifdef _WIN32
   void* m_zero_block = nullptr;
-  constexpr static size_t BLOCK_SIZE = 8 * 1024 * 1024;  // size of allocated memory blocks
   WindowsMemoryFunctions m_memory_functions;
   std::vector<void*> m_writable_block_handles;
 
