@@ -9,7 +9,7 @@
 
 using namespace Gen;
 
-GPRRegCache::GPRRegCache(Jit64& jit) : RegCache{jit}
+GPRRegCache::GPRRegCache(Jit64& jit, XEmitter& emitter) : RegCache{jit, emitter}
 {
 }
 
@@ -52,11 +52,11 @@ void GPRRegCache::StoreRegister(preg_t preg, const OpArg& new_loc,
 {
   if (m_regs[preg].IsInHostRegister())
   {
-    m_emitter->MOV(32, new_loc, ::Gen::R(m_regs[preg].GetHostRegister()));
+    m_emitter.MOV(32, new_loc, ::Gen::R(m_regs[preg].GetHostRegister()));
   }
   else if (m_jit.GetConstantPropagation().HasGPR(preg))
   {
-    m_emitter->MOV(32, new_loc, ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg)));
+    m_emitter.MOV(32, new_loc, ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg)));
   }
   else
   {
@@ -70,12 +70,12 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   const JitCommon::ConstantPropagation& constant_propagation = m_jit.GetConstantPropagation();
   if (constant_propagation.HasGPR(preg))
   {
-    m_emitter->MOV(32, ::Gen::R(new_loc), ::Gen::Imm32(constant_propagation.GetGPR(preg)));
+    m_emitter.MOV(32, ::Gen::R(new_loc), ::Gen::Imm32(constant_propagation.GetGPR(preg)));
   }
   else
   {
     ASSERT_MSG(DYNA_REC, m_regs[preg].IsInPPCState(), "GPR {} not in PPCState", preg);
-    m_emitter->MOV(32, ::Gen::R(new_loc), GetPPCStateLocation(preg));
+    m_emitter.MOV(32, ::Gen::R(new_loc), GetPPCStateLocation(preg));
   }
 }
 

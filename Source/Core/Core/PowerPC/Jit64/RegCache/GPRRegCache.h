@@ -10,7 +10,7 @@ class Jit64;
 class GPRRegCache final : public RegCache
 {
 public:
-  explicit GPRRegCache(Jit64& jit);
+  explicit GPRRegCache(Jit64& jit, Gen::XEmitter& emitter);
 
   bool IsImm(preg_t preg) const override;
   u32 Imm32(preg_t preg) const override;
