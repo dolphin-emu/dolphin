@@ -134,11 +134,10 @@ public:
     Yes,
   };
 
-  explicit RegCache(Jit64& jit);
+  explicit RegCache(Jit64& jit, Gen::XEmitter& emitter);
   virtual ~RegCache() = default;
 
   void Start();
-  void SetEmitter(Gen::XEmitter* emitter);
   bool SanityCheck() const;
 
   template <typename... Ts>
@@ -230,8 +229,9 @@ protected:
   bool IsAnyConstraintActive() const;
 
   Jit64& m_jit;
+  Gen::XEmitter& m_emitter;
+
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
   std::array<RCConstraint, 32> m_constraints;
-  Gen::XEmitter* m_emitter = nullptr;
 };
