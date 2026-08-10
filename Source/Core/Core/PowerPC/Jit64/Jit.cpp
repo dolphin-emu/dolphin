@@ -266,9 +266,6 @@ void Jit64::Init()
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
-  gpr.SetEmitter(this);
-  fpr.SetEmitter(this);
-
   const size_t routines_size = asm_routines.CODE_SIZE;
   const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
   const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;

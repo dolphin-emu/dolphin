@@ -231,7 +231,7 @@ void RCForkGuard::EndFork()
   rc = nullptr;
 }
 
-RegCache::RegCache(Jit64& jit) : m_jit{jit}
+RegCache::RegCache(Jit64& jit, XEmitter& emitter) : m_jit{jit}, m_emitter(emitter)
 {
 }
 
@@ -240,11 +240,6 @@ void RegCache::Start()
   m_xregs.fill({});
   m_regs.fill({});
   m_constraints.fill({});
-}
-
-void RegCache::SetEmitter(XEmitter* emitter)
-{
-  m_emitter = emitter;
 }
 
 bool RegCache::SanityCheck() const

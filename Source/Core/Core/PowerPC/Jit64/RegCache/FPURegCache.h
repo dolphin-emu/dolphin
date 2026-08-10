@@ -10,7 +10,7 @@ class Jit64;
 class FPURegCache final : public RegCache
 {
 public:
-  explicit FPURegCache(Jit64& jit);
+  explicit FPURegCache(Jit64& jit, Gen::XEmitter& emitter);
 
   bool IsImm(preg_t preg) const override;
   u32 Imm32(preg_t preg) const override;
