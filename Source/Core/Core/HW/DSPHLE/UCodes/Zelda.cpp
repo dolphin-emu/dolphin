@@ -1468,9 +1468,16 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   // the end of processing, if needed.
   //
   // Maximum of 0x500 samples here - see NeededRawSamplesCount to understand
-  // this practical limit (resampling_ratio = 0xFFFF -> 0x500 samples). Add a
-  // margin of 4 that is needed for samples source that do resampling.
-  std::array<s16, 0x500 + 4> raw_input_samples;
+  // this practical limit (resampling_ratio = 0xFFFF -> 0x500 samples).
+  //
+  // If current_pos_frac contains an (invalid) non-fractional part, it can push
+  // this up by another 15 samples. Which DownloadAFCSamplesFromARAM then rounds
+  // up to the next multiple of 16. So add an extra 0x10 samples to be safe.
+  //
+  // Plus we need an extra four samples at the start to hold the last four
+  // samples from the previous frame.
+
+  std::array<s16, 4 + 0x500 + 0x10> raw_input_samples;
   for (size_t i = 0; i < 4; ++i)
     raw_input_samples[i] = vpb->resample_buffer[i];
 
