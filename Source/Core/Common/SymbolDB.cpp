@@ -41,10 +41,10 @@ void Symbol::Rename(const std::string& symbol_name)
 void SymbolDB::List()
 {
   std::lock_guard lock(m_mutex);
-  for (const auto& func : m_functions)
+  for (const auto& symbol : m_functions | std::views::values)
   {
-    DEBUG_LOG_FMT(OSHLE, "{} @ {:08x}: {} bytes (hash {:08x}) : {} calls", func.second.name,
-                  func.second.address, func.second.size, func.second.hash, func.second.num_calls);
+    DEBUG_LOG_FMT(OSHLE, "{} @ {:08x}: {} bytes (hash {:08x}) : {} calls", symbol.name,
+                  symbol.address, symbol.size, symbol.hash, symbol.num_calls);
   }
   INFO_LOG_FMT(OSHLE, "{} functions known in this program above.", m_functions.size());
 }
@@ -79,9 +79,9 @@ void SymbolDB::Index()
 void SymbolDB::Index(XFuncMap* functions)
 {
   int i = 0;
-  for (auto& func : *functions)
+  for (auto& symbol : *functions | std::views::values)
   {
-    func.second.index = i++;
+    symbol.index = i++;
   }
 }
 
@@ -89,10 +89,10 @@ const Symbol* SymbolDB::GetSymbolFromName(std::string_view name) const
 {
   std::lock_guard lock(m_mutex);
 
-  for (auto& func : m_functions)
+  for (auto& symbol : m_functions | std::views::values)
   {
-    if (func.second.function_name == name)
-      return &func.second;
+    if (symbol.function_name == name)
+      return &symbol;
   }
 
   return nullptr;
@@ -103,10 +103,10 @@ std::vector<const Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name) c
   std::lock_guard lock(m_mutex);
   std::vector<const Symbol*> symbols;
 
-  for (auto& func : m_functions)
+  for (auto& symbol : m_functions | std::views::values)
   {
-    if (func.second.function_name == name)
-      symbols.push_back(&func.second);
+    if (symbol.function_name == name)
+      symbols.push_back(&symbol);
   }
 
   return symbols;

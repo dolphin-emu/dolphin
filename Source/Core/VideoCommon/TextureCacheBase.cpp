@@ -637,9 +637,9 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   // Save references for each cache entry.
   // As references are circular, we need to have everything created before linking entries.
   std::set<std::pair<u32, u32>> reference_pairs;
-  for (const auto& it : entry_map)
+  for (const auto& key : entry_map | std::views::keys)
   {
-    const TCacheEntry* entry = it.first;
+    const TCacheEntry* entry = key;
     auto id1 = GetCacheEntryId(entry);
     if (!id1)
       continue;
