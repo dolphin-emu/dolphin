@@ -15,6 +15,8 @@ add_library(main SHARED
   GameList/GameFile.h
   GameList/GameFileCache.cpp
   GbaRenderer.cpp
+  GCMemcardManager.cpp
+  WiiSaveManager.cpp
   GpuDriver.cpp
   InfinityConfig.cpp
   Input/Control.cpp

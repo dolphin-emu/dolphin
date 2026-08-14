@@ -154,4 +154,13 @@ jclass GetGbaRendererClass();
 jmethodID GetOnGbaFrameBuffer();
 jmethodID GetOnTvSizeChanged();
 
+jclass GetGCSaveFileClass();
+jmethodID GetGCSaveFileConstructor();
+
+jclass GetGCMemcardStatsClass();
+jmethodID GetGCMemcardStatsConstructor();
+
+jclass GetWiiSaveFileClass();
+jmethodID GetWiiSaveFileConstructor();
+
 }  // namespace IDCache

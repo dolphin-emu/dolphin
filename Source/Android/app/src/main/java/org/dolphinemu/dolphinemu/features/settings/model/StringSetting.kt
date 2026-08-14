@@ -29,6 +29,8 @@ enum class StringSetting(
         "BBA_TAPSERVER_DESTINATION",
         "/tmp/dolphin-tap"
     ),
+    MAIN_MEMCARD_A_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MemcardAPath", ""),
+    MAIN_MEMCARD_B_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MemcardBPath", ""),
     MAIN_MODEM_TAPSERVER_DESTINATION(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,

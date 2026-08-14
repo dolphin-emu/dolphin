@@ -77,6 +77,7 @@
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="achievements_submenu">RetroAchievements</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="gba_submenu">GBA</string>
     <string name="ipl_settings">IPL Settings</string>
     <string name="skip_main_menu">Skip Main Menu</string>
     <string name="skip_main_menu_description">Put IPL ROMs in User/GC/&lt;region&gt;</string>
@@ -155,6 +156,17 @@
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
+    <string name="save_file_manager">Save File Manager</string>
+    <string name="slot_1">Slot 1</string>
+    <string name="slot_2">Slot 2</string>
+    <string name="import_save">Import Save</string>
+    <string name="export_save">Export Save</string>
+    <string name="import_failed_generic">Import failed</string>
+    <string name="export_failed">Export failed</string>
+    <string name="copy_to_other_slot">Copy to other slot</string>
+    <string name="delete_save">Delete Save</string>
+    <string name="fix_checksums">Fix Checksums</string>
+    <string name="memcard_stats">Free Blocks: %1$d      Free Files: %2$d</string>
     <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
     <string name="expand_to_cutout_area">Expand to Cutout Area</string>
     <string name="expand_to_cutout_area_description">Expands the display area to include the cutout (or notch) area.</string>

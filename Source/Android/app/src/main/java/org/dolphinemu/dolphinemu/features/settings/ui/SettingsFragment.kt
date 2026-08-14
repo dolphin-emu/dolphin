@@ -29,6 +29,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentSettingsBinding
+import org.dolphinemu.dolphinemu.features.savemanager.ui.SaveManagerActivity
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
@@ -135,6 +136,12 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     override fun loadSubMenu(menuKey: MenuTag) {
         if (menuKey == MenuTag.GPU_DRIVERS) {
             showGpuDriverDialog()
+            return
+        }
+
+        if (menuKey == MenuTag.CONFIG_SAVE_FILE_MANAGER) {
+            val intent = Intent(requireContext(), SaveManagerActivity::class.java)
+            startActivity(intent)
             return
         }
 
@@ -279,6 +286,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             titles[MenuTag.STATISTICS] = R.string.statistics_submenu
             titles[MenuTag.ADVANCED_GRAPHICS] = R.string.advanced_graphics_submenu
             titles[MenuTag.CONFIG_LOG] = R.string.log_submenu
+            titles[MenuTag.CONFIG_SAVE_FILE_MANAGER] = R.string.save_file_manager
             titles[MenuTag.GCPAD_TYPE] = R.string.gcpad_settings
             titles[MenuTag.WIIMOTE] = R.string.wiimote_settings
             titles[MenuTag.WIIMOTE_EXTENSION] = R.string.wiimote_extensions
