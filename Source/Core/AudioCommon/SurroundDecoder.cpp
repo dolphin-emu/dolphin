@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/SurroundDecoder.h"
+#include "AudioCommon/FreeSurroundDecoder.h"
 
-#include <FreeSurround/FreeSurroundDecoder.h>
 #include <limits>
 
 namespace AudioCommon
