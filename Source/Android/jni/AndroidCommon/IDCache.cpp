@@ -1084,9 +1084,10 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass gc_save_file_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/savemanager/model/GCSaveFile");
   s_gc_save_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(gc_save_file_class));
-  s_gc_save_file_constructor = env->GetMethodID(s_gc_save_file_class, "<init>",
-                                                "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/"
-                                                "lang/String;II[I[[II)V");
+  s_gc_save_file_constructor =
+      env->GetMethodID(s_gc_save_file_class, "<init>",
+                       "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/"
+                       "lang/String;II[I[[II)V");
   env->DeleteLocalRef(gc_save_file_class);
 
   const jclass gc_memcard_stats_class =
@@ -1098,8 +1099,9 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass wii_save_file_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/savemanager/model/WiiSaveFile");
   s_wii_save_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(wii_save_file_class));
-  s_wii_save_file_constructor = env->GetMethodID(
-      s_wii_save_file_class, "<init>", "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I[I)V");
+  s_wii_save_file_constructor =
+      env->GetMethodID(s_wii_save_file_class, "<init>",
+                       "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I[I)V");
   env->DeleteLocalRef(wii_save_file_class);
 
   return JNI_VERSION;
