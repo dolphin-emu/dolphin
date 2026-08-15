@@ -18,6 +18,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Core/BoundedFloat.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Pipes
@@ -134,7 +135,7 @@ void PipeDevice::AddAxis(const std::string& name, double value)
 
 void PipeDevice::SetAxis(const std::string& entry, double value)
 {
-  value = std::clamp(value, 0.0, 1.0);
+  value = NormalizedFloat(value);
   double hi = std::max(0.0, value - 0.5) * 2.0;
   double lo = (0.5 - std::min(0.5, value)) * 2.0;
   auto search_hi = m_axes.find(entry + " +");

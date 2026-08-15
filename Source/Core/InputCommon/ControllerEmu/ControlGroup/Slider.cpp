@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Core/BoundedFloat.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
@@ -29,7 +30,7 @@ Slider::StateData Slider::GetState() const
   const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
   const ControlState state = controls[1]->GetState() - controls[0]->GetState();
 
-  return {std::clamp(ApplyDeadzone(state, deadzone), -1.0, 1.0)};
+  return {UnitFloat(ApplyDeadzone(state, deadzone))};
 }
 
 Slider::StateData Slider::GetState(const InputOverrideFunction& override_func) const
@@ -45,7 +46,7 @@ Slider::StateData Slider::GetState(const InputOverrideFunction& override_func) c
   if (std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
     state = *state_override;
 
-  return {std::clamp(state, -1.0, 1.0)};
+  return {UnitFloat(state)};
 }
 
 }  // namespace ControllerEmu

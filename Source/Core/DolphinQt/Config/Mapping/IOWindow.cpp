@@ -24,6 +24,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include "Core/BoundedFloat.h"
+
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -819,7 +821,7 @@ static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlS
   const QString state_string = QString::number(state, 'g', 4);
 
   QRect meter_region = region;
-  meter_region.setWidth(region.width() * std::clamp(state, 0.0, 1.0));
+  meter_region.setWidth(region.width() * NormalizedFloat(state));
 
   // Create a temporary indicator object to retrieve color constants.
   MappingIndicator indicator;

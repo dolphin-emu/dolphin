@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
+#include "Core/BoundedFloat.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/System.h"
@@ -151,11 +152,11 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     // This quantization method prevents accumulated error but does not do noise shaping.
     sample.l += samples[0] - m_quantization_error.l;
     samples[0] = MathUtil::SaturatingCast<s16>(std::lround(sample.l));
-    m_quantization_error.l = std::clamp(samples[0] - sample.l, -1.0f, 1.0f);
+    m_quantization_error.l = UnitFloat(samples[0] - sample.l);
 
     sample.r += samples[1] - m_quantization_error.r;
     samples[1] = MathUtil::SaturatingCast<s16>(std::lround(sample.r));
-    m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
+    m_quantization_error.r = UnitFloat(samples[1] - sample.r);
 
     samples += 2;
   }

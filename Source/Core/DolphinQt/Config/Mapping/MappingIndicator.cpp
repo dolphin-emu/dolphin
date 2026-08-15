@@ -17,6 +17,7 @@
 
 #include "Common/MathUtil.h"
 
+#include "Core/BoundedFloat.h"
 #include "Core/HW/WiimoteEmu/Camera.h"
 
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -149,7 +150,7 @@ void ButtonIndicator::Draw()
   p.setPen(GetBBoxPen());
   p.drawRect(QRect{{0, 0}, size() - QSize{1, 1}});
 
-  const auto input_value = std::clamp(m_control_ref->GetState<ControlState>(), 0.0, 1.0);
+  const auto input_value = NormalizedFloat(m_control_ref->GetState<ControlState>());
   const bool is_pressed = std::lround(input_value) != 0;
   QSizeF value_size = size() - QSizeF{2, 2};
   value_size.setHeight(value_size.height() * input_value);

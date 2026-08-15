@@ -16,6 +16,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Timer.h"
 
+#include "Core/BoundedFloat.h"
 #include "Core/Config/MainSettings.h"
 
 #include "VideoCommon/AbstractGfx.h"
@@ -76,7 +77,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 
   // Gradually fade old messages away (except in their first frame)
   const float fade_time = std::max(std::min(MESSAGE_FADE_TIME, (float)msg.duration), 1.f);
-  const float alpha = std::clamp(time_left / fade_time, 0.f, 1.f);
+  const float alpha = NormalizedFloat(time_left / fade_time);
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, msg.ever_drawn ? alpha : 1.0);
 
   float window_height = 0.0f;

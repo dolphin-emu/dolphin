@@ -10,6 +10,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/BoundedFloat.h"
 #include "Core/System.h"
 
 #include "VideoBackends/Software/SWBoundingBox.h"
@@ -629,7 +630,7 @@ void Tev::Draw()
     ze -= bpmem.fog.GetC();
 
     // clamp 0 to 1
-    float fog = std::clamp(ze, 0.f, 1.f);
+    float fog = NormalizedFloat(ze);
 
     switch (bpmem.fog.c_proj_fsel.fsel)
     {

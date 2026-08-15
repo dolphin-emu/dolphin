@@ -12,6 +12,8 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
+#include "Core/BoundedFloat.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -123,8 +125,8 @@ Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
     }
     else
     {
-      m_state.x = std::clamp(m_state.x + input.x * max_step, -1.0, 1.0);
-      m_state.y = std::clamp(m_state.y + input.y * max_step, -1.0, 1.0);
+      m_state.x = UnitFloat(m_state.x + input.x * max_step);
+      m_state.y = UnitFloat(m_state.y + input.y * max_step);
     }
   }
   // Absolute input:
