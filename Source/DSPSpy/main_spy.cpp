@@ -25,8 +25,10 @@
 #include <ogc/consol.h>
 #include <unistd.h>
 
-// From libogc's timesupp.c (not in the header :|)
-extern "C" u32 gettick(void);
+static u32 gettick(void)
+{
+  return PPCMftb();
+}
 
 #ifdef _MSC_VER
 // Just for easy looking :)
@@ -67,10 +69,13 @@ u16* dspbufC;
 u32* dspbufU;
 
 u16 dspreg_in[32] = {
-    0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 0xFFFF, 0xFFFF, 0xFFFF,
-    0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88, 0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000,
-    0x0000, 0x0000, 0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
-};  ///            ax_h_1   ax_h_1
+    // clang-format off
+    0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10,
+    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88,
+    0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
+    // clang-format on
+};
 
 /* ttt ?
 
@@ -141,9 +146,12 @@ int curUcode = 0, runningUcode = 1;
 int dsp_steps = 0;
 
 constexpr std::array reg_names = {
-    "ar0", "ar1", "ar2", "ar3", "ix0", "ix1", "ix2", "ix3", "wr0", "wr1", "wr2",
-    "wr3", "st0", "st1", "st2", "st3", "c0h", "c1h", "cr ", "sr ", "pl ", "pm1",
-    "ph ", "pm2", "x0l", "x1l", "x0h", "x1h", "c0l", "c1l", "c0m", "c1m",
+    // clang-format off
+    "ar0", "ar1", "ar2", "ar3", "ix0", "ix1", "ix2", "ix3",
+    "wr0", "wr1", "wr2", "wr3", "st0", "st1", "st2", "st3",
+    "c0h", "c1h", "cr ", "sr ", "pl ", "pm1", "ph ", "pm2",
+    "x0l", "x1l", "x0h", "x1h", "c0l", "c1l", "c0m", "c1m",
+    // clang-format on
 };
 
 void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
@@ -153,7 +161,7 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
     for (int i = 0; i < 8; i++)
     {
       const int reg = j * 8 + i;
-      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_CYAN;
+      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
       for (int k = 0; k < 4; k++)
@@ -193,7 +201,7 @@ void print_regs(int _step, int _dsp_steps)
   const u16* regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
   const u16* regs2 = dspreg_out[_step];
 
-  print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
+  print_reg_block(1, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
   print_reg_block(38, 2, -1, regs2, regs);
 
   CON_SetColor(CON_WHITE);
