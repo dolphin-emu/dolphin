@@ -67,6 +67,8 @@ add_library(videocommon
   FramebufferShaderGen.h
   FrameDumper.cpp
   FrameDumper.h
+  FrameGeneration.cpp
+  FrameGeneration.h
   FrameDumpFFMpeg.h
   FreeLookCamera.cpp
   FreeLookCamera.h

@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/CPUCull.h"
+#include "VideoCommon/FrameGeneration.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
@@ -171,6 +172,28 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  // The draw calls captured for the frame generator to replay. Empty unless frame generation is
+  // switched on.
+  VideoCommon::FrameRecorder& GetFrameRecorder() { return m_frame_recorder; }
+
+  // Whether frame generation is switched on and this configuration can carry it. Decides whether
+  // frames are recorded as well as whether they are replayed, so that the two never disagree and
+  // leave the recorder doing work for a replay that cannot happen.
+  bool IsFrameGenerationUsable() const;
+
+  // Whether a recorded frame may be replayed at all right now.
+  bool CanReplayRecordedFrame() const;
+
+  // Draws the most recent recording again into `target`, with every transform interpolated back
+  // towards the previous recording by `phase`. A phase of one reproduces the recorded frame, and
+  // a phase of zero reproduces the one before it.
+  //
+  // This lives on VertexManagerBase because submitting a draw needs UploadUniforms(),
+  // UploadUtilityVertices() and InvalidateConstants(), which are not public. It must only be
+  // called once the emulated frame is finished, and `target` must be a framebuffer whose state
+  // matches the EFB's, since that is what the recorded pipelines were compiled against.
+  void ReplayRecordedFrame(AbstractFramebuffer* target, float phase);
+
 protected:
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -223,11 +246,83 @@ private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
+  // How far either side of the running alignment a replay looks for the previous frame's copy of
+  // a draw. Games submit their scene in a very stable order, so the lists only ever slip by a few
+  // draws at a time.
+  //
+  // Searching wider used to mean pairing up unrelated objects, because whatever the search found
+  // was accepted. Now that a candidate has to be within CORRESPONDENCE_MAX_RELATIVE_DISTANCE to be
+  // accepted at all, a wider window only ever finds better counterparts or none, so this is set by
+  // what it costs rather than by what it risks -- and what it costs is a few hundred thousand float
+  // comparisons on a heavy frame, which is nothing.
+  static constexpr int CORRESPONDENCE_SEARCH_DISTANCE = 16;
+
+  // How far a candidate's transform may be from a draw's own before the two are taken to be
+  // different objects, as a fraction of the squared magnitude of the transform itself.
+  //
+  // Both quantities are sums of squares, so this is the square of the relative change allowed: a
+  // tenth of the transform's own size.
+  //
+  // The useful way to read it is as a rate of camera rotation. Turn the camera by an angle, and an
+  // object at distance d sweeps about d*theta across view space while the rotation block of its
+  // matrix changes by about theta times its own size -- so both parts of the matrix change in
+  // proportion to themselves, the distance and the object's scale cancel, and the ratio this
+  // compares is simply theta squared. A tenth is a ceiling of 5.7 degrees per frame, about 170
+  // degrees a second on a thirty frame per second game.
+  //
+  // That is not generous, and it is deliberate. The two errors are not symmetric. A draw that finds
+  // no counterpart is submitted where the game put it and stays there: wrong by one frame, but the
+  // same wrong in every sub-frame, which reads as the object running at the game's own rate. A draw
+  // that pairs with the wrong one has its projection and texture matrices blended with an unrelated
+  // draw's, so it streaks, distorts and flickers, and it does so differently every frame because
+  // which wrong candidate wins changes. Missing a match costs steadiness; making a bad one costs
+  // far more, and raising this to let fast pans through bought a great deal of the second to avoid
+  // a little of the first.
+  //
+  // So the ceiling stays where a real camera stays. Widening the window it searches, or giving it
+  // something better than a single distance to rank by, is how to catch more of the fast pans --
+  // not letting worse candidates through.
+  static constexpr float CORRESPONDENCE_MAX_RELATIVE_DISTANCE = 0.01f;
+
+  // Puts back the background a recorded clear left, over the region it covered.
+  void ReplayClear(AbstractFramebuffer* target, const VideoCommon::RecordedClear& clear);
+
+  // Submits one recorded draw, interpolated against whichever draw in the previous recording
+  // turns out to be the same one.
+  // `alignment` is how far this frame's draw list is offset from the previous one's, carried
+  // across the whole replay and nudged whenever a match is found off it.
+  void ReplayDraw(const VideoCommon::RecordedFrame& current,
+                  const VideoCommon::RecordedFrame& previous, u32 draw_index, float phase);
+
+  // Works out which draw in `previous` each of `current`'s draws is, filling m_replay_matches.
+  void ResolveCorrespondence(const VideoCommon::RecordedFrame& current,
+                             const VideoCommon::RecordedFrame& previous);
+
+  // Submits one recorded draw exactly as recorded, with `vertex_constants` in place of the ones it
+  // was recorded with. Shared by every path that puts a recorded draw back on the GPU.
+  void SubmitRecordedDraw(const VideoCommon::RecordedFrame& frame,
+                          const VideoCommon::RecordedDraw& draw,
+                          const VertexShaderConstants& vertex_constants);
+
+  // Rebuilds m_replay_matches if it does not already describe this pair.
+  void EnsureReplayCorrespondence(const VideoCommon::RecordedFrame& current,
+                                  const VideoCommon::RecordedFrame& previous, u64 frame_counter);
+
+  // Makes the replay's own version of one of the game's render-to-texture results, reading the
+  // replay's EFB rather than the emulated one.
+  void ReplayCopy(AbstractFramebuffer* target, const VideoCommon::RecordedFrame& current,
+                  u32 copy_index);
+
+  // Binds the textures a recorded draw sampled, going through the replay's own copies for anything
+  // the frame rendered for itself.
+  void BindReplayTextures(const VideoCommon::RecordedDraw& draw);
+
   void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
                       GeometryShaderManager& geometry_shader_manager,
                       const CustomPixelShaderContents& custom_pixel_shader_contents,
                       std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
+                      const AbstractPipeline* current_pipeline, BitSet32 used_textures,
+                      const std::array<SamplerState, 8>& samplers);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
@@ -250,6 +345,24 @@ private:
 
   std::unique_ptr<CustomShaderCache> m_custom_shader_cache;
   u64 m_ticks_elapsed = 0;
+
+  VideoCommon::FrameRecorder m_frame_recorder;
+
+  // Which draw in the previous recording each of the current recording's draws is, or null where
+  // nothing corresponded. Resolved once per pair of recordings rather than per generated frame,
+  // since the same pair is replayed several times over.
+  std::vector<const VideoCommon::RecordedDraw*> m_replay_matches;
+
+  // Which of the previous recording's draws have already been claimed, so that no two draws in
+  // this one interpolate against the same counterpart.
+  std::vector<bool> m_replay_claimed;
+
+  u64 m_replay_counter = 0;
+
+  // The render targets a replay makes its own copies of the game's render-to-texture results into.
+  // Kept between replays, since the same frame is replayed several times over and the targets it
+  // needs do not change from one sub-frame to the next.
+  VideoCommon::ReplayTargets m_replay_targets;
 
   Common::EventHook m_frame_end_event;
   Common::EventHook m_after_present_event;

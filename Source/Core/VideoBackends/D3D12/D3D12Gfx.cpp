@@ -27,8 +27,10 @@ static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
          (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
 }
 
-Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
+Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale,
+         float backbuffer_refresh_rate)
+    : m_backbuffer_scale(backbuffer_scale), m_backbuffer_refresh_rate(backbuffer_refresh_rate),
+      m_swap_chain(std::move(swap_chain))
 {
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 
@@ -408,7 +410,8 @@ SurfaceInfo Gfx::GetSurfaceInfo() const
 {
   return {m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
           m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0, m_backbuffer_scale,
-          m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined};
+          m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined,
+          m_backbuffer_refresh_rate};
 }
 
 void Gfx::OnConfigChanged(u32 bits)

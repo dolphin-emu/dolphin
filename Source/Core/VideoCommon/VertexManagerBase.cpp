@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cmath>
+#include <limits>
 #include <memory>
 
 #include "Common/ChunkFile.h"
@@ -19,7 +20,9 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
@@ -443,6 +446,28 @@ void VertexManagerBase::Flush()
   {
     // This is more or less the start of the Frame
     GetVideoEvents().before_frame_event.Trigger();
+
+    // Gated on the same answer the replay is, so that a configuration which can never replay does
+    // not pay for a recording nothing will ever read. Recording is not free: every draw's vertices
+    // have to be read back out of the streaming buffer, which is uncached memory.
+    //
+    // Safe to run even from the flush a replay does before it submits anything: the recorder
+    // opens the new recording in a slot the replay is not reading from.
+    if (IsFrameGenerationUsable())
+    {
+      m_frame_recorder.BeginFrame();
+    }
+    else
+    {
+      // Nothing usable can come of a recording made now, so drop what is being held.
+      m_frame_recorder.Invalidate();
+
+      // The render targets the replay copies live in are only given back when the feature itself
+      // is off. Something that merely stops a replay for a while, such as bounding box emulation
+      // coming and going mid-scene, should not cost a round of render target allocation each time.
+      if (!g_ActiveConfig.frame_generation.bEnabled)
+        m_replay_targets.Release();
+    }
   }
 
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
@@ -659,7 +684,8 @@ void VertexManagerBase::Flush()
           }
         }
         RenderDrawCall(pixel_shader_manager, geometry_shader_manager, custom_pixel_shader_contents,
-                       custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object);
+                       custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object,
+                       used_textures, samplers);
       }
     }
 
@@ -684,6 +710,10 @@ void VertexManagerBase::DoState(PointerWrap& p)
   {
     // Flush old vertex data before loading state.
     Flush();
+
+    // The scene is about to become an unrelated one, and interpolating from where it was to where
+    // the loaded state puts it would sweep everything across the screen for a frame.
+    m_frame_recorder.Invalidate();
   }
 
   p.Do(m_zslope);
@@ -931,6 +961,11 @@ void VertexManagerBase::OnConfigChange()
 {
   // Reload index generator function tables in case VS expand config changed
   m_index_generator.Init();
+
+  // Note: deliberately no recording invalidation here. This runs once per frame whether or not
+  // anything actually changed, so dropping the recordings would leave nothing to interpolate
+  // against, ever. The case that matters is the shader cache throwing away the pipelines a
+  // recording points at, and ShaderCache::ClearCaches handles that itself.
 }
 
 void VertexManagerBase::OnDraw()
@@ -996,6 +1031,8 @@ void VertexManagerBase::OnEFBCopyToRAM()
 
 void VertexManagerBase::OnEndFrame()
 {
+  m_frame_recorder.EndFrame();
+
   m_draw_counter = 0;
   m_last_efb_copy_draw_counter = 0;
   m_scheduled_command_buffer_kicks.clear();
@@ -1058,7 +1095,8 @@ void VertexManagerBase::RenderDrawCall(
     PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
     const CustomPixelShaderContents& custom_pixel_shader_contents,
     std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-    const AbstractPipeline* current_pipeline)
+    const AbstractPipeline* current_pipeline, BitSet32 used_textures,
+    const std::array<SamplerState, 8>& samplers)
 {
   // Now we can upload uniforms, as nothing else will override them.
   geometry_shader_manager.SetConstants(primitive_type);
@@ -1070,6 +1108,30 @@ void VertexManagerBase::RenderDrawCall(
   }
   pixel_shader_manager.custom_constants = custom_pixel_shader_uniforms;
   UploadUniforms();
+
+  // Capture the draw before CommitBuffer(), which is free to move the vertex data out from under
+  // us, and after the constants above have been finalised for this draw.
+  if (m_frame_recorder.IsRecording())
+  {
+    NativeVertexFormat* const vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
+    auto& vertex_shader_manager = Core::System::GetInstance().GetVertexShaderManager();
+
+    // Where this batch's vertices start, worked out backwards from the write cursor rather than
+    // taken from m_base_buffer_pointer. The two are only the same on the backends that hand out a
+    // fresh allocation per batch: Vulkan and D3D12 set the base to the start of the whole streaming
+    // buffer and the cursor to this batch's offset within it, so the base there addresses whatever
+    // was written at offset zero instead of this draw. Everything of the batch is contiguous and
+    // ends at the cursor, which makes this exact on every backend.
+    const u32 vertex_count = m_index_generator.GetNumVerts();
+    const u32 vertex_stride = vertex_format->GetVertexStride();
+    const u8* const vertex_data = m_cur_buffer_pointer - vertex_count * vertex_stride;
+
+    m_frame_recorder.RecordDraw(current_pipeline, vertex_format, primitive_type, vertex_data,
+                                vertex_count, vertex_stride, m_index_generator.GetIndexDataStart(),
+                                m_index_generator.GetIndexLen(), vertex_shader_manager.constants,
+                                pixel_shader_manager.constants, geometry_shader_manager.constants,
+                                g_texture_cache->GetBoundTextures(), samplers, used_textures);
+  }
 
   g_gfx->SetPipeline(current_pipeline);
 
@@ -1097,6 +1159,449 @@ void VertexManagerBase::RenderDrawCall(
 
   if (PerfQueryBase::ShouldEmulate())
     g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+}
+
+bool VertexManagerBase::IsFrameGenerationUsable() const
+{
+  if (!g_ActiveConfig.frame_generation.bEnabled)
+    return false;
+
+  // OpenGL is not supported. Its streaming buffers are mapped through whatever is bound to
+  // GL_ARRAY_BUFFER at the time, and ResetBuffer() only rebinds the vertex format when the one it
+  // finds bound is invalid. A replay sets the recorded draw's pipeline immediately beforehand,
+  // which leaves a valid but unrelated format bound, so the rebind is skipped and glMapBufferRange
+  // returns nothing to write into. Making the replay hold to that invariant is what this needs
+  // before it can be turned back on here.
+  if (g_backend_info.api_type == APIType::OpenGL)
+    return false;
+
+  // Anti-aliasing gives the EFB more than one sample per pixel. The replay's own targets would
+  // have to resolve rather than sample, and the recorded pipelines are compiled for the sample
+  // count the EFB has, so there is no target that satisfies both.
+  if (g_ActiveConfig.MultisamplingEnabled())
+    return false;
+
+  // Pixel shaders have the bounding box atomics baked into them whenever it is active, so
+  // replaying them would push interpolated geometry into the emulated bounding box registers that
+  // games read back. There is no way to mask that off per draw, so leave the feature alone here.
+  if (g_ActiveConfig.bBBoxEnable && g_bounding_box && g_bounding_box->IsEnabled())
+    return false;
+
+  return true;
+}
+
+bool VertexManagerBase::CanReplayRecordedFrame() const
+{
+  return IsFrameGenerationUsable() && m_frame_recorder.CanInterpolate();
+}
+
+void VertexManagerBase::ReplayRecordedFrame(AbstractFramebuffer* target, float phase)
+{
+  if (target == nullptr || !CanReplayRecordedFrame())
+    return;
+
+  const VideoCommon::RecordedFrame& current = m_frame_recorder.GetCurrentFrame();
+  const VideoCommon::RecordedFrame& previous = m_frame_recorder.GetPreviousFrame();
+
+  // Which draw in the previous recording each of this frame's draws is, and the motion the scene
+  // shares between the two. Both are worked out once per pair of recordings, since the same pair
+  // is replayed several times over.
+  EnsureReplayCorrespondence(current, previous, m_frame_recorder.GetFrameCounter());
+
+  // Make sure the emulated batch is on its way before the stream buffers get used for the replay,
+  // as UploadUtilityVertices() would otherwise trample the vertex loader's mapped pointer.
+  //
+  // Note that this deliberately does not use AbstractGfx::BeginUtilityDrawing(): on OpenGL that
+  // turns off the two clip distances the emulated vertex shaders write for depth clamping, and
+  // the recorded pipelines are emulated ones.
+  Flush();
+
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+
+  // The shader managers only rewrite the parts of their constants that the emulated GPU reported
+  // as changed, so anything overwritten here that the game does not happen to upload again next
+  // frame would keep the interpolated value forever. Put the originals back afterwards.
+  const VertexShaderConstants saved_vertex_constants = vertex_shader_manager.constants;
+  const PixelShaderConstants saved_pixel_constants = pixel_shader_manager.constants;
+  const GeometryShaderConstants saved_geometry_constants = geometry_shader_manager.constants;
+
+  g_gfx->SetFramebuffer(target);
+
+  // Every generated frame starts from a blank target, whether or not the emulated GPU cleared.
+  //
+  // This is not optional the way it is for the real frame. Several are drawn one after another into
+  // the same target, so without it each one composites onto the last: the depth buffer would still
+  // hold the previous one's geometry and reject most of this one's, while anything drawn without
+  // depth testing, such as the 2D overlays, would pass every time and pile up. The whole target is
+  // cleared rather than any recorded rectangle, since anything outside it is equally stale.
+  //
+  // A depth of all ones is the far plane, which is what an untouched depth buffer must read as for
+  // the first geometry drawn against it to pass.
+  g_gfx->ClearRegion(target->GetRect(), true, true, true, 0, 0xFFFFFF);
+  g_gfx->SetFramebuffer(target);
+
+  // The whole frame is replayed, in order, passes and all. The emulated GPU builds the visible
+  // image out of several of them, and a pass that renders into a texture is as much a part of what
+  // the scene looks like at an instant as the pass that draws it.
+  for (const VideoCommon::RecordedCommand& command : current.commands)
+  {
+    switch (command.type)
+    {
+    case VideoCommon::RecordedCommandType::Clear:
+      ReplayClear(target, current.clears[command.index]);
+      break;
+
+    case VideoCommon::RecordedCommandType::Draw:
+      ReplayDraw(current, previous, command.index, phase);
+      break;
+
+    case VideoCommon::RecordedCommandType::Copy:
+      ReplayCopy(target, current, command.index);
+      break;
+    }
+  }
+
+  // Only now that every draw has been submitted is it safe to put the emulated constants back:
+  // Metal reads them when the draw is actually encoded rather than when UploadUniforms() runs.
+  vertex_shader_manager.constants = saved_vertex_constants;
+  pixel_shader_manager.constants = saved_pixel_constants;
+  geometry_shader_manager.constants = saved_geometry_constants;
+  InvalidateConstants();
+
+  // The replay has left its own pipeline bound, so make the next emulated draw set that up again.
+  // The textures look after themselves, as every flush rebinds the units it uses.
+  //
+  // InvalidatePipelineObject() rather than just clearing the pointer: the pointer alone leaves
+  // m_pipeline_config_changed false, so UpdatePipelineObject() returns without doing anything and
+  // the next flush finds a null pipeline and drops the draw.
+  InvalidatePipelineObject();
+  SetRasterizationStateChanged();
+  SetDepthStateChanged();
+  SetBlendingStateChanged();
+}
+
+void VertexManagerBase::ReplayClear(AbstractFramebuffer* target,
+                                    const VideoCommon::RecordedClear& clear)
+{
+  // The coordinate conversion and the alpha rules for formats without an alpha channel belong to
+  // the framebuffer manager, so that a replayed clear lands where the emulated one did on every
+  // backend rather than tracking a copy of the same rules.
+  g_framebuffer_manager->ClearFramebuffer(target, clear.rect, clear.color_enable,
+                                          clear.alpha_enable, clear.z_enable, clear.color, clear.z,
+                                          clear.pixel_format);
+
+  // ClearRegion() finishes by putting the EFB back, which is not what is being drawn into here.
+  g_gfx->SetFramebuffer(target);
+}
+
+void VertexManagerBase::ReplayCopy(AbstractFramebuffer* target,
+                                   const VideoCommon::RecordedFrame& current, u32 copy_index)
+{
+  const VideoCommon::RecordedCopy& copy = current.copies[copy_index];
+
+  AbstractFramebuffer* const destination =
+      m_replay_targets.GetFramebuffer(copy_index, copy.destination_config);
+  if (destination == nullptr)
+    return;
+
+  // The copy shader reads the EFB in normalised coordinates, and a replay renders into a target
+  // the same size as the EFB, so the recorded uniforms address this one exactly as they addressed
+  // the real one.
+  AbstractTexture* const source =
+      copy.from_depth ? target->GetDepthAttachment() : target->GetColorAttachment();
+  if (source == nullptr)
+    return;
+
+  g_gfx->BeginUtilityDrawing();
+  source->FinishedRendering();
+
+  UploadUtilityUniforms(current.copy_uniform_data.data() + copy.uniform_offset, copy.uniform_size);
+
+  // The same draw the texture cache makes for the real copy, so the two cannot drift apart.
+  TextureCacheBase::DrawEFBCopy(destination, source, copy.pipeline, copy.linear_filter);
+
+  // EndUtilityDrawing() puts the EFB back, and the rest of the frame goes on being drawn here.
+  g_gfx->SetFramebuffer(target);
+}
+
+void VertexManagerBase::BindReplayTextures(const VideoCommon::RecordedDraw& draw)
+{
+  for (u32 unit = 0; unit < VideoCommon::NUM_RECORDED_TEXTURES; ++unit)
+  {
+    // Anything the frame rendered for itself is sampled from the replay's own copy of it, which
+    // holds the scene at this sub-frame rather than at the last real one.
+    if (const u32 slot = draw.texture_copy_slots[unit]; slot != 0)
+    {
+      if (AbstractTexture* const replayed = m_replay_targets.GetTexture(slot - 1))
+      {
+        g_gfx->SetTexture(unit, replayed);
+        g_gfx->SetSamplerState(unit, draw.samplers[unit]);
+        continue;
+      }
+
+      // No replay copy, because the target could not be made or the copy came in over the limit.
+      // The emulated GPU's own copy is a frame stale but is a picture of the right thing.
+    }
+
+    // The cache can move an entry's texture into its reuse pool while the entry itself is still
+    // alive, so this has to be checked rather than assumed.
+    if (!draw.textures[unit] || !draw.textures[unit]->texture)
+      continue;
+
+    g_gfx->SetTexture(unit, draw.textures[unit]->texture.get());
+    g_gfx->SetSamplerState(unit, draw.samplers[unit]);
+  }
+}
+
+void VertexManagerBase::ResolveCorrespondence(const VideoCommon::RecordedFrame& current,
+                                              const VideoCommon::RecordedFrame& previous)
+{
+  m_replay_matches.assign(current.draws.size(), nullptr);
+
+  // Which of the previous frame's draws have already been spoken for. A draw is one object at one
+  // instant, so it can be the counterpart of at most one draw in this frame: letting several claim
+  // it leaves whichever of them the search happened to reach first with the right partner and the
+  // rest interpolating against something that is somewhere else entirely. With N instances of a
+  // mesh against N-1 of them last frame, at least one pairing is wrong however the search is
+  // ordered, and which one changes from frame to frame.
+  m_replay_claimed.assign(previous.draws.size(), false);
+
+  // How far the previous frame's draw list is offset from this one's, carried across the whole
+  // list and nudged whenever a match is found off it. A game that adds or drops a single draw
+  // shifts everything after it by one, and pairing on the index alone would then fail for the
+  // whole rest of the scene at once.
+  s64 alignment = 0;
+
+  for (u32 draw_index = 0; draw_index < current.draws.size(); ++draw_index)
+  {
+    const VideoCommon::RecordedDraw& draw = current.draws[draw_index];
+    const VertexShaderConstants& draw_constants = current.vertex_constants[draw.vertex_constants];
+
+    // How far this draw's transform is allowed to be from a candidate's before the two are taken
+    // to be different objects rather than one object that moved.
+    //
+    // Relative to the size of the transform itself, never an absolute number: a position matrix
+    // carries the object's distance from the camera in its translation column, and games work in
+    // world scales that differ by orders of magnitude, so a threshold that suits one scene rejects
+    // everything or nothing in the next. Against the magnitude it asks whether the object moved a
+    // lot *for what it is*, which means the same thing everywhere.
+    const float limit = CORRESPONDENCE_MAX_RELATIVE_DISTANCE *
+                        std::max(VideoCommon::TransformMagnitude(draw_constants), 1.0f);
+
+    const VideoCommon::RecordedDraw* match = nullptr;
+    s64 match_candidate = 0;
+    float match_distance = std::numeric_limits<float>::max();
+    bool match_same_geometry = false;
+    s64 match_step = 0;
+
+    // The furthest any candidate got before being turned away, so that a draw which fails can say
+    // which test failed it rather than only that it failed.
+    bool saw_candidate = false;
+    bool saw_same_shape = false;
+    bool saw_same_texture = false;
+
+    // Walked outwards from the running alignment, nearest in the list first, and a candidate only
+    // wins on a strictly smaller transform distance. That way position decides between instances
+    // of the same mesh, and where it cannot decide, the list does.
+    //
+    // It cannot decide for the 2D overlays: a game draws those through one orthographic transform
+    // with their screen position baked into the vertices, so every one of them sits at the same
+    // distance. Without the list breaking the tie they pair up arbitrarily and smear across the
+    // screen.
+    for (s64 offset = 0; offset <= CORRESPONDENCE_SEARCH_DISTANCE; ++offset)
+    {
+      for (s64 direction = 0; direction < (offset == 0 ? 1 : 2); ++direction)
+      {
+        const s64 step = (direction == 0) ? -offset : offset;
+        const s64 candidate = static_cast<s64>(draw_index) + alignment + step;
+        if (candidate < 0 || candidate >= static_cast<s64>(previous.draws.size()))
+          continue;
+
+        if (m_replay_claimed[candidate])
+          continue;
+
+        const VideoCommon::RecordedDraw& previous_draw = previous.draws[candidate];
+        saw_candidate = true;
+
+        const VideoCommon::DrawCorrespondence correspondence =
+            VideoCommon::CompareDraws(previous_draw, draw);
+        if (correspondence != VideoCommon::DrawCorrespondence::Yes)
+        {
+          if (correspondence == VideoCommon::DrawCorrespondence::DifferentTexture)
+            saw_same_shape = true;
+          continue;
+        }
+        saw_same_shape = true;
+        saw_same_texture = true;
+
+        const float distance = VideoCommon::TransformDistance(
+            previous.vertex_constants[previous_draw.vertex_constants], draw_constants);
+
+        // Too far apart to be the same object. Without this the search is an unconditional argmin
+        // over the window: DrawsCorrespond only compares the pipeline, the vertex format, the
+        // counts and the textures, all of which any run of instanced content satisfies, so the
+        // nearest tree, particle or glyph quad is always accepted however far away it is. A wrong
+        // pairing does not merely slide the object, it blends the projection and texture matrices
+        // of two unrelated draws, so it streaks and distorts as well.
+        if (distance > limit)
+          continue;
+
+        // The same vertices settle it, ahead of what the transforms have to say, but only among
+        // candidates that already passed the test above.
+        //
+        // A skinned character is the case that needs this. Its position comes from per-vertex
+        // indices into the bone matrices rather than from the shared position matrix, so the
+        // shared one holds whatever it last happened to hold and is the same for every skinned
+        // draw in the frame: the transform distance is blind to them and scores every candidate
+        // alike. Their meshes are not alike, and do not change from frame to frame, so this tells
+        // them apart exactly.
+        //
+        // Never a key in its own right. Any mesh a game does not rewrite in RAM hashes the same
+        // every frame, so a shared quad buffer or a glyph atlas makes this true for long runs of
+        // unrelated draws; as a tie-break inside the distance limit that is harmless, as an
+        // override of it, it would let a draw eight slots away beat the one sitting at the
+        // alignment.
+        const bool same_geometry = previous_draw.vertex_hash == draw.vertex_hash;
+
+        if (match != nullptr)
+        {
+          if (match_same_geometry && !same_geometry)
+            continue;
+
+          if (match_same_geometry == same_geometry && distance >= match_distance)
+            continue;
+        }
+
+        match = &previous_draw;
+        match_candidate = candidate;
+        match_distance = distance;
+        match_same_geometry = same_geometry;
+        match_step = step;
+      }
+    }
+
+    if (match != nullptr)
+    {
+      m_replay_claimed[match_candidate] = true;
+      alignment += match_step;
+      INCSTAT(g_stats.this_frame.num_framegen_matched);
+    }
+    else if (saw_same_texture)
+    {
+      // Something in the window was the same draw in every respect except where it stands.
+      INCSTAT(g_stats.this_frame.num_framegen_too_far);
+    }
+    else if (saw_same_shape)
+    {
+      INCSTAT(g_stats.this_frame.num_framegen_no_texture);
+    }
+    else if (saw_candidate)
+    {
+      INCSTAT(g_stats.this_frame.num_framegen_no_pipeline);
+    }
+    else
+    {
+      INCSTAT(g_stats.this_frame.num_framegen_no_candidate);
+    }
+
+    m_replay_matches[draw_index] = match;
+  }
+}
+
+void VertexManagerBase::EnsureReplayCorrespondence(const VideoCommon::RecordedFrame& current,
+                                                   const VideoCommon::RecordedFrame& previous,
+                                                   u64 frame_counter)
+{
+  if (m_replay_counter == frame_counter && m_replay_matches.size() == current.draws.size())
+    return;
+
+  m_replay_counter = frame_counter;
+  ResolveCorrespondence(current, previous);
+}
+
+void VertexManagerBase::SubmitRecordedDraw(const VideoCommon::RecordedFrame& frame,
+                                           const VideoCommon::RecordedDraw& draw,
+                                           const VertexShaderConstants& vertex_constants)
+{
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+
+  vertex_shader_manager.constants = vertex_constants;
+  vertex_shader_manager.dirty = true;
+
+  pixel_shader_manager.constants = frame.pixel_constants[draw.pixel_constants];
+  pixel_shader_manager.dirty = true;
+  geometry_shader_manager.constants = frame.geometry_constants[draw.geometry_constants];
+  geometry_shader_manager.dirty = true;
+  UploadUniforms();
+
+  // Bind the textures the draw was recorded with directly. Going through the texture cache
+  // would bind whatever is bound now and would write to the emulated pixel shader constants.
+  BindReplayTextures(draw);
+
+  const auto& viewport = draw.viewport_and_scissor;
+  g_gfx->SetViewport(viewport.viewport_x, viewport.viewport_y, viewport.viewport_width,
+                     viewport.viewport_height, viewport.viewport_near_depth,
+                     viewport.viewport_far_depth);
+  g_gfx->SetScissorRect(viewport.scissor_rect);
+
+  // The pipeline has to be set before the vertices are uploaded, as on OpenGL it is what binds
+  // the vertex array object that owns the index buffer binding.
+  g_gfx->SetPipeline(draw.pipeline);
+
+  // Nothing may touch the stream buffers between this upload and the draw that consumes it, or
+  // the base offsets stop addressing the data that was just written.
+  u32 base_vertex = 0;
+  u32 base_index = 0;
+  UploadUtilityVertices(frame.vertex_data.data() + draw.vertex_data_offset, draw.vertex_stride,
+                        draw.vertex_count, frame.index_data.data() + draw.index_data_offset,
+                        draw.index_count, &base_vertex, &base_index);
+
+  if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
+      (draw.primitive_type == PrimitiveType::Points || draw.primitive_type == PrimitiveType::Lines))
+  {
+    base_vertex <<= 2;
+  }
+
+  // Deliberately not DrawCurrentBatch(), which would flush the bounding box, and deliberately
+  // not wrapped in a performance query, which would count these pixels as emulated ones.
+  g_gfx->DrawIndexed(base_index, draw.index_count, base_vertex);
+}
+
+void VertexManagerBase::ReplayDraw(const VideoCommon::RecordedFrame& current,
+                                   const VideoCommon::RecordedFrame& previous, u32 draw_index,
+                                   float phase)
+{
+  const VideoCommon::RecordedDraw& draw = current.draws[draw_index];
+  const VertexShaderConstants& draw_constants = current.vertex_constants[draw.vertex_constants];
+  const VideoCommon::RecordedDraw* const match = m_replay_matches[draw_index];
+
+  if (match == nullptr)
+  {
+    // Nothing corresponded, so this draw is submitted exactly as this frame submitted it. That
+    // leaves it a whole frame ahead of the interpolated scene around it, which is a real cost, but
+    // it is a bounded and steady one: the draw is where the game actually put it, and it stays
+    // there for every sub-frame rather than moving or changing strength between them.
+    //
+    // Attempts at doing better than this are recorded in FRAMEGEN_AUDIT.md. Every one of them
+    // needed either a per-draw opacity, which the game's own pipelines cannot express and no
+    // per-pixel mask is available to fake, or the previous recording's draws replayed alongside
+    // this one's, which puts two copies of anything translucent into the same picture. Both traded
+    // a steady error for an unsteady one. The way to make this better is to leave fewer draws
+    // unmatched, not to dress up the ones that are.
+    SubmitRecordedDraw(current, draw, draw_constants);
+    return;
+  }
+
+  VertexShaderConstants interpolated;
+  VideoCommon::InterpolateTransforms(previous.vertex_constants[match->vertex_constants],
+                                     draw_constants, phase, &interpolated);
+  SubmitRecordedDraw(current, draw, interpolated);
 }
 
 const AbstractPipeline* VertexManagerBase::GetCustomPipeline(

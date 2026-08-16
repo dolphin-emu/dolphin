@@ -389,6 +389,11 @@ void ShaderCache::LoadCaches()
 
 void ShaderCache::ClearCaches()
 {
+  // Recorded draw lists point straight at the pipelines about to be destroyed here, so throw them
+  // away before that happens rather than replaying through dangling pointers.
+  if (g_vertex_manager)
+    g_vertex_manager->GetFrameRecorder().Invalidate();
+
   ClearPipelineCache(m_gx_pipeline_cache, m_gx_pipeline_disk_cache);
   ClearShaderCache(m_vs_cache);
   ClearShaderCache(m_gs_cache);

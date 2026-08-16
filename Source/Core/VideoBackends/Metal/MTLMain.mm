@@ -126,8 +126,9 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     g_state_tracker = std::make_unique<StateTracker>();
 
     return InitializeShared(
-        std::make_unique<Metal::Gfx>(std::move(layer)), std::make_unique<Metal::VertexManager>(),
-        std::make_unique<Metal::PerfQuery>(), std::make_unique<Metal::BoundingBox>());
+        std::make_unique<Metal::Gfx>(std::move(layer), wsi.render_surface_refresh_rate),
+        std::make_unique<Metal::VertexManager>(), std::make_unique<Metal::PerfQuery>(),
+        std::make_unique<Metal::BoundingBox>());
   }
 }
 
