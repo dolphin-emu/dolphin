@@ -30,6 +30,7 @@ struct GameModDescriptorRiivolutionPatch
 struct GameModDescriptorRiivolution
 {
   std::vector<GameModDescriptorRiivolutionPatch> patches;
+  u32 console_ng_id = 0;
 };
 
 struct GameModDescriptor
