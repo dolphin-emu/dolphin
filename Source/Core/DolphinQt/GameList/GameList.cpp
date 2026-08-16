@@ -359,7 +359,7 @@ void GameList::MakeGridView()
 
   m_grid->setViewMode(QListView::IconMode);
   m_grid->setResizeMode(QListView::Adjust);
-  m_grid->setUniformItemSizes(true);
+  m_grid->setWordWrap(true);
   m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
   m_grid->setFrameStyle(QFrame::NoFrame);
 
