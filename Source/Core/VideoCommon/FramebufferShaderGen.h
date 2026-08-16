@@ -22,6 +22,7 @@ std::string GenerateEFBPokeVertexShader();
 std::string GenerateColorPixelShader();
 std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samples);
 std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format);
+std::string GenerateTextureResizeShader();
 std::string GenerateEFBRestorePixelShader();
 std::string GenerateImGuiVertexShader();
 std::string GenerateImGuiPixelShader(bool linear_space_output = false);

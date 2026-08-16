@@ -110,6 +110,9 @@ public:
   const AbstractPipeline* GetTextureReinterpretPipeline(TextureFormat from_format,
                                                         TextureFormat to_format);
 
+  // Texture resize pipeline
+  const AbstractPipeline* GetTextureResizePipeline();
+
   // Texture decoding compute shaders
   const AbstractShader* GetTextureDecodingShader(TextureFormat format,
                                                  std::optional<TLUTFormat> palette_format);
@@ -248,6 +251,9 @@ private:
   // Texture reinterpreting pipeline
   std::map<std::pair<TextureFormat, TextureFormat>, std::unique_ptr<AbstractPipeline>>
       m_texture_reinterpret_pipelines;
+
+  // Texture resize pipeline
+  std::unique_ptr<AbstractPipeline> m_resize_pipeline;
 
   // Texture decoding shaders
   std::map<std::pair<u32, u32>, std::unique_ptr<AbstractShader>> m_texture_decoding_shaders;

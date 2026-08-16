@@ -413,6 +413,7 @@ void ShaderCache::ClearCaches()
   for (auto& pipeline : m_palette_conversion_pipelines)
     pipeline.reset();
   m_texture_reinterpret_pipelines.clear();
+  m_resize_pipeline.reset();
   m_texture_decoding_shaders.clear();
 
   SETSTAT(g_stats.num_pixel_shaders_created, 0);
@@ -1440,6 +1441,35 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
   config.usage = AbstractPipelineUsage::Utility;
   iter->second = g_gfx->CreatePipeline(config);
   return iter->second.get();
+}
+
+const AbstractPipeline* ShaderCache::GetTextureResizePipeline()
+{
+  if (m_resize_pipeline)
+    return m_resize_pipeline.get();
+
+  std::string shader_source = FramebufferShaderGen::GenerateTextureResizeShader();
+  if (shader_source.empty())
+    return nullptr;
+
+  std::unique_ptr<AbstractShader> shader =
+      g_gfx->CreateShaderFromSource(ShaderStage::Pixel, shader_source, nullptr,
+                                    fmt::format("Texture reinterpret size pixel shader"));
+  if (!shader)
+    return nullptr;
+
+  AbstractPipelineConfig config;
+  config.vertex_format = nullptr;
+  config.vertex_shader = m_screen_quad_vertex_shader.get();
+  config.geometry_shader = nullptr;
+  config.pixel_shader = shader.get();
+  config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
+  config.depth_state = RenderState::GetNoDepthTestingDepthState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
+  config.usage = AbstractPipelineUsage::Utility;
+  m_resize_pipeline = g_gfx->CreatePipeline(config);
+  return m_resize_pipeline.get();
 }
 
 const AbstractShader*
