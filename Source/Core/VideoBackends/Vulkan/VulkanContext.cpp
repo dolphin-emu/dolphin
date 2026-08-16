@@ -76,6 +76,7 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
 
   memcpy(deviceName, properties.deviceName, sizeof(deviceName));
   memcpy(pipelineCacheUUID, properties.pipelineCacheUUID, sizeof(pipelineCacheUUID));
+  driverVersion = properties.driverVersion;
   vendorID = properties.vendorID;
   deviceID = properties.deviceID;
   minUniformBufferOffsetAlignment =
