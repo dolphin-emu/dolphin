@@ -25,7 +25,7 @@ VertexShaderUid GetVertexShaderUid()
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
 
-  GetLightingShaderUid(uid_data->lighting);
+  GetLightingShaderUid(uid_data->lighting, uid_data->numColorChans);
 
   // transform texcoords
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
