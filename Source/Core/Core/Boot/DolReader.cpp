@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/IOFile.h"
 #include "Common/Swap.h"
 #include "Core/Boot/AncastTypes.h"
@@ -33,96 +35,89 @@ DolReader::~DolReader() = default;
 
 bool DolReader::Initialize(std::span<const u8> buffer)
 {
-  if (buffer.size() < sizeof(SDolHeader) || buffer.size() > UINT32_MAX)
+  if (buffer.size() < sizeof(DolHeader) || buffer.size() > UINT32_MAX)
     return false;
 
-  memcpy(&m_dolheader, buffer.data(), sizeof(SDolHeader));
+  std::memcpy(&m_dolheader, buffer.data(), sizeof(DolHeader));
 
   // swap memory
   u32* p = (u32*)&m_dolheader;
-  for (size_t i = 0; i < (sizeof(SDolHeader) / sizeof(u32)); i++)
+  for (std::size_t i = 0; i < (sizeof(DolHeader) / sizeof(u32)); i++)
     p[i] = Common::swap32(p[i]);
 
   const u32 HID4_pattern = Common::swap32(0x7c13fba6);
   const u32 HID4_mask = Common::swap32(0xfc1fffff);
 
   m_is_wii = false;
-
-  m_text_sections.reserve(DOL_NUM_TEXT);
   for (int i = 0; i < DOL_NUM_TEXT; ++i)
   {
-    if (m_dolheader.textSize[i] != 0)
+    if (m_dolheader.m_text_size[i] == 0)
+      continue;
+
+    // apploaders/IOS align the size and work from there.
+    // we will do the same, and prepare data to be read later with aligned sizes
+    // yes it can read too much, but thats how apploaders/IOS work
+    // it will also cause the effect of the dol not loading once it is to be read out of bounds
+    const u64 section_size = Common::AlignUp(static_cast<u64>(m_dolheader.m_text_size[i]), 32);
+    if (section_size != m_dolheader.m_text_size[i])
     {
-      if ((m_dolheader.textAddress[i] & 31) != 0 || (m_dolheader.textSize[i] & 31) != 0)
-      {
-        ERROR_LOG_FMT(BOOT,
-                      "Text section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
-                      i, m_dolheader.textAddress[i], m_dolheader.textSize[i]);
-        return false;
-      }
-
-      const std::size_t section_offset = m_dolheader.textOffset[i];
-      const std::size_t section_size = m_dolheader.textSize[i];
-
-      if (buffer.size() < section_offset || (buffer.size() - section_offset) < section_size)
-        return false;
-
-      const u8* text_start = &buffer[section_offset];
-      m_text_sections.emplace_back(text_start, &text_start[section_size]);
-
-      for (unsigned int j = 0; !m_is_wii && j < (m_dolheader.textSize[i] / sizeof(u32)); ++j)
-      {
-        u32 word = ((u32*)text_start)[j];
-        if ((word & HID4_mask) == HID4_pattern)
-          m_is_wii = true;
-      }
+      WARN_LOG_FMT(BOOT,
+                   "DolReader: Text section {} size is not aligned to 32 bytes and can cause "
+                   "issues when loaded",
+                   i);
     }
-    else
+
+    if (buffer.size() < m_dolheader.m_text_offset[i] + section_size)
+      return false;
+
+    auto& section = m_sections.emplace_back();
+    section.m_address = m_dolheader.m_text_address[i];
+    section.m_header_section_size = m_dolheader.m_text_size[i];
+    section.m_data = buffer.subspan(m_dolheader.m_text_offset[i], section_size);
+
+    const u8* const begin = section.m_data.data();
+    const u8* const end = begin + section_size;
+    for (const u8* ptr = begin; ptr < end; ptr += 4)
     {
-      // Make sure that m_text_sections indexes match header indexes
-      m_text_sections.emplace_back();
+      if ((Common::BitCastPtr<u32>(ptr) & HID4_mask) != HID4_pattern)
+        continue;
+
+      m_is_wii = true;
+      break;
     }
   }
 
-  m_data_sections.reserve(DOL_NUM_DATA);
   for (int i = 0; i < DOL_NUM_DATA; ++i)
   {
-    if (m_dolheader.dataSize[i] != 0)
+    if (m_dolheader.m_data_size[i] == 0)
+      continue;
+
+    const u64 section_size = Common::AlignUp(static_cast<u64>(m_dolheader.m_data_size[i]), 32);
+    const u32 section_offset = m_dolheader.m_data_offset[i];
+    if (section_size != m_dolheader.m_data_size[i])
     {
-      const std::size_t section_size = m_dolheader.dataSize[i];
-      const std::size_t section_offset = m_dolheader.dataOffset[i];
-      if ((m_dolheader.dataAddress[i] & 31) != 0 || (section_size & 31) != 0)
-      {
-        ERROR_LOG_FMT(BOOT,
-                      "Data section {} is not 32-byte aligned: address = 0x{:08x}, size = 0x{:x}",
-                      i, m_dolheader.dataAddress[i], section_size);
-        return false;
-      }
-
-      if (buffer.size() < section_offset)
-        return false;
-
-      std::vector<u8> data(section_size);
-      const u8* data_start = &buffer[section_offset];
-      std::memcpy(&data[0], data_start, std::min(section_size, buffer.size() - section_offset));
-      m_data_sections.emplace_back(data);
+      WARN_LOG_FMT(BOOT,
+                   "DolReader: Data section {} size is not aligned to 32 bytes and can cause "
+                   "issues when loaded",
+                   i);
     }
-    else
+
+    if (buffer.size() < section_offset + section_size)
+      return false;
+
+    auto& section = m_sections.emplace_back();
+    section.m_address = m_dolheader.m_data_address[i];
+    section.m_header_section_size = m_dolheader.m_data_size[i];
+    section.m_data = buffer.subspan(section_offset, section_size);
+
+    // Check if this dol contains an ancast image
+    // The ancast image will always be in the first data section
+    if (i == 0 && section.m_header_section_size > sizeof(EspressoAncastHeader) &&
+        section.m_address == ESPRESSO_ANCAST_LOCATION_VIRT &&
+        Common::swap32(section.m_data.data()) == ANCAST_MAGIC)
     {
-      // Make sure that m_data_sections indexes match header indexes
-      m_data_sections.emplace_back();
+      m_ancast_index = i;
     }
-  }
-
-  // Check if this dol contains an ancast image
-  // The ancast image will always be in the first data section
-  m_is_ancast = false;
-  if (m_data_sections[0].size() > sizeof(EspressoAncastHeader) &&
-      m_dolheader.dataAddress[0] == ESPRESSO_ANCAST_LOCATION_VIRT)
-  {
-    // Check for the ancast magic
-    if (Common::swap32(m_data_sections[0].data()) == ANCAST_MAGIC)
-      m_is_ancast = true;
   }
 
   return true;
@@ -133,33 +128,18 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
   if (!m_is_valid)
     return false;
 
-  if (m_is_ancast)
+  if (IsAncast())
     return LoadAncastIntoMemory(system);
 
   auto& memory = system.GetMemory();
 
-  // load all text (code) sections
-  for (size_t i = 0; i < m_text_sections.size(); ++i)
+  // load all loadable sections
+  for (auto& section : m_sections)
   {
-    if (!m_text_sections[i].empty() &&
-        !(only_in_mem1 &&
-          m_dolheader.textAddress[i] + m_text_sections[i].size() >= memory.GetRamSizeReal()))
-    {
-      memory.CopyToEmu(m_dolheader.textAddress[i], m_text_sections[i].data(),
-                       m_text_sections[i].size());
-    }
-  }
+    if (only_in_mem1 && section.m_address + section.m_data.size() >= memory.GetRamSizeReal())
+      continue;
 
-  // load all data sections
-  for (size_t i = 0; i < m_data_sections.size(); ++i)
-  {
-    if (!m_data_sections[i].empty() &&
-        !(only_in_mem1 &&
-          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= memory.GetRamSizeReal()))
-    {
-      memory.CopyToEmu(m_dolheader.dataAddress[i], m_data_sections[i].data(),
-                       m_data_sections[i].size());
-    }
+    memory.CopyToEmu(section.m_address, section.m_data.data(), section.m_data.size());
   }
 
   return true;
@@ -168,48 +148,47 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
 // On a real console this would be done in the Espresso bootrom
 bool DolReader::LoadAncastIntoMemory(Core::System& system) const
 {
-  // The ancast image will always be in data section 0
-  const auto& section = m_data_sections[0];
-  const u32 section_address = m_dolheader.dataAddress[0];
-
-  const auto* header = reinterpret_cast<const EspressoAncastHeader*>(section.data());
+  const LoadableSection& section = m_sections[m_ancast_index.value()];
+  const u32 section_address = m_dolheader.m_data_address[0];
+  const EspressoAncastHeader header =
+      Common::BitCastPtr<EspressoAncastHeader>(section.m_data.data());
 
   // Verify header block size
-  if (Common::swap32(header->header_block.header_block_size) != sizeof(AncastHeaderBlock))
+  if (Common::swap32(header.header_block.header_block_size) != sizeof(AncastHeaderBlock))
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid header block size: 0x{:x}",
-                  Common::swap32(header->header_block.header_block_size));
+                  Common::swap32(header.header_block.header_block_size));
     return false;
   }
 
   // Make sure this is a PPC ancast image
-  if (Common::swap32(header->signature_block.signature_type) != 0x01)
+  if (Common::swap32(header.signature_block.signature_type) != 0x01)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid signature type: 0x{:x}",
-                  Common::swap32(header->signature_block.signature_type));
+                  Common::swap32(header.signature_block.signature_type));
     return false;
   }
 
   // Make sure this is a Wii-Mode ancast image
-  if (Common::swap32(header->info_block.image_type) != ANCAST_IMAGE_TYPE_ESPRESSO_WII)
+  if (Common::swap32(header.info_block.image_type) != ANCAST_IMAGE_TYPE_ESPRESSO_WII)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid image type: 0x{:x}",
-                  Common::swap32(header->info_block.image_type));
+                  Common::swap32(header.info_block.image_type));
     return false;
   }
 
   // Verify the body size
-  const u32 body_size = Common::swap32(header->info_block.body_size);
-  if (body_size + sizeof(EspressoAncastHeader) > section.size())
+  const u32 body_size = Common::swap32(header.info_block.body_size);
+  if (body_size + sizeof(EspressoAncastHeader) > section.m_header_section_size)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid body size: 0x{:x}", body_size);
     return false;
   }
 
   // Verify the body hash
-  const auto digest =
-      Common::SHA1::CalculateDigest(section.data() + sizeof(EspressoAncastHeader), body_size);
-  if (digest != header->info_block.body_hash)
+  const auto digest = Common::SHA1::CalculateDigest(
+      section.m_data.data() + sizeof(EspressoAncastHeader), body_size);
+  if (digest != header.info_block.body_hash)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Body hash mismatch");
     return false;
@@ -217,14 +196,14 @@ bool DolReader::LoadAncastIntoMemory(Core::System& system) const
 
   // Check if this is a retail or dev image
   bool is_dev = false;
-  if (Common::swap32(header->info_block.console_type) == ANCAST_CONSOLE_TYPE_DEV)
+  if (Common::swap32(header.info_block.console_type) == ANCAST_CONSOLE_TYPE_DEV)
   {
     is_dev = true;
   }
-  else if (Common::swap32(header->info_block.console_type) != ANCAST_CONSOLE_TYPE_RETAIL)
+  else if (Common::swap32(header.info_block.console_type) != ANCAST_CONSOLE_TYPE_RETAIL)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid console type: 0x{:x}",
-                  Common::swap32(header->info_block.console_type));
+                  Common::swap32(header.info_block.console_type));
     return false;
   }
 
@@ -240,14 +219,14 @@ bool DolReader::LoadAncastIntoMemory(Core::System& system) const
   static constexpr u8 vwii_ancast_iv[0x10] = {0x59, 0x6d, 0x5a, 0x9a, 0xd7, 0x05, 0xf9, 0x4f,
                                               0xe1, 0x58, 0x02, 0x6f, 0xea, 0xa7, 0xb8, 0x87};
   std::vector<u8> decrypted(body_size);
-  if (!ctx->Crypt(vwii_ancast_iv, section.data() + sizeof(EspressoAncastHeader), decrypted.data(),
-                  body_size))
+  if (!ctx->Crypt(vwii_ancast_iv, section.m_data.data() + sizeof(EspressoAncastHeader),
+                  decrypted.data(), body_size))
     return false;
 
   auto& memory = system.GetMemory();
 
   // Copy the Ancast header to the emu
-  memory.CopyToEmu(section_address, header, sizeof(EspressoAncastHeader));
+  memory.CopyToEmu(section_address, &header, sizeof(EspressoAncastHeader));
 
   // Copy the decrypted body to the emu
   memory.CopyToEmu(section_address + sizeof(EspressoAncastHeader), decrypted.data(), body_size);
