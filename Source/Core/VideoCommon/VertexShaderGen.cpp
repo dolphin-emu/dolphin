@@ -40,16 +40,9 @@ VertexShaderUid GetVertexShaderUid()
     switch (texinfo.texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
-      if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
-      {
-        // transform the light dir into tangent space
-        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
-      else
-      {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
+      // transform the light dir into tangent space
+      texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+      texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       break;
     case TexGenType::Color0:
     case TexGenType::Color1:
