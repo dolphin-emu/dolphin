@@ -167,7 +167,7 @@ public:
       requires(!std::unsigned_integral<T>)
   {
     using U = Common::MakeUnsignedSameSize<T>;
-    std::optional<ReadResult<U>> result = HostTryRead<U>(guard, address);
+    std::optional<ReadResult<U>> result = HostTryRead<U>(guard, address, space);
     return std::bit_cast<std::optional<ReadResult<T>>>(result);
   }
   static std::optional<ReadResult<u32>>
