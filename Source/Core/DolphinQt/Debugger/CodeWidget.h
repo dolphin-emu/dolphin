@@ -81,6 +81,7 @@ private:
 
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;
+  bool m_show_demangled_names;
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;
