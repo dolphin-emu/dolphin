@@ -41,7 +41,8 @@ static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
 
 CodeWidget::CodeWidget(QWidget* parent)
     : QDockWidget(parent), m_system(Core::System::GetInstance()),
-      m_ppc_symbol_db(m_system.GetPPCSymbolDB())
+      m_ppc_symbol_db(m_system.GetPPCSymbolDB()),
+      m_show_demangled_names(Settings::Instance().IsShowDemangledNames())
 {
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
@@ -253,6 +254,7 @@ void CodeWidget::OnSetCodeAddress(u32 address)
 
 void CodeWidget::OnShowDemangledNamesChanged()
 {
+  m_show_demangled_names = Settings::Instance().IsShowDemangledNames();
   UpdateSymbols();
   if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
   {
@@ -565,8 +567,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 // demangled names.
 const std::string& CodeWidget::GetSymbolDisplayName(const Common::Symbol* symbol) const
 {
-  const bool show_demangled_names = Settings::Instance().IsShowDemangledNames();
-  return symbol->GetDisplayName(show_demangled_names);
+  return symbol->GetDisplayName(m_show_demangled_names);
 }
 
 void CodeWidget::Step()
