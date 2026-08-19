@@ -60,11 +60,12 @@ struct vertex_shader_uid_data
   u32 numColorChans : 2;
   u32 dualTexTrans_enabled : 1;
   VSExpand vs_expand : 2;
-  u32 position_has_3_elems : 1;
 
-  u16 texcoord_elem_count;      // 2 bits per texcoord input
-  u16 texMtxInfo_n_projection;  // Stored separately to guarantee that the texMtxInfo struct is
-                                // 8 bits wide
+  u8 position_has_3_elems : 1;
+  u8 pad : 7;
+  u8 texMtxInfo_n_projection;  // Stored separately to guarantee that the texMtxInfo struct is
+                               // 8 bits wide
+  u16 texcoord_elem_count;     // 2 bits per texcoord input
 
   struct
   {
@@ -77,14 +78,20 @@ struct vertex_shader_uid_data
 
   struct
   {
-    u32 index : 6;
-    u32 normalize : 1;
-    u32 pad : 1;
+    u8 index : 6;
+    u8 normalize : 1;
+    u8 pad : 1;
   } postMtxInfo[8];
 
   LightingUidData lighting;
 };
 #pragma pack()
+
+#ifdef _WIN32  // MSVC layout is terrible and makes each texMtxInfo 32 bits
+static_assert(sizeof(vertex_shader_uid_data) == 56, "If this changes, you should verify padding");
+#else
+static_assert(sizeof(vertex_shader_uid_data) == 40, "If this changes, you should verify padding");
+#endif
 
 using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 
