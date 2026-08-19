@@ -168,6 +168,12 @@ class NetplayViewModel(
         netplaySession.changeGame(gameFile)
     }
 
+    fun computeGameDigest() = netplaySession.computeGameDigest()
+
+    fun computeSDCardDigest() = netplaySession.computeSDCardDigest()
+
+    fun abortGameDigest() = netplaySession.abortGameDigest()
+
     private fun getLocalIp(): JoinAddress {
         val localIp = networkHelper.getLocalIpString()
             ?: return JoinAddress.Unknown { _joinAddresses.value += JoinInfoType.LOCAL to getLocalIp() }

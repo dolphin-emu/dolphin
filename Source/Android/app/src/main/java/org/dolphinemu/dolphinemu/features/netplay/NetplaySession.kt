@@ -179,6 +179,12 @@ class NetplaySession(
 
     fun startGame() = nativeStartGame()
 
+    fun computeGameDigest() = nativeComputeGameDigest()
+
+    fun computeSDCardDigest() = nativeComputeSDCardDigest()
+
+    fun abortGameDigest() = nativeAbortGameDigest()
+
     fun getPort(): Int = nativeGetPort()
 
     fun getExternalIpAddress(): String? = nativeGetExternalIpAddress()
@@ -271,6 +277,12 @@ class NetplaySession(
     private external fun nativeDoAllPlayersHaveGame(): Boolean
 
     private external fun nativeStartGame()
+
+    private external fun nativeComputeGameDigest()
+
+    private external fun nativeComputeSDCardDigest()
+
+    private external fun nativeAbortGameDigest()
 
     private external fun nativeGetPort(): Int
 
@@ -381,7 +393,7 @@ class NetplaySession(
                     result = null,
                 )
             } ?: emptyList(),
-            matches = null,
+            finished = false,
         )
     }
 
@@ -398,18 +410,12 @@ class NetplaySession(
     @Keep
     fun onSetGameDigestResult(playerId: Int, result: String) {
         val current = _gameDigestProgress.value ?: return
-        val updated = current.copy(
+        _gameDigestProgress.value = current.copy(
             playerProgresses = current.playerProgresses.map {
                 if (it.playerId == playerId) it.copy(result = result) else it
-            }
+            },
+            finished = true,
         )
-        val finished = updated.playerProgresses.all { it.result != null }
-        _gameDigestProgress.value = if (finished) {
-            val results = updated.playerProgresses.map { it.result }
-            updated.copy(matches = results.distinct().size == 1)
-        } else {
-            updated
-        }
     }
 
     /**
