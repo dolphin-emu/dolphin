@@ -12,10 +12,11 @@
 
 #ifdef _WIN32
 // TODO: Horrible hack, remove ASAP!
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 
 class PointerWrap;
 
@@ -281,6 +282,10 @@ public:
   virtual Result<ExtendedDirectoryStats> GetExtendedDirectoryStats(const std::string& path) = 0;
 
   virtual void SetNandRedirects(std::vector<NandRedirect> nand_redirects) = 0;
+
+protected:
+  void DoStateWriteOrMeasure(PointerWrap& p, const std::string& directory_path);
+  void DoStateRead(PointerWrap& p, const std::string& directory_path);
 };
 
 template <typename T>
@@ -319,3 +324,16 @@ IOS::HLE::ReturnCode ConvertResult(ResultCode code);
 
 }  // namespace FS
 }  // namespace IOS::HLE
+
+template <>
+struct fmt::formatter<IOS::HLE::FS::ResultCode> : EnumFormatter<IOS::HLE::FS::ResultCode::ShortRead>
+{
+  constexpr formatter()
+      : EnumFormatter({"Success", "Invalid", "AccessDenied", "SuperblockWriteFailed",
+                       "SuperblockInitFailed", "AlreadyExists", "NotFound", "FstFull",
+                       "NoFreeSpace", "NoFreeHandle", "TooManyPathComponents", "InUse", "BadBlock",
+                       "EccError", "CriticalEccError", "FileNotEmpty", "CheckFailed",
+                       "UnknownError", "ShortRead"})
+  {
+  }
+};

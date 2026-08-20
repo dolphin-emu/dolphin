@@ -55,9 +55,27 @@ enum
   PI_FIFO_END = 0x10,
   PI_FIFO_WPTR = 0x14,
   PI_FIFO_RESET = 0x18,  // Used by GXAbortFrame
+  PI_ERROR_CAUSE = 0x1C,
+  PI_ERROR_ADDRESS = 0x20,
   PI_RESET_CODE = 0x24,
+  PI_UNKNOWN = 0x28,
   PI_FLIPPER_REV = 0x2C,
-  PI_FLIPPER_UNK = 0x30  // BS1 writes 0x0245248A to it - prolly some bootstrap thing
+  PI_FLIPPER_BUS_STRENGTH = 0x30  // BS1 writes 0x0245248A to it - controls the strength of the
+                                  // signal on the bus.  0 means the bus is dead and Flipper will
+                                  // not respond any longer, increasing it from the default value
+                                  // can reduce the noise in the Game Boy Player.
+};
+
+enum ErrorCause : u32
+{
+  NoError = 0,
+  MisalignedAddress = 1,
+  IncorrectTransferType = 2,
+  UnsupportedTransferSize = 3,
+  AddressOutOfRange = 4,
+  WriteToROM = 5,
+  ReadFromGXFIFO = 6,
+  Reserved = 7,
 };
 
 class ProcessorInterfaceManager
@@ -91,6 +109,11 @@ public:
   u32 m_fifo_cpu_base = 0;
   u32 m_fifo_cpu_end = 0;
   u32 m_fifo_cpu_write_pointer = 0;
+
+  u32 m_error_cause = 0;
+  u32 m_error_address = 0;
+  u32 m_unknown = 0x000001FF;
+  u32 m_flipper_bus_strength = 0x02492492;
 
 private:
   // Let the PPC know that an external exception is set/cleared

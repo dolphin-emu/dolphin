@@ -3,7 +3,7 @@
 
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <cfgmgr32.h>
 // must be before hidclass
 #include <initguid.h>

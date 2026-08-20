@@ -427,59 +427,16 @@ void MovieManager::ChangePads()
     else
       controllers[i] = ControllerType::None;
   }
-
-  if (m_controllers == controllers)
-    return;
-
-  auto& si = m_system.GetSerialInterface();
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
-    if (IsUsingGBA(i))
-    {
-      device = SerialInterface::SIDEVICE_GC_GBA_EMULATED;
-    }
-    else if (IsUsingPad(i))
-    {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-      if (SerialInterface::SIDevice_IsGCController(si_device))
-      {
-        device = si_device;
-      }
-      else
-      {
-        device = IsUsingBongo(i) ? SerialInterface::SIDEVICE_GC_TARUKONGA :
-                                   SerialInterface::SIDEVICE_GC_CONTROLLER;
-      }
-    }
-
-    si.ChangeDevice(device, i);
-  }
 }
 
 // NOTE: Host / Emu Threads
-void MovieManager::ChangeWiiPads(bool instantly)
+void MovieManager::ChangeWiiPads()
 {
   WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
-  }
-
-  // This is important for Wiimotes, because they can desync easily if they get re-activated
-  if (instantly && m_wiimotes == wiimotes)
-    return;
-
-  const auto bt = WiiUtils::GetBluetoothEmuDevice();
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    const bool is_using_wiimote = IsUsingWiimote(i);
-
-    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
-                       is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
-    if (bt != nullptr)
-      bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 
@@ -1011,7 +968,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
 
   ChangePads();
   if (m_system.IsWii())
-    ChangeWiiPads(true);
+    ChangeWiiPads();
 
   u64 totalSavedBytes = t_record.GetSize() - 256;
 
@@ -1269,8 +1226,8 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
 
   if (serialized.length > serialized.data.size())
   {
-    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", int(serialized.length),
-                   m_current_byte);
+    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}",
+                   static_cast<int>(serialized.length), m_current_byte);
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1279,7 +1236,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (m_current_byte + serialized.length > m_temp_input.size())
   {
     PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte,
-                   int(serialized.length), m_temp_input.size());
+                   static_cast<int>(serialized.length), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }

@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -61,14 +62,27 @@ struct SConfig
 
   const std::string GetGameID() const;
   const std::string GetGameTDBID() const;
+  const std::string GetGameIDElfDol() const;
+
+  // Returns a preference ordered list of ids to try for texture loading.
+  // If launched via elf/dol, returns {elfdolid-gameid, gameid}. Otherwise returns {gameid}.
+  const std::vector<std::string> GetGameIDsForTextures() const;
+
+  // Returns the single most-preferred id from GetGameIDsForTextures(); see that function for
+  // the full priority order.
+  const std::string GetGameIDForTextures() const;
+
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
+  u32 GetSimulatedMemorySize() const;
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
   void SetRunningGameMetadata(const std::string& game_id);
+
+  void SetElfDolID(const std::string& game_id);
 
   // Triggered when Dolphin loads a title directly
   // Reloads title-specific map files, patches, etc.
@@ -119,15 +133,19 @@ private:
   static void ReloadTextures(Core::System& system);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision, DiscIO::Region region);
+                              u64 title_id, u16 revision, DiscIO::Region region,
+                              u32 simulated_memory_size);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
+  std::string m_game_id_elf_dol;
   std::string m_gametdb_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;
+  // Memory size requested by game's header.
+  u32 m_simulated_memory_size;
 };

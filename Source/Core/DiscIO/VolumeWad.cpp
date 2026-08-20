@@ -51,7 +51,7 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
 
   if (!IOS::ES::IsValidTMDSize(m_tmd_size))
   {
-    ERROR_LOG_FMT(DISCIO, "TMD is too large: {} bytes", m_tmd_size);
+    ERROR_LOG_FMT(DISCIO, "TMD has an invalid size: {} bytes", m_tmd_size);
     return;
   }
 
@@ -230,11 +230,17 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
 
 std::string VolumeWAD::GetGameID(const Partition& partition) const
 {
+  if (!m_tmd.IsValid())
+    return {};
+
   return m_tmd.GetGameID();
 }
 
 std::string VolumeWAD::GetGameTDBID(const Partition& partition) const
 {
+  if (!m_tmd.IsValid())
+    return {};
+
   return m_tmd.GetGameTDBID();
 }
 

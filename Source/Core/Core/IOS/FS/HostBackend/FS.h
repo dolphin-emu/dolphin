@@ -60,9 +60,6 @@ public:
   void SetNandRedirects(std::vector<NandRedirect> nand_redirects) override;
 
 private:
-  void DoStateWriteOrMeasure(PointerWrap& p, const std::string& start_directory_path);
-  void DoStateRead(PointerWrap& p, const std::string& start_directory_path);
-
   struct FstEntry
   {
     bool CheckPermission(Uid uid, Gid gid, Mode requested_mode) const;

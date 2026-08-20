@@ -8,7 +8,7 @@
 #include <vector>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <SDL3/SDL.h>

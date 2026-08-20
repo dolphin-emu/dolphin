@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 
+#include <fmt/format.h>
 #include <picojson.h>
 
 #include "Common/Common.h"
@@ -128,9 +129,12 @@ void NetPlayIndex::NotificationLoop()
   {
     Common::HttpRequest request;
     auto response = request.Get(
-        Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
-            "&player_count=" + std::to_string(m_player_count) +
-            "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game),
+        fmt::format(
+            "{base}/v0/session/active?secret={secret}&player_count={player_count}&game={game}"
+            "&in_game={in_game}",
+            fmt::arg("base", Config::Get(Config::NETPLAY_INDEX_URL)), fmt::arg("secret", m_secret),
+            fmt::arg("player_count", m_player_count),
+            fmt::arg("game", request.EscapeComponent(m_game)), fmt::arg("in_game", m_in_game)),
         {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
     if (!response)
@@ -162,16 +166,17 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
 {
   Common::HttpRequest request;
   auto response = request.Get(
-      Config::Get(Config::NETPLAY_INDEX_URL) +
-          "/v0/session/add?name=" + request.EscapeComponent(session.name) +
-          "&region=" + request.EscapeComponent(session.region) +
-          "&game=" + request.EscapeComponent(session.game_id) +
-          "&password=" + std::to_string(session.has_password) + "&method=" + session.method +
-          "&server_id=" + session.server_id + "&in_game=" + std::to_string(session.in_game) +
-          "&port=" + std::to_string(session.port) + "&player_count=" +
-          std::to_string(session.player_count) + "&version=" + Common::GetScmDescStr(),
-      {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
-
+      fmt::format("{base}/v0/session/add?name={name}&region={region}&game={game}"
+                  "&password={password}&method={method}&server_id={server_id}&in_game={in_game}"
+                  "&port={port}&player_count={player_count}&version={version}",
+                  fmt::arg("base", Config::Get(Config::NETPLAY_INDEX_URL)),
+                  fmt::arg("name", request.EscapeComponent(session.name)),
+                  fmt::arg("region", request.EscapeComponent(session.region)),
+                  fmt::arg("game", request.EscapeComponent(session.game_id)),
+                  fmt::arg("password", session.has_password), fmt::arg("method", session.method),
+                  fmt::arg("server_id", session.server_id), fmt::arg("in_game", session.in_game),
+                  fmt::arg("port", session.port), fmt::arg("player_count", session.player_count),
+                  fmt::arg("version", Common::GetScmDescStr())));
   if (!response.has_value())
   {
     m_last_error = "NO_RESPONSE";

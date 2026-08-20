@@ -25,6 +25,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
@@ -87,10 +88,18 @@ void MemoryManager::InitMMIO(Core::System& system)
 
 void MemoryManager::Init()
 {
-  const auto get_mem1_size = [] {
+  const auto get_mem1_size = [this] {
     if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
       return Config::Get(Config::MAIN_MEM1_SIZE);
-    return Memory::MEM1_SIZE_RETAIL;
+    // The simulated memory size in the game's header was originally used to ask the Apploader to
+    // simulate a smaller memory size than that in development systems. That is, it could make the
+    // 48 MiB devkit act like a 24 MiB retail console during testing, or any other config.
+    //
+    // Dolphin is reusing this as a signal to automatically adjust the emulated memory size. The
+    // upper bound is clamped to 64 MiB (maximum supported by Flipper's memory controller),
+    // reflecting Apploader behaviour of clamping the simulated size to physical memory size. It is
+    // never desired to emulate less than a retail console, so the lower bound is clapped to 24 MiB.
+    return std::clamp(m_system.GetSimulatedMemorySize(), MEM1_SIZE_RETAIL, MEM1_SIZE_MAX);
   };
   const auto get_mem2_size = [] {
     if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))

@@ -344,7 +344,7 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(std::string("Volume: ") +
                         (Config::Get(Config::MAIN_AUDIO_MUTED) ?
                              "Muted" :
-                             std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
+                             fmt::format("{}%", Config::Get(Config::MAIN_AUDIO_VOLUME))));
       };
 
       // Volume
@@ -397,8 +397,14 @@ void HotkeyScheduler::Run()
         }
       }
 
-      if (IsHotkey(HK_TOGGLE_CROP))
-        Config::SetCurrent(Config::GFX_CROP, !Config::Get(Config::GFX_CROP));
+      if (IsHotkey(HK_TOGGLE_CROP_TO_ASPECT_RATIO))
+      {
+        Config::SetCurrent(Config::GFX_CROP_TO_ASPECT_RATIO,
+                           !Config::Get(Config::GFX_CROP_TO_ASPECT_RATIO));
+      }
+
+      if (IsHotkey(HK_TOGGLE_CROP_CUSTOM))
+        Config::SetCurrent(Config::GFX_CROP_CUSTOM, !Config::Get(Config::GFX_CROP_CUSTOM));
 
       if (IsHotkey(HK_TOGGLE_AR))
       {

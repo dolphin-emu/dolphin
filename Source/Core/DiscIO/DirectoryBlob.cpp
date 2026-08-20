@@ -895,7 +895,8 @@ DirectoryBlobPartition::DirectoryBlobPartition(
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback,
     DirectoryBlobReader* blob)
-    : m_wrapped_partition(partition)
+    : m_is_triforce(volume && volume->GetVolumeType() == Platform::Triforce),
+      m_wrapped_partition(partition)
 {
   std::vector<FSTBuilderNode> sys_nodes;
 
@@ -1230,6 +1231,14 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
     }
     else
     {
+      // Skip Triforce DIMM so the file doesn't overlap with it. Any portion of
+      // a file placed in 0x1F000000-0x1F800000 would be shadowed by SRAM on the
+      // AMMediaboard and read back as DIMM contents instead of disc data.
+      if (m_is_triforce && *data_offset < 0x1F800000 && *data_offset + entry.m_size > 0x1F000000)
+      {
+        *data_offset = 0x1F800000ull;
+      }
+
       // put entry in FST
       WriteEntryData(fst_data, fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.m_size,
                      m_address_shift);
@@ -1243,8 +1252,11 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
                        std::move(content.m_source));
       }
 
-      // 32 KiB aligned - many games are fine with less alignment, but not all
-      *data_offset = Common::AlignUp(*data_offset + entry.m_size, 0x8000ull);
+      // For most files, an alignment of 0x20 is enough. But some files need 0x8000,
+      // in particular all DTK audio files in GameCube games.
+      // TODO: Do any Wii games need 0x8000 alignment?
+      const u64 data_alignment = m_is_triforce ? 0x20ull : 0x8000ull;
+      *data_offset = Common::AlignUp(*data_offset + entry.m_size, data_alignment);
     }
   }
 }

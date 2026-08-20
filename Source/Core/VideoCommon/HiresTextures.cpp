@@ -3,14 +3,13 @@
 
 #include "VideoCommon/HiresTextures.h"
 
+#include <fmt/format.h>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <xxhash.h>
-
-#include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -84,9 +83,9 @@ void HiresTexture::Update()
     return;
   }
 
-  const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> texture_directories =
-      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
+  const std::set<std::string> texture_directories = GetTextureDirectoriesForFirstMatchingGameId(
+      File::GetUserPath(D_HIRESTEXTURES_IDX), SConfig::GetInstance().GetGameIDsForTextures());
+
   constexpr auto extensions = std::to_array<std::string_view>({".png", ".dds"});
 
   for (const auto& texture_directory : texture_directories)
@@ -141,16 +140,22 @@ void HiresTexture::Update()
     }
   }
 
+  const std::vector<std::string> game_ids_for_textures =
+      SConfig::GetInstance().GetGameIDsForTextures();
+  const std::string game_id_display = fmt::format("{}", fmt::join(game_ids_for_textures, "' or '"));
+
+  std::string message;
   if (g_ActiveConfig.bCacheHiresTextures)
   {
-    OSD::AddMessage(fmt::format("Loading '{}' custom textures", s_hires_texture_cache.size()),
-                    10000);
+    message = fmt::format("Preloading '{}' custom textures for '{}'", s_hires_texture_cache.size(),
+                          game_id_display);
   }
   else
   {
-    OSD::AddMessage(
-        fmt::format("Found '{}' custom textures", s_hires_texture_id_to_arbmipmap.size()), 10000);
+    message = fmt::format("Found '{}' custom textures for '{}'",
+                          s_hires_texture_id_to_arbmipmap.size(), game_id_display);
   }
+  OSD::AddMessage(message, 10000);
 }
 
 void HiresTexture::Clear()
@@ -237,4 +242,17 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
   }
 
   return result;
+}
+
+std::set<std::string>
+GetTextureDirectoriesForFirstMatchingGameId(const std::string& root_directory,
+                                            const std::vector<std::string>& game_ids)
+{
+  for (const auto& game_id : game_ids)
+  {
+    auto directories = GetTextureDirectoriesWithGameId(root_directory, game_id);
+    if (!directories.empty())
+      return directories;
+  }
+  return {};
 }

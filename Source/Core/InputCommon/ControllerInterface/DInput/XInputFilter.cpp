@@ -7,8 +7,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include <Windows.h>
-#include <SetupAPI.h>
+#include <windows.h>
+#include <setupapi.h>
 
 namespace ciface::DInput
 {

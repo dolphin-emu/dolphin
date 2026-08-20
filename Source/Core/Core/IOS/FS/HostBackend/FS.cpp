@@ -29,8 +29,6 @@
 
 namespace IOS::HLE::FS
 {
-constexpr u32 BUFFER_CHUNK_SIZE = 65536;
-
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   for (const auto& redirect : m_nand_redirects)
@@ -279,98 +277,20 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   return entry;
 }
 
-void HostFileSystem::DoStateRead(PointerWrap& p, const std::string& start_directory_path)
-{
-  std::string path = BuildFilename(start_directory_path).host_path;
-  File::DeleteDirRecursively(path);
-  File::CreateDir(path);
-
-  // now restore from the stream
-  while (true)
-  {
-    char type = 0;
-    p.Do(type);
-    if (!type)
-      break;
-    std::string file_name;
-    p.Do(file_name);
-    std::string name = path + "/" + file_name;
-    switch (type)
-    {
-    case 'd':
-    {
-      File::CreateDir(name);
-      break;
-    }
-    case 'f':
-    {
-      u32 size = 0;
-      p.Do(size);
-
-      File::IOFile handle(name, "wb");
-      char buf[BUFFER_CHUNK_SIZE];
-      u32 count = size;
-      while (count > BUFFER_CHUNK_SIZE)
-      {
-        p.DoArray(buf);
-        handle.WriteArray(&buf[0], BUFFER_CHUNK_SIZE);
-        count -= BUFFER_CHUNK_SIZE;
-      }
-      p.DoArray(&buf[0], count);
-      handle.WriteArray(&buf[0], count);
-      break;
-    }
-    }
-  }
-}
-
-void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, const std::string& start_directory_path)
-{
-  std::string path = BuildFilename(start_directory_path).host_path;
-  File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);
-  std::deque<File::FSTEntry> todo;
-  todo.insert(todo.end(), parent_entry.children.begin(), parent_entry.children.end());
-
-  while (!todo.empty())
-  {
-    File::FSTEntry& entry = todo.front();
-    std::string name = entry.physicalName;
-    name.erase(0, path.length() + 1);
-    char type = entry.isDirectory ? 'd' : 'f';
-    p.Do(type);
-    p.Do(name);
-    if (entry.isDirectory)
-    {
-      todo.insert(todo.end(), entry.children.begin(), entry.children.end());
-    }
-    else
-    {
-      u32 size = (u32)entry.size;
-      p.Do(size);
-
-      File::IOFile handle(entry.physicalName, "rb");
-      char buf[BUFFER_CHUNK_SIZE];
-      u32 count = size;
-      while (count > BUFFER_CHUNK_SIZE)
-      {
-        handle.ReadArray(&buf[0], BUFFER_CHUNK_SIZE);
-        p.DoArray(buf);
-        count -= BUFFER_CHUNK_SIZE;
-      }
-      handle.ReadArray(&buf[0], count);
-      p.DoArray(&buf[0], count);
-    }
-    todo.pop_front();
-  }
-
-  char type = 0;
-  p.Do(type);
-}
-
 void HostFileSystem::DoState(PointerWrap& p)
 {
-  // Temporarily close the file, to prevent any issues with the savestating of files/folders.
-  for (Handle& handle : m_handles)
+  // This piece of code is handling four separate problems:
+  // 1. Close host handles by calling reset on them, in case DoStateRead needs to modify a file that
+  //    was open.
+  // 2. Close guest handles by setting opened to false on each element in m_handles, in case
+  //    DoStateRead needs to modify a file that was open.
+  // 3. Close guest handles by setting opened to false on each element in m_handles, because if all
+  //    of them were open, it would make DoStateRead/DoStateWriteOrMeasure's calls to OpenFile fail.
+  // 4. Create a copy of m_handles that we can restore later in case we're writing/measuring,
+  //    because OpenFile happily stomps over elements in m_handles that have opened set to false.
+  auto handles_copy = std::move(m_handles);
+  m_handles = {};
+  for (Handle& handle : handles_copy)
     handle.host_file.reset();
 
   // The format for the next part of the save state is follows:
@@ -406,6 +326,8 @@ void HostFileSystem::DoState(PointerWrap& p)
         memcpy(nand_size_ptr, &size_of_nand, sizeof(size_of_nand));
       }
     }
+
+    m_handles = std::move(handles_copy);
   }
   else  // case where we're in read mode.
   {

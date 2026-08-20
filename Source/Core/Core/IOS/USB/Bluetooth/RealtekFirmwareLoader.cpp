@@ -79,11 +79,22 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
   constexpr std::pair<u16, u16> realtek_ids[] = {
       // Realtek 8821CE Bluetooth devices
       {0x13d3, 0x3529},
+      {0x13d3, 0x3533},
       // Realtek 8822CE Bluetooth devices
       {0x0bda, 0xb00c},
       {0x0bda, 0xc822},
       // Realtek 8822CU Bluetooth devices
       {0x13d3, 0x3549},
+      // Realtek 8851BE Bluetooth devices
+      {0x0bda, 0xb850},
+      {0x13d3, 0x3600},
+      {0x13d3, 0x3601},
+      {0x0489, 0xe112},
+      // Realtek 8851BU Bluetooth devices
+      {0x3625, 0x010b},
+      {0x2001, 0x332a},
+      {0x7392, 0xe611},
+      {0x2c4e, 0x0128},
       // Realtek 8852AE Bluetooth devices
       {0x0bda, 0x2852},
       {0x0bda, 0xc852},
@@ -99,6 +110,7 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x13d3, 0x3587},
       {0x13d3, 0x3586},
       {0x13d3, 0x3592},
+      {0x13d3, 0x3612},
       {0x0489, 0xe122},
       // Realtek 8852BE Bluetooth devices
       {0x0cb8, 0xc559},
@@ -109,11 +121,17 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x13d3, 0x3571},
       {0x13d3, 0x3572},
       {0x13d3, 0x3591},
+      {0x0489, 0xe123},
       {0x0489, 0xe125},
       // Realtek 8852BT/8852BE-VT Bluetooth devices
       {0x0bda, 0x8520},
+      {0x0489, 0xe12f},
+      {0x13d3, 0x3618},
+      {0x13d3, 0x3619},
       // Realtek 8922AE Bluetooth devices
       {0x0bda, 0x8922},
+      {0x0bda, 0xd922},
+      {0x0bda, 0xd923},
       {0x13d3, 0x3617},
       {0x13d3, 0x3616},
       {0x0489, 0xe130},
@@ -130,12 +148,17 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x13d3, 0x3494},
       // Additional Realtek 8723BU Bluetooth devices
       {0x7392, 0xa611},
+      {0x2c0a, 0x8761},
       // Additional Realtek 8723DE Bluetooth devices
       {0x0bda, 0xb009},
       {0x2ff8, 0xb011},
       // Additional Realtek 8761BUV Bluetooth devices
       {0x04bb, 0x0a15},
+      {0x2c4e, 0x0115},
+      {0x2357, 0x0604},
+      {0x2357, 0x0607},
       {0x0b05, 0x190e},
+      {0x2550, 0x8761},
       {0x0bda, 0x2550},
       {0x0bda, 0x876e},
       {0x0bda, 0x8771},
@@ -154,6 +177,9 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x33f2, 0x1688},
       {0x6655, 0x8771},
       {0x7392, 0xc611},
+      {0x2b89, 0x8761},
+      {0x2b89, 0x6275},
+      {0x37ad, 0x0600},
       // Additional Realtek 8821AE Bluetooth devices
       {0x0b05, 0x17dc},
       {0x13d3, 0x3414},
@@ -168,6 +194,7 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x04c5, 0x161f},
       {0x0b05, 0x18ef},
       {0x13d3, 0x3548},
+      {0x13d3, 0x3549},
       {0x13d3, 0x3553},
       {0x13d3, 0x3555},
       {0x2ff8, 0x3051},
@@ -494,8 +521,9 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
 {
   // Read local version.
   hci_read_local_ver_rp local_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{HCI_CMD_READ_LOCAL_VER, 0}),
-                                   Common::AsWritableU8Span(local_ver)))
+  if (!adapter.SendBlockingCommand(
+          Common::AsU8Span(hci_cmd_hdr_t{.opcode = HCI_CMD_READ_LOCAL_VER, .length = 0}),
+          Common::AsWritableU8Span(local_ver)))
   {
     return false;
   }
@@ -558,7 +586,7 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
 
   // Read ROM version.
   rtl_rom_version_evt read_rom_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}),
+  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{.opcode = 0xfc6d, .length = 0}),
                                    Common::AsWritableU8Span(read_rom_ver)))
   {
     return false;

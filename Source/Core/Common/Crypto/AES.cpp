@@ -4,6 +4,7 @@
 #include "Common/Crypto/AES.h"
 
 #include <array>
+#include <cstring>
 #include <memory>
 
 #include <mbedtls/aes.h>

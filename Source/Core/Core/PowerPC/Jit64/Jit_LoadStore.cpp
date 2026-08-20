@@ -326,8 +326,8 @@ void Jit64::dcbx(UGeckoInstruction inst)
     }
   }
 
-  X64Reg addr = RSCRATCH;
-  MOV_sum(32, addr, Ra, Rb);
+  X64Reg effective_address = RSCRATCH;
+  MOV_sum(32, effective_address, Ra, Rb);
 
   if (make_loop)
   {
@@ -338,19 +338,19 @@ void Jit64::dcbx(UGeckoInstruction inst)
   }
 
   X64Reg tmp = RSCRATCH2;
-  RCX64Reg effective_address = gpr.Scratch();
-  RegCache::Realize(effective_address);
+  RCX64Reg addr = gpr.Scratch();
+  RegCache::Realize(addr);
 
   FixupBranch bat_lookup_failed;
-  MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
+  MOV(32, R(addr), R(effective_address));
   if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
   {
     // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(addr, tmp, m_jit.m_mmu.GetIBATTable().data());
     MOV(32, R(tmp), R(effective_address));
-    AND(32, R(tmp), Imm32(0x0001ffff));
-    AND(32, R(addr), Imm32(0xfffe0000));
+    AND(32, R(tmp), Imm32(PowerPC::BAT_PAGE_SIZE - 1));
+    AND(32, R(addr), Imm32(~(PowerPC::BAT_PAGE_SIZE - 1)));
     OR(32, R(addr), R(tmp));
   }
 
@@ -366,7 +366,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   if (make_loop)
   {
     ADD(32, R(effective_address), Imm8(32));
-    MOV(32, R(addr), R(effective_address));
     SUB(32, R(loop_counter), Imm8(1));
     J_CC(CC_NZ, loop_start);
   }
@@ -379,6 +378,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   registersInUse[X64Reg(tmp)] = false;
   registersInUse[X64Reg(effective_address)] = false;
+  registersInUse[X64Reg(addr)] = false;
   if (make_loop)
     registersInUse[X64Reg(loop_counter)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);

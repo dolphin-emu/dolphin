@@ -52,6 +52,11 @@
         app:showAsAction="never"/>
 
     <item
+        android:id="@+id/menu_netplay"
+        android:title="@string/grid_menu_netplay"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/menu_about"
         android:title="@string/grid_menu_about"
         app:showAsAction="never"/>

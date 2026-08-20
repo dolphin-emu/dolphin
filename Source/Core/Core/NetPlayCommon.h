@@ -20,6 +20,8 @@ using namespace std::chrono_literals;
 // connection is disconnected
 constexpr std::chrono::milliseconds PEER_TIMEOUT = 30s;
 
+std::string GetExternalIPAddress();
+
 bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
 bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet);
 bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet);

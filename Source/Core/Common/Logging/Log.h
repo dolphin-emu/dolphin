@@ -103,8 +103,9 @@ void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, con
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-
-#if FMT_VERSION >= 110000
+#if FMT_VERSION >= 110000 && FMT_VERSION < 120200
+  // fmt 11 made fmt::string_view no longer directly constructible from compile-time strings.
+  // In fmt 12.2+, compile-time strings are plain string literals, so this is no longer needed.
   auto&& format_str = fmt::format_string<Args...>(format);
 #else
   auto&& format_str = format;

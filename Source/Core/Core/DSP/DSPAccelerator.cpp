@@ -155,7 +155,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
       raw_sample -= 16;
 
     s32 val32 = (scale * raw_sample) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
-    val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
+    val = MathUtil::SaturatingCast<s16>(val32);
     step_size = 2;
 
     m_yn2 = m_yn1;

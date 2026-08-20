@@ -84,7 +84,7 @@ void VerifyWidget::CreateWidgets()
   if (DiscIO::IsDisc(m_volume->GetVolumeType()))
   {
     std::tie(m_redump_checkbox, m_redump_line_edit) =
-        AddHashLine(m_redump_layout, tr("Redump.org Status:"));
+        AddHashLine(m_redump_layout, tr("Redump.info Status:"));
     m_redump_checkbox->setChecked(CanVerifyRedump());
     UpdateRedumpEnabled();
   }

@@ -1,6 +1,6 @@
 app-id: org.DolphinEmu.dolphin-emu
 runtime: org.kde.Platform
-runtime-version: '6.10'
+runtime-version: '6.11'
 sdk: org.kde.Sdk
 command: dolphin-emu-wrapper
 rename-desktop-file: dolphin-emu.desktop
@@ -31,8 +31,8 @@ modules:
       - -Ddocumentation=disabled
     sources:
       - type: archive
-        url: https://www.freedesktop.org/software/libevdev/libevdev-1.13.3.tar.xz
-        sha256: abf1aace86208eebdd5d3550ffded4c8d73bb405b796d51c389c9d0604cbcfbf
+        url: https://www.freedesktop.org/software/libevdev/libevdev-1.13.6.tar.xz
+        sha256: 73f215eccbd8233f414737ac06bca2687e67c44b97d2d7576091aa9718551110
         x-checker-data:
           type: anitya
           project-id: 20540
@@ -53,6 +53,8 @@ modules:
       - -DENABLE_SDL=ON
       - -DENABLE_EVDEV=ON
       - -DDISTRIBUTOR=dolphin-emu.org
+      # Use the vendored-in SDL since the one from the SDK usually lags far behind
+      - -DUSE_SYSTEM_SDL3=OFF
     cleanup:
       - /share/man
     post-install:

@@ -19,6 +19,12 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
+const std::string& GetEmulatorName()
+{
+  static const std::string emulator_name = EMULATOR_NAME;
+  return emulator_name;
+}
+
 const std::string& GetScmRevStr()
 {
   static const std::string scm_rev_str = EMULATOR_NAME " "

@@ -21,6 +21,8 @@ namespace CubebUtils
 std::shared_ptr<cubeb> GetContext();
 std::vector<std::pair<std::string, std::string>> ListInputDevices();
 const void* GetInputDeviceById(std::string_view id);
+std::vector<std::pair<std::string, std::string>> ListOutputDevices();
+const void* GetOutputDeviceById(std::string_view id);
 
 // Helper used to handle Windows COM library for cubeb WASAPI backend
 class CoInitSyncWorker

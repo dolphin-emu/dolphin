@@ -435,7 +435,11 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
   // GMAC instead of finagling with packet descriptors and such
   u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
-  memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
+  if (data != nullptr && *tx_fifo_count < BBA_TXFIFO_SIZE)
+  {
+    const u32 max_size = BBA_TXFIFO_SIZE - *tx_fifo_count;
+    memcpy(tx_fifo.get() + *tx_fifo_count, data, std::min(size, max_size));
+  }
 
   *tx_fifo_count += size;
   // TODO: not sure this mask is correct.
@@ -447,7 +451,7 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 void CEXIETHERNET::SendFromDirectFIFO()
 {
   const u8* frame = tx_fifo.get();
-  const u16 size = Common::BitCastPtr<u16>(&mBbaMem[BBA_TXFIFOCNT]);
+  const u16 size = std::min<u16>(BBA_TXFIFO_SIZE, Common::BitCastPtr<u16>(&mBbaMem[BBA_TXFIFOCNT]));
   if (m_network_interface->SendFrame(frame, size))
     m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(frame, size);
 }

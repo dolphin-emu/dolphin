@@ -4,7 +4,7 @@
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include "Common/ChunkFile.h"

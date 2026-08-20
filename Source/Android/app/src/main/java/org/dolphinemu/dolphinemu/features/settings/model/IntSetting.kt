@@ -133,12 +133,50 @@ enum class IntSetting(
         "PerfSampWindowMS",
         1000
     ),
+    GFX_CROP_CUSTOM_TOP(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomTop",
+        0
+    ),
+    GFX_CROP_CUSTOM_BOTTOM(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomBottom",
+        0
+    ),
+    GFX_CROP_CUSTOM_LEFT(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomLeft",
+        0
+    ),
+    GFX_CROP_CUSTOM_RIGHT(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomRight",
+        0
+    ),
     LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1),
     WIIMOTE_1_SOURCE(Settings.FILE_WIIMOTE, "Wiimote1", "Source", 1),
     WIIMOTE_2_SOURCE(Settings.FILE_WIIMOTE, "Wiimote2", "Source", 0),
     WIIMOTE_3_SOURCE(Settings.FILE_WIIMOTE, "Wiimote3", "Source", 0),
     WIIMOTE_4_SOURCE(Settings.FILE_WIIMOTE, "Wiimote4", "Source", 0),
-    WIIMOTE_BB_SOURCE(Settings.FILE_WIIMOTE, "BalanceBoard", "Source", 0);
+    WIIMOTE_BB_SOURCE(Settings.FILE_WIIMOTE, "BalanceBoard", "Source", 0),
+    NETPLAY_CONNECT_PORT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "ConnectPort", 2626),
+    NETPLAY_HOST_PORT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "HostPort", 2626),
+    NETPLAY_CLIENT_BUFFER_SIZE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "BufferSizeClient",
+        1
+    ),
+    NETPLAY_BUFFER_SIZE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "BufferSize",
+        5
+    );
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)
@@ -185,11 +223,7 @@ enum class IntSetting(
             MAIN_SLOT_A,
             MAIN_SLOT_B,
             MAIN_SERIAL_PORT_1,
-            MAIN_FALLBACK_REGION,
-            MAIN_SI_DEVICE_0,
-            MAIN_SI_DEVICE_1,
-            MAIN_SI_DEVICE_2,
-            MAIN_SI_DEVICE_3
+            MAIN_FALLBACK_REGION
         )
 
         private val NOT_RUNTIME_EDITABLE: Set<IntSetting> =

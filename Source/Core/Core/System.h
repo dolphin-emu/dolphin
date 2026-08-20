@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include "Common/CommonTypes.h"
+
 class GeometryShaderManager;
 class Interpreter;
 class JitInterface;
@@ -147,6 +149,7 @@ public:
   bool IsTriforce() const { return m_is_triforce; }
   bool IsWii() const { return m_is_wii; }
   bool IsBranchWatchIgnoreApploader() { return m_branch_watch_ignore_apploader; }
+  u32 GetSimulatedMemorySize() const { return m_simulated_memory_size; }
 
   void SetIsMIOS(bool is_mios) { m_is_mios = is_mios; }
   void SetIsTriforce(bool is_triforce) { m_is_triforce = is_triforce; }
@@ -216,5 +219,6 @@ private:
   bool m_is_triforce = false;
   bool m_is_wii = false;
   bool m_branch_watch_ignore_apploader = false;
+  u32 m_simulated_memory_size{0};
 };
 }  // namespace Core

@@ -31,41 +31,83 @@
 
 namespace DiscIO
 {
+static constexpr u64 uncompressed_flag = 1ULL << 63;
+
 bool IsGCZBlob(File::DirectIOFile& file);
 
 CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, std::string filename)
     : m_file(std::move(file)), m_file_name(std::move(filename))
 {
+  m_valid = Initialize();
+}
+
+bool CompressedBlobReader::Initialize()
+{
   m_file_size = m_file.GetSize();
   m_file.Seek(0, File::SeekOrigin::Begin);
-  m_file.Read(Common::AsWritableU8Span(m_header));
+  if (!m_file.Read(Common::AsWritableU8Span(m_header)))
+    return false;
 
-  SetSectorSize(m_header.block_size);
+  if (m_header.magic_cookie != GCZ_MAGIC)
+    return false;
+
+  size_t block_pointers_size = m_header.num_blocks * sizeof(u64);
+  size_t hashes_size = m_header.num_blocks * sizeof(u32);
+
+  size_t header_size = sizeof(CompressedBlobHeader) + block_pointers_size + hashes_size;
+
+  // Basic sanity check for size before we start allocating
+  if (header_size > m_file_size)
+  {
+    ERROR_LOG_FMT(DISCIO, "Headers' size is larger than file size");
+    return false;
+  }
+
+  if ((header_size + m_header.compressed_data_size) > m_file_size)
+  {
+    ERROR_LOG_FMT(DISCIO, "Data size is larger than file size.");
+    return false;
+  }
+
+  if (m_header.num_blocks == 0)
+  {
+    ERROR_LOG_FMT(DISCIO, "GCZ file has zero blocks");
+    return false;
+  }
 
   // cache block pointers and hashes
   m_block_pointers.resize(m_header.num_blocks);
-  m_file.Read(Common::AsWritableU8Span(m_block_pointers));
+  if (!m_file.Read(Common::AsWritableU8Span(m_block_pointers)))
+    return false;
 
   m_hashes.resize(m_header.num_blocks);
-  m_file.Read(Common::AsWritableU8Span(m_hashes));
+  if (!m_file.Read(Common::AsWritableU8Span(m_hashes)))
+    return false;
 
-  m_data_offset = (sizeof(CompressedBlobHeader)) +
-                  (sizeof(u64)) * m_header.num_blocks     // skip block pointers
-                  + (sizeof(u32)) * m_header.num_blocks;  // skip hashes
+  m_data_offset = header_size;
 
   // A compressed block is never ever longer than a decompressed block, so just header.block_size
   // should be fine.
   // I still add some safety margin.
   const u32 zlib_buffer_size = m_header.block_size + 64;
   m_zlib_buffer.resize(zlib_buffer_size);
+
+  SetSectorSize(m_header.block_size);
+
+  return ValidateBlockPointers();
 }
 
 std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(File::DirectIOFile file,
                                                                    const std::string& filename)
 {
   if (IsGCZBlob(file))
-    return std::unique_ptr<CompressedBlobReader>(
+  {
+    std::unique_ptr<CompressedBlobReader> reader(
         new CompressedBlobReader(std::move(file), filename));
+
+    if (reader->m_valid)
+      return reader;
+  }
 
   return nullptr;
 }
@@ -80,9 +122,9 @@ std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {
-  u64 start = m_block_pointers[block_num];
+  u64 start = m_block_pointers[block_num] & ~uncompressed_flag;
   if (block_num < m_header.num_blocks - 1)
-    return m_block_pointers[block_num + 1] - start;
+    return (m_block_pointers[block_num + 1] & ~uncompressed_flag) - start;
   else if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
   else
@@ -92,22 +134,33 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 
 bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
+  if (block_num >= m_header.num_blocks)
+    return false;
+
   bool uncompressed = false;
-  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  u64 read_size = GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
-  if (offset & (1ULL << 63))
+  if (offset & uncompressed_flag)
   {
-    if (comp_block_size != m_header.block_size)
+    if (read_size != m_header.block_size)
+    {
       ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");
+      return false;
+    }
     uncompressed = true;
-    offset &= ~(1ULL << 63);
+    offset &= ~uncompressed_flag;
+  }
+  else
+  {
+    if (read_size > m_zlib_buffer.size())
+    {
+      ERROR_LOG_FMT(DISCIO, "Compressed block is too large");
+      return false;
+    }
   }
 
-  // clear unused part of zlib buffer. maybe this can be deleted when it works fully.
-  memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
-
-  if (!m_file.OffsetRead(offset, m_zlib_buffer.data(), comp_block_size))
+  if (!m_file.OffsetRead(offset, m_zlib_buffer.data(), read_size))
   {
     ERROR_LOG_FMT(DISCIO, "The disc image \"{}\" is truncated, some of the data is missing.",
                   m_file_name);
@@ -115,7 +168,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   }
 
   // First, check hash.
-  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), read_size);
   if (block_hash != m_hashes[block_num])
   {
     ERROR_LOG_FMT(DISCIO,
@@ -126,13 +179,13 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 
   if (uncompressed)
   {
-    std::copy_n(m_zlib_buffer.begin(), comp_block_size, out_ptr);
+    std::copy_n(m_zlib_buffer.begin(), m_header.block_size, out_ptr);
   }
   else
   {
     z_stream z = {};
     z.next_in = m_zlib_buffer.data();
-    z.avail_in = comp_block_size;
+    z.avail_in = read_size;
     if (z.avail_in > m_header.block_size)
     {
       ERROR_LOG_FMT(DISCIO, "Compressed block size is larger than uncompressed block size");
@@ -156,6 +209,46 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     }
   }
   return true;
+}
+
+bool CompressedBlobReader::ValidateBlockPointers() const
+{
+  size_t valid_pointers = 0;
+
+  // Validate block pointers
+  for (u32 i = 0; i < m_header.num_blocks; ++i)
+  {
+    u64 next;
+    if (i + 1 < m_header.num_blocks)
+      next = m_block_pointers[i + 1] & ~uncompressed_flag;
+    else
+      next = m_header.compressed_data_size;
+
+    if (next > m_header.compressed_data_size)
+      continue;
+
+    u64 offset = m_block_pointers[i] & ~uncompressed_flag;
+    if (offset > m_header.compressed_data_size)
+      continue;
+
+    bool uncompressed = m_block_pointers[i] & uncompressed_flag;
+    u64 size = next - offset;
+
+    if (uncompressed && size != m_header.block_size)
+      continue;
+
+    if (!uncompressed && size > m_zlib_buffer.size())
+      continue;
+
+    valid_pointers++;
+  }
+
+  size_t invalid_pointers = m_header.num_blocks - valid_pointers;
+
+  if (invalid_pointers > 0)
+    ERROR_LOG_FMT(DISCIO, "GCZ file has {} invalid block pointers", invalid_pointers);
+
+  return invalid_pointers == 0;
 }
 
 struct CompressThreadState
@@ -245,7 +338,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::DirectIOFi
 {
   u64 offset = *position;
   if (!parameters.compressed)
-    offset |= 0x8000000000000000ULL;
+    offset |= uncompressed_flag;
   (*offsets)[parameters.block_number] = offset;
 
   *position += parameters.data.size();
@@ -293,10 +386,10 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   header.magic_cookie = GCZ_MAGIC;
   header.sub_type = sub_type;
   header.block_size = block_size;
-  header.data_size = infile->GetDataSize();
+  header.disc_size = infile->GetDataSize();
 
   // round upwards!
-  header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
+  header.num_blocks = (u32)((header.disc_size + (block_size - 1)) / block_size);
 
   std::vector<u64> offsets(header.num_blocks);
   std::vector<u32> hashes(header.num_blocks);
@@ -332,7 +425,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     if (compressor.GetStatus() != ConversionResultCode::Success)
       break;
 
-    const u64 bytes_to_read = std::min<u64>(block_size, header.data_size - inpos);
+    const u64 bytes_to_read = std::min<u64>(block_size, header.disc_size - inpos);
 
     if (!infile->Read(inpos, bytes_to_read, in_buf.data()))
     {

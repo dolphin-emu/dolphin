@@ -257,8 +257,8 @@ void JitArm64::Shutdown()
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   FlushCarry();
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
 
   if (js.op->canEndBlock)
   {
@@ -322,8 +322,8 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 void JitArm64::HLEFunction(u32 hook_index)
 {
   FlushCarry();
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
 }
@@ -456,8 +456,8 @@ void JitArm64::MSRUpdated(u32 msr)
   // Call PageTableUpdatedFromJit if needed
   if (UReg_MSR(msr).DR)
   {
-    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
     auto WA = gpr.GetScopedReg();
 
@@ -471,8 +471,6 @@ void JitArm64::MSRUpdated(u32 msr)
 
 void JitArm64::MSRUpdated(ARM64Reg msr)
 {
-  constexpr LogicalImm dr_bit(1ULL << UReg_MSR{}.DR.StartBit(), GPRSize::B32);
-
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
 
@@ -480,7 +478,7 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   auto& memory = m_system.GetMemory();
   MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
   MOVP2R(XA, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
-  TST(msr, dr_bit);
+  TST(msr, LogicalImm(1ULL << UReg_MSR{}.DR.StartBit(), GPRSize::B32));
   CSEL(MEM_REG, MEM_REG, XA, CCFlags::CC_NEQ);
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 
@@ -497,9 +495,9 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
 
   // Call PageTableUpdatedFromJit if needed
   MOV(WA, msr);
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  FixupBranch dr_unset = TBZ(WA, dr_bit);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  FixupBranch dr_unset = TBZ(WA, u8(UReg_MSR{}.DR.StartBit()));
   static_assert(PPCSTATE_OFF(pagetable_update_pending) < 0x1000);
   LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pagetable_update_pending));
   FixupBranch update_not_pending = CBZ(WA);
@@ -1311,8 +1309,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
         FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
         static_assert(PPCSTATE_OFF(pc) <= 252);
         static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
@@ -1371,8 +1369,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       if (bJITRegisterCacheOff)
       {
         FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
         m_constant_propagation.Clear();
 
         CompileInstruction(op);
@@ -1418,9 +1416,16 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         fpr.DiscardRegisters(op.fprDiscardable);
         gpr.DiscardCRRegisters(op.crDiscardable);
       }
-      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-      gpr.StoreCRRegisters(~op.crInUse & (op.crIn | op.crOut));
+      gpr.FlushRegisters(~(op.gprWillBeRead | op.gprWillBeWritten) & (op.regsIn | op.regsOut),
+                         FlushMode::Full);
+      fpr.FlushRegisters(~(op.fprWillBeRead | op.fprWillBeWritten) &
+                             (op.fregsIn | op.GetFregsOut()),
+                         FlushMode::Full);
+      gpr.FlushCRRegisters(~(op.crWillBeRead | op.crWillBeWritten) & (op.crIn | op.crOut),
+                           FlushMode::Full);
+      gpr.FlushRegisters(~op.gprWillBeWritten & op.regsOut, FlushMode::Undirty);
+      fpr.FlushRegisters(~op.fprWillBeWritten & op.GetFregsOut(), FlushMode::Undirty);
+      gpr.FlushCRRegisters(~op.crWillBeWritten & op.crOut, FlushMode::Undirty);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
@@ -1435,8 +1440,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   if (code_block.m_broken)
   {
-    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     WriteExit(nextPC);
   }
 

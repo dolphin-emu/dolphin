@@ -39,7 +39,10 @@ bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, cons
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-#if FMT_VERSION >= 110000
+
+#if FMT_VERSION >= 120200
+  auto&& format_str = format;
+#elif FMT_VERSION >= 110000
   static_assert(std::is_base_of_v<fmt::detail::compile_string, S>);
   auto&& format_str = fmt::format_string<Args...>(format);
 #elif FMT_VERSION >= 90000
@@ -63,13 +66,14 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, con
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-#if FMT_VERSION >= 110000
-  static_assert(std::is_base_of_v<fmt::detail::compile_string, S>);
-#elif FMT_VERSION >= 90000
-  static_assert(fmt::detail::is_compile_string<S>::value);
-#else
+#if FMT_VERSION < 90000
   static_assert(fmt::is_compile_string<S>::value);
+#elif FMT_VERSION < 110000
+  static_assert(fmt::detail::is_compile_string<S>::value);
+#elif FMT_VERSION < 120200
+  static_assert(std::is_base_of_v<fmt::detail::compile_string, S>);
 #endif
+  // FMT 12.2+ guarantees this will be a compile-time string
   auto arg_list = fmt::make_format_args(args...);
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }

@@ -1,17 +1,17 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.20...4.2.1)
+cmake_minimum_required(VERSION 3.25...4.2.1)
 
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
-
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW) # MSVC debug information format flags are selected by an abstraction.
-endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0.0" CACHE STRING "")
+
+# When we don't set a sysroot, AppleClang will put /usr/local/include at a higher
+# priority than -isystem paths, which can cause weird include issues in Externals
+set(CMAKE_OSX_SYSROOT macosx CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverride.cmake")
 
@@ -23,9 +23,20 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
-if (CMAKE_VERSION VERSION_LESS "3.25" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(LINUX TRUE)
-endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+
+# Support functions
+include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
+include(CheckSymbolExists)
+include(DolphinCompileDefinitions)
+include(DolphinDisableWarningsMSVC)
+include(DolphinLibraryTools)
+include(GNUInstallDirs)
+include(RemoveCompileFlag)
+
+# When using the Visual Studio generator, only show our targets and not the ones from Externals.
+set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
 if (MSVC)
   set(CMAKE_C_STANDARD 99)
@@ -38,25 +49,35 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the c++23 features we use
-set (GCC_min_version 12)
-set (Clang_min_version 15)
-set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.3") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 19.32)
-set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
+# Minimum required versions
+# Toolsets
+set(Xcode_min_version 14.3)
+set(MSVC_toolset_min_version 143)
+# Compilers
+set(GCC_min_version 12)
+set(Clang_min_version 15)
+set(AppleClang_min_version 14.0.3)
+set(MSVC_min_version 19.32)
+# Standard libraries
+set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
+set(libc++_min_version 150000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz"
+
+dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
+dolphin_check_toolset_version("MSVC Toolset" MSVC_TOOLSET_VERSION ${MSVC_toolset_min_version})
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
-if ("-" STREQUAL "${${COMPILER}_min_version}-")
+if(NOT DEFINED ${COMPILER}_min_version)
   message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
-else()
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
-    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
-    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
-    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
-  endif()
+elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${${COMPILER}_min_version})
+  message(FATAL_ERROR "Requires ${COMPILER} ${${COMPILER}_min_version} or higher")
 endif()
+
+# libstdc++ is almost always used on Linux, even when using clang as the compiler.
+# libc++ is used on the likes of Android, Apple devices, FreeBSD, and a few (very) rare Linux distros like Chimera Linux.
+# Windows uses its own standard library named STL, which we check as part of the toolset above. (outside of MinGW which can use either libstdc++ or libc++)
+dolphin_check_std_version("GNU_libstdc++" _GLIBCXX_RELEASE ${libstdc++_min_version})
+dolphin_check_std_version("LLVM_libc++" _LIBCPP_VERSION ${libc++_min_version})
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
@@ -97,6 +118,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -146,26 +168,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
-if(UNIX)
-  # Builds a relocatable binary on Linux.
-  # The Sys folder will need to be copied to the Binaries folder.
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-endif()
-
-list(APPEND CMAKE_MODULE_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake
-)
-
-# Support functions
-include(CheckAndAddFlag)
-include(CheckCCompilerFlag)
-include(CheckSymbolExists)
-include(DolphinCompileDefinitions)
-include(DolphinDisableWarningsMSVC)
-include(DolphinLibraryTools)
-include(GNUInstallDirs)
-include(RemoveCompileFlag)
-
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -179,23 +181,22 @@ if(CMAKE_SYSROOT)
   set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
 endif()
 
-# Set where the binary files will be built.  The program will not execute from
-# here.  You must run "make install" to install these to the proper location
-# as defined above.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+# Output directory for the Dolphin binary
+# We need to use a generator expression here to ensure that multi-config generators
+# (like Visual Studio) put the binaries in the right place.
+# See https://cmake.org/cmake/help/v4.2/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/Binaries>)
 
-if (WIN32)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
+# Output directory for PDB files. PDBs are only generated on Windows with MSVC.
+# We set a common directory for all PDBs to avoid littering the Binaries/ directory.
+set(CMAKE_PDB_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/pdb>)
 
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)
-  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
+if(ENABLE_CCACHE)
+  include(CCache)
+  if(NOT CCACHE_BIN)
+    message(WARNING "Ccache was enabled but not found. This build will not use Ccache.")
   endif()
 endif()
-
-# setup CCache
-include(CCache)
 
 # Architecture detection and arch specific settings
 message(STATUS "Detected architecture: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -213,6 +214,9 @@ else()
 endif()
 
 if(ENABLE_GENERIC)
+  if(WIN32)
+    message(FATAL_ERROR "Generic builds are not supported on Windows!")
+  endif()
   message(STATUS "Warning! Building generic build!")
   set(_M_GENERIC 1)
   add_definitions(-D_M_GENERIC=1)
@@ -269,6 +273,7 @@ if(MSVC)
 
   # Additional warnings
   add_compile_options(
+    /w15262 # Unannotated fallthrough between switch labels
     /w44263 # Non-virtual member function hides base class virtual function
     /w44265 # Class has virtual functions, but destructor is not virtual
     /w44946 # Reinterpret cast between related types
@@ -387,12 +392,6 @@ if(ENABLE_LTO)
   endif()
 endif()
 
-if(UNIX)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
-  endif()
-endif()
-
 # BSDs put packages in /usr/local instead of /usr, so we need to
 # force CMake to look in those directories by default, too.
 # All commands and submodule commands also need to see these
@@ -402,12 +401,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
   set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/local")
   set(CMAKE_REQUIRED_INCLUDES "/usr/local/include")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
-
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14.0)
-    # Workaround: the llvm libc++ and versions of clang earlier than 14 have a bug with consteval
-    # so we define FMT_CONSTEVAL to blank to just disable consteval in fmt
-    add_definitions(-DFMT_CONSTEVAL=)
-  endif()
 endif()
 
 # Dolphin requires threads.
@@ -453,7 +446,6 @@ if(ANDROID)
     # but not as a shared library. We want an executable.
     set(ANDROID 0)
   endif()
-  set(USE_UPNP 0)
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
 
@@ -710,6 +702,7 @@ endif()
 
 if(ENABLE_SDL)
   dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
+  add_definitions(-DHAVE_SDL3)
 endif()
 
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
@@ -837,7 +830,7 @@ add_subdirectory(Source)
 # Install shared data files
 #
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
-  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/Sys PATTERN)
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES COPYING DESTINATION ${datadir})

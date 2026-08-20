@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <functional>
 #include <memory>
 #include <string>
@@ -59,13 +60,14 @@ public:
   };
   static_assert(sizeof(NANDFSTEntry) == 0x20, "Wrong size");
 
+  static constexpr u16 FSTEntryCount = 0x17FF;
   struct NANDSuperblock
   {
     std::array<char, 4> magic;  // "SFFS"
     Common::BigEndianValue<u32> version;
     Common::BigEndianValue<u32> unknown;
     std::array<Common::BigEndianValue<u16>, 0x8000> fat;
-    std::array<NANDFSTEntry, 0x17FF> fst;
+    std::array<NANDFSTEntry, FSTEntryCount> fst;
     std::array<u8, 0x14> pad;
   };
   static_assert(sizeof(NANDSuperblock) == 0x40000, "Wrong size");
@@ -78,7 +80,8 @@ private:
   bool ExtractFiles();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
-  bool ProcessEntry(u16 entry_number, const std::string& parent_path);
+  bool ProcessEntry(u16 entry_number, const std::string& parent_path,
+                    std::bitset<FSTEntryCount>* visited);
   std::vector<u8> GetEntryData(const NANDFSTEntry& entry) const;
   void ExportKeys();
 

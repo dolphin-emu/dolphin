@@ -54,7 +54,22 @@ struct Symbol
 
   void Rename(const std::string& symbol_name);
 
+  bool IsDemangled() const { return !demangled_name.empty(); }
+
+  const std::string& GetDisplayName(bool use_demangled_name) const
+  {
+    if (use_demangled_name && IsDemangled())
+    {
+      return demangled_name;
+    }
+    else
+    {
+      return name;
+    }
+  }
+
   std::string name;
+  std::string demangled_name;  // Demangled symbol name
   std::string function_name;   // stripped function name
   std::string object_name;     // name of object/source file symbol belongs to
   std::vector<SCall> callers;  // addresses of functions that call this function

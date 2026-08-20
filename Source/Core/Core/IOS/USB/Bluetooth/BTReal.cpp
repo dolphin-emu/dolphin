@@ -146,6 +146,7 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
     }
 
     ERROR_LOG_FMT(IOS_WIIMOTE, "IOCTLV_USBV0_INTRMSG: Unknown endpoint: 0x{:02x}", cmd->endpoint);
+    break;
   }
   default:
     ERROR_LOG_FMT(IOS_WIIMOTE, "IOCtlV: Unknown request: 0x{:08x}", request.request);
@@ -385,7 +386,8 @@ void BluetoothRealDevice::TriggerSyncButtonHeldEvent()
 void BluetoothRealDevice::SendHCIResetCommand()
 {
   INFO_LOG_FMT(IOS_WIIMOTE, "SendHCIResetCommand");
-  m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(hci_cmd_hdr_t{HCI_CMD_RESET, 0}));
+  m_lib_usb_bt_adapter->SendControlTransfer(
+      Common::AsU8Span(hci_cmd_hdr_t{.opcode = HCI_CMD_RESET, .length = 0}));
 }
 
 void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
@@ -412,7 +414,7 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
 
   struct Payload
   {
-    hci_cmd_hdr_t header{HCI_CMD_WRITE_STORED_LINK_KEY};
+    hci_cmd_hdr_t header{.opcode = HCI_CMD_WRITE_STORED_LINK_KEY};
     hci_write_stored_link_key_cp command{};
     struct LinkKey
     {
@@ -443,7 +445,7 @@ void BluetoothRealDevice::FakeVendorCommandReply(u16 opcode, USB::V0IntrMessage&
 
   struct Payload
   {
-    hci_event_hdr_t header{HCI_EVENT_COMMAND_COMPL};
+    hci_event_hdr_t header{.event = HCI_EVENT_COMMAND_COMPL};
     hci_command_compl_ep command{};
   } payload;
 
@@ -460,7 +462,7 @@ void BluetoothRealDevice::FakeVendorCommandReply(u16 opcode, USB::V0IntrMessage&
 
 void BluetoothRealDevice::FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, std::span<const u8> payload)
 {
-  const hci_event_hdr_t hci_event{HCI_EVENT_VENDOR, u8(payload.size())};
+  const hci_event_hdr_t hci_event{.event = HCI_EVENT_VENDOR, .length = u8(payload.size())};
 
   auto& memory = GetSystem().GetMemory();
 

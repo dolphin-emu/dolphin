@@ -101,9 +101,12 @@ void OnScreenDisplayPane::CreateLayout()
   m_show_statistics = new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
   m_show_proj_statistics =
       new ConfigBool(tr("Show Projection Statistics"), Config::GFX_OVERLAY_PROJ_STATS);
+  m_show_internal_resolution =
+      new ConfigBool(tr("Show XFB Resolution"), Config::GFX_SHOW_INTERNAL_RESOLUTION);
 
   debug_layout->addWidget(m_show_statistics, 0, 0);
   debug_layout->addWidget(m_show_proj_statistics, 0, 1);
+  debug_layout->addWidget(m_show_internal_resolution, 1, 0);
 
   // Stack GroupBoxes
   auto* main_layout = new QVBoxLayout;
@@ -217,6 +220,10 @@ void OnScreenDisplayPane::AddDescriptions()
   static const char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the size of the emulated external frame buffer (XFB) in pixels, as a "
+                 "product of width and height.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
 
   m_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
   m_font_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
@@ -242,4 +249,5 @@ void OnScreenDisplayPane::AddDescriptions()
 
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
   m_show_proj_statistics->SetDescription(tr(TR_SHOW_PROJ_STATS_DESCRIPTION));
+  m_show_internal_resolution->SetDescription(tr(TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION));
 }

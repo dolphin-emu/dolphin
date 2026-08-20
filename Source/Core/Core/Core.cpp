@@ -863,6 +863,9 @@ void Callback_FramePresented(const PresentInfo& present_info)
       present_info.actual_present_time - present_info.intended_present_time;
   perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
 
+  perf_metrics.SetLatestFrameBufferSize(present_info.frame_buffer_width,
+                                        present_info.frame_buffer_height);
+
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;
 

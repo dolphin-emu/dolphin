@@ -68,7 +68,6 @@ private:
     Success,
     Fail,
     FailButOldCacheAvailable,
-    SystemNotAvailable,
   };
 
   struct DownloadState

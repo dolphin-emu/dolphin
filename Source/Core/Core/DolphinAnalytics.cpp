@@ -13,7 +13,7 @@
 #include <fmt/format.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <windows.h>
 #include "Common/WindowsRegistry.h"
 #endif
 
@@ -353,6 +353,9 @@ void DolphinAnalytics::MakePerGameBuilder()
 
   // Unique id bound to the gameid.
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+
+  // Other game-specific fields.
+  builder.AddData("simulated-memory-size", SConfig::GetInstance().GetSimulatedMemorySize());
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));

@@ -41,16 +41,16 @@ private:
 
   void SendReply(u8 command, u16 status_code, std::span<const u8> payload);
 
-  static constexpr std::size_t PAGE_SIZE = 8;
-  static constexpr u32 PAGE_COUNT = 256;
+  static constexpr std::size_t IC_PAGE_SIZE = 8;
+  static constexpr u32 IC_PAGE_COUNT = 256;
 
   // TODO: Maybe we're supposed to error for out-of-bound pages instead?
-  static constexpr u32 PAGE_INDEX_MASK = 0xff;
+  static constexpr u32 IC_PAGE_INDEX_MASK = 0xff;
 
   class ICCard
   {
   public:
-    using UID = std::array<u8, PAGE_SIZE>;
+    using UID = std::array<u8, IC_PAGE_SIZE>;
 
     ICCard(std::string filename, const UID& uid);
 
@@ -76,7 +76,7 @@ private:
   private:
     void FlushData(u32 byte_offset, u32 byte_count);
 
-    std::array<u8, PAGE_SIZE * PAGE_COUNT> m_data{};
+    std::array<u8, IC_PAGE_SIZE * IC_PAGE_COUNT> m_data{};
 
     const std::string m_filename;
 

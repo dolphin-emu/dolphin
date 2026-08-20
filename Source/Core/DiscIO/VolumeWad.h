@@ -61,6 +61,7 @@ public:
   bool IsNKit() const override;
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
+  u32 GetSimulatedMemorySize() const override { return 0; }
 
   BlobType GetBlobType() const override;
   u64 GetDataSize() const override;
