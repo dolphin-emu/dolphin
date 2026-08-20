@@ -9,6 +9,30 @@ object AchievementModel {
     @JvmStatic
     external fun init()
 
+    fun setHostOverride(hostUrl: String) {
+        if (!BooleanSetting.ACHIEVEMENTS_HARDCORE_RESTORE.existsInLayer(NativeConfig.LAYER_BASE)) {
+            BooleanSetting.ACHIEVEMENTS_HARDCORE_RESTORE.setBoolean(
+                NativeConfig.LAYER_BASE,
+                BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.boolean
+            )
+        }
+        StringSetting.ACHIEVEMENTS_HOST_URL.setString(NativeConfig.LAYER_BASE, hostUrl)
+        BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.setBoolean(NativeConfig.LAYER_BASE, false)
+        NativeConfig.save(NativeConfig.LAYER_BASE)
+    }
+
+    fun clearHostOverride() {
+        if (BooleanSetting.ACHIEVEMENTS_HARDCORE_RESTORE.existsInLayer(NativeConfig.LAYER_BASE)) {
+            BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED.setBoolean(
+                NativeConfig.LAYER_BASE,
+                BooleanSetting.ACHIEVEMENTS_HARDCORE_RESTORE.boolean
+            )
+            BooleanSetting.ACHIEVEMENTS_HARDCORE_RESTORE.deleteFromLayer(NativeConfig.LAYER_BASE)
+        }
+        StringSetting.ACHIEVEMENTS_HOST_URL.deleteFromLayer(NativeConfig.LAYER_BASE)
+        NativeConfig.save(NativeConfig.LAYER_BASE)
+    }
+
     suspend fun asyncLogin(password: String): Boolean {
         return withContext(Dispatchers.IO) {
             login(password)
