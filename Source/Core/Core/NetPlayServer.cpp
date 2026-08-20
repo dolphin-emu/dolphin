@@ -2273,6 +2273,15 @@ void NetPlayServer::AssignNewUserAPad(const Client& player)
       break;
     }
   }
+  for (PlayerId& mapping : m_wiimote_map)
+  {
+    // 0 means unmapped
+    if (mapping == 0)
+    {
+      mapping = player.pid;
+      break;
+    }
+  }
 }
 
 PlayerId NetPlayServer::GiveFirstAvailableIDTo(ENetPeer* player)
