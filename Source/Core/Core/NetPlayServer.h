@@ -18,6 +18,7 @@
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
+#include "Core/NetPlayDiscovery.h"
 #include "Core/NetPlayProto.h"
 #include "Core/SyncIdentifier.h"
 #include "UICommon/NetPlayIndex.h"
@@ -71,6 +72,8 @@ public:
 
   std::unordered_set<std::string> GetInterfaceSet() const;
   std::string GetInterfaceHost(const std::string& inter) const;
+
+  void UpdateDiscoveryPayload();
 
   bool is_connected = false;
 
@@ -210,5 +213,7 @@ private:
   Common::TraversalClient* m_traversal_client = nullptr;
   NetPlayUI* m_dialog = nullptr;
   NetPlayIndex m_index;
+
+  NetPlay::Discovery::Server m_discovery_server{};
 };
 }  // namespace NetPlay
