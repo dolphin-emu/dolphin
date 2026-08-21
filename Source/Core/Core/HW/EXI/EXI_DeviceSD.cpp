@@ -224,6 +224,18 @@ void CEXISDCard::SetCS(int cs)
     m_cmd_pos = 0;
 }
 
+void CEXISDCard::ImmReadWrite(u32& data, u32 size)
+{
+  u32 result = 0;
+  for (u32 i = 0; i < size && i < 4; ++i)
+  {
+    u8 byte = static_cast<u8>(data >> (24 - i * 8));
+    TransferByte(byte);
+    result |= static_cast<u32>(byte) << (24 - i * 8);
+  }
+  data = result;
+}
+
 void CEXISDCard::TransferByte(u8& byte)
 {
   const u8 in = byte;
@@ -319,6 +331,13 @@ void CEXISDCard::QueueR1()
 
 void CEXISDCard::QueueR1(u8 r1)
 {
+  // Bring-up diagnostic: a guest that never clocks its responses out is invisible without
+  // this (its next command just replaces the queue).
+  if (m_response_pos < m_response.size())
+  {
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "GC SD: {} response byte(s) discarded unread",
+                 m_response.size() - m_response_pos);
+  }
   // One dead byte (Ncr) before the response, as on a real card.
   m_response.assign({0xFF, r1});
   m_response_pos = 0;

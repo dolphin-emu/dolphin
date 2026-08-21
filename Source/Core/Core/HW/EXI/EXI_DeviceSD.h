@@ -32,6 +32,9 @@ public:
   void SetCS(int cs) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
+  // The IPL's EXI routines read with EXI_READWRITE (SPI full duplex); the IEXIDevice base
+  // implementation of it is a no-op, which silently eats those reads.
+  void ImmReadWrite(u32& data, u32 size) override;
 
 private:
   void TransferByte(u8& byte) override;
