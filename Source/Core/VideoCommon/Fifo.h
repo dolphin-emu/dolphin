@@ -4,7 +4,6 @@
 #pragma once
 
 #include <atomic>
-#include <cstddef>
 #include <optional>
 
 #include "Common/BlockingLoop.h"
