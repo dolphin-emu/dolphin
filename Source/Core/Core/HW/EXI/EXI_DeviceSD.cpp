@@ -217,14 +217,11 @@ bool CEXISDCard::IsPresent() const
 
 void CEXISDCard::SetCS(int cs)
 {
-  // Deselect ends the byte stream: drop any half-received command frame and any bytes the
-  // guest did not clock out. In-flight multi-block state survives, as it does on a real card.
+  // libogc's sdgecko sends the command, deselects, then reselects to clock the response out
+  // (__card_readresponse) - pending response bytes must survive CS changes, as they do on a
+  // real card. Only a half-received command frame is abandoned when a new selection starts.
   if (cs)
-  {
     m_cmd_pos = 0;
-    m_response.clear();
-    m_response_pos = 0;
-  }
 }
 
 void CEXISDCard::TransferByte(u8& byte)
@@ -382,8 +379,10 @@ void CEXISDCard::ExecuteCommand()
   const u32 arg = (static_cast<u32>(m_cmd[1]) << 24) | (static_cast<u32>(m_cmd[2]) << 16) |
                   (static_cast<u32>(m_cmd[3]) << 8) | m_cmd[4];
 
-  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "GC SD {}CMD{} arg={:08x}", m_app_cmd ? "A" : "", command,
-                arg);
+  // INFO on purpose: release builds compile out DEBUG, and this trace is the only window
+  // into the guest driver's init sequence when bring-up fails.
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "GC SD {}CMD{} arg={:08x}", m_app_cmd ? "A" : "", command,
+               arg);
 
   if (m_app_cmd)
   {
