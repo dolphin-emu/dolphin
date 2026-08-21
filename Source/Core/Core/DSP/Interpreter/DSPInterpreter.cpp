@@ -90,11 +90,6 @@ int Interpreter::RunCyclesThread(int cycles)
     if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
-    if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
-    {
-      m_dsp_core.CheckExternalInterrupt();
-    }
-
     Step();
     cycles--;
     if (cycles <= 0)
@@ -229,7 +224,12 @@ void Interpreter::WriteControlRegister(u16 val)
                  state.control_reg, val, state.pc);
   }
 
-  // The CR_EXTERNAL_INT bit is handled by DSPLLE::DSP_WriteControlRegister
+  if ((state.control_reg & CR_EXTERNAL_INT) != 0)
+  {
+    // The external interrupt can't be cleared by the CPU
+    // (and the CR_EXTERNAL_INT bit remains set until the external interrupt is sent to the DSP)
+    val |= CR_EXTERNAL_INT;
+  }
 
   // reset
   if ((val & CR_RESET) != 0)
