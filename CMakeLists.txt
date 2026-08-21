@@ -761,6 +761,10 @@ if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME S
   add_definitions(-DHAVE_CPPIPC)
 endif()
 
+if(MINGW)
+  dolphin_find_optional_system_library(CppWinRT Externals/cppwinrt)
+endif()
+
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #

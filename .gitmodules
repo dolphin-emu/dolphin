@@ -134,3 +134,7 @@
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
 	shallow = true
+[submodule "Externals/cppwinrt/cppwinrt"]
+	path = Externals/cppwinrt/cppwinrt
+	url = https://github.com/alvinhochun/mingw-w64-cppwinrt.git
+	shallow = true
