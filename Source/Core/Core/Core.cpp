@@ -591,9 +591,11 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   Common::ScopeGuard gc_sd_folder_sync_guard{[sync_gc_sd_folder] {
     if (sync_gc_sd_folder && Config::Get(Config::MAIN_GC_SD_CARD_ALLOW_WRITES))
     {
+      // Differential: the sync folder is often a real SD card, so only changed files (e.g.
+      // Swiss's recent.ini) are written back and nothing is ever deleted from it.
       const bool sync_ok = Common::SyncSDImageToSDFolder(
           Config::GetGCSDCardImagePath(), Config::GetGCSDCardSyncFolderPath(),
-          [] { return false; });
+          [] { return false; }, /*differential=*/true);
       if (!sync_ok)
       {
         PanicAlertFmtT("Failed to sync the GameCube SD card image back to its sync folder. "

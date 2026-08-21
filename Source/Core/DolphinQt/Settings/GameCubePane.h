@@ -55,6 +55,7 @@ private:
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
   void BrowseIPLRom();
+  void OnIPLRomChanged();
   void BrowseSDImage();
   void BrowseSDFolder();
 
@@ -67,7 +68,7 @@ private:
 
   ConfigBool* m_skip_main_menu;
   ConfigChoice* m_language_combo;
-  ConfigText* m_ipl_rom_edit;
+  QComboBox* m_ipl_rom_combo;
   QPushButton* m_ipl_rom_browse;
 
   ConfigText* m_sd_image_edit;

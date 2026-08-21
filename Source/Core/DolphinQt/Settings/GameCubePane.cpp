@@ -17,12 +17,14 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
 #include <array>
 #include <utility>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 
@@ -91,14 +93,15 @@ void GameCubePane::CreateWidgets()
   m_language_combo = new ConfigChoice(language_list, Config::MAIN_GC_LANGUAGE);
   ipl_language_layout->addRow(tr("System Language:"), m_language_combo);
 
-  // Overrides the per-region User/GC/<region>/IPL.bin lookup with one explicit dump,
-  // so switching IPL revisions is a file pick instead of renaming files into region dirs.
-  m_ipl_rom_edit = new ConfigText(Config::MAIN_GC_IPL_PATH);
-  m_ipl_rom_edit->setPlaceholderText(tr("Use User/GC/<region>/IPL.bin"));
+  // Overrides the per-region User/GC/<region>/IPL.bin lookup with one explicit dump.
+  // The dropdown lists every dump found in <exe dir>/bios so switching IPL revisions is
+  // one click; the browse button handles dumps living anywhere else.
+  m_ipl_rom_combo = new QComboBox();
+  m_ipl_rom_combo->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
   m_ipl_rom_browse = new NonDefaultQPushButton(QStringLiteral("..."));
   m_ipl_rom_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   QHBoxLayout* ipl_rom_layout = new QHBoxLayout;
-  ipl_rom_layout->addWidget(m_ipl_rom_edit);
+  ipl_rom_layout->addWidget(m_ipl_rom_combo);
   ipl_rom_layout->addWidget(m_ipl_rom_browse);
   ipl_language_layout->addRow(tr("IPL ROM:"), ipl_rom_layout);
 
@@ -313,7 +316,7 @@ void GameCubePane::ConnectWidgets()
 {
   // IPL Settings
   connect(m_ipl_rom_browse, &QPushButton::clicked, this, &GameCubePane::BrowseIPLRom);
-  connect(m_ipl_rom_edit, &QLineEdit::editingFinished, this, &GameCubePane::LoadSettings);
+  connect(m_ipl_rom_combo, &QComboBox::activated, this, &GameCubePane::OnIPLRomChanged);
 
   // SD Card Settings
   connect(m_sd_image_browse, &QPushButton::clicked, this, &GameCubePane::BrowseSDImage);
@@ -774,6 +777,13 @@ void GameCubePane::BrowseSDFolder()
     m_sd_folder_edit->SetTextAndUpdate(dir);
 }
 
+void GameCubePane::OnIPLRomChanged()
+{
+  Config::SetBaseOrCurrent(Config::MAIN_GC_IPL_PATH,
+                           m_ipl_rom_combo->currentData().toString().toStdString());
+  LoadSettings();
+}
+
 void GameCubePane::BrowseIPLRom()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
@@ -781,7 +791,7 @@ void GameCubePane::BrowseIPLRom()
       tr("IPL Dumps (*.bin *.rom);;All Files (*)")));
   if (!file.isEmpty())
   {
-    m_ipl_rom_edit->SetTextAndUpdate(file);
+    Config::SetBaseOrCurrent(Config::MAIN_GC_IPL_PATH, file.toStdString());
     LoadSettings();
   }
 }
@@ -828,6 +838,33 @@ void GameCubePane::LoadSettings()
 {
   const std::string ipl_override = Config::Get(Config::MAIN_GC_IPL_PATH);
   bool have_menu = !ipl_override.empty() && File::Exists(ipl_override);
+
+  // IPL ROM dropdown: every dump in <exe dir>/bios, plus whatever the config points at.
+  {
+    const QSignalBlocker blocker(m_ipl_rom_combo);
+    m_ipl_rom_combo->clear();
+    m_ipl_rom_combo->addItem(tr("None (use User/GC/<region>/IPL.bin)"), QString{});
+
+    const std::string bios_dir = File::GetExeDirectory() + DIR_SEP + "bios";
+    std::vector<std::string> dumps = Common::DoFileSearch(bios_dir, ".bin");
+    std::sort(dumps.begin(), dumps.end());
+    for (const std::string& dump : dumps)
+    {
+      m_ipl_rom_combo->addItem(QFileInfo(QString::fromStdString(dump)).fileName(),
+                               QString::fromStdString(dump));
+    }
+
+    int index = m_ipl_rom_combo->findData(QString::fromStdString(ipl_override));
+    if (index < 0 && !ipl_override.empty())
+    {
+      // Configured dump lives outside <exe dir>/bios (picked via browse): list it too.
+      m_ipl_rom_combo->addItem(QFileInfo(QString::fromStdString(ipl_override)).fileName(),
+                               QString::fromStdString(ipl_override));
+      index = m_ipl_rom_combo->count() - 1;
+    }
+    m_ipl_rom_combo->setCurrentIndex(std::max(index, 0));
+    m_ipl_rom_combo->setToolTip(QString::fromStdString(ipl_override));
+  }
 
   for (const std::string dir : {USA_DIR, JAP_DIR, EUR_DIR})
   {

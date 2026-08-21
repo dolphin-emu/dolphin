@@ -19,12 +19,14 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
 bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled);
 
 // Explicit-path variants (used for the GameCube EXI SD card). configured_size of 0 sizes the
-// image automatically from the folder contents.
+// image automatically from the folder contents. differential unpacks by writing only files
+// whose content changed and never deletes — safe for a real SD card or a drive root; without
+// it the target directory is rebuilt from scratch.
 bool SyncSDFolderToSDImage(const std::string& source_dir, const std::string& image_path,
                            u64 configured_size, const std::function<bool()>& cancelled,
                            bool deterministic);
 bool SyncSDImageToSDFolder(const std::string& image_path, const std::string& target_dir,
-                           const std::function<bool()>& cancelled);
+                           const std::function<bool()>& cancelled, bool differential);
 
 class FatFsCallbacks
 {
