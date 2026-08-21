@@ -130,4 +130,9 @@ interface SettingsFragmentView {
      * Returns the Lifecycle for the Fragment.
      */
     fun getFragmentLifecycle(): Lifecycle
+
+    /**
+     * Shows shader options for the given shader.
+     */
+    fun showShaderOptionsFragment(shaderName: String)
 }
