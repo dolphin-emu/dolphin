@@ -69,8 +69,8 @@ AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
-  av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), max_denominator);
+  av_reduce(&num, &den, static_cast<int>(vi.GetTargetRefreshRateDenominator()),
+            static_cast<int>(vi.GetTargetRefreshRateNumerator()), max_denominator);
   return AVRational{num, den};
 }
 
@@ -160,7 +160,7 @@ std::string AVErrorString(int error)
 {
   std::array<char, AV_ERROR_MAX_STRING_SIZE> msg;
   av_make_error_string(&msg[0], msg.size(), error);
-  return fmt::format("{:8x} {}", (u32)error, &msg[0]);
+  return fmt::format("{:8x} {}", static_cast<u32>(error), &msg[0]);
 }
 
 }  // namespace
@@ -370,7 +370,8 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   const s64 pts = av_rescale_q(
       frame.state.ticks - m_context->start_ticks,
       // TODO: GetTicksPerSecond is not safe from GPU thread.
-      AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
+      AVRational{
+          1, static_cast<int>(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
       m_context->codec->time_base);
 
   if (!IsFirstFrameInCurrentFile())

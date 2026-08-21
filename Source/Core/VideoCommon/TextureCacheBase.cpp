@@ -1527,7 +1527,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   // different ones
   if (textureCacheSafetyColorSampleSize == 0 ||
       std::max(texture_info.GetTextureSize(), palette_size) <=
-          (u32)textureCacheSafetyColorSampleSize * 8)
+          static_cast<u32>(textureCacheSafetyColorSampleSize) * 8)
   {
     auto hash_range = m_textures_by_hash.equal_range(full_hash);
     TexHashCache::iterator hash_iter = hash_range.first;
@@ -1625,7 +1625,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   RcTcacheEntry entry;
   if (custom_texture_data)
   {
-    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_slices[0].m_levels.size();
+    const u32 texLevels =
+        no_mips ? 1 : static_cast<u32>(custom_texture_data->m_slices[0].m_levels.size());
     const auto& first_level = custom_texture_data->m_slices[0].m_levels[0];
     const TextureConfig config(first_level.width, first_level.height, texLevels, 1, 1,
                                first_level.format, 0, AbstractTextureType::Texture_2DArray);
@@ -1779,7 +1780,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   const auto iter = m_textures_by_address.emplace(texture_info.GetRawAddress(), entry);
   if (safety_color_sample_size == 0 ||
       std::max(texture_info.GetTextureSize(), creation_info.palette_size) <=
-          (u32)safety_color_sample_size * 8)
+          static_cast<u32>(safety_color_sample_size) * 8)
   {
     entry->textures_by_hash_iter = m_textures_by_hash.emplace(creation_info.full_hash, entry);
   }
@@ -2628,7 +2629,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   // like is done in the EFB path.
 
 #if defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+  __m128i sixteenBytes = _mm_set1_epi16(static_cast<s16>(static_cast<u16>(0xFE01)));
 #endif
 
   for (u32 i = 0; i < num_blocks_y; i++)
@@ -2638,7 +2639,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
 #if defined(_M_X86_64)
     while (size >= 16)
     {
-      _mm_storeu_si128((__m128i*)rowdst, sixteenBytes);
+      _mm_storeu_si128(reinterpret_cast<__m128i*>(rowdst), sixteenBytes);
       size -= 16;
       rowdst += 16;
     }
