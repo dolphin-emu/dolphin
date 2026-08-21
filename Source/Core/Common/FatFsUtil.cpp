@@ -487,8 +487,16 @@ static void SortFST(File::FSTEntry* root)
 
 bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool deterministic)
 {
-  const std::string source_dir = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
-  const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
+  return SyncSDFolderToSDImage(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX),
+                               File::GetUserPath(F_WIISDCARDIMAGE_IDX),
+                               Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE), cancelled,
+                               deterministic);
+}
+
+bool SyncSDFolderToSDImage(const std::string& source_dir, const std::string& image_path,
+                           u64 configured_size, const std::function<bool()>& cancelled,
+                           bool deterministic)
+{
   if (source_dir.empty() || image_path.empty())
     return false;
 
@@ -507,7 +515,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   if (!CheckIfFATCompatible(root))
     return false;
 
-  u64 size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  u64 size = configured_size;
   if (size == 0)
   {
     size = GetSize(root);
@@ -758,8 +766,13 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string& pa
 
 bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled)
 {
-  const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
-  const std::string target_dir = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
+  return SyncSDImageToSDFolder(File::GetUserPath(F_WIISDCARDIMAGE_IDX),
+                               File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX), cancelled);
+}
+
+bool SyncSDImageToSDFolder(const std::string& image_path, const std::string& target_dir,
+                           const std::function<bool()>& cancelled)
+{
   if (image_path.empty() || target_dir.empty())
     return false;
 
@@ -795,7 +808,12 @@ bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled)
   Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
 
   // Unpack() and GetTempFilenameForAtomicWrite() don't want the trailing separator.
-  const std::string target_dir_without_slash = target_dir.substr(0, target_dir.length() - 1);
+  std::string target_dir_without_slash = target_dir;
+  while (!target_dir_without_slash.empty() &&
+         (target_dir_without_slash.back() == '/' || target_dir_without_slash.back() == '\\'))
+  {
+    target_dir_without_slash.pop_back();
+  }
 
   // Most systems don't offer atomic directory renaming, so it's simpler to directly work on the
   // actual one and rollback if needed.

@@ -54,7 +54,8 @@
 #include "DolphinQt/Settings/TriforcePane.h"
 
 constexpr std::initializer_list<ExpansionInterface::Slot> GUI_SLOTS = {
-    ExpansionInterface::Slot::A, ExpansionInterface::Slot::B, ExpansionInterface::Slot::SP1};
+    ExpansionInterface::Slot::A, ExpansionInterface::Slot::B, ExpansionInterface::Slot::SP1,
+    ExpansionInterface::Slot::SP2};
 
 GameCubePane::GameCubePane(MainWindow* main_window)
 {
@@ -89,6 +90,17 @@ void GameCubePane::CreateWidgets()
 
   m_language_combo = new ConfigChoice(language_list, Config::MAIN_GC_LANGUAGE);
   ipl_language_layout->addRow(tr("System Language:"), m_language_combo);
+
+  // Overrides the per-region User/GC/<region>/IPL.bin lookup with one explicit dump,
+  // so switching IPL revisions is a file pick instead of renaming files into region dirs.
+  m_ipl_rom_edit = new ConfigText(Config::MAIN_GC_IPL_PATH);
+  m_ipl_rom_edit->setPlaceholderText(tr("Use User/GC/<region>/IPL.bin"));
+  m_ipl_rom_browse = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_ipl_rom_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  QHBoxLayout* ipl_rom_layout = new QHBoxLayout;
+  ipl_rom_layout->addWidget(m_ipl_rom_edit);
+  ipl_rom_layout->addWidget(m_ipl_rom_browse);
+  ipl_language_layout->addRow(tr("IPL ROM:"), ipl_rom_layout);
 
   // Device Settings
   QGroupBox* device_box = new QGroupBox(tr("Device Settings"), this);
@@ -135,7 +147,7 @@ void GameCubePane::CreateWidgets()
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
                             EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
-                            EXIDeviceType::AGP, EXIDeviceType::Microphone})
+                            EXIDeviceType::AGP, EXIDeviceType::Microphone, EXIDeviceType::SDCard})
   {
     const QString name = tr(fmt::format("{:n}", device).c_str());
     const int value = static_cast<int>(device);
@@ -159,6 +171,14 @@ void GameCubePane::CreateWidgets()
        })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
+                                                          static_cast<int>(device));
+  }
+
+  // Add SP2 devices. The port on the bottom of the console: on real hardware essentially
+  // only SD adapters (SD2SP2) live there.
+  for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::SDCard})
+  {
+    m_slot_combos[ExpansionInterface::Slot::SP2]->addItem(tr(fmt::format("{:n}", device).c_str()),
                                                           static_cast<int>(device));
   }
 
@@ -195,7 +215,47 @@ void GameCubePane::CreateWidgets()
     device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
     device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], row, 1);
     device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], row, 2);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("SP2:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP2], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP2], row, 2);
   }
+
+  // SD Card settings (shared by every slot an SD Card device is assigned to)
+  QGroupBox* sd_box = new QGroupBox(tr("SD Card Settings (SD Gecko/SD2SP2)"), this);
+  QGridLayout* sd_layout = new QGridLayout(sd_box);
+  sd_box->setLayout(sd_layout);
+  int sd_row = 0;
+
+  m_sd_image_edit = new ConfigText(Config::MAIN_GC_SD_CARD_IMAGE_PATH);
+  m_sd_image_edit->setPlaceholderText(
+      QString::fromStdString(File::GetUserPath(D_LOAD_IDX) + "GCSD.raw"));
+  m_sd_image_browse = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_sd_image_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  sd_layout->addWidget(new QLabel(tr("SD Card Image:")), sd_row, 0);
+  sd_layout->addWidget(m_sd_image_edit, sd_row, 1);
+  sd_layout->addWidget(m_sd_image_browse, sd_row, 2);
+  ++sd_row;
+
+  m_sd_folder_sync = new ConfigBool(tr("Automatically Sync with Folder"),
+                                    Config::MAIN_GC_SD_CARD_ENABLE_FOLDER_SYNC);
+  sd_layout->addWidget(m_sd_folder_sync, sd_row, 0, 1, 3);
+  ++sd_row;
+
+  m_sd_folder_edit = new ConfigText(Config::MAIN_GC_SD_CARD_SYNC_FOLDER_PATH);
+  m_sd_folder_edit->setPlaceholderText(
+      QString::fromStdString(File::GetUserPath(D_LOAD_IDX) + "GCSDSync"));
+  m_sd_folder_browse = new NonDefaultQPushButton(QStringLiteral("..."));
+  m_sd_folder_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  sd_layout->addWidget(new QLabel(tr("SD Sync Folder:")), sd_row, 0);
+  sd_layout->addWidget(m_sd_folder_edit, sd_row, 1);
+  sd_layout->addWidget(m_sd_folder_browse, sd_row, 2);
+  ++sd_row;
+
+  m_sd_allow_writes =
+      new ConfigBool(tr("Allow Writes to SD Card"), Config::MAIN_GC_SD_CARD_ALLOW_WRITES);
+  sd_layout->addWidget(m_sd_allow_writes, sd_row, 0, 1, 3);
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
@@ -239,6 +299,7 @@ void GameCubePane::CreateWidgets()
 
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
+  layout->addWidget(sd_box);
 #ifdef HAS_LIBMGBA
   layout->addWidget(gba_box);
 #endif
@@ -250,6 +311,14 @@ void GameCubePane::CreateWidgets()
 
 void GameCubePane::ConnectWidgets()
 {
+  // IPL Settings
+  connect(m_ipl_rom_browse, &QPushButton::clicked, this, &GameCubePane::BrowseIPLRom);
+  connect(m_ipl_rom_edit, &QLineEdit::editingFinished, this, &GameCubePane::LoadSettings);
+
+  // SD Card Settings
+  connect(m_sd_image_browse, &QPushButton::clicked, this, &GameCubePane::BrowseSDImage);
+  connect(m_sd_folder_browse, &QPushButton::clicked, this, &GameCubePane::BrowseSDFolder);
+
   // Device Settings
   for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
@@ -685,6 +754,38 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
   LoadSettings();
 }
 
+void GameCubePane::BrowseSDImage()
+{
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getSaveFileName(
+      this, tr("Choose an SD Card Image"),
+      QString::fromStdString(Config::GetGCSDCardImagePath()),
+      tr("SD Card Images (*.raw *.img);;All Files (*)"), nullptr,
+      QFileDialog::DontConfirmOverwrite));
+  if (!file.isEmpty())
+    m_sd_image_edit->SetTextAndUpdate(file);
+}
+
+void GameCubePane::BrowseSDFolder()
+{
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Choose the SD Sync Folder"),
+      QString::fromStdString(Config::GetGCSDCardSyncFolderPath())));
+  if (!dir.isEmpty())
+    m_sd_folder_edit->SetTextAndUpdate(dir);
+}
+
+void GameCubePane::BrowseIPLRom()
+{
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+      this, tr("Select IPL ROM"), QString::fromStdString(Config::Get(Config::MAIN_GC_IPL_PATH)),
+      tr("IPL Dumps (*.bin *.rom);;All Files (*)")));
+  if (!file.isEmpty())
+  {
+    m_ipl_rom_edit->SetTextAndUpdate(file);
+    LoadSettings();
+  }
+}
+
 #ifdef HAS_LIBMGBA
 
 void GameCubePane::BrowseGBABios()
@@ -725,7 +826,8 @@ void GameCubePane::BrowseGBASaves()
 
 void GameCubePane::LoadSettings()
 {
-  bool have_menu = false;
+  const std::string ipl_override = Config::Get(Config::MAIN_GC_IPL_PATH);
+  bool have_menu = !ipl_override.empty() && File::Exists(ipl_override);
 
   for (const std::string dir : {USA_DIR, JAP_DIR, EUR_DIR})
   {

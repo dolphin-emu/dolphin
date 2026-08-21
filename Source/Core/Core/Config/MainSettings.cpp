@@ -40,6 +40,7 @@ namespace Config
 // Main.Core
 
 const Info<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
+const Info<std::string> MAIN_GC_IPL_PATH{{System::Main, "Core", "IPLPath"}, ""};
 const Info<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
                                            PowerPC::DefaultCPUCore()};
 const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
@@ -336,6 +337,14 @@ const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, 
 const Info<std::string> MAIN_WII_SD_CARD_IMAGE_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 const Info<std::string> MAIN_WII_SD_CARD_SYNC_FOLDER_PATH{
     {System::Main, "General", "WiiSDCardSyncFolder"}, ""};
+const Info<std::string> MAIN_GC_SD_CARD_IMAGE_PATH{{System::Main, "General", "GCSDCardPath"}, ""};
+const Info<std::string> MAIN_GC_SD_CARD_SYNC_FOLDER_PATH{
+    {System::Main, "General", "GCSDCardSyncFolder"}, ""};
+const Info<bool> MAIN_GC_SD_CARD_ENABLE_FOLDER_SYNC{
+    {System::Main, "Core", "GCSDCardEnableFolderSync"}, false};
+const Info<bool> MAIN_GC_SD_CARD_ALLOW_WRITES{{System::Main, "Core", "GCSDCardAllowWrites"},
+                                              true};
+const Info<u64> MAIN_GC_SD_CARD_FILESIZE{{System::Main, "Core", "GCSDCardFilesize"}, 0};
 const Info<std::string> MAIN_WFS_PATH{{System::Main, "General", "WFSPath"}, ""};
 const Info<bool> MAIN_SHOW_LAG{{System::Main, "General", "ShowLag"}, false};
 const Info<bool> MAIN_SHOW_FRAME_COUNT{{System::Main, "General", "ShowFrameCount"}, false};
@@ -760,11 +769,30 @@ const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle st
 
 std::string GetBootROMPath(const std::string& region_directory)
 {
+  const std::string ipl_override = Config::Get(MAIN_GC_IPL_PATH);
+  if (!ipl_override.empty() && File::Exists(ipl_override))
+    return ipl_override;
   const std::string path =
       File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
   if (!File::Exists(path))
     return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
   return path;
+}
+
+std::string GetGCSDCardImagePath()
+{
+  const std::string configured = Config::Get(MAIN_GC_SD_CARD_IMAGE_PATH);
+  if (!configured.empty())
+    return configured;
+  return File::GetUserPath(D_LOAD_IDX) + "GCSD.raw";
+}
+
+std::string GetGCSDCardSyncFolderPath()
+{
+  const std::string configured = Config::Get(MAIN_GC_SD_CARD_SYNC_FOLDER_PATH);
+  if (!configured.empty())
+    return configured;
+  return File::GetUserPath(D_LOAD_IDX) + "GCSDSync" DIR_SEP;
 }
 
 std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,

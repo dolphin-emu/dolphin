@@ -54,6 +54,9 @@ private:
   bool SetGCIFolder(ExpansionInterface::Slot slot, const QString& path);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
+  void BrowseIPLRom();
+  void BrowseSDImage();
+  void BrowseSDFolder();
 
 #ifdef HAS_LIBMGBA
   void BrowseGBABios();
@@ -64,9 +67,18 @@ private:
 
   ConfigBool* m_skip_main_menu;
   ConfigChoice* m_language_combo;
+  ConfigText* m_ipl_rom_edit;
+  QPushButton* m_ipl_rom_browse;
 
-  Common::EnumMap<QPushButton*, ExpansionInterface::Slot::SP1> m_slot_buttons;
-  Common::EnumMap<QComboBox*, ExpansionInterface::Slot::SP1> m_slot_combos;
+  ConfigText* m_sd_image_edit;
+  QPushButton* m_sd_image_browse;
+  ConfigBool* m_sd_folder_sync;
+  ConfigText* m_sd_folder_edit;
+  QPushButton* m_sd_folder_browse;
+  ConfigBool* m_sd_allow_writes;
+
+  Common::EnumMap<QPushButton*, ExpansionInterface::Slot::SP2> m_slot_buttons;
+  Common::EnumMap<QComboBox*, ExpansionInterface::Slot::SP2> m_slot_combos;
 
   Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_layouts;
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_labels;

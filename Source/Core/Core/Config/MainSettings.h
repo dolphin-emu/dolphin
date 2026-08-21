@@ -54,6 +54,9 @@ namespace Config
 // Main.Core
 
 extern const Info<bool> MAIN_SKIP_IPL;
+// Absolute path to an IPL dump used for every region; empty keeps the
+// User/GC/<region>/IPL.bin lookup. Lets one machine juggle several IPL revisions.
+extern const Info<std::string> MAIN_GC_IPL_PATH;
 extern const Info<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const Info<bool> MAIN_JIT_FOLLOW_BRANCH;
 extern const Info<bool> MAIN_FASTMEM;
@@ -209,6 +212,12 @@ extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_WII_SD_CARD_IMAGE_PATH;
 extern const Info<std::string> MAIN_WII_SD_CARD_SYNC_FOLDER_PATH;
+// GameCube EXI SD card (the SDCard EXI device: SD Gecko / SD2SP2)
+extern const Info<std::string> MAIN_GC_SD_CARD_IMAGE_PATH;
+extern const Info<std::string> MAIN_GC_SD_CARD_SYNC_FOLDER_PATH;
+extern const Info<bool> MAIN_GC_SD_CARD_ENABLE_FOLDER_SYNC;
+extern const Info<bool> MAIN_GC_SD_CARD_ALLOW_WRITES;
+extern const Info<u64> MAIN_GC_SD_CARD_FILESIZE;
 extern const Info<std::string> MAIN_WFS_PATH;
 extern const Info<bool> MAIN_SHOW_LAG;
 extern const Info<bool> MAIN_SHOW_FRAME_COUNT;
@@ -420,6 +429,9 @@ const char* GetDirectoryForRegion(DiscIO::Region region,
                                   RegionDirectoryStyle style = RegionDirectoryStyle::Legacy);
 
 std::string GetBootROMPath(const std::string& region_directory);
+// Resolved paths for the GameCube EXI SD card; fall back to Load/GCSD.raw and Load/GCSDSync/.
+std::string GetGCSDCardImagePath();
+std::string GetGCSDCardSyncFolderPath();
 // Builds the memory card according to the configuration with the given region and size. If the
 // given region is std::nullopt, the region in the configured path is used if there is one, or the
 // fallback region otherwise.
