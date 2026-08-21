@@ -1675,8 +1675,8 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
   std::lock_guard lkp(m_crit.players);
   std::vector<const Player*> players;
 
-  for (const auto& pair : m_players)
-    players.push_back(&pair.second);
+  for (const auto& player : m_players | std::views::values)
+    players.push_back(&player);
 
   return players;
 }
