@@ -234,6 +234,10 @@ void GameCubePane::CreateWidgets()
   m_sd_image_edit = new ConfigText(Config::MAIN_GC_SD_CARD_IMAGE_PATH);
   m_sd_image_edit->setPlaceholderText(
       QString::fromStdString(File::GetUserPath(D_LOAD_IDX) + "GCSD.raw"));
+  m_sd_image_edit->setToolTip(
+      tr("Path to a raw FAT image file. On Windows, a physical card can be read directly by "
+         "entering its volume, e.g. \\\\.\\G: (read-only; folder sync is skipped; run Dolphin "
+         "as administrator if access is denied)."));
   m_sd_image_browse = new NonDefaultQPushButton(QStringLiteral("..."));
   m_sd_image_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   sd_layout->addWidget(new QLabel(tr("SD Card Image:")), sd_row, 0);

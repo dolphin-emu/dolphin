@@ -578,8 +578,11 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
        Config::Get(Config::MAIN_SLOT_B) == ExpansionInterface::EXIDeviceType::SDCard ||
        Config::Get(Config::MAIN_SERIAL_PORT_1) == ExpansionInterface::EXIDeviceType::SDCard ||
        Config::Get(Config::MAIN_SERIAL_PORT_2) == ExpansionInterface::EXIDeviceType::SDCard);
-  bool sync_gc_sd_folder =
-      gc_sd_present && Config::Get(Config::MAIN_GC_SD_CARD_ENABLE_FOLDER_SYNC);
+  // A raw volume path (\\.\G:) means the guest reads the physical card directly - there is
+  // no image to pack or unpack, so folder sync does not apply.
+  const bool gc_sd_is_raw_volume = Config::GetGCSDCardImagePath().starts_with("\\\\.\\");
+  bool sync_gc_sd_folder = gc_sd_present && !gc_sd_is_raw_volume &&
+                           Config::Get(Config::MAIN_GC_SD_CARD_ENABLE_FOLDER_SYNC);
   if (sync_gc_sd_folder)
   {
     sync_gc_sd_folder = Common::SyncSDFolderToSDImage(

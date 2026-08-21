@@ -13,6 +13,12 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/System.h"
 
+#ifdef _WIN32
+#include <windows.h>
+
+#include <winioctl.h>
+#endif
+
 namespace ExpansionInterface
 {
 namespace
@@ -62,10 +68,69 @@ u16 CRC16(const u8* data, size_t size)
 }
 }  // namespace
 
+namespace
+{
+bool IsRawVolumePath(const std::string& path)
+{
+  return path.starts_with("\\\\.\\");
+}
+}  // namespace
+
 CEXISDCard::CEXISDCard(Core::System& system) : IEXIDevice(system)
 {
-  const std::string path = Config::GetGCSDCardImagePath();
   m_allow_writes = Config::Get(Config::MAIN_GC_SD_CARD_ALLOW_WRITES);
+  OpenStorage(Config::GetGCSDCardImagePath());
+  if (StorageIsOpen())
+  {
+    m_sdhc = m_size >= SDHC_THRESHOLD;
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "GC SD card: {} MiB, {}{}", m_size / 1024 / 1024,
+                 m_sdhc ? "SDHC" : "SDSC", m_storage_read_only ? ", read-only" : "");
+  }
+}
+
+CEXISDCard::~CEXISDCard()
+{
+  CloseStorage();
+}
+
+void CEXISDCard::OpenStorage(const std::string& path)
+{
+  if (IsRawVolumePath(path))
+  {
+#ifdef _WIN32
+    // Serve sectors straight from the physical card (e.g. \\.\G:) — no image, no packing,
+    // and the guest sees the card's real filesystem (exFAT included). Read-only: writing
+    // raw sectors under a mounted Windows volume would corrupt it.
+    HANDLE volume = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                nullptr, OPEN_EXISTING, 0, nullptr);
+    if (volume == INVALID_HANDLE_VALUE)
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE,
+                    "Could not open raw volume {} (error {}). If access is denied, run Dolphin "
+                    "as administrator - Windows gates raw volume reads.",
+                    path, GetLastError());
+      return;
+    }
+    GET_LENGTH_INFORMATION length{};
+    DWORD returned = 0;
+    if (!DeviceIoControl(volume, IOCTL_DISK_GET_LENGTH_INFO, nullptr, 0, &length, sizeof(length),
+                         &returned, nullptr))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Could not query size of raw volume {} (error {})", path,
+                    GetLastError());
+      CloseHandle(volume);
+      return;
+    }
+    m_volume = volume;
+    m_size = static_cast<u64>(length.Length.QuadPart);
+    m_storage_read_only = true;
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "GC SD card backed by raw volume {}", path);
+#else
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Raw volume paths ({}) are only supported on Windows",
+                  path);
+#endif
+    return;
+  }
 
   if (!File::Exists(path))
   {
@@ -77,9 +142,7 @@ CEXISDCard::CEXISDCard(Core::System& system) : IEXIDevice(system)
   if (m_image.Open(path, m_allow_writes ? "r+b" : "rb"))
   {
     m_size = m_image.GetSize();
-    m_sdhc = m_size >= SDHC_THRESHOLD;
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "GC SD card: {} ({} MiB, {})", path, m_size / 1024 / 1024,
-                 m_sdhc ? "SDHC" : "SDSC");
+    m_storage_read_only = !m_allow_writes;
   }
   else
   {
@@ -87,11 +150,69 @@ CEXISDCard::CEXISDCard(Core::System& system) : IEXIDevice(system)
   }
 }
 
-CEXISDCard::~CEXISDCard() = default;
+void CEXISDCard::CloseStorage()
+{
+#ifdef _WIN32
+  if (m_volume)
+  {
+    CloseHandle(static_cast<HANDLE>(m_volume));
+    m_volume = nullptr;
+  }
+#endif
+  if (m_image.IsOpen())
+    m_image.Close();
+}
+
+bool CEXISDCard::StorageIsOpen() const
+{
+#ifdef _WIN32
+  if (m_volume)
+    return true;
+#endif
+  return m_image.IsOpen();
+}
+
+bool CEXISDCard::StorageRead(u64 offset, u8* dst, u32 size)
+{
+#ifdef _WIN32
+  if (m_volume)
+  {
+    LARGE_INTEGER position;
+    position.QuadPart = static_cast<LONGLONG>(offset);
+    DWORD read = 0;
+    return SetFilePointerEx(static_cast<HANDLE>(m_volume), position, nullptr, FILE_BEGIN) &&
+           ReadFile(static_cast<HANDLE>(m_volume), dst, size, &read, nullptr) && read == size;
+  }
+#endif
+  m_image.Seek(offset, File::SeekOrigin::Begin);
+  if (!m_image.ReadBytes(dst, size))
+  {
+    m_image.ClearError();
+    return false;
+  }
+  return true;
+}
+
+bool CEXISDCard::StorageWrite(u64 offset, const u8* src, u32 size)
+{
+  if (m_storage_read_only)
+    return false;
+#ifdef _WIN32
+  if (m_volume)
+    return false;
+#endif
+  m_image.Seek(offset, File::SeekOrigin::Begin);
+  if (!m_image.WriteBytes(src, size))
+  {
+    m_image.ClearError();
+    return false;
+  }
+  return true;
+}
 
 bool CEXISDCard::IsPresent() const
 {
-  return m_image.IsOpen();
+  return StorageIsOpen();
 }
 
 void CEXISDCard::SetCS(int cs)
@@ -158,21 +279,13 @@ void CEXISDCard::ProcessInputByte(u8 in)
 
     // Full block plus CRC received (the CRC is not verified, like most cards in SPI mode).
     u8 data_response = DATA_RESPONSE_ACCEPTED;
-    if (!m_allow_writes || !m_image.IsOpen() || m_write_address + BLOCK_SIZE > m_size)
+    if (!m_allow_writes || m_write_address + BLOCK_SIZE > m_size ||
+        !StorageWrite(m_write_address, m_write_buffer.data(), BLOCK_SIZE))
     {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "GC SD write rejected at {:#x}", m_write_address);
       data_response = DATA_RESPONSE_WRITE_ERROR;
     }
-    else
-    {
-      m_image.Seek(m_write_address, File::SeekOrigin::Begin);
-      if (!m_image.WriteBytes(m_write_buffer.data(), BLOCK_SIZE))
-      {
-        ERROR_LOG_FMT(EXPANSIONINTERFACE, "GC SD write failed at {:#x}", m_write_address);
-        m_image.ClearError();
-        data_response = DATA_RESPONSE_WRITE_ERROR;
-      }
-      m_write_address += BLOCK_SIZE;
-    }
+    m_write_address += BLOCK_SIZE;
 
     // Data response, one busy byte, ready.
     m_response.assign({data_response, 0x00, 0xFF});
@@ -232,18 +345,16 @@ void CEXISDCard::QueueDataErrorToken(u8 token)
 
 bool CEXISDCard::QueueReadBlock(u64 byte_address)
 {
-  if (!m_image.IsOpen() || byte_address + BLOCK_SIZE > m_size)
+  if (!StorageIsOpen() || byte_address + BLOCK_SIZE > m_size)
   {
     QueueDataErrorToken(DATA_ERROR_OUT_OF_RANGE);
     return false;
   }
 
   std::array<u8, BLOCK_SIZE> buffer;
-  m_image.Seek(byte_address, File::SeekOrigin::Begin);
-  if (!m_image.ReadBytes(buffer.data(), buffer.size()))
+  if (!StorageRead(byte_address, buffer.data(), static_cast<u32>(buffer.size())))
   {
     ERROR_LOG_FMT(EXPANSIONINTERFACE, "GC SD read failed at {:#x}", byte_address);
-    m_image.ClearError();
     QueueDataErrorToken(DATA_ERROR_CC_ERROR);
     return false;
   }

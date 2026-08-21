@@ -52,7 +52,20 @@ private:
   std::array<u8, 16> MakeCSD() const;
   std::array<u8, 16> MakeCID() const;
 
+  // Backing storage: either a raw image file, or (Windows) a physical volume like \\.\G:
+  // so the guest reads the real SD card directly. SD traffic is always 512-aligned, which
+  // is exactly what raw volume I/O requires.
+  void OpenStorage(const std::string& path);
+  void CloseStorage();
+  bool StorageIsOpen() const;
+  bool StorageRead(u64 offset, u8* dst, u32 size);
+  bool StorageWrite(u64 offset, const u8* src, u32 size);
+
   File::IOFile m_image;
+#ifdef _WIN32
+  void* m_volume = nullptr;  // HANDLE when the configured path is a raw volume
+#endif
+  bool m_storage_read_only = false;
   u64 m_size = 0;
   bool m_sdhc = false;
   bool m_allow_writes = true;
