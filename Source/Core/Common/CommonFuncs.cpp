@@ -3,9 +3,11 @@
 
 #include "Common/CommonFuncs.h"
 
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -44,9 +46,9 @@ const char* StrErrorWrapper(int error, char* buffer, std::size_t length)
 
 std::string StrerrorString(int error)
 {
-  char error_message[BUFFER_SIZE];
+  std::array<char, BUFFER_SIZE> error_message{};
 
-  return StrErrorWrapper(error, error_message, BUFFER_SIZE);
+  return StrErrorWrapper(error, error_message.data(), BUFFER_SIZE);
 }
 
 // Wrapper function to get last strerror(errno) string.
@@ -67,11 +69,12 @@ std::string GetLastErrorString()
 // Like GetLastErrorString() but if you have already queried the error code.
 std::string GetWin32ErrorString(DWORD error_code)
 {
-  wchar_t error_message[BUFFER_SIZE];
+  std::array<wchar_t, BUFFER_SIZE> error_message{};
 
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
-                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), error_message, BUFFER_SIZE, nullptr);
-  return WStringToUTF8(error_message);
+                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), error_message.data(), BUFFER_SIZE,
+                 nullptr);
+  return WStringToUTF8(error_message.data());
 }
 
 // Obtains a full path to the specified module.

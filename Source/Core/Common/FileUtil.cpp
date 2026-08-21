@@ -3,6 +3,7 @@
 
 #include "Common/FileUtil.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -634,8 +635,8 @@ bool SetCurrentDir(const std::string& directory)
 std::string CreateTempDir()
 {
 #ifdef _WIN32
-  TCHAR temp[MAX_PATH];
-  if (!GetTempPath(MAX_PATH, temp))
+  std::array<TCHAR, MAX_PATH> temp{};
+  if (!GetTempPath(MAX_PATH, temp.data()))
     return "";
 
   GUID guid;
@@ -643,12 +644,12 @@ std::string CreateTempDir()
   {
     return "";
   }
-  OLECHAR tguid[40]{};
-  if (!StringFromGUID2(guid, tguid, _countof(tguid)))
+  std::array<OLECHAR, 40> tguid{};
+  if (!StringFromGUID2(guid, tguid.data(), std::size(tguid)))
   {
     return "";
   }
-  std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
+  std::string dir = TStrToUTF8(temp.data()) + "/" + TStrToUTF8(tguid.data());
   if (!CreateDir(dir))
     return "";
   dir = ReplaceAll(dir, "\\", DIR_SEP);
@@ -830,7 +831,7 @@ const std::string GetGpuDriverDirectory(unsigned int dir_index)
 
 #endif
 
-static std::string s_user_paths[NUM_PATH_INDICES];
+static std::array<std::string, NUM_PATH_INDICES> s_user_paths{};
 static void RebuildUserDirectories(unsigned int dir_index)
 {
   switch (dir_index)

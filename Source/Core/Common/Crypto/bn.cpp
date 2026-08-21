@@ -3,6 +3,7 @@
 
 #include "Common/Crypto/bn.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -71,7 +72,7 @@ void bn_mul(u8* d, const u8* a, const u8* b, const u8* N, const size_t n)
 
 void bn_exp(u8* d, const u8* a, const u8* N, const size_t n, const u8* e, const size_t en)
 {
-  u8 t[512];
+  std::array<u8, 512> t{};
 
   bn_zero(d, n);
   d[n - 1] = 1;
@@ -79,11 +80,11 @@ void bn_exp(u8* d, const u8* a, const u8* N, const size_t n, const u8* e, const 
   {
     for (u8 mask = 0x80; mask != 0; mask >>= 1)
     {
-      bn_mul(t, d, d, N, n);
+      bn_mul(t.data(), d, d, N, n);
       if ((e[i] & mask) != 0)
-        bn_mul(d, t, a, N, n);
+        bn_mul(d, t.data(), a, N, n);
       else
-        bn_copy(d, t, n);
+        bn_copy(d, t.data(), n);
     }
   }
 }
@@ -91,11 +92,11 @@ void bn_exp(u8* d, const u8* a, const u8* N, const size_t n, const u8* e, const 
 // only for prime N -- stupid but lazy, see if I care
 void bn_inv(u8* d, const u8* a, const u8* N, const size_t n)
 {
-  u8 t[512], s[512];
+  std::array<u8, 512> t{}, s{};
 
-  bn_copy(t, N, n);
-  bn_zero(s, n);
+  bn_copy(t.data(), N, n);
+  bn_zero(s.data(), n);
   s[n - 1] = 2;
-  bn_sub_modulus(t, s, n);
-  bn_exp(d, a, N, n, t, n);
+  bn_sub_modulus(t.data(), s.data(), n);
+  bn_exp(d, a, N, n, t.data(), n);
 }
