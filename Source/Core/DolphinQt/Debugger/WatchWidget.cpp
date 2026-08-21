@@ -31,7 +31,7 @@ WatchWidget::WatchWidget(QWidget* parent)
   setWindowTitle(tr("Watch"));
   setObjectName(QStringLiteral("watch"));
 
-  setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsWatchVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
