@@ -457,7 +457,7 @@ bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted(u64 offset, u64 size,
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
-                                             u64 partition_data_offset)
+                                             u64 partition_data_offset, Common::AES::Context*)
 {
   u32 partition_first_sector;
   const PartitionEntry* partition = GetPartition(partition_data_offset, &partition_first_sector);
@@ -1745,7 +1745,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
                                File::DirectIOFile* outfile, WIARVZCompressionType compression_type,
                                int compression_level, int chunk_size, CompressCB callback)
 {
-  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate ||
+         infile->GetDataSizeType() == DataSizeType::UpperBound);
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
