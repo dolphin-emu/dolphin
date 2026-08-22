@@ -36,6 +36,10 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
+import org.dolphinemu.dolphinemu.features.dualscreen.ExternalDisplayManager
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaBootManager
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaHostBridge
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaLinkSettings
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
 import org.dolphinemu.dolphinemu.features.infinitybase.model.Figure
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
@@ -44,6 +48,7 @@ import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
@@ -53,6 +58,7 @@ import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlotAdapter
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment
+import org.dolphinemu.dolphinemu.fragments.GbaPacksFragment
 import org.dolphinemu.dolphinemu.fragments.MenuFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment.SaveOrLoad
@@ -71,6 +77,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var emulationFragment: EmulationFragment? = null
 
     private lateinit var settings: Settings
+    private lateinit var externalDisplayManager: ExternalDisplayManager
 
     override var themeId = 0
 
@@ -100,6 +107,43 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     ) { uri: Uri? ->
         if (uri != null) {
             NativeLibrary.ChangeDisc(uri.toString())
+        }
+    }
+
+    private val requestGameBoyPlayerRomFile = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri == null) {
+            return@registerForActivityResult
+        }
+
+        val canonicalizedUri = contentResolver.canonicalize(uri) ?: uri
+        FileBrowserHelper.runAfterExtensionCheck(
+            this,
+            canonicalizedUri,
+            FileBrowserHelper.GBA_ROM_EXTENSIONS
+        ) {
+            try {
+                contentResolver.takePersistableUriPermission(
+                    canonicalizedUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+            }
+
+            val path = canonicalizedUri.toString()
+            StringSetting.MAIN_GB_PLAYER_ROM.setString(settings, path)
+            StringSetting.MAIN_GB_PLAYER_ROM.setString(NativeConfig.LAYER_BASE, path)
+            NativeConfig.save(NativeConfig.LAYER_BASE)
+
+            Toast.makeText(
+                this,
+                getString(
+                    R.string.emulation_gba_pack_updated,
+                    getString(R.string.emulation_gba_pack_player)
+                ),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -204,6 +248,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         settings = Settings()
         settings.loadSettings()
+        externalDisplayManager = ExternalDisplayManager(this)
 
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
@@ -286,6 +331,22 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         }
     }
 
+    val isInternalGbaScreenVisible: Boolean
+        get() = emulationFragment?.isInternalGbaScreenVisible == true
+
+    fun shouldShowInternalGbaScreenMenu(): Boolean {
+        if (!isGameCubeWithEmulatedGbaPort()) {
+            return false
+        }
+
+        return !BooleanSetting.MAIN_DUAL_SCREEN_EXTERNAL_DISPLAY.boolean ||
+                !BooleanSetting.MAIN_GBA_LINK_EXTERNAL_DISPLAY.boolean ||
+                !::externalDisplayManager.isInitialized ||
+                !externalDisplayManager.hasPresentationDisplay()
+    }
+
+    fun shouldShowGbaPacksMenu(): Boolean = isGameCubeWithEmulatedGbaPort()
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         if (hasFocus) {
             enableFullscreenImmersive()
@@ -312,6 +373,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         }
 
         DolphinSensorEventListener.setDeviceRotation(windowManager.defaultDisplay.rotation)
+        externalDisplayManager.start()
+    }
+
+    override fun onPause() {
+        externalDisplayManager.stop()
+        super.onPause()
     }
 
     override fun onStop() {
@@ -332,6 +399,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             emulationFragment?.refreshInputOverlay()
 
             updateDisplaySettings()
+            externalDisplayManager.refresh()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
@@ -339,6 +407,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     override fun onDestroy() {
+        externalDisplayManager.stop()
         super.onDestroy()
         settings.close()
     }
@@ -511,6 +580,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_LOAD_SLOT5 -> NativeLibrary.LoadState(4)
             MENU_ACTION_LOAD_SLOT6 -> NativeLibrary.LoadState(5)
             MENU_ACTION_CHANGE_DISC -> requestChangeDisc.launch("*/*")
+            MENU_ACTION_TOGGLE_GBA_SCREEN -> toggleInternalGbaScreen()
+            MENU_ACTION_GBA_PACKS -> showGbaPacksSubMenu()
 
             MENU_SET_IR_MODE -> setIRMode()
             MENU_ACTION_CHOOSE_DOUBLETAP -> chooseDoubleTapButton()
@@ -913,6 +984,51 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .show()
     }
 
+    private fun toggleInternalGbaScreen() {
+        if (!shouldShowInternalGbaScreenMenu()) {
+            return
+        }
+
+        if (!isInternalGbaScreenVisible && !GbaHostBridge.hasActiveCore()) {
+            Toast.makeText(this, R.string.emulation_gba_screen_no_core, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        emulationFragment?.toggleInternalGbaScreen()
+        closeMenu()
+    }
+
+    fun chooseGameBoyPlayerRom() {
+        closeSubmenu()
+        closeMenu()
+        requestGameBoyPlayerRomFile.launch(arrayOf("*/*"))
+    }
+
+    private fun showGbaPacksSubMenu() {
+        supportFragmentManager.popBackStack(
+            BACKSTACK_NAME_SUBMENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE
+        )
+
+        val fragment: Fragment = GbaPacksFragment()
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.animator.menu_slide_in_from_end,
+                R.animator.menu_slide_out_to_end,
+                R.animator.menu_slide_in_from_end,
+                R.animator.menu_slide_out_to_end
+            )
+            .replace(R.id.frame_submenu, fragment)
+            .addToBackStack(BACKSTACK_NAME_SUBMENU)
+            .commit()
+    }
+
+    private fun isGameCubeWithEmulatedGbaPort(): Boolean {
+        return NativeLibrary.IsGameMetadataValid() &&
+                !NativeLibrary.IsEmulatingWii() &&
+                GbaLinkSettings.hasAnyEmulatedGbaPortConfigured()
+    }
+
     fun setSkylanderData(id: Int, variant: Int, name: String, slot: Int) {
         skylanderData = Skylander(id, variant, name)
         skylanderSlot = slot
@@ -1009,6 +1125,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     fun initInputPointer() {
         emulationFragment?.initInputPointer()
+        if (::externalDisplayManager.isInitialized) {
+            externalDisplayManager.refreshPointerSettings()
+            externalDisplayManager.refresh()
+        }
     }
 
     override fun setTheme(themeId: Int) {
@@ -1077,6 +1197,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_TOGGLE_GBA_SCREEN = 39
+        const val MENU_ACTION_GBA_PACKS = 40
 
         init {
             buttonsActionsMap.apply {
@@ -1098,7 +1220,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             if (ignoreLaunchRequests)
                 return
 
-            performLaunchChecks(activity, fromIntent) { launchWithoutChecks(activity, filePaths, riivolution) }
+            performLaunchChecks(activity, fromIntent, filePaths) {
+                launchWithoutChecks(activity, filePaths, riivolution)
+            }
         }
 
         @JvmStatic
@@ -1117,11 +1241,29 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             activity.startActivity(launcher)
         }
 
-        private fun performLaunchChecks(activity: FragmentActivity, fromIntent: Boolean, continueCallback: Runnable) {
+        private fun performLaunchChecks(
+            activity: FragmentActivity,
+            fromIntent: Boolean,
+            filePaths: Array<String>?,
+            continueCallback: Runnable
+        ) {
             AfterDirectoryInitializationRunner().runWithLifecycle(activity) {
-                if (fromIntent) {
-                    activity.finish()
+                val continueLaunch = Runnable {
+                    if (fromIntent) {
+                        activity.finish()
+                    }
+                    continueCallback.run()
                 }
+
+                val runGbaBiosCheck = Runnable {
+                    GbaBootManager.continueAfterBiosCheck(
+                        activity,
+                        fromIntent,
+                        filePaths,
+                        continueLaunch
+                    )
+                }
+
                 if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) ||
                     !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) ||
                     !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) ||
@@ -1131,10 +1273,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                     MaterialAlertDialogBuilder(activity)
                         .setMessage(R.string.unavailable_paths)
                         .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
+                            if (fromIntent) {
+                                activity.finish()
+                            }
                             SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS)
                         }
                         .setNeutralButton(R.string.continue_anyway) { _: DialogInterface?, _: Int ->
-                            continueCallback.run()
+                            runGbaBiosCheck.run()
                         }
                         .show()
                 } else if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_WII_SD_CARD_IMAGE_PATH) ||
@@ -1143,14 +1288,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                     MaterialAlertDialogBuilder(activity)
                         .setMessage(R.string.unavailable_paths)
                         .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
+                            if (fromIntent) {
+                                activity.finish()
+                            }
                             SettingsActivity.launch(activity, MenuTag.CONFIG_WII)
                         }
                         .setNeutralButton(R.string.continue_anyway) { _: DialogInterface?, _: Int ->
-                            continueCallback.run()
+                            runGbaBiosCheck.run()
                         }
                         .show()
                 } else {
-                    continueCallback.run()
+                    runGbaBiosCheck.run()
                 }
             }
         }
@@ -1160,7 +1308,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             if (ignoreLaunchRequests)
                 return
 
-            performLaunchChecks(activity, false) { launchSystemMenuWithoutChecks(activity) }
+            performLaunchChecks(activity, false, null) { launchSystemMenuWithoutChecks(activity) }
         }
 
         private fun launchSystemMenuWithoutChecks(activity: FragmentActivity) {

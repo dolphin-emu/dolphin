@@ -38,6 +38,12 @@
         android:focusable="true"
         android:focusableInTouchMode="true" />
 
+    <org.dolphinemu.dolphinemu.features.dualscreen.GbaScreenView
+        android:id="@+id/surface_gba_screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/done_control_config"
         android:layout_width="wrap_content"

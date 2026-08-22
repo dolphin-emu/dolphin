@@ -17,6 +17,8 @@ import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.UserDataActivity
+import org.dolphinemu.dolphinemu.features.dualscreen.ExternalDisplayManager
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaLinkSettings
 import org.dolphinemu.dolphinemu.features.input.model.ControlGroupEnabledSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting
@@ -52,6 +54,19 @@ class SettingsFragmentPresenter(
     private var controllerNumber = 0
     private var controllerType = 0
 
+    private val gbaRomSettings = arrayOf(
+        StringSetting.MAIN_GBA_ROM_1,
+        StringSetting.MAIN_GBA_ROM_2,
+        StringSetting.MAIN_GBA_ROM_3,
+        StringSetting.MAIN_GBA_ROM_4
+    )
+    private val gbaRomTitles = intArrayOf(
+        R.string.gba_rom_1,
+        R.string.gba_rom_2,
+        R.string.gba_rom_3,
+        R.string.gba_rom_4
+    )
+
     var gpuDriver: GpuDriverMetadata? = null
     private val libNameSetting: StringSetting = StringSetting.GFX_DRIVER_LIB_NAME
 
@@ -62,7 +77,7 @@ class SettingsFragmentPresenter(
         if (menuTag.isGCPadMenu || menuTag.isWiimoteExtensionMenu) {
             controllerNumber = menuTag.subType
             controllerType = extras.getInt(ARG_CONTROLLER_TYPE)
-        } else if (menuTag.isWiimoteMenu || menuTag.isWiimoteSubmenu) {
+        } else if (menuTag.isGBAPadMenu || menuTag.isWiimoteMenu || menuTag.isWiimoteSubmenu) {
             controllerNumber = menuTag.subType
         } else if (menuTag.isSerialPort1Menu) {
             serialPort1Type = extras.getInt(ARG_SERIALPORT1_TYPE)
@@ -115,6 +130,7 @@ class SettingsFragmentPresenter(
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
             MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
+            MenuTag.GBA_LINK -> addGbaLinkSettings(sl)
             MenuTag.WIIMOTE -> addWiimoteSettings(sl)
             MenuTag.ENHANCEMENTS -> addEnhanceSettings(sl)
             MenuTag.COLOR_CORRECTION -> addColorCorrectionSettings(sl)
@@ -131,6 +147,14 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber,
                 controllerType
+            )
+
+            MenuTag.GBA_1,
+            MenuTag.GBA_2,
+            MenuTag.GBA_3,
+            MenuTag.GBA_4 -> addGbaPadSubSettings(
+                sl,
+                controllerNumber
             )
 
             MenuTag.WIIMOTE_1,
@@ -186,6 +210,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.graphics_settings, MenuTag.GRAPHICS))
 
         sl.add(SubmenuSetting(context, R.string.gcpad_settings, MenuTag.GCPAD_TYPE))
+        sl.add(SubmenuSetting(context, R.string.gba_link_settings, MenuTag.GBA_LINK))
         if (settings!!.isWii) {
             sl.add(SubmenuSetting(context, R.string.wiimote_settings, MenuTag.WIIMOTE))
         }
@@ -339,6 +364,14 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_OSD_MESSAGES,
                 R.string.osd_messages,
                 R.string.osd_messages_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_DUAL_SCREEN_EXTERNAL_DISPLAY,
+                R.string.dual_screen_external_display,
+                R.string.dual_screen_external_display_description
             )
         )
         sl.add(
@@ -711,7 +744,47 @@ class SettingsFragmentPresenter(
                 R.string.gba_bios_path,
                 0,
                 fragmentView.activityResultLaunchers.requestBinFile,
-                "/GBA/gba_bios.bin"
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_1,
+                R.string.gba_rom_1,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_2,
+                R.string.gba_rom_2,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_3,
+                R.string.gba_rom_3,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_4,
+                R.string.gba_rom_4,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
             )
         )
         sl.add(
@@ -721,6 +794,16 @@ class SettingsFragmentPresenter(
                 R.string.gb_player_rom,
                 0,
                 fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                SharedPreferenceStringSetting.MAIN_ANDROID_GB_PLAYER_BOOT_PATH,
+                R.string.gb_player_boot_path,
+                R.string.gb_player_boot_path_description,
+                fragmentView.activityResultLaunchers.requestGameFile,
                 null
             )
         )
@@ -1405,6 +1488,53 @@ class SettingsFragmentPresenter(
                 R.array.gcpadTypeEntries,
                 R.array.gcpadTypeValues,
                 MenuTag.getGCPadMenuTag(3)
+            )
+        )
+    }
+
+    private fun addGbaLinkSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_GBA_LINK_EXTERNAL_DISPLAY,
+                R.string.gba_link_external_display,
+                R.string.gba_link_external_display_description
+            )
+        )
+        sl.add(
+            SingleChoiceSetting(
+                context,
+                IntSetting.MAIN_GBA_LINK_SCALE_MODE,
+                R.string.gba_link_scale_mode,
+                R.string.gba_link_scale_mode_description,
+                R.array.gbaLinkScaleModeEntries,
+                R.array.gbaLinkScaleModeValues
+            )
+        )
+        sl.add(
+            SingleChoiceSetting(
+                context,
+                IntSetting.MAIN_GBA_LINK_POSITION,
+                R.string.gba_link_position,
+                R.string.gba_link_position_description,
+                R.array.gbaLinkPositionEntries,
+                R.array.gbaLinkPositionValues
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_GBA_LINK_HIDE_TOUCH_IF_CONTROLLER,
+                R.string.gba_link_hide_touch_controls,
+                R.string.gba_link_hide_touch_controls_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_GBA_LINK_MUTE_AUDIO,
+                R.string.gba_link_mute_audio,
+                R.string.gba_link_mute_audio_description
             )
         )
     }
@@ -2518,6 +2648,31 @@ class SettingsFragmentPresenter(
                     )
                 )
             }
+            GbaLinkSettings.SIDEVICE_GC_GBA_EMULATED -> {
+                addGbaPadSubSettings(sl, gcPadNumber)
+            }
+        }
+    }
+
+    private fun addGbaPadSubSettings(sl: ArrayList<SettingsItem>, gbaPadNumber: Int) {
+        val gbaPad = EmulatedController.getGbaPad(gbaPadNumber)
+
+        sl.add(
+            FilePicker(
+                context,
+                gbaRomSettings[gbaPadNumber],
+                gbaRomTitles[gbaPadNumber],
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+
+        if (!TextUtils.isEmpty(gameId)) {
+            addControllerPerGameSettings(sl, gbaPad, gbaPadNumber)
+        } else {
+            addControllerMetaSettings(sl, gbaPad)
+            addControllerMappingSettings(sl, gbaPad, null)
         }
     }
 
@@ -2601,6 +2756,17 @@ class SettingsFragmentPresenter(
     }
 
     private fun addWiimoteMotionInputSubSettings(sl: ArrayList<SettingsItem>, wiimoteNumber: Int) {
+        if (ExternalDisplayManager.hasPresentationDisplay(context)) {
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.MAIN_DUAL_SCREEN_WII_POINTER_TOUCHPAD,
+                    R.string.dual_screen_wii_pointer_touchpad,
+                    R.string.dual_screen_wii_pointer_touchpad_description
+                )
+            )
+        }
+
         addControllerMappingSettings(
             sl, EmulatedController.getWiimote(wiimoteNumber),
             ArraySet(

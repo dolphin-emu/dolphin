@@ -28,7 +28,8 @@ class PlatformPagerAdapter(
         val TAB_ICONS = intArrayOf(
             R.drawable.ic_gamecube,
             R.drawable.ic_wii,
-            R.drawable.ic_folder
+            R.drawable.ic_folder,
+            R.drawable.ic_gba
         )
     }
 }

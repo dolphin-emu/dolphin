@@ -12,7 +12,8 @@ import org.dolphinemu.dolphinemu.R
 enum class PlatformTab(private val value: Int, val headerName: Int, val idString: String) {
     GAMECUBE(0, R.string.platform_gamecube, "GameCube Games"),
     WII(1, R.string.platform_wii, "Wii Games"),
-    WIIWARE(2, R.string.platform_wiiware, "WiiWare Games");
+    WIIWARE(2, R.string.platform_wiiware, "WiiWare Games"),
+    GBA(3, R.string.platform_gba, "GBA Games");
 
     fun toInt(): Int {
         return value

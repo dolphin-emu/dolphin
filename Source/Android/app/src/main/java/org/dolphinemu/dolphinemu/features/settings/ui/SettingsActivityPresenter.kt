@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 import android.os.Bundle
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaLinkSettings
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.Log
@@ -95,8 +96,14 @@ class SettingsActivityPresenter(
         }
         if (menuTag.isGCPadMenu) {
             // Not disabled
-            if (value != 0)
-            {
+            if (value == GbaLinkSettings.SIDEVICE_GC_GBA_EMULATED) {
+                activityView.showSettingsFragment(
+                    MenuTag.getGBAPadMenuTag(menuTag.subType),
+                    null,
+                    true,
+                    gameId!!
+                )
+            } else if (value != 0) {
                 val bundle = Bundle()
                 bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value)
                 activityView.showSettingsFragment(menuTag, bundle, true, gameId!!)

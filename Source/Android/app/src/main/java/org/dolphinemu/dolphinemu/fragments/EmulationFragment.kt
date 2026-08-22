@@ -2,13 +2,16 @@
 
 package org.dolphinemu.dolphinemu.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
+import org.dolphinemu.dolphinemu.features.dualscreen.GbaInputFocusManager
 import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
@@ -70,10 +74,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // The new Surface created here will get passed to the native code via onSurfaceChanged.
         val surfaceView = binding.surfaceEmulation
         surfaceView.holder.addCallback(this)
+        surfaceView.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                GbaInputFocusManager.clearFocus()
+            }
+            false
+        }
 
         inputOverlay = binding.surfaceInputOverlay
 
@@ -97,6 +108,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     override fun onDestroyView() {
+        GbaInputFocusManager.clearFocus()
         super.onDestroyView()
         _binding = null
     }
@@ -145,6 +157,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     fun refreshOverlayPointer() = inputOverlay?.refreshOverlayPointer()
 
     fun resetInputOverlay() = inputOverlay?.resetButtonPlacement()
+
+    val isInternalGbaScreenVisible: Boolean
+        get() = _binding != null && binding.surfaceGbaScreen.isVisible
+
+    fun toggleInternalGbaScreen(): Boolean {
+        val showGbaScreen = !isInternalGbaScreenVisible
+        setInternalGbaScreenVisible(showGbaScreen)
+        return showGbaScreen
+    }
+
+    fun setInternalGbaScreenVisible(visible: Boolean) {
+        binding.surfaceGbaScreen.isVisible = visible
+        binding.surfaceGbaScreen.setInputFocusEnabled(visible)
+    }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         // We purposely don't do anything here.

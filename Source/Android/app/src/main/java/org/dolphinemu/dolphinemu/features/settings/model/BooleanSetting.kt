@@ -282,6 +282,36 @@ enum class BooleanSetting(
         "ShowInputOverlay",
         true
     ),
+    MAIN_DUAL_SCREEN_EXTERNAL_DISPLAY(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "DualScreenExternalDisplay",
+        true
+    ),
+    MAIN_DUAL_SCREEN_WII_POINTER_TOUCHPAD(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "DualScreenWiiPointerTouchpad",
+        false
+    ),
+    MAIN_GBA_LINK_EXTERNAL_DISPLAY(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "GBALinkExternalDisplay",
+        true
+    ),
+    MAIN_GBA_LINK_HIDE_TOUCH_IF_CONTROLLER(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "GBALinkHideTouchControlsIfController",
+        false
+    ),
+    MAIN_GBA_LINK_MUTE_AUDIO(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_GBA,
+        "MuteLinkAudio",
+        false
+    ),
     MAIN_IR_ALWAYS_RECENTER(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,

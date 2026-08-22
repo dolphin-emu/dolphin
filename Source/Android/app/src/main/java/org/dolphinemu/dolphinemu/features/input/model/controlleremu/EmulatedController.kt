@@ -53,6 +53,9 @@ class EmulatedController private constructor(private val pointer: Long) : Contro
         external fun getGcKeyboard(controllerIndex: Int): EmulatedController
 
         @JvmStatic
+        external fun getGbaPad(controllerIndex: Int): EmulatedController
+
+        @JvmStatic
         external fun getWiimote(controllerIndex: Int): EmulatedController
 
         @JvmStatic

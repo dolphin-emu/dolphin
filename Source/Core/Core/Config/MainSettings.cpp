@@ -407,6 +407,7 @@ const std::array<Info<std::string>, 5> MAIN_GBA_ROM_PATHS{
 };
 const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
 const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
+const Info<bool> MAIN_GBA_LINK_MUTED{{System::Main, "GBA", "MuteLinkAudio"}, false};
 #endif
 
 // Main.Network

@@ -92,6 +92,16 @@
                 android:text="@string/emulation_overlay_controls" />
 
             <Button
+                android:id="@+id/menu_toggle_gba_screen"
+                style="@style/InGameMenuOption"
+                android:text="@string/emulation_show_gba_screen" />
+
+            <Button
+                android:id="@+id/menu_gba_packs"
+                style="@style/InGameMenuOption"
+                android:text="@string/emulation_gba_packs" />
+
+            <Button
                 android:id="@+id/menu_refresh_wiimotes"
                 android:text="@string/emulation_refresh_wiimotes"
                 style="@style/InGameMenuOption" />

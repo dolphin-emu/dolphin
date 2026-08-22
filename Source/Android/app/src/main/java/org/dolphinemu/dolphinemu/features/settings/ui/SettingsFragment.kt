@@ -280,12 +280,17 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             titles[MenuTag.ADVANCED_GRAPHICS] = R.string.advanced_graphics_submenu
             titles[MenuTag.CONFIG_LOG] = R.string.log_submenu
             titles[MenuTag.GCPAD_TYPE] = R.string.gcpad_settings
+            titles[MenuTag.GBA_LINK] = R.string.gba_link_settings
             titles[MenuTag.WIIMOTE] = R.string.wiimote_settings
             titles[MenuTag.WIIMOTE_EXTENSION] = R.string.wiimote_extensions
             titles[MenuTag.GCPAD_1] = R.string.controller_0
             titles[MenuTag.GCPAD_2] = R.string.controller_1
             titles[MenuTag.GCPAD_3] = R.string.controller_2
             titles[MenuTag.GCPAD_4] = R.string.controller_3
+            titles[MenuTag.GBA_1] = R.string.gba_controller_0
+            titles[MenuTag.GBA_2] = R.string.gba_controller_1
+            titles[MenuTag.GBA_3] = R.string.gba_controller_2
+            titles[MenuTag.GBA_4] = R.string.gba_controller_3
             titles[MenuTag.WIIMOTE_1] = R.string.wiimote_0
             titles[MenuTag.WIIMOTE_2] = R.string.wiimote_1
             titles[MenuTag.WIIMOTE_3] = R.string.wiimote_2
