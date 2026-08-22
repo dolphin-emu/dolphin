@@ -138,7 +138,10 @@ class SyncProgramsJobService : JobService() {
                 TvContractCompat.PreviewPrograms.COLUMN_TYPE,
                 TvContractCompat.PreviewProgramColumns.TYPE_GAME
             )
-            values.put(TvContract.Programs.COLUMN_TITLE, game.getTitle())
+            values.put(
+                TvContract.Programs.COLUMN_TITLE,
+                game.getTitle(GameFileCacheManager.getTitleDatabase())
+            )
             values.put(TvContract.Programs.COLUMN_SHORT_DESCRIPTION, game.getDescription())
             values.put(TvContract.Programs.COLUMN_POSTER_ART_URI, banner.toString())
             values.put(
