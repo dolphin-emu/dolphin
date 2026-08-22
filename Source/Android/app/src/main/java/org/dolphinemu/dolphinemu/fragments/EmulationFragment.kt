@@ -4,8 +4,10 @@ package org.dolphinemu.dolphinemu.fragments
 
 import android.content.Context
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +23,9 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
 import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
+import org.dolphinemu.dolphinemu.model.VideoInterface
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.Log
@@ -29,6 +33,7 @@ import java.io.File
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var inputOverlay: InputOverlay? = null
+    private var surface: Surface? = null
 
     private var gamePaths: Array<String>? = null
     private var riivolution = false
@@ -60,6 +65,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             gamePaths = getStringArray(KEY_GAMEPATHS)
             riivolution = getBoolean(KEY_RIIVOLUTION)
             launchSystemMenu = getBoolean(KEY_SYSTEM_MENU)
+        }
+        VideoInterface.observeTargetRefreshRate(this) {
+            frameRate -> activity?.runOnUiThread { setRefreshRate(surface, frameRate) }
         }
     }
 
@@ -153,6 +161,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         Log.debug("[EmulationFragment] Surface changed. Resolution: $width x $height")
+        surface = holder.surface
+        setRefreshRate(holder.surface, VideoInterface.getTargetRefreshRate())
         NativeLibrary.SurfaceChanged(holder.surface)
         if (runWhenSurfaceIsValid) {
             runWithValidSurface()
@@ -162,6 +172,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.debug("[EmulationFragment] Surface destroyed.")
         NativeLibrary.SurfaceDestroyed()
+        surface = null
         runWhenSurfaceIsValid = true
     }
 
@@ -258,6 +269,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 Log.debug("[EmulationFragment] Resuming emulation.")
                 NativeLibrary.UnPauseEmulation()
             }
+        }
+    }
+
+    private fun setRefreshRate(surface: Surface?, refreshRate: Double) {
+        if (surface == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return
+        }
+
+        // Adjust for emulation speed. The special case of 0.0 emulation speed meaning unlimited
+        // works out nicely without any special handling, since a number multiplied by 0.0 is 0.0
+        // and Surface.setFrameRate treats 0.0 as us not requesting any particular frame rate.
+        val adjustedRefreshRate = refreshRate * FloatSetting.MAIN_EMULATION_SPEED.float
+
+        Log.info("Requesting refresh rate $adjustedRefreshRate")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            surface.setFrameRate(
+                adjustedRefreshRate.toFloat(),
+                Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE,
+                Surface.CHANGE_FRAME_RATE_ALWAYS
+            )
+        } else {
+            surface.setFrameRate(
+                adjustedRefreshRate.toFloat(),
+                Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE
+            )
         }
     }
 
