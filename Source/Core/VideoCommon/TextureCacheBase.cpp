@@ -1055,7 +1055,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
     s32 lod_offset = std::log2(g_framebuffer_manager->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
+    state.tm0.lod_bias = MathUtil::SaturatingCast<s16>(state.tm0.lod_bias + lod_offset);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
     state.tm0.anisotropic_filtering = 0;

@@ -177,7 +177,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
     for (int comp = 0; comp < 4; comp++)
     {
       const float color = ColorSlopes[i][comp].GetValue(x, y);
-      tev.Color[i][comp] = (u8)std::clamp<float>(color, 0.0f, 255.0f);
+      tev.Color[i][comp] = MathUtil::SaturatingCast<u8>(color);
     }
   }
 
