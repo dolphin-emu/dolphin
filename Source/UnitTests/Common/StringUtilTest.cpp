@@ -283,6 +283,61 @@ TEST(StringUtil, SplitStringIntoArray)
   EXPECT_TRUE(SplitStringIntoArray<2>(subject4, '=').has_value());
 }
 
+TEST(StringUtil, StringToIPv4Port)
+{
+  constexpr Common::IPAddress test_ip = {127, 0, 0, 1};
+
+  EXPECT_FALSE(Common::StringToIPv4Port("").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port(" ").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("...").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1a").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("a.b.c.d").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1.2").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port(".127.0.0.1").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("256.0.0.1").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.-1").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:-1").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:65536").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:foo").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:80x").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:80 foo").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1:80:81").has_value());
+  EXPECT_FALSE(Common::StringToIPv4Port("127.0.0.1: 80").has_value());
+
+  // No port
+  {
+    const auto result = Common::StringToIPv4Port("127.0.0.1").value();
+    EXPECT_EQ(result.ip_address, test_ip);
+    EXPECT_EQ(result.GetPortValue(), 0);
+  }
+
+  // With port
+  {
+    const auto result = Common::StringToIPv4Port("127.0.0.1:80").value();
+    EXPECT_EQ(result.ip_address, test_ip);
+    EXPECT_EQ(result.GetPortValue(), 80);
+  }
+
+  // Port boundaries
+  {
+    const auto result = Common::StringToIPv4Port("127.0.0.1:0").value();
+    EXPECT_EQ(result.GetPortValue(), 0);
+  }
+  {
+    const auto result = Common::StringToIPv4Port("127.0.0.1:65535").value();
+    EXPECT_EQ(result.GetPortValue(), 65535);
+  }
+
+  // Leading zeros
+  {
+    const auto result = Common::StringToIPv4Port("127.0.0.1:0080").value();
+    EXPECT_EQ(result.GetPortValue(), 80);
+  }
+}
+
 TEST(StringUtil, StringToIPv4PortRange)
 {
   constexpr auto parse = Common::StringToIPv4PortRange;

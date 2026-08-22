@@ -1,4 +1,5 @@
 add_subdirectory(AudioCommon)
+add_subdirectory(CameraCommon)
 add_subdirectory(Common)
 add_subdirectory(Core)
 add_subdirectory(DiscIO)

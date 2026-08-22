@@ -295,6 +295,8 @@ add_library(core
   HW/StreamADPCM.h
   HW/SystemTimers.cpp
   HW/SystemTimers.h
+  HW/Triforce/Camera.cpp
+  HW/Triforce/Camera.h
   HW/Triforce/DeckReader.cpp
   HW/Triforce/DeckReader.h
   HW/Triforce/FZeroAX.cpp
@@ -684,6 +686,7 @@ endif()
 target_link_libraries(core
 PUBLIC
   audiocommon
+  cameracommon
   common
   discio
   enet::enet
@@ -692,6 +695,7 @@ PUBLIC
   MbedTLS::mbedtls
   pugixml
   sfml-network
+  stb
   videonull
   videoogl
   videosoftware

@@ -66,6 +66,9 @@ template <typename T>
 requires(std::is_integral_v<T> || (std::is_enum_v<T> && !Common::BooleanEnum<T>))
 bool TryParse(const std::string& str, T* output, int base = 0)
 {
+  if (str.empty())
+    return false;
+
   char* end_ptr = nullptr;
 
   // Set errno to a clean slate.

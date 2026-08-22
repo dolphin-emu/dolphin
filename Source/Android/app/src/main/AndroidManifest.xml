@@ -17,6 +17,12 @@
         android:name="android.hardware.microphone"
         android:required="false"/>
     <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false"/>
+    <uses-feature
         android:name="android.software.leanback"
         android:required="false"/>
 
@@ -30,6 +36,7 @@
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
         android:name=".DolphinApplication"
@@ -44,7 +51,8 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv"
-        android:hasFragileUserData="true">
+        android:hasFragileUserData="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>

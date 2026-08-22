@@ -143,9 +143,9 @@ endif()
 
 # Enable SDL by default on operating systems that aren't Android.
 if(NOT ANDROID)
-  option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
+  option(ENABLE_SDL "Enables SDL as a generic controller and camera backend" ON)
 else()
-  option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
+  option(ENABLE_SDL "Enables SDL as a generic controller and camera backend" OFF)
 endif()
 
 if(APPLE)
@@ -615,6 +615,8 @@ add_subdirectory(Externals/cpp-optparse)
 dolphin_find_optional_system_library_pkgconfig(FMT
   fmt>=10.1 fmt::fmt Externals/fmt
 )
+
+add_subdirectory(Externals/stb)
 
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)

@@ -295,6 +295,15 @@ object NativeLibrary {
     external fun GetMaxLogLevel(): Int
 
     @JvmStatic
+    external fun getCameras(): Array<String>
+
+    @JvmStatic
+    external fun recreateTriforceCamera()
+
+    @JvmStatic
+    external fun getTriforceCameraIP(): String
+
+    @JvmStatic
     external fun ReloadConfig()
 
     @JvmStatic
