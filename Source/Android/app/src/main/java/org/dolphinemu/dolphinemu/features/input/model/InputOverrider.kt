@@ -11,6 +11,10 @@ object InputOverrider {
 
     external fun unregisterWii(controllerIndex: Int)
 
+    external fun registerGba(controllerIndex: Int)
+
+    external fun unregisterGba(controllerIndex: Int)
+
     external fun setControlState(controllerIndex: Int, control: Int, state: Double)
 
     external fun clearControlState(controllerIndex: Int, control: Int)
@@ -78,5 +82,16 @@ object InputOverrider {
         const val CLASSIC_LEFT_STICK_Y = 53
         const val CLASSIC_RIGHT_STICK_X = 54
         const val CLASSIC_RIGHT_STICK_Y = 55
+
+        const val GBA_A_BUTTON = 56
+        const val GBA_B_BUTTON = 57
+        const val GBA_L_BUTTON = 58
+        const val GBA_R_BUTTON = 59
+        const val GBA_START_BUTTON = 60
+        const val GBA_SELECT_BUTTON = 61
+        const val GBA_DPAD_UP = 62
+        const val GBA_DPAD_DOWN = 63
+        const val GBA_DPAD_LEFT = 64
+        const val GBA_DPAD_RIGHT = 65
     }
 }

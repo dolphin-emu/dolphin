@@ -2518,6 +2518,28 @@ class SettingsFragmentPresenter(
                     )
                 )
             }
+            13 -> {
+                // GBA(integrated)
+                val gbaPad = EmulatedController.getGbaPad(gcPadNumber)
+
+                if (!TextUtils.isEmpty(gameId)) {
+                    addControllerPerGameSettings(sl, gbaPad, gcPadNumber)
+                } else {
+                    sl.add(HeaderSetting(context, R.string.gba_settings, 0))
+                    sl.add(
+                        FilePicker(
+                            context,
+                            StringSetting.getGBARomPath(gcPadNumber),
+                            R.string.gba_rom_path,
+                            0,
+                            fragmentView.activityResultLaunchers.requestGbaRomFile,
+                            null
+                        )
+                    )
+                    addControllerMetaSettings(sl, gbaPad)
+                    addControllerMappingSettings(sl, gbaPad, null)
+                }
+            }
         }
     }
 
