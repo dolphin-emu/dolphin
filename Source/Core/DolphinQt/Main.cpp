@@ -114,7 +114,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 }
 
 #ifdef _WIN32
+#ifndef main
 #define main app_main
+#endif
 #endif
 
 int main(int argc, char* argv[])

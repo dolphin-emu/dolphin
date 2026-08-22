@@ -7,6 +7,12 @@
 #define XINPUT_GAMEPAD_GUIDE 0x0400
 #endif
 
+#if defined(__MINGW32__)
+#ifndef XINPUT_DLL
+#define XINPUT_DLL L"xinput1_4.dll"
+#endif
+#endif
+
 namespace ciface::XInput
 {
 struct ButtonDef
