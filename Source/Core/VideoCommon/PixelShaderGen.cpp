@@ -1799,9 +1799,9 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
   }
 
   if (uid_data->rgba6_format)
-    out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
+    out.Write("\tocol0.rgb = float3(prev.brg >> 2) / 63.0;\n");
   else
-    out.Write("\tocol0.rgb = float3(prev.rgb) / 255.0;\n");
+    out.Write("\tocol0.rgb = float3(prev.brg) / 255.0;\n");
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
