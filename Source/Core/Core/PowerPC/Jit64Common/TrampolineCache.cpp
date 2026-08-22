@@ -20,33 +20,36 @@ void TrampolineCache::ClearCodeSpace()
   X64CodeBlock::ClearCodeSpace();
 }
 
-const u8* TrampolineCache::GenerateTrampoline(const TrampolineInfo& info)
+const u8* TrampolineCache::GenerateTrampoline(const TrampolineInfo& info, const u8* jmp_destination)
 {
   if (info.read)
   {
-    return GenerateReadTrampoline(info);
+    return GenerateReadTrampoline(info, jmp_destination);
   }
 
-  return GenerateWriteTrampoline(info);
+  return GenerateWriteTrampoline(info, jmp_destination);
 }
 
-const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
+const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info,
+                                                  const u8* jmp_destination)
 {
   if (GetSpaceLeft() < 1024)
     PanicAlertFmt("Trampoline cache full");
 
   const u8* trampoline = GetCodePtr();
 
-  SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
-                info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
+  SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.inst,
+                info.registersInUse, info.signExtend,
+                info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len);
+  JMP(jmp_destination);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline_{:x}", info.pc);
   return trampoline;
 }
 
-const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
+const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info,
+                                                   const u8* jmp_destination)
 {
   if (GetSpaceLeft() < 1024)
     PanicAlertFmt("Trampoline cache full");
@@ -56,10 +59,10 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   // Don't treat FIFO writes specially for now because they require a burst
   // check anyway.
 
-  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
+  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset, info.inst,
                     info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len);
+  JMP(jmp_destination);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_{:x}", info.pc);
   return trampoline;
