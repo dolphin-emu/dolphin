@@ -223,8 +223,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 .commit()
         }
 
-        if (NativeLibrary.IsGameMetadataValid())
+        if (NativeLibrary.IsGameMetadataValid()) {
             title = NativeLibrary.GetCurrentTitleDescription()
+            useCurrentGameSettings()
+        }
 
         if (skylanderSlots.isEmpty()) {
             for (i in 0..7) {
@@ -319,6 +321,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         settings.saveSettings()
     }
 
+    fun saveSettingsBeforeStoppingEmulation() = settings.saveSettings()
+
     fun onTitleChanged() {
         if (!menuToastShown) {
             // The reason why this doesn't run earlier is because we want to be sure the boot succeeded.
@@ -328,13 +332,26 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         try {
             title = NativeLibrary.GetCurrentTitleDescription()
+            useCurrentGameSettings()
 
             emulationFragment?.refreshInputOverlay()
+            emulationFragment?.initInputPointer()
 
             updateDisplaySettings()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
+        }
+    }
+
+    private fun useCurrentGameSettings() {
+        val gameId = NativeLibrary.GetCurrentGameID()
+        if (gameId.isNotEmpty()) {
+            settings.useRunningGameSettings(
+                gameId,
+                NativeLibrary.IsEmulatingWii(),
+                InputOverlay.isGameSpecificLayoutEnabled
+            )
         }
     }
 
@@ -438,10 +455,14 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         // Populate the switch value for joystick center on touch
         menu.findItem(R.id.menu_emulation_joystick_rel_center).isChecked =
-            BooleanSetting.MAIN_JOYSTICK_REL_CENTER.boolean
+            InputOverlay.getBooleanSetting(BooleanSetting.MAIN_JOYSTICK_REL_CENTER)
         if (wii) {
             menu.findItem(R.id.menu_emulation_ir_recenter).isChecked =
-                BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean
+                InputOverlay.getBooleanSetting(BooleanSetting.MAIN_IR_ALWAYS_RECENTER)
+        }
+        menu.findItem(R.id.menu_emulation_game_specific_layout).apply {
+            isEnabled = InputOverlay.isGameSpecificLayoutAvailable
+            isChecked = InputOverlay.isGameSpecificLayoutEnabled
         }
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
         popup.show()
@@ -470,6 +491,16 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_SET_IR_RECENTER -> {
                 item.isChecked = !item.isChecked
                 toggleRecenter(item.isChecked)
+            }
+
+            MENU_ACTION_GAME_SPECIFIC_LAYOUT -> {
+                val enabled = !item.isChecked
+                settings.saveSettings()
+                InputOverlay.setGameSpecificLayoutEnabled(enabled)
+                useCurrentGameSettings()
+                item.isChecked = enabled
+                emulationFragment?.refreshInputOverlay()
+                emulationFragment?.initInputPointer()
             }
         }
     }
@@ -560,7 +591,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 val gcSettingBase = "MAIN_BUTTON_LATCHING_GC_"
 
                 for (i in gcLatchingButtons.indices) {
-                    gcLatchingButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).boolean
+                    gcLatchingButtons[i] = InputOverlay.getBooleanSetting(
+                        BooleanSetting.valueOf(gcSettingBase + i)
+                    )
                 }
 
                 builder.setMultiChoiceItems(
@@ -576,7 +609,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 val classicSettingBase = "MAIN_BUTTON_LATCHING_CLASSIC_"
 
                 for (i in wiiClassicLatchingButtons.indices) {
-                    wiiClassicLatchingButtons[i] = BooleanSetting.valueOf(classicSettingBase + i).boolean
+                    wiiClassicLatchingButtons[i] = InputOverlay.getBooleanSetting(
+                        BooleanSetting.valueOf(classicSettingBase + i)
+                    )
                 }
                 builder.setMultiChoiceItems(
                     R.array.classicLatchableButtons, wiiClassicLatchingButtons
@@ -596,8 +631,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 fun translateToSettingsIndex(idx: Int): Int = if (idx >= 7) idx + 1 else idx
 
                 for (i in nunchukLatchingButtons.indices) {
-                    nunchukLatchingButtons[i] = BooleanSetting
-                        .valueOf(nunchukSettingBase + translateToSettingsIndex(i)).boolean
+                    nunchukLatchingButtons[i] = InputOverlay.getBooleanSetting(
+                        BooleanSetting.valueOf(
+                            nunchukSettingBase + translateToSettingsIndex(i)
+                        )
+                    )
                 }
 
                 builder.setMultiChoiceItems(
@@ -613,7 +651,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 val wiimoteSettingBase = "MAIN_BUTTON_LATCHING_WII_"
 
                 for (i in wiimoteLatchingButtons.indices) {
-                    wiimoteLatchingButtons[i] = BooleanSetting.valueOf(wiimoteSettingBase + i).boolean
+                    wiimoteLatchingButtons[i] = InputOverlay.getBooleanSetting(
+                        BooleanSetting.valueOf(wiimoteSettingBase + i)
+                    )
                 }
 
                 builder.setMultiChoiceItems(
@@ -642,7 +682,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             val gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_"
 
             for (i in gcEnabledButtons.indices) {
-                gcEnabledButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).boolean
+                gcEnabledButtons[i] = InputOverlay.getBooleanSetting(
+                    BooleanSetting.valueOf(gcSettingBase + i)
+                )
             }
             builder.setMultiChoiceItems(
                 R.array.gcpadButtons, gcEnabledButtons
@@ -656,7 +698,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             val classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_"
 
             for (i in wiiClassicEnabledButtons.indices) {
-                wiiClassicEnabledButtons[i] = BooleanSetting.valueOf(classicSettingBase + i).boolean
+                wiiClassicEnabledButtons[i] = InputOverlay.getBooleanSetting(
+                    BooleanSetting.valueOf(classicSettingBase + i)
+                )
             }
             builder.setMultiChoiceItems(
                 R.array.classicButtons, wiiClassicEnabledButtons
@@ -670,7 +714,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             val wiiSettingBase = "MAIN_BUTTON_TOGGLE_WII_"
 
             for (i in wiiEnabledButtons.indices) {
-                wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).boolean
+                wiiEnabledButtons[i] = InputOverlay.getBooleanSetting(
+                    BooleanSetting.valueOf(wiiSettingBase + i)
+                )
             }
             if (currentController == InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) {
                 builder.setMultiChoiceItems(
@@ -700,7 +746,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun chooseDoubleTapButton() {
-        val currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.int
+        val currentValue = InputOverlay.getIntSetting(IntSetting.MAIN_DOUBLE_TAP_BUTTON)
 
         val buttonList =
             if (InputOverlay.configuredControllerType == InputOverlay.OVERLAY_WIIMOTE_CLASSIC) R.array.doubleTapWithClassic else R.array.doubleTap
@@ -731,7 +777,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         dialogBinding.apply {
             inputScaleSlider.apply {
                 valueTo = 150f
-                value = IntSetting.MAIN_CONTROL_SCALE.int.toFloat()
+                value = InputOverlay.getIntSetting(IntSetting.MAIN_CONTROL_SCALE).toFloat()
                 stepSize = 1f
                 addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
                     dialogBinding.inputScaleValue.text = "${(value.toInt() + 50)}%"
@@ -744,7 +790,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
             inputOpacitySlider.apply {
                 valueTo = 100f
-                value = IntSetting.MAIN_CONTROL_OPACITY.int.toFloat()
+                value = InputOverlay.getIntSetting(IntSetting.MAIN_CONTROL_OPACITY).toFloat()
                 stepSize = 1f
                 addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
                     inputOpacityValue.text = value.toInt().toString() + "%"
@@ -849,7 +895,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         val controllerSetting =
             if (NativeLibrary.IsEmulatingWii()) IntSetting.MAIN_OVERLAY_WII_CONTROLLER else IntSetting.MAIN_OVERLAY_GC_CONTROLLER
-        val currentValue = controllerSetting.int
+        val currentValue = InputOverlay.getIntSetting(controllerSetting)
         var checkedItem = -1
         for (i in values.indices) {
             if (values[i] == currentValue) {
@@ -878,7 +924,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .setTitle(R.string.emulation_ir_mode)
             .setSingleChoiceItems(
                 R.array.irModeEntries,
-                IntSetting.MAIN_IR_MODE.int
+                InputOverlay.getIntSetting(IntSetting.MAIN_IR_MODE)
             ) { _: DialogInterface?, indexSelected: Int ->
                 IntSetting.MAIN_IR_MODE.setInt(settings, indexSelected)
                 emulationFragment?.refreshOverlayPointer()
@@ -1077,6 +1123,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_GAME_SPECIFIC_LAYOUT = 39
 
         init {
             buttonsActionsMap.apply {
@@ -1090,6 +1137,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_ir_recenter, MENU_SET_IR_RECENTER)
                 append(R.id.menu_emulation_set_ir_mode, MENU_SET_IR_MODE)
                 append(R.id.menu_emulation_choose_doubletap, MENU_ACTION_CHOOSE_DOUBLETAP)
+                append(
+                    R.id.menu_emulation_game_specific_layout,
+                    MENU_ACTION_GAME_SPECIFIC_LAYOUT
+                )
             }
         }
 
