@@ -58,7 +58,7 @@ void LazyMemoryRegionBitSet::SetBits(size_t bits_start, size_t bits_end)
   if (bits_start % 32 != 0)
     m_pointer[bits_start / 32] |= extra_first_word;
 
-  const size_t start_index = Common::AlignUp(bits_start, 32) / 32;
+  const size_t start_index = Common::DivideRoundingUp(bits_start, 32);
   const size_t end_index = bits_end / 32;
   std::memset(m_pointer + start_index, 0xFF, (end_index - start_index) * 4);
 
@@ -85,7 +85,7 @@ void LazyMemoryRegionBitSet::ClearBits(size_t bits_start, size_t bits_end)
   if (bits_start % 32 != 0)
     m_pointer[bits_start / 32] &= extra_first_word;
 
-  const size_t start_index = Common::AlignUp(bits_start, 32) / 32;
+  const size_t start_index = Common::DivideRoundingUp(bits_start, 32);
   const size_t end_index = bits_end / 32;
   std::memset(m_pointer + start_index, 0x00, (end_index - start_index) * sizeof(u32));
 

@@ -183,8 +183,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   for (auto [range_start, range_end] : block.physical_addresses)
   {
     valid_block.SetBits(range_start / VALID_BLOCK_CACHE_LINE_SIZE,
-                        Common::AlignUp(range_end, VALID_BLOCK_CACHE_LINE_SIZE) /
-                            VALID_BLOCK_CACHE_LINE_SIZE);
+                        Common::DivideRoundingUp(range_end, VALID_BLOCK_CACHE_LINE_SIZE));
 
     for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
       block_range_map[i].insert(&block);

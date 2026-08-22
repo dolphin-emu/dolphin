@@ -378,7 +378,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // that lie outside of the texture's dimensions.
   const u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
   const u32 block_size = GetBlockSizeForFormat(GetFormat());
-  const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
+  const u32 num_rows = Common::DivideRoundingUp(height, block_size);
   const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
   const u32 upload_size = source_pitch * num_rows;
   std::unique_ptr<StagingBuffer> temp_buffer;

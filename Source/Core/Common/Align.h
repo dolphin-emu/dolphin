@@ -22,4 +22,11 @@ constexpr T AlignUp(T value, size_t size)
   return AlignDown<T>(static_cast<T>(value + (size - 1)), size);
 }
 
+template <typename T>
+constexpr T DivideRoundingUp(T numerator, size_t denominator)
+{
+  static_assert(std::is_unsigned<T>(), "T must be an unsigned value.");
+  return static_cast<T>((numerator + (denominator - 1)) / denominator);
+}
+
 }  // namespace Common
