@@ -116,6 +116,29 @@ void SaveToDTM(Movie::DTMHeader* dtm)
 
   dtm->bFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
 
+  dtm->controllers = 0;
+  dtm->bongos = 0;
+  dtm->GBAControllers = 0;
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device != SerialInterface::SIDEVICE_NONE)
+      dtm->controllers |= 1 << i;
+
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      dtm->GBAControllers |= 1 << i;
+    else if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
+      dtm->bongos |= 1 << i;
+  }
+  if (dtm->bWii)
+  {
+    for (int i = 0; i < MAX_WIIMOTES; ++i)
+    {
+      if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None)
+        dtm->controllers |= 1 << (i + 4);
+    }
+  }
+
   // Settings which only existed in old Dolphin versions
   dtm->bSkipIdle = true;
   dtm->bEFBCopyEnable = true;
