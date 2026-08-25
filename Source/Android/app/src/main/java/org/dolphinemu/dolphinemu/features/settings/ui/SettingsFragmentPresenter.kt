@@ -367,6 +367,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.achievements_submenu, MenuTag.CONFIG_ACHIEVEMENTS))
         sl.add(SubmenuSetting(context, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED))
         sl.add(SubmenuSetting(context, R.string.log_submenu, MenuTag.CONFIG_LOG))
+        sl.add(SubmenuSetting(context, R.string.save_file_manager, MenuTag.CONFIG_SAVE_FILE_MANAGER))
         sl.add(SubmenuSetting(context, R.string.debug_submenu, MenuTag.DEBUG))
         sl.add(
             RunRunnable(
