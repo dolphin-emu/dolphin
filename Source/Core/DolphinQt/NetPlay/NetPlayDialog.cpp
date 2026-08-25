@@ -25,6 +25,13 @@
 #include <algorithm>
 #include <utility>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 #ifdef HAS_LIBMGBA
 #include <fmt/ranges.h>
 #endif
@@ -70,21 +77,23 @@ namespace
 {
 QString InetAddressToString(const Common::TraversalInetAddress& addr)
 {
-  QString ip;
-
   if (addr.isIPV6)
   {
-    ip = QStringLiteral("IPv6-Not-Implemented");
+    char ipv6[INET6_ADDRSTRLEN]{};
+    if (!inet_ntop(AF_INET6, addr.address, ipv6, sizeof(ipv6)))
+      return QStringLiteral("?:?");
+
+    return QStringLiteral("[%1]:%2")
+        .arg(QString::fromUtf8(ipv6), QString::number(ntohs(addr.port)));
   }
-  else
+
+  QString ip;
+  const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+  ip = QString::number(ipv4[0]);
+  for (u32 i = 1; i != 4; ++i)
   {
-    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
-    ip = QString::number(ipv4[0]);
-    for (u32 i = 1; i != 4; ++i)
-    {
-      ip += QStringLiteral(".");
-      ip += QString::number(ipv4[i]);
-    }
+    ip += QStringLiteral(".");
+    ip += QString::number(ipv4[i]);
   }
 
   return QStringLiteral("%1:%2").arg(ip, QString::number(ntohs(addr.port)));
