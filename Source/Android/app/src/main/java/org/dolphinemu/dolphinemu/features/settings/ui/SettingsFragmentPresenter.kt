@@ -725,6 +725,46 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_1,
+                R.string.gba_rom_path_1,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_2,
+                R.string.gba_rom_path_2,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_3,
+                R.string.gba_rom_path_3,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_4,
+                R.string.gba_rom_path_4,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
             DirectoryPicker(
                 context,
                 StringSetting.MAIN_GBA_SAVES_PATH,
@@ -2525,17 +2565,6 @@ class SettingsFragmentPresenter(
                 if (!TextUtils.isEmpty(gameId)) {
                     addControllerPerGameSettings(sl, gbaPad, gcPadNumber)
                 } else {
-                    sl.add(HeaderSetting(context, R.string.gba_settings, 0))
-                    sl.add(
-                        FilePicker(
-                            context,
-                            StringSetting.getGBARomPath(gcPadNumber),
-                            R.string.gba_rom_path,
-                            0,
-                            fragmentView.activityResultLaunchers.requestGbaRomFile,
-                            null
-                        )
-                    )
                     addControllerMetaSettings(sl, gbaPad)
                     addControllerMappingSettings(sl, gbaPad, null)
                 }

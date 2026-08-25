@@ -156,15 +156,6 @@ enum class StringSetting(
             MAIN_CUSTOM_RTC_VALUE,
             MAIN_GFX_BACKEND
         )
-
-        fun getGBARomPath(slot: Int): StringSetting = when (slot) {
-            0 -> MAIN_GBA_ROM_PATH_1
-            1 -> MAIN_GBA_ROM_PATH_2
-            2 -> MAIN_GBA_ROM_PATH_3
-            3 -> MAIN_GBA_ROM_PATH_4
-            else -> MAIN_GBA_ROM_PATH_1
-        }
-
         private val NOT_RUNTIME_EDITABLE: Set<StringSetting> =
             HashSet(listOf(*NOT_RUNTIME_EDITABLE_ARRAY))
     }

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.gba
 
 import android.content.Context
@@ -8,6 +10,7 @@ import android.view.SurfaceView
 class GbaOverlayView(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
     var gbaSlot = 0
     var isScreenVisible = true
+    var isDimmed = false
     var needsBorderRedraw = false
     var surfaceReady = false
     var nativeWidth = 0
@@ -61,6 +64,11 @@ class GbaOverlayView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         destRect.set(0, 0, width, height)
         canvas.drawColor(Color.BLACK)
         canvas.drawBitmap(bitmap, null, destRect, paint)
+
+        if (isDimmed) {
+            canvas.drawColor(Color.argb(150, 0, 0, 0))
+        }
+
         holder.unlockCanvasAndPost(canvas)
     }
 

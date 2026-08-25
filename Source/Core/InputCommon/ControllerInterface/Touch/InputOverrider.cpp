@@ -190,6 +190,9 @@ void RegisterGameCubeInputOverrider(int controller_index)
   Pad::GetConfig()
       ->GetController(controller_index)
       ->SetInputOverrideFunction(GetInputOverrideFunction(s_gcpad_controls_map, controller_index));
+  Pad::GetGBAConfig()
+      ->GetController(controller_index)
+      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gbapad_controls_map, controller_index));
 }
 
 void RegisterWiiInputOverrider(int controller_index)
@@ -213,8 +216,11 @@ void RegisterWiiInputOverrider(int controller_index)
 void UnregisterGameCubeInputOverrider(int controller_index)
 {
   Pad::GetConfig()->GetController(controller_index)->ClearInputOverrideFunction();
+  Pad::GetGBAConfig()->GetController(controller_index)->ClearInputOverrideFunction();
 
   for (size_t i = ControlID::FIRST_GC_CONTROL; i <= ControlID::LAST_GC_CONTROL; ++i)
+    s_state_arrays[controller_index][i].overriding = false;
+  for (size_t i = ControlID::FIRST_GBA_CONTROL; i <= ControlID::LAST_GBA_CONTROL; ++i)
     s_state_arrays[controller_index][i].overriding = false;
 }
 
@@ -233,20 +239,6 @@ void UnregisterWiiInputOverrider(int controller_index)
   attachments[WiimoteEmu::ExtensionNumber::CLASSIC]->ClearInputOverrideFunction();
 
   for (size_t i = ControlID::FIRST_WII_CONTROL; i <= ControlID::LAST_WII_CONTROL; ++i)
-    s_state_arrays[controller_index][i].overriding = false;
-}
-
-void RegisterGBAInputOverrider(int controller_index)
-{
-  Pad::GetGBAConfig()
-      ->GetController(controller_index)
-      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gbapad_controls_map, controller_index));
-}
-
-void UnregisterGBAInputOverrider(int controller_index)
-{
-  Pad::GetGBAConfig()->GetController(controller_index)->ClearInputOverrideFunction();
-  for (size_t i = ControlID::FIRST_GBA_CONTROL; i <= ControlID::LAST_GBA_CONTROL; ++i)
     s_state_arrays[controller_index][i].overriding = false;
 }
 

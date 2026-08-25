@@ -136,12 +136,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         for (button in gbaOverlayButtons) {
             button.draw(canvas)
-            drawGbaBadge(canvas, button.bounds)
         }
 
         for (dpad in gbaOverlayDpads) {
             dpad.draw(canvas)
-            drawGbaBadge(canvas, dpad.bounds)
         }
     }
 
@@ -158,7 +156,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         var pressed = false
 
         for (button in overlayButtons + gbaOverlayButtons) {
-            val cIndex =
+            val targetControllerIndex =
                 if (gbaOverlayButtons.contains(button)) gbaControllerIndex else controllerIndex
             // Determine the button state to apply based on the MotionEvent action flag.
             when (action) {
@@ -174,7 +172,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         button.trackId = event.getPointerId(pointerIndex)
                         pressed = true
                         InputOverrider.setControlState(
-                            cIndex,
+                            targetControllerIndex,
                             button.control,
                             if (button.getPressedState()) 1.0 else 0.0
                         )
@@ -182,7 +180,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         val analogControl = getAnalogControlForTrigger(button.control)
                         if (analogControl >= 0)
                             InputOverrider.setControlState(
-                                cIndex,
+                                targetControllerIndex,
                                 analogControl,
                                 1.0
                             )
@@ -196,7 +194,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         if (!button.latching)
                             button.setPressedState(false)
                         InputOverrider.setControlState(
-                            cIndex,
+                            targetControllerIndex,
                             button.control,
                             if (button.getPressedState()) 1.0 else 0.0
                         )
@@ -204,7 +202,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         val analogControl = getAnalogControlForTrigger(button.control)
                         if (analogControl >= 0)
                             InputOverrider.setControlState(
-                                cIndex,
+                                targetControllerIndex,
                                 analogControl,
                                 0.0
                             )
@@ -216,7 +214,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         }
 
         for (dpad in overlayDpads + gbaOverlayDpads) {
-            val cIndex = if (gbaOverlayDpads.contains(dpad)) gbaControllerIndex else controllerIndex
+            val targetControllerIndex = if (gbaOverlayDpads.contains(dpad)) gbaControllerIndex else controllerIndex
             // Determine the button state to apply based on the MotionEvent action flag.
             when (event.action and MotionEvent.ACTION_MASK) {
                 MotionEvent.ACTION_DOWN,
@@ -253,13 +251,13 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         for (i in dpadPressed.indices) {
                             if (!dpadPressed[i]) {
                                 InputOverrider.setControlState(
-                                    cIndex,
+                                    targetControllerIndex,
                                     dpad.getControl(i),
                                     0.0
                                 )
                             } else {
                                 InputOverrider.setControlState(
-                                    cIndex,
+                                    targetControllerIndex,
                                     dpad.getControl(i),
                                     1.0
                                 )
@@ -282,7 +280,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         for (i in 0 until 4) {
                             dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
                             InputOverrider.setControlState(
-                                cIndex,
+                                targetControllerIndex,
                                 dpad.getControl(i),
                                 0.0
                             )
@@ -465,10 +463,6 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         for (i in wiimoteRegistered.indices) {
             if (wiimoteRegistered[i])
                 InputOverrider.unregisterWii(i)
-        }
-
-        for (i in gbaRegistered.indices) {
-            if (gbaRegistered[i]) InputOverrider.unregisterGba(i)
         }
 
         Arrays.fill(gcPadRegistered, false)
@@ -1145,7 +1139,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             }
 
             val selectedSlot = IntSetting.MAIN_GBA_ACTIVE_SLOT.int
-            if (getSettingForSIDevice(selectedSlot).int == EMULATED_GBA_CONTROLLER) {
+            if (controllerIndex in 0..3 &&
+                getSettingForSIDevice(controllerIndex).int == EMULATED_GBA_CONTROLLER
+            ) {
+                gbaControllerIndex = controllerIndex
+            } else if (getSettingForSIDevice(selectedSlot).int == EMULATED_GBA_CONTROLLER) {
                 gbaControllerIndex = selectedSlot
             } else {
                 for (i in 0 until 4) {
@@ -1159,7 +1157,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             for (i in 0 until 4) {
                 if (getSettingForSIDevice(i).int == EMULATED_GBA_CONTROLLER) {
                     if (!gbaRegistered[i]) {
-                        InputOverrider.registerGba(i)
+                        InputOverrider.registerGameCube(i)
                         gbaRegistered[i] = true
                     }
                 }
@@ -2512,26 +2510,6 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 0.72f * maxY
             )
             .apply()
-    }
-
-    // Draws GBA badge on controls for GBA controller, to not get confused with the GC pad buttons
-    private fun drawGbaBadge(canvas: Canvas, bounds: Rect) {
-        val bp = android.graphics.Paint().apply {
-            isAntiAlias = true; color = android.graphics.Color.argb(200, 98, 0, 238)
-            style = android.graphics.Paint.Style.FILL
-        }
-        val tp = android.graphics.Paint().apply {
-            isAntiAlias = true; color = android.graphics.Color.WHITE; textSize = 18f
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            textAlign = android.graphics.Paint.Align.CENTER
-        }
-        val text = "GBA ${gbaControllerIndex + 1}"
-        val r = android.graphics.RectF(
-            bounds.left.toFloat(), bounds.top.toFloat(),
-            bounds.left + 58f, bounds.top + 20f
-        )
-        canvas.drawRoundRect(r, 6f, 6f, bp)
-        canvas.drawText(text, r.centerX(), r.top + 16f, tp)
     }
 
     companion object {

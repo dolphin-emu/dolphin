@@ -11,10 +11,6 @@ object InputOverrider {
 
     external fun unregisterWii(controllerIndex: Int)
 
-    external fun registerGba(controllerIndex: Int)
-
-    external fun unregisterGba(controllerIndex: Int)
-
     external fun setControlState(controllerIndex: Int, control: Int, state: Double)
 
     external fun clearControlState(controllerIndex: Int, control: Int)

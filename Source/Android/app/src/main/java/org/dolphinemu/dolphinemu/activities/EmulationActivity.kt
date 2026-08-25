@@ -220,7 +220,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         setContentView(binding.root)
 
         gba = GbaEmulationManager(this, binding)
-        gba.initSettings(settings) { emulationFragment?.refreshInputOverlay() }
+        gba.initSettings(settings, onRefreshOverlay = { emulationFragment?.refreshInputOverlay() })
         gba.initViews()
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -911,7 +911,15 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .setSingleChoiceItems(
                 entries.toArray(arrayOf<CharSequence>()), checkedItem
             ) { _: DialogInterface?, indexSelected: Int ->
-                controllerSetting.setInt(settings, values[indexSelected])
+                val selectedValue = values[indexSelected]
+                controllerSetting.setInt(settings, selectedValue)
+
+                if (selectedValue in 0..3 &&
+                    IntSetting.getSettingForSIDevice(selectedValue).int == InputOverlay.EMULATED_GBA_CONTROLLER
+                ) {
+                    IntSetting.MAIN_GBA_ACTIVE_SLOT.setInt(settings, selectedValue)
+                }
+
                 emulationFragment?.refreshInputOverlay()
             }
             .setPositiveButton(R.string.ok, null)

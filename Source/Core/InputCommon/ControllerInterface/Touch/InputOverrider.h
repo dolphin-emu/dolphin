@@ -93,8 +93,6 @@ void RegisterGameCubeInputOverrider(int controller_index);
 void RegisterWiiInputOverrider(int controller_index);
 void UnregisterGameCubeInputOverrider(int controller_index);
 void UnregisterWiiInputOverrider(int controller_index);
-void RegisterGBAInputOverrider(int controller_index);
-void UnregisterGBAInputOverrider(int controller_index);
 
 void SetControlState(int controller_index, ControlID control, double state);
 void ClearControlState(int controller_index, ControlID control);

@@ -16,7 +16,6 @@ static jmethodID s_display_toast_msg;
 static jmethodID s_display_alert_msg;
 static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
-static jmethodID s_on_tv_size_changed;
 static jmethodID s_finish_emulation_activity;
 
 static jclass s_game_file_class;
@@ -154,6 +153,7 @@ static jmethodID s_audio_utils_get_frames_per_buffer;
 
 static jclass s_gba_renderer_class;
 static jmethodID s_on_gba_frame_buffer;
+static jmethodID s_on_tv_size_changed;
 
 namespace IDCache
 {
@@ -208,11 +208,6 @@ jmethodID GetUpdateTouchPointer()
 jmethodID GetOnTitleChanged()
 {
   return s_on_title_changed;
-}
-
-jmethodID GetOnTvSizeChanged()
-{
-  return s_on_tv_size_changed;
 }
 
 jmethodID GetFinishEmulationActivity()
@@ -730,14 +725,19 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jclass GetGbaRendererClass()
+{
+  return s_gba_renderer_class;
+}
+
 jmethodID GetOnGbaFrameBuffer()
 {
   return s_on_gba_frame_buffer;
 }
 
-jclass GetGbaRendererClass()
+jmethodID GetOnTvSizeChanged()
 {
-  return s_gba_renderer_class;
+  return s_on_tv_size_changed;
 }
 
 }  // namespace IDCache
