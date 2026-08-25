@@ -28,6 +28,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -49,6 +50,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig
+import org.dolphinemu.dolphinemu.features.skylanders.server.SkylanderHttpServer
 import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlotAdapter
@@ -88,6 +90,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var infinityPosition = -1
     private lateinit var skylandersBinding: DialogNfcFiguresManagerBinding
     private lateinit var infinityBinding: DialogNfcFiguresManagerBinding
+    private var skylanderHttpServer: SkylanderHttpServer? = null
 
     private lateinit var binding: ActivityEmulationBinding
 
@@ -106,15 +109,23 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     val requestSkylanderFile = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
+        if (uri != null && skylanderSlot in 0 until skylanderSlots.size) {
+            val importedFile = SkylanderConfig.importFigureFromUri(this, uri)
+            val filePath = importedFile?.absolutePath ?: uri.toString()
             val slot = SkylanderConfig.loadSkylander(
                 skylanderSlots[skylanderSlot].portalSlot,
-                uri.toString()
-            )!!
-            clearSkylander(skylanderSlot)
-            skylanderSlots[skylanderSlot].portalSlot = slot.first!!
-            skylanderSlots[skylanderSlot].label = slot.second!!
-            skylandersBinding.figureManager.adapter!!.notifyItemChanged(skylanderSlot)
+                filePath
+            )
+            if (slot != null && slot.first != null) {
+                clearSkylander(skylanderSlot)
+                skylanderSlots[skylanderSlot].portalSlot = slot.first!!
+                skylanderSlots[skylanderSlot].label = slot.second ?: getString(R.string.skylander_label)
+                if (::skylandersBinding.isInitialized) {
+                    skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+                }
+            } else {
+                Toast.makeText(this, R.string.skylander_load_failed, Toast.LENGTH_SHORT).show()
+            }
             skylanderSlot = -1
             skylanderData = Skylander.BLANK_SKYLANDER
         }
@@ -123,18 +134,21 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     val requestCreateSkylander = registerForActivityResult(
         ActivityResultContracts.CreateDocument("*/*")
     ) { uri: Uri? ->
-        if (uri != null) {
+        if (uri != null && skylanderSlot in 0 until skylanderSlots.size) {
             if (skylanderData.id != -1 && skylanderData.variant != -1) {
+                val figureFile = SkylanderConfig.getFigureFileForSkylander(this, skylanderData.id, skylanderData.variant)
                 val slot = SkylanderConfig.createSkylander(
                     skylanderData.id,
                     skylanderData.variant,
-                    uri.toString(),
+                    figureFile.absolutePath,
                     skylanderSlots[skylanderSlot].portalSlot
                 )
                 clearSkylander(skylanderSlot)
                 skylanderSlots[skylanderSlot].portalSlot = slot.first
                 skylanderSlots[skylanderSlot].label = slot.second
-                skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+                if (::skylandersBinding.isInitialized) {
+                    skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+                }
                 skylanderSlot = -1
                 skylanderData = Skylander.BLANK_SKYLANDER
             }
@@ -332,14 +346,50 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             emulationFragment?.refreshInputOverlay()
 
             updateDisplaySettings()
+
+            startSkylanderServerIfNeeded()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
         }
     }
 
+    private fun startSkylanderServerIfNeeded() {
+        try {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            val enabled = prefs.getBoolean("skylander_server_enable", true)
+            if (enabled && skylanderHttpServer == null) {
+                val port = prefs.getString("skylander_server_port", "9090")?.toIntOrNull() ?: 9090
+                skylanderHttpServer = SkylanderHttpServer(
+                    this,
+                    port,
+                    slotListSupplier = { skylanderSlots },
+                    onSlotUpdated = { slotIndex, portalSlot, name ->
+                        updateSkylanderSlotFromExternal(slotIndex, portalSlot, name)
+                    },
+                    onSlotCleared = { slotIndex ->
+                        clearSkylander(slotIndex)
+                    }
+                )
+                skylanderHttpServer?.start()
+                val ip = SkylanderHttpServer.getLocalIpAddress() ?: "127.0.0.1"
+                Toast.makeText(
+                    this,
+                    getString(R.string.skylander_server_started, "http://$ip:$port"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        } catch (e: Exception) {
+            org.dolphinemu.dolphinemu.utils.Log.error("Error starting SkylanderHttpServer: ${e.message}")
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        try {
+            skylanderHttpServer?.stop()
+            skylanderHttpServer = null
+        } catch (_: Exception) {}
         settings.close()
     }
 
@@ -919,8 +969,23 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     fun clearSkylander(slot: Int) {
-        skylanderSlots[slot].label = getString(R.string.skylander_slot, slot + 1)
-        skylandersBinding.figureManager.adapter?.notifyItemChanged(slot)
+        if (slot in 0 until skylanderSlots.size) {
+            skylanderSlots[slot].portalSlot = -1
+            skylanderSlots[slot].label = getString(R.string.skylander_slot, slot + 1)
+            if (::skylandersBinding.isInitialized) {
+                skylandersBinding.figureManager.adapter?.notifyItemChanged(slot)
+            }
+        }
+    }
+
+    fun updateSkylanderSlotFromExternal(slotIndex: Int, portalSlot: Int, name: String) {
+        if (slotIndex in 0 until skylanderSlots.size) {
+            skylanderSlots[slotIndex].portalSlot = portalSlot
+            skylanderSlots[slotIndex].label = name
+            if (::skylandersBinding.isInitialized) {
+                skylandersBinding.figureManager.adapter?.notifyItemChanged(slotIndex)
+            }
+        }
     }
 
     fun setInfinityFigureData(num: Long, name: String, position: Int, listPosition: Int) {

@@ -956,6 +956,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="skylander_id">ID</string>
     <string name="skylander_variant">Variant</string>
     <string name="invalid_skylander">Invalid Skylander Selection</string>
+    <string name="skylander_server_enable">Enable Skylanders HTTP Server</string>
+    <string name="skylander_server_enable_description">Allows loading and managing Skylanders via HTTP / Web browser over Wi-Fi during gameplay.</string>
+    <string name="skylander_server_port">Skylanders Server Port</string>
+    <string name="skylander_server_port_description">Port for the embedded HTTP server (default: 9090).</string>
+    <string name="skylander_server_started">Skylanders Server running at %1$s</string>
+    <string name="skylander_load_failed">Failed to load Skylander figure</string>
+    <string name="skylander_create_failed">Failed to create Skylander figure</string>
 
     <string name="emulate_infinity_base">Infinity Base</string>
     <string name="infinity_manager">Infinity Manager</string>

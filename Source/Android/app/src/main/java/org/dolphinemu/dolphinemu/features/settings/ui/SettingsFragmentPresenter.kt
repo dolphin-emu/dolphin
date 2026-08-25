@@ -45,6 +45,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing
 import org.dolphinemu.dolphinemu.features.settings.model.ScaledIntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
+import org.dolphinemu.dolphinemu.features.settings.model.SharedPreferencesBooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.SharedPreferencesStringSetting
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.DirectoryPicker
@@ -1060,6 +1062,22 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL,
                 R.string.emulate_skylander_portal,
                 0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                SharedPreferencesBooleanSetting(context, "skylander_server_enable", true),
+                R.string.skylander_server_enable,
+                R.string.skylander_server_enable_description
+            )
+        )
+        sl.add(
+            InputStringSetting(
+                context,
+                SharedPreferencesStringSetting(context, "skylander_server_port", "9090"),
+                R.string.skylander_server_port,
+                R.string.skylander_server_port_description
             )
         )
         sl.add(
