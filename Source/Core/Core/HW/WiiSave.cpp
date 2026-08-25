@@ -276,7 +276,7 @@ public:
 #ifdef ANDROID
     if (!IsPathAndroidContent(path))
 #endif
-    File::CreateFullPath(path);
+      File::CreateFullPath(path);
     m_file = File::IOFile{path, mode};
   }
 
