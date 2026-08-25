@@ -116,7 +116,7 @@ bool DolReader::Initialize(std::span<const u8> buffer)
         section.m_address == ESPRESSO_ANCAST_LOCATION_VIRT &&
         Common::swap32(section.m_data.data()) == ANCAST_MAGIC)
     {
-      m_ancast_index = i;
+      m_ancast_index = m_sections.size() - 1;
     }
   }
 

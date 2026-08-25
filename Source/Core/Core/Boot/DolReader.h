@@ -70,7 +70,7 @@ private:
 
   bool m_is_valid;
   bool m_is_wii;
-  std::optional<u8> m_ancast_index;
+  std::optional<std::size_t> m_ancast_index;
 
   // Copy sections to internal buffers
   bool Initialize(std::span<const u8> buffer);
