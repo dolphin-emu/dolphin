@@ -380,7 +380,7 @@ struct SDLMotionAxis
 };
 using SDLMotionAxisList = std::array<SDLMotionAxis, 6>;
 
-static constexpr std::array<const char*, 21> s_sdl_button_names = {
+static constexpr std::array<const char*, 26> s_sdl_button_names = {
     "Button S",    // SDL_GAMEPAD_BUTTON_SOUTH
     "Button E",    // SDL_GAMEPAD_BUTTON_EAST
     "Button W",    // SDL_GAMEPAD_BUTTON_WEST
@@ -402,6 +402,11 @@ static constexpr std::array<const char*, 21> s_sdl_button_names = {
     "Paddle 3",    // SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2
     "Paddle 4",    // SDL_GAMEPAD_BUTTON_LEFT_PADDLE2
     "Touchpad",    // SDL_GAMEPAD_BUTTON_TOUCHPAD
+    "Misc 2",      // SDL_GAMEPAD_BUTTON_MISC2
+    "Misc 3",      // SDL_GAMEPAD_BUTTON_MISC3
+    "Misc 4",      // SDL_GAMEPAD_BUTTON_MISC4
+    "Misc 5",      // SDL_GAMEPAD_BUTTON_MISC5
+    "Misc 6"       // SDL_GAMEPAD_BUTTON_MISC6
 };
 static constexpr std::array<const char*, 6> s_sdl_axis_names = {
     "Left X",     // SDL_GAMEPAD_AXIS_LEFTX

@@ -327,6 +327,9 @@ bool Gamepad::Button::IsMatchingName(std::string_view name) const
     return true;
 
   // Match the old "Button 0"-like names.
+  if (m_binding.output_type == SDL_GAMEPAD_BINDTYPE_BUTTON)
+    return name == GetLegacyButtonName(m_binding.output.button);
+
   switch (m_binding.input_type)
   {
   case SDL_GAMEPAD_BINDTYPE_BUTTON:
