@@ -89,10 +89,6 @@ fun PreviewTheme(
 private fun Context.toDolphinColorScheme(isDark: Boolean): ColorScheme {
     fun attr(@AttrRes attr: Int) = Color(MaterialColors.getColor(this, attr, 0))
 
-    val background = obtainStyledAttributes(intArrayOf(android.R.attr.colorBackground)).use {
-        Color(it.getColor(0, 0))
-    }
-
     return if (isDark) {
         darkColorScheme(
             primary = attr(AppCompatR.attr.colorPrimary),
@@ -111,7 +107,7 @@ private fun Context.toDolphinColorScheme(isDark: Boolean): ColorScheme {
             onError = attr(MaterialR.attr.colorOnError),
             errorContainer = attr(MaterialR.attr.colorErrorContainer),
             onErrorContainer = attr(MaterialR.attr.colorOnErrorContainer),
-            background = background,
+            background = attr(android.R.attr.colorBackground),
             onBackground = attr(MaterialR.attr.colorOnBackground),
             surface = attr(MaterialR.attr.colorSurface),
             onSurface = attr(MaterialR.attr.colorOnSurface),
@@ -140,7 +136,7 @@ private fun Context.toDolphinColorScheme(isDark: Boolean): ColorScheme {
             onError = attr(MaterialR.attr.colorOnError),
             errorContainer = attr(MaterialR.attr.colorErrorContainer),
             onErrorContainer = attr(MaterialR.attr.colorOnErrorContainer),
-            background = background,
+            background = attr(android.R.attr.colorBackground),
             onBackground = attr(MaterialR.attr.colorOnBackground),
             surface = attr(MaterialR.attr.colorSurface),
             onSurface = attr(MaterialR.attr.colorOnSurface),
