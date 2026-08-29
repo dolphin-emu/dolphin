@@ -253,7 +253,7 @@ fun OutlinedBox(
         if (onClick != null) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .clip(MaterialTheme.shapes.extraSmall)
                     .clickable(
                         interactionSource = interactionSource,
