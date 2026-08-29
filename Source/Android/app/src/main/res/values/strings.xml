@@ -956,6 +956,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="skylander_id">ID</string>
     <string name="skylander_variant">Variant</string>
     <string name="invalid_skylander">Invalid Skylander Selection</string>
+    <string name="skylander_load_failed">Failed to load Skylander figure</string>
 
     <string name="emulate_infinity_base">Infinity Base</string>
     <string name="infinity_manager">Infinity Manager</string>
