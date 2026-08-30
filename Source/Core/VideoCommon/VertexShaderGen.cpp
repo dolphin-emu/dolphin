@@ -117,10 +117,10 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
-    // One shared matrix
-    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[0];\n"
-              "\tresult[1] = " I_POSNORMALMATRIX "[1];\n"
-              "\tresult[2] = " I_POSNORMALMATRIX "[2];\n");
+    // One shared matrix, use the first transform
+    out.Write("\tresult[0] = " I_TRANSFORMMATRICES "[0];\n"
+              "\tresult[1] = " I_TRANSFORMMATRICES "[1];\n"
+              "\tresult[2] = " I_TRANSFORMMATRICES "[2];\n");
   }
   out.Write("\treturn result;\n");
   out.Write("}}\n\n");
@@ -149,10 +149,10 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
-    // One shared matrix
-    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[3].xyz;\n"
-              "\tresult[1] = " I_POSNORMALMATRIX "[4].xyz;\n"
-              "\tresult[2] = " I_POSNORMALMATRIX "[5].xyz;\n");
+    // One shared matrix, use the first transform
+    out.Write("\tresult[0] = " I_NORMALMATRICES "[0].xyz;\n"
+              "\tresult[1] = " I_NORMALMATRICES "[1].xyz;\n"
+              "\tresult[2] = " I_NORMALMATRICES "[2].xyz;\n");
   }
   out.Write("\treturn result;\n");
   out.Write("}}\n\n");
