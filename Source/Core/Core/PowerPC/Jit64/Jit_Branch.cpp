@@ -70,18 +70,17 @@ template <bool condition>
 void Jit64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst,
                              BitSet32 caller_save)
 {
-  if (IsBranchWatchEnabled())
-  {
-    ABI_PushRegistersAndAdjustStack(caller_save, 0);
-    MOV(64, R(ABI_PARAM1), ImmPtr(&m_branch_watch));
-    MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{origin, destination}));
-    MOV(32, R(ABI_PARAM3), Imm32(inst.hex));
-    ABI_CallFunction(m_ppc_state.msr.IR ? (condition ? &Core::BranchWatch::HitVirtualTrue_fk :
-                                                       &Core::BranchWatch::HitVirtualFalse_fk) :
-                                          (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
-                                                       &Core::BranchWatch::HitPhysicalFalse_fk));
-    ABI_PopRegistersAndAdjustStack(caller_save, 0);
-  }
+  if (!IsBranchWatchEnabled())
+    return;
+
+  ABI_PushRegistersAndAdjustStack(caller_save, 0);
+  const auto function = m_ppc_state.msr.IR ? (condition ? &Core::BranchWatch::HitVirtualTrue_fk :
+                                                          &Core::BranchWatch::HitVirtualFalse_fk) :
+                                             (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
+                                                          &Core::BranchWatch::HitPhysicalFalse_fk);
+  ABI_CallFunction(function, &m_branch_watch,
+                   u64(Core::FakeBranchWatchCollectionKey{origin, destination}), inst.hex);
+  ABI_PopRegistersAndAdjustStack(caller_save, 0);
 }
 
 template void Jit64::WriteBranchWatch<true>(u32, u32, UGeckoInstruction, BitSet32);
@@ -89,20 +88,14 @@ template void Jit64::WriteBranchWatch<false>(u32, u32, UGeckoInstruction, BitSet
 
 void Jit64::WriteBranchWatchDestInRSCRATCH(u32 origin, UGeckoInstruction inst, BitSet32 caller_save)
 {
-  if (IsBranchWatchEnabled())
-  {
-    // Assert RSCRATCH won't be clobbered before it is moved from.
-    static_assert(ABI_PARAM1 != RSCRATCH);
+  if (!IsBranchWatchEnabled())
+    return;
 
-    ABI_PushRegistersAndAdjustStack(caller_save, 0);
-    MOV(64, R(ABI_PARAM1), ImmPtr(&m_branch_watch));
-    MOV(32, R(ABI_PARAM3), R(RSCRATCH));
-    MOV(32, R(ABI_PARAM2), Imm32(origin));
-    MOV(32, R(ABI_PARAM4), Imm32(inst.hex));
-    ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue :
-                                          &Core::BranchWatch::HitPhysicalTrue);
-    ABI_PopRegistersAndAdjustStack(caller_save, 0);
-  }
+  ABI_PushRegistersAndAdjustStack(caller_save, 0);
+  const auto function =
+      m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue : &Core::BranchWatch::HitPhysicalTrue;
+  ABI_CallFunction(function, &m_branch_watch, origin, CallFunctionArg(32, RSCRATCH), inst.hex);
+  ABI_PopRegistersAndAdjustStack(caller_save, 0);
 }
 
 void Jit64::bx(UGeckoInstruction inst)
