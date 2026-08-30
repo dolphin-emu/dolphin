@@ -1000,6 +1000,9 @@ static void AMMBCommandRecv(u32 parameter_offset)
                   err);
   }
 
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
+
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
 }
@@ -1033,6 +1036,9 @@ static void AMMBCommandSend(u32 parameter_offset)
     DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
                   u32(guest_socket), off, len, ret, err);
   }
+
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
