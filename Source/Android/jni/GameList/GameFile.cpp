@@ -195,7 +195,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
 JNIEXPORT jlong JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFile_getTimePlayedMsInternal(JNIEnv* env, jobject obj)
 {
-  const std::chrono::milliseconds time = TimePlayed().GetTimePlayed(GetRef(env, obj)->GetGameID());
+  const std::chrono::milliseconds time =
+      TimePlayedManager::GetInstance().GetTimePlayed(GetRef(env, obj)->GetGameID());
   return time.count();
 }
 
