@@ -225,7 +225,9 @@ struct TCacheEntry
 
   bool IsEfbCopy() const { return is_efb_copy; }
   bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+  u32 BlockAlignedWidth() const;
   u32 NumBlocksX() const;
+  u32 BlockAlignedHeight() const;
   u32 NumBlocksY() const;
   u32 BytesPerRow() const;
 
@@ -363,6 +365,9 @@ private:
   RcTcacheEntry ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
 
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
+
+  RcTcacheEntry ResizeEntry(const RcTcacheEntry& existing_entry, unsigned int new_native_width,
+                            unsigned int new_native_height, u64 base_hash, u64 full_hash);
 
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
                                         TLUTFormat tlutfmt);
