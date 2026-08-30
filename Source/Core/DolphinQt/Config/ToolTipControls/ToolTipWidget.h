@@ -25,6 +25,7 @@ public:
   void SetTitle(QString title) { m_title = std::move(title); }
 
   void SetDescription(QString description) { m_description = std::move(description); }
+  QString GetDescription() { return m_description; }
 
 private:
   void enterEvent(QEnterEvent* const event) override
