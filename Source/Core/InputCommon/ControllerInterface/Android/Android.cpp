@@ -6,10 +6,13 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -43,8 +46,19 @@ jmethodID s_input_device_get_device;
 jmethodID s_input_device_get_controller_number;
 jmethodID s_input_device_get_motion_ranges;
 jmethodID s_input_device_get_name;
+jmethodID s_input_device_get_descriptor;
 jmethodID s_input_device_get_sources;
 jmethodID s_input_device_has_keys;
+
+// Triggered when a device delivers its first gamepad input.
+Common::HookableEvent<> s_first_input_event;
+
+// The devices that have delivered gamepad input, in the order they first did so. Android
+// recreates its device objects whenever any of their properties change, so this is keyed by
+// the id it keeps for as long as the device is connected. Read by controller setup, written
+// by input dispatch.
+std::mutex s_delivered_input_mutex;
+std::vector<jint> s_devices_with_delivered_input;
 
 jclass s_motion_range_class;
 jmethodID s_motion_range_get_axis;
@@ -54,6 +68,7 @@ jmethodID s_motion_range_get_source;
 
 jclass s_input_event_class;
 jmethodID s_input_event_get_device_id;
+jmethodID s_input_event_get_source;
 
 jclass s_key_event_class;
 jmethodID s_key_event_get_action;
@@ -88,6 +103,8 @@ jintArray s_keycodes_array;
 using Clock = std::chrono::steady_clock;
 constexpr Clock::duration ACTIVE_INPUT_TIMEOUT = std::chrono::milliseconds(1000);
 
+// Read by input dispatch on the UI thread; written by hotplug handling on another thread.
+std::mutex s_device_id_map_mutex;
 std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
@@ -427,14 +444,18 @@ std::string ConstructAxisName(int source, int axis, bool negative)
 
 std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
 {
-  const auto it = s_device_id_to_device_qualifier.find(device_id);
-  if (it == s_device_id_to_device_qualifier.end())
+  ciface::Core::DeviceQualifier qualifier;
   {
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device ID {}", device_id);
-    return nullptr;
+    std::lock_guard lk(s_device_id_map_mutex);
+    const auto it = s_device_id_to_device_qualifier.find(device_id);
+    if (it == s_device_id_to_device_qualifier.end())
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device ID {}", device_id);
+      return nullptr;
+    }
+    qualifier = it->second;
   }
 
-  const ciface::Core::DeviceQualifier& qualifier = it->second;
   std::shared_ptr<ciface::Core::Device> device = g_controller_interface.FindDevice(qualifier);
   if (!device)
   {
@@ -630,6 +651,16 @@ public:
     m_name = GetJString(env, j_name);
     env->DeleteLocalRef(j_name);
 
+    // Kept for telling controllers apart across the device objects Android recreates,
+    // not shown to the user
+    jstring j_descriptor = reinterpret_cast<jstring>(
+        env->CallObjectMethod(input_device, s_input_device_get_descriptor));
+    if (j_descriptor != nullptr)
+    {
+      m_descriptor = GetJString(env, j_descriptor);
+      env->DeleteLocalRef(j_descriptor);
+    }
+
     DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Sources for {}: {:08x}", GetQualifiedName(), m_source);
 
     AddKeys(env, input_device);
@@ -674,6 +705,12 @@ public:
 
     return -3;
   }
+
+  int GetSourceFlags() const { return m_source; }
+
+  int GetControllerNumber() const { return m_controller_number; }
+
+  const std::string& GetDescriptor() const { return m_descriptor; }
 
   std::optional<jint> GetDeviceID() const { return m_device_id; }
 
@@ -814,7 +851,25 @@ private:
   const int m_controller_number;
   const std::optional<jint> m_device_id;
   std::string m_name;
+  std::string m_descriptor;
 };
+
+// Records that a device has delivered gamepad input, announcing the first time it does.
+static void MarkDeviceInputDelivered(ciface::Core::Device* device)
+{
+  const std::optional<jint> device_id = static_cast<AndroidDevice*>(device)->GetDeviceID();
+  if (!device_id.has_value())
+    return;
+
+  {
+    const std::lock_guard lock(s_delivered_input_mutex);
+    if (Common::Contains(s_devices_with_delivered_input, *device_id))
+      return;
+    s_devices_with_delivered_input.push_back(*device_id);
+  }
+
+  s_first_input_event.Trigger();
+}
 
 // Creates an array that contains every possible keycode
 static jintArray CreateKeyCodesArray(JNIEnv* env)
@@ -852,6 +907,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       env->GetMethodID(s_input_device_class, "getMotionRanges", "()Ljava/util/List;");
   s_input_device_get_name =
       env->GetMethodID(s_input_device_class, "getName", "()Ljava/lang/String;");
+  s_input_device_get_descriptor =
+      env->GetMethodID(s_input_device_class, "getDescriptor", "()Ljava/lang/String;");
   s_input_device_get_sources = env->GetMethodID(s_input_device_class, "getSources", "()I");
   s_input_device_has_keys = env->GetMethodID(s_input_device_class, "hasKeys", "([I)[Z");
   env->DeleteLocalRef(input_device_class);
@@ -867,6 +924,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   const jclass input_event_class = env->FindClass("android/view/InputEvent");
   s_input_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(input_event_class));
   s_input_event_get_device_id = env->GetMethodID(s_input_event_class, "getDeviceId", "()I");
+  s_input_event_get_source = env->GetMethodID(s_input_event_class, "getSource", "()I");
   env->DeleteLocalRef(input_event_class);
 
   const jclass key_event_class = env->FindClass("android/view/KeyEvent");
@@ -987,7 +1045,10 @@ void InputBackend::AddDevice(JNIEnv* env, jint device_id)
 
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Added device ID {} as {}", device_id,
                device->GetQualifiedName());
-  s_device_id_to_device_qualifier.emplace(device_id, qualifier);
+  {
+    std::lock_guard lk(s_device_id_map_mutex);
+    s_device_id_to_device_qualifier.emplace(device_id, qualifier);
+  }
 
   jstring j_qualifier = ToJString(env, qualifier.ToString());
   env->CallVoidMethod(device->GetSensorEventListener(),
@@ -1025,7 +1086,62 @@ void InputBackend::RemoveDevice(jint device_id)
            static_cast<const AndroidDevice*>(device)->GetDeviceID() == device_id;
   });
 
-  s_device_id_to_device_qualifier.erase(device_id);
+  {
+    std::lock_guard lk(s_device_id_map_mutex);
+    s_device_id_to_device_qualifier.erase(device_id);
+  }
+}
+
+void ForgetDeliveredInput(int device_id)
+{
+  const std::lock_guard lock(s_delivered_input_mutex);
+  std::erase(s_devices_with_delivered_input, device_id);
+}
+
+Common::EventHook RegisterFirstInputCallback(Common::HookableEvent<>::CallbackType callback)
+{
+  return s_first_input_event.Register(std::move(callback));
+}
+
+// The position at which this device first delivered gamepad input, if it has
+static std::optional<int> GetInputOrder(std::optional<jint> device_id)
+{
+  if (!device_id.has_value())
+    return std::nullopt;
+
+  const std::lock_guard lock(s_delivered_input_mutex);
+  const auto it = std::ranges::find(s_devices_with_delivered_input, *device_id);
+  if (it == s_devices_with_delivered_input.end())
+    return std::nullopt;
+  return static_cast<int>(it - s_devices_with_delivered_input.begin());
+}
+
+void ForgetDeliveredInput()
+{
+  const std::lock_guard lock(s_delivered_input_mutex);
+  s_devices_with_delivered_input.clear();
+}
+
+std::optional<DeviceProperties> GetDeviceProperties(const ciface::Core::Device& device)
+{
+  if (device.GetSource() != SOURCE)
+    return std::nullopt;
+
+  const auto& android_device = static_cast<const AndroidDevice&>(device);
+
+  // Source flags are class-qualified bitfields, so they have to be masked rather than
+  // compared for equality. A positive controller number is Android's own marker for a
+  // gamepad or joystick; everything else, including a controller's touchpad and motion
+  // sensors, is left at zero.
+  const int sources = android_device.GetSourceFlags();
+  const bool is_gamepad_source = (sources & AINPUT_SOURCE_GAMEPAD) == AINPUT_SOURCE_GAMEPAD ||
+                                 (sources & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK;
+
+  return DeviceProperties{
+      .is_gamepad = is_gamepad_source && android_device.GetControllerNumber() > 0,
+      .descriptor = android_device.GetDescriptor(),
+      .input_order = GetInputOrder(android_device.GetDeviceID()),
+  };
 }
 
 void InputBackend::PopulateDevices()
@@ -1073,6 +1189,18 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   if (!device)
     return JNI_FALSE;
 
+  // Only a gamepad button press counts as proof that this is a real, functioning
+  // controller. A physical controller registers several devices with Android (the pad
+  // itself plus touchpad and motion-sensor nodes), and events must be filtered by their
+  // source, not just by which device they came from, so that a touchpad or sensor node
+  // cannot pass itself off as a live pad in automatic port assignment.
+  const jint key_source = env->CallIntMethod(key_event, s_input_event_get_source);
+  if (state != 0 && ((key_source & AINPUT_SOURCE_GAMEPAD) == AINPUT_SOURCE_GAMEPAD ||
+                     (key_source & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK))
+  {
+    ciface::Android::MarkDeviceInputDelivered(device.get());
+  }
+
   const jint keycode = env->CallIntMethod(key_event, s_key_event_get_keycode);
   const std::string input_name = ConstructKeyName(keycode);
 
@@ -1108,6 +1236,12 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 
   Clock::time_point last_polled{};
 
+  // A stick or trigger has to be pushed well past its resting position to count as input.
+  // Controllers report near-zero axis values continuously while they sit idle, and treating
+  // those as input would let any device claim a port without a player touching it.
+  constexpr float ACTIVITY_THRESHOLD = 0.5f;
+  bool significant_motion = false;
+
   for (ciface::Core::Device::Input* input : device->Inputs())
   {
     const std::string input_name = input->GetName();
@@ -1130,10 +1264,19 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
       casted_input->SetState(value);
       last_polled = std::max(last_polled, casted_input->GetLastPolled());
 
+      if (std::abs(value) >= ACTIVITY_THRESHOLD)
+        significant_motion = true;
+
       DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
                     device->GetQualifiedName(), value);
     }
   }
+
+  // Only stick and trigger movement proves a live controller. Touchpad and motion-sensor
+  // nodes of the same physical controller also report motion, but not from a joystick
+  // source, and treating that as controller input lets them take a port from a real pad.
+  if (significant_motion && (source & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK)
+    ciface::Android::MarkDeviceInputDelivered(device.get());
 
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
@@ -1201,6 +1344,9 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_00024InputDeviceListener_onInputDeviceRemoved(
     JNIEnv*, jobject, jint device_id)
 {
+  // A controller that disconnects gives up its port, so that controllers connecting later
+  // claim their places anew instead of inheriting the ones they had before.
+  ciface::Android::ForgetDeliveredInput(device_id);
   ciface::Android::InputBackend::RemoveDevice(device_id);
 }
 
