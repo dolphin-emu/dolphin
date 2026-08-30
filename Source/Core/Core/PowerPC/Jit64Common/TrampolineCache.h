@@ -20,11 +20,11 @@ constexpr int BACKPATCH_SIZE = 5;
 class TrampolineCache : public EmuCodeBlock
 {
 public:
-  explicit TrampolineCache(Jit64& jit) : EmuCodeBlock(jit) {}
-  const u8* GenerateTrampoline(const TrampolineInfo& info);
+  TrampolineCache(Jit64& jit) : EmuCodeBlock(jit) {}
+  const u8* GenerateTrampoline(const TrampolineInfo& info, const u8* jmp_destination);
   void ClearCodeSpace();
 
 private:
-  const u8* GenerateReadTrampoline(const TrampolineInfo& info);
-  const u8* GenerateWriteTrampoline(const TrampolineInfo& info);
+  const u8* GenerateReadTrampoline(const TrampolineInfo& info, const u8* jmp_destination);
+  const u8* GenerateWriteTrampoline(const TrampolineInfo& info, const u8* jmp_destination);
 };
