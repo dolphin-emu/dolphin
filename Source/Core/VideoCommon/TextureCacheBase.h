@@ -33,6 +33,7 @@
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;
+class FramebufferManager;
 class PointerWrap;
 struct SamplerState;
 struct VideoConfig;
@@ -96,6 +97,62 @@ struct EFBCopyParams
   bool all_copy_filter_coefs_needed;
   bool copy_filter_can_overflow;
   bool apply_gamma;
+};
+
+struct FramebufferCopyRawData
+{
+  u32 dest_address;
+  u32 copy_width;
+  u32 copy_height;
+
+  u32 dest_stride;
+  EFBCopyFormat efbcopy_format;
+
+  bool is_depth_copy;
+  bool is_intensity;
+  bool half_scale;
+  float y_scale;
+  float gamma;
+
+  MathUtil::Rectangle<int> src_rect;
+
+  bool clamp_top;
+  bool clamp_bottom;
+  CopyFilterCoefficients::Values filter_coefficients;
+};
+
+struct FramebufferCopyResolvedData
+{
+  // Source details
+  u32 dest_address;
+  u32 dest_stride;
+  u32 width;
+  u32 height;
+  EFBCopyFormat efbcopy_format;
+  PixelFormat pixel_format;
+  bool is_depth_format;
+  bool is_intensity_format;
+  bool half_scale;
+  float y_scale;
+  float gamma;
+  MathUtil::Rectangle<int> src_rect;
+  bool clamp_top;
+  bool clamp_bottom;
+  CopyFilterCoefficients::Values filter_coefficients;
+
+  // Derived details
+  bool is_xfb;
+  bool copy_to_vram;
+  bool copy_to_ram;
+  u32 memory_width;
+  u32 memory_height;
+  u32 scaled_memory_width;
+  u32 scaled_memory_height;
+  TextureFormat memory_format;
+  u32 bytes_per_row;
+  u32 num_blocks_y;
+  u32 covered_range;
+  bool linear_filter;
 };
 
 template <>
@@ -285,12 +342,7 @@ public:
                               MathUtil::Rectangle<int>* display_rect);
 
   virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
-  void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
-                                 u32 dstStride, bool is_depth_copy,
-                                 const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
-                                 bool scaleByHalf, float y_scale, float gamma, bool clamp_top,
-                                 bool clamp_bottom,
-                                 const CopyFilterCoefficients::Values& filter_coefficients);
+  void CopyRenderTargetToTexture(FramebufferCopyResolvedData resolved_data);
 
   void ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_width, u32 new_height);
 
@@ -314,6 +366,9 @@ public:
   static SamplerState GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
                                       bool has_arbitrary_mips);
 
+  static FramebufferCopyResolvedData
+  ResolveFramebufferCopyData(const FramebufferCopyRawData& copy_data);
+
   static void RenderPaletteEntry(u32 texel_buffer_offset, const RcTcacheEntry& entry,
                                  AbstractTexture* texture, TLUTFormat tlutfmt);
   static void RenderReinterpretEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
@@ -330,8 +385,9 @@ protected:
                           u32 aligned_height, u32 row_stride, const u8* palette,
                           TLUTFormat palette_format);
 
-  virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
-                       u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+  virtual void CopyEFB(AbstractStagingTexture* dst, FramebufferManager* frame_buffer_manager,
+                       const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+                       u32 num_blocks_y, u32 memory_stride,
                        const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
                        bool linear_filter, float y_scale, float gamma, bool clamp_top,
                        bool clamp_bottom, const std::array<u32, 3>& filter_coefficients);
@@ -416,6 +472,16 @@ private:
   void DoLoadState(PointerWrap& p);
 
   void ApplyMaterialToCacheEntry(const VideoCommon::MaterialResource& material, TCacheEntry* entry);
+
+  RcTcacheEntry SetupCopyEntry(FramebufferManager* frame_buffer_manager,
+                               const FramebufferCopyResolvedData& resolved_data);
+  void CopyRenderTargetToVRam(RcTcacheEntry& entry, FramebufferManager* frame_buffer_manager,
+                              const FramebufferCopyResolvedData& resolved_data);
+  void CopyRenderTargetToRam(RcTcacheEntry& entry, FramebufferManager* frame_buffer_manager,
+                             u8* dst, const FramebufferCopyResolvedData& resolved_data,
+                             bool defer_write);
+  void FinalizeFramebufferCopy(RcTcacheEntry& entry,
+                               const FramebufferCopyResolvedData& resolved_data);
 
   // m_textures_by_address is the authoritive version of what's actually "in" the texture cache
   // but it's possible for invalidated TCache entries to live on elsewhere

@@ -306,11 +306,22 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
         // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from
         // ZBuffer (Zbuffer uses 24-bit Format)
         bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
-        g_texture_cache->CopyRenderTargetToTexture(
-            destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
-            srcRect, PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f,
-            s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
-            bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+        auto resolved_data = g_texture_cache->ResolveFramebufferCopyData(
+            FramebufferCopyRawData{.dest_address = destAddr,
+                                   .copy_width = copy_width,
+                                   .copy_height = copy_height,
+                                   .dest_stride = destStride,
+                                   .efbcopy_format = PE_copy.tp_realFormat(),
+                                   .is_depth_copy = is_depth_copy,
+                                   .is_intensity = PE_copy.intensity_fmt && PE_copy.auto_conv,
+                                   .half_scale = PE_copy.half_scale,
+                                   .y_scale = 1.0f,
+                                   .gamma = s_gammaLUT[PE_copy.gamma],
+                                   .src_rect = srcRect,
+                                   .clamp_top = bpmem.triggerEFBCopy.clamp_top,
+                                   .clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom,
+                                   .filter_coefficients = bpmem.copyfilter.GetCoefficients()});
+        g_texture_cache->CopyRenderTargetToTexture(std::move(resolved_data));
       }
       else
       {
@@ -336,10 +347,22 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
                       bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
         bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
-        g_texture_cache->CopyRenderTargetToTexture(
-            destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
-            false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
-            bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+        auto resolved_data = g_texture_cache->ResolveFramebufferCopyData(
+            FramebufferCopyRawData{.dest_address = destAddr,
+                                   .copy_width = copy_width,
+                                   .copy_height = height,
+                                   .dest_stride = destStride,
+                                   .efbcopy_format = EFBCopyFormat::XFB,
+                                   .is_depth_copy = is_depth_copy,
+                                   .is_intensity = false,
+                                   .half_scale = false,
+                                   .y_scale = yScale,
+                                   .gamma = s_gammaLUT[PE_copy.gamma],
+                                   .src_rect = srcRect,
+                                   .clamp_top = bpmem.triggerEFBCopy.clamp_top,
+                                   .clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom,
+                                   .filter_coefficients = bpmem.copyfilter.GetCoefficients()});
+        g_texture_cache->CopyRenderTargetToTexture(std::move(resolved_data));
 
         auto& system = Core::System::GetInstance();
 
