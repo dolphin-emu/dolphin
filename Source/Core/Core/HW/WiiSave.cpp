@@ -273,7 +273,10 @@ public:
   explicit DataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
       : m_iosc{*iosc}
   {
-    File::CreateFullPath(path);
+#ifdef ANDROID
+    if (!IsPathAndroidContent(path))
+#endif
+      File::CreateFullPath(path);
     m_file = File::IOFile{path, mode};
   }
 
