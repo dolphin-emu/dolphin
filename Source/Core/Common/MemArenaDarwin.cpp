@@ -26,7 +26,11 @@ void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
   }
 
   memory_object_size_t entry_size = size;
-  constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE;
+  // Large anonymous mappings are split into 128 MB chunks. Without MAP_MEM_VM_SHARE,
+  // mach_make_memory_entry_64 will only return an entry spanning the first chunk.
+  // Attempting to map through that entry will fail if it extends beyond the 128 MB
+  // boundary, which can happen when the sizes of MEM1/MEM2 are overridden.
+  constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE | MAP_MEM_VM_SHARE;
 
   retval = mach_make_memory_entry_64(mach_task_self(), &entry_size, m_shm_address, prot,
                                      &m_shm_entry, MACH_PORT_NULL);
