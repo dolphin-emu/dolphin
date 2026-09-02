@@ -334,8 +334,8 @@ void Mixer::SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate)
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
 {
-  m_streaming_mixer.SetVolume(std::clamp<u32>(lvolume, 0x00, 0xff),
-                              std::clamp<u32>(rvolume, 0x00, 0xff));
+  m_streaming_mixer.SetVolume(MathUtil::SaturatingCast<u8>(lvolume),
+                              MathUtil::SaturatingCast<u8>(rvolume));
 }
 
 void Mixer::SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume)
