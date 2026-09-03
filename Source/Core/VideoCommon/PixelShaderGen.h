@@ -25,21 +25,20 @@ struct pixel_shader_uid_data
 {
   // TODO: Optimize field order for easy access!
 
-  u32 num_values;  // TODO: Shouldn't be a u32
+  u32 num_values : 16;  // TODO: Shouldn't be a u32
   u32 NumValues() const { return num_values; }
-  u32 pad0 : 4;
   u32 useDstAlpha : 1;
   u32 no_dual_src : 1;
   AlphaTestResult Pretest : 2;
   u32 nIndirectStagesUsed : 4;
   u32 genMode_numtexgens : 4;
   u32 genMode_numtevstages : 4;
+
   u32 genMode_numindstages : 3;
   CompareMode alpha_test_comp0 : 3;
   CompareMode alpha_test_comp1 : 3;
   AlphaTestOp alpha_test_logic : 2;
   FogProjection fog_proj : 1;
-
   FogType fog_fsel : 3;
   u32 fog_RangeBaseEnabled : 1;
   ZTexOp ztex_op : 2;
@@ -51,6 +50,8 @@ struct pixel_shader_uid_data
   u32 rgba6_format : 1;
   u32 dither : 1;
   u32 uint_output : 1;
+  u32 pad0 : 3;
+
   u32 blend_enable : 1;                       // Only used with shader_framebuffer_fetch blend
   SrcBlendFactor blend_src_factor : 3;        // Only used with shader_framebuffer_fetch blend
   SrcBlendFactor blend_src_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
@@ -61,6 +62,7 @@ struct pixel_shader_uid_data
   u32 emulate_logic_op_with_blend : 1;        // Only used with logic op blend emulation
   u32 logic_op_enable : 1;                    // Only used with shader_framebuffer_fetch logic ops
   u32 logic_op_mode : 4;  // Only used with shader_framebuffer_fetch logic ops and blend emulation
+  u32 pad1 : 11;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
@@ -124,15 +126,16 @@ struct pixel_shader_uid_data
 
   struct
   {
-    // TODO: Can save a lot space by removing the padding bits
+    // TODO: Can save space on unix by removing the padding bits
     u32 cc : 24;
-    u32 ac : 24;  // tswap and rswap are left blank (decoded into the swap fields below)
-
-    u32 tevorders_texmap : 3;
-    u32 tevorders_texcoord : 3;
     u32 tevorders_enable : 1;
     RasColorChan tevorders_colorchan : 3;
-    u32 pad1 : 7;
+    u32 pad0 : 4;
+
+    u32 ac : 24;  // tswap and rswap are left blank (decoded into the swap fields below)
+    u32 tevorders_texmap : 3;
+    u32 tevorders_texcoord : 3;
+    u32 pad1 : 2;
 
     // TODO: We could save space by storing the 4 swap tables elsewhere and only storing references
     // to which table is used (the tswap and rswap fields), instead of duplicating them here
@@ -141,7 +144,7 @@ struct pixel_shader_uid_data
     ColorChannel ras_swap_g : 2;
     ColorChannel ras_swap_b : 2;
     ColorChannel ras_swap_a : 2;
-    u32 pad2 : 2;
+    u32 pad2 : 3;
 
     ColorChannel tex_swap_r : 2;
     ColorChannel tex_swap_g : 2;
@@ -155,6 +158,8 @@ struct pixel_shader_uid_data
   LightingUidData lighting;
 };
 #pragma pack()
+
+static_assert(sizeof(pixel_shader_uid_data) == 280, "If this changes, you should recheck padding");
 
 using PixelShaderUid = ShaderUid<pixel_shader_uid_data>;
 

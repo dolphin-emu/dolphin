@@ -31,6 +31,7 @@ struct LightingUidData
   u32 matsource : 4;       // 4x1 bit
   u32 enablelighting : 4;  // 4x1 bit
   u32 ambsource : 4;       // 4x1 bit
+  u32 pad : 4;             // (byte-align values below)
   u32 diffusefunc : 8;     // 4x2 bits
   u32 attnfunc : 8;        // 4x2 bits
   u32 light_mask : 32;     // 4x8 bits
