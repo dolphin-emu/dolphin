@@ -19,9 +19,11 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -119,6 +121,12 @@ void CoreTimingManager::Init()
   m_throttled_after_presentation = false;
   m_frame_hook = m_system.GetVideoEvents().after_present_event.Register([this](const PresentInfo&) {
     m_throttled_after_presentation.store(false, std::memory_order_relaxed);
+
+    // Needed for "Refresh Rate Rounding" hack.
+    // Ideally this would be triggered from VI UpdateParameters,
+    //  but it's not worth adding a hook there just for this hack.
+    // This is a good enough place to be informed of a change in refresh rate.
+    UpdateSpeedLimit(GetTicks());
   });
 }
 
@@ -164,7 +172,7 @@ void CoreTimingManager::RefreshConfig()
     OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
   }
 
-  UpdateSpeedLimit(GetTicks(), Config::Get(Config::MAIN_EMULATION_SPEED));
+  UpdateSpeedLimit(GetTicks());
 
   m_use_precision_timer = Config::Get(Config::MAIN_PRECISION_FRAME_TIMING);
 }
@@ -494,12 +502,19 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   SleepUntil(target_time);
 }
 
-void CoreTimingManager::UpdateSpeedLimit(s64 cycle, double new_speed)
+void CoreTimingManager::UpdateSpeedLimit(s64 cycle)
 {
-  m_emulation_speed = new_speed;
+  double emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+
+  if (Config::Get(Config::GFX_HACK_REFRESH_RATE_ROUNDING))
+  {
+    const auto refresh_rate = m_system.GetVideoInterface().GetTargetRefreshRate();
+    if (refresh_rate > 0)
+      emulation_speed *= std::round(refresh_rate) / refresh_rate;
+  }
 
   const u32 new_clock_per_sec =
-      std::lround(m_system.GetSystemTimers().GetTicksPerSecond() * new_speed);
+      std::lround(m_system.GetSystemTimers().GetTicksPerSecond() * emulation_speed);
 
   const bool was_limited = m_throttle_adj_clock_per_sec != 0;
   if (was_limited)
@@ -560,7 +575,7 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 {
   const s64 ticks = m_globals.global_timer;
 
-  UpdateSpeedLimit(ticks, m_emulation_speed);
+  UpdateSpeedLimit(ticks);
 
   m_system.GetPerfMetrics().AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
 
