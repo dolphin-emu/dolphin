@@ -137,6 +137,18 @@ private:
   {
     u32 current_source_address = 0;
     u16 remaining_blocks_count = 0;
+
+    // Jitter protection
+    u16 empty_grace_blocks = 0;
+    u16 largest_dma_transfer_seen_in_blocks = 0;
+
+    // Datel Maxplay double-write bug protection
+    u32 previous_source_address = 0;
+    u16 previous_blocks_count = 0;
+    u64 ticks_DMA_started_at = 0;
+
+    bool past_first_dma_start = false;
+
     u32 SourceAddress = 0;
     UAudioDMAControl AudioDMAControl;
   };
