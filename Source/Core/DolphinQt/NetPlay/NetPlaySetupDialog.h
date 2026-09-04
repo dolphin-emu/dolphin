@@ -17,6 +17,15 @@ class QGridLayout;
 class QPushButton;
 class QSpinBox;
 class QTabWidget;
+class DiscoveryWidget;
+
+namespace NetPlay
+{
+namespace Discovery
+{
+struct DiscoveredServer;
+}
+}  // namespace NetPlay
 
 namespace UICommon
 {
@@ -46,6 +55,8 @@ private:
 
   void OnConnectionTypeChanged(int index);
 
+  void OnServerSelected(const NetPlay::Discovery::DiscoveredServer& server);
+
   // Main Widget
   QDialogButtonBox* m_button_box;
   QComboBox* m_connection_type;
@@ -60,6 +71,7 @@ private:
   QLabel* m_connect_port_label;
   QSpinBox* m_connect_port_box;
   QPushButton* m_connect_button;
+  DiscoveryWidget* m_discovery_widget;
 
   // Host Widget
   QLabel* m_host_port_label;
