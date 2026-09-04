@@ -19,6 +19,7 @@ import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
@@ -30,10 +31,13 @@ class GbaEmulationManager(
     private val binding: ActivityEmulationBinding
 ) {
     val gbaViews = mutableListOf<GbaOverlayView>()
-    val lastGbaTapTimes = mutableMapOf<Int, Long>()
+    private val lastGbaTapTimes = mutableMapOf<Int, Long>()
+    private val tempRect = android.graphics.Rect()
     var isGbaLocked = false
+    var isTouchPassthrough = false
     private var isMenuOpen = false
     private var isWaitingForGcOffsetReset = false
+    private var activeTouchView: GbaOverlayView? = null
 
     private var settings: Settings? = null
     private var onRefreshOverlay: (() -> Unit)? = null
@@ -57,12 +61,14 @@ class GbaEmulationManager(
         this.onRefreshOverlay = onRefreshOverlay
     }
 
-    private fun activeGbaSlots() = (0..3).filter {
-        IntSetting.getSettingForSIDevice(it).int == InputOverlay.EMULATED_GBA_CONTROLLER
-    }
+    private val activeSlots: List<Int>
+        get() = (0..3).filter {
+            IntSetting.getSettingForSIDevice(it).int == InputOverlay.EMULATED_GBA_CONTROLLER
+        }
 
     fun initViews() {
         isGbaLocked = globalGbaPrefs.getBoolean(PREF_GBA_LOCKED, false)
+        isTouchPassthrough = globalGbaPrefs.getBoolean(PREF_GBA_TOUCH_PASSTHROUGH, false)
 
         activity.isMenuShowing.observe(activity) { open ->
             if (open != isMenuOpen) {
@@ -71,22 +77,15 @@ class GbaEmulationManager(
             }
         }
 
-        activeGbaSlots().forEach { slot ->
+        activeSlots.forEach { slot ->
             val view = GbaOverlayView(activity).apply {
                 gbaSlot = slot
                 onDimensionsChanged = { applyGbaLayout() }
-                visibility = View.VISIBLE
             }
-
-            val sp = slotPrefs.getValue(slot)
-            val sw = sp.getFloat(PREF_GBA_WIDTH, DEFAULT_GBA_WIDTH)
-                .coerceIn(GBA_MIN_WIDTH, GBA_MAX_WIDTH)
-            val sh = sw / view.aspectRatio
-
-            binding.root.addView(view, 0, FrameLayout.LayoutParams(sw.toInt(), sh.toInt()))
-            applyStoredGbaVolume(slot)
-            attachGbaTouchListener(view, slot, sp)
+            binding.root.addView(view, 0)
             gbaViews.add(view)
+            applyStoredGbaVolume(slot)
+            restoreViewFromPrefs(view, slot, gbaViews.size - 1)
         }
 
         ensureValidGbaSlot()
@@ -103,7 +102,19 @@ class GbaEmulationManager(
 
     fun onTitleChanged() {
         ensureValidGbaSlot()
-        val slots = activeGbaSlots()
+        val slots = activeSlots
+
+        while (gbaViews.size < slots.size) {
+            val slot = slots[gbaViews.size]
+            val view = GbaOverlayView(activity).apply {
+                gbaSlot = slot
+                onDimensionsChanged = { applyGbaLayout() }
+            }
+            binding.root.addView(view, 0)
+            gbaViews.add(view)
+            restoreViewFromPrefs(view, slot, gbaViews.size - 1)
+        }
+
         gbaViews.forEachIndexed { i, v ->
             if (i < slots.size) {
                 v.gbaSlot = slots[i]
@@ -138,13 +149,46 @@ class GbaEmulationManager(
     }
 
     fun handleTouch(event: MotionEvent): Boolean {
-        if (isGbaLocked || isMenuOpen || gbaViews.isEmpty()) return false
-        val loc = IntArray(2)
-        return gbaViews.find { view ->
-            view.getLocationOnScreen(loc)
-            android.graphics.Rect(loc[0], loc[1], loc[0] + view.width, loc[1] + view.height)
-                .contains(event.rawX.toInt(), event.rawY.toInt())
-        }?.dispatchTouchEvent(event) ?: false
+        if (isMenuOpen || gbaViews.isEmpty()) return false
+
+        val action = event.actionMasked
+
+        // 3-finger switch even if locked
+        if (action == MotionEvent.ACTION_POINTER_DOWN && event.pointerCount == 3) {
+            val x = event.rawX.toInt()
+            val y = event.rawY.toInt()
+            val loc = IntArray(2)
+            gbaViews.find { view ->
+                view.getLocationOnScreen(loc)
+                tempRect.set(loc[0], loc[1], loc[0] + view.width, loc[1] + view.height)
+                tempRect.contains(x, y)
+            }?.let { view ->
+                selectGbaSlot(view.gbaSlot)
+                activeTouchView = null
+                return true
+            }
+        }
+
+        if (isGbaLocked || isTouchPassthrough) return false
+
+        if (action == MotionEvent.ACTION_DOWN) {
+            val x = event.rawX.toInt()
+            val y = event.rawY.toInt()
+            val loc = IntArray(2)
+            activeTouchView = gbaViews.find { view ->
+                view.getLocationOnScreen(loc)
+                tempRect.set(loc[0], loc[1], loc[0] + view.width, loc[1] + view.height)
+                tempRect.contains(x, y)
+            }
+        }
+
+        val handled = activeTouchView?.dispatchTouchEvent(event) ?: false
+
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            activeTouchView = null
+        }
+
+        return handled
     }
 
     fun setGbaViewsTouchable(touchable: Boolean) {
@@ -164,7 +208,7 @@ class GbaEmulationManager(
     fun reattachTouchListeners() {
         if (isGbaLocked) return
         gbaViews.forEach { view ->
-            attachGbaTouchListener(view, view.gbaSlot, slotPrefs.getValue(view.gbaSlot))
+            slotPrefs[view.gbaSlot]?.let { attachGbaTouchListener(view, view.gbaSlot, it) }
         }
     }
 
@@ -175,6 +219,7 @@ class GbaEmulationManager(
     ) {
         var dragX = 0f
         var dragY = 0f
+        var needsDragSync = false
         val scaleDetector = ScaleGestureDetector(
             activity,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -185,7 +230,10 @@ class GbaEmulationManager(
                     val oh = view.height.toFloat()
                     val nw = (ow * d.scaleFactor).coerceIn(GBA_MIN_WIDTH, GBA_MAX_WIDTH)
                     val nh = nw / ratio
-                    view.x += (ow - nw) / 2f; view.y += (oh - nh) / 2f
+                    val dx = (ow - nw) / 2f
+                    val dy = (oh - nh) / 2f
+                    view.x += dx; view.y += dy
+                    dragX -= dx; dragY -= dy
                     view.layoutParams = (view.layoutParams as FrameLayout.LayoutParams).apply {
                         width = nw.toInt(); height = nh.toInt()
                     }
@@ -201,14 +249,27 @@ class GbaEmulationManager(
 
         view.setOnTouchListener { v, event ->
             if (isGbaLocked) return@setOnTouchListener false
+
+            val wasScaling = scaleDetector.isInProgress
             scaleDetector.onTouchEvent(event)
             if (scaleDetector.isInProgress) return@setOnTouchListener true
+            if (wasScaling) needsDragSync = true
+
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     dragX = event.rawX - v.x; dragY = event.rawY - v.y
+                    needsDragSync = false
+                }
+
+                MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_POINTER_UP -> {
+                    needsDragSync = true
                 }
 
                 MotionEvent.ACTION_MOVE -> {
+                    if (needsDragSync) {
+                        dragX = event.rawX - v.x; dragY = event.rawY - v.y
+                        needsDragSync = false
+                    }
                     v.x = event.rawX - dragX; v.y = event.rawY - dragY
                 }
 
@@ -249,10 +310,8 @@ class GbaEmulationManager(
             else -> restoreUnlockedLayout()
         }
 
-        globalGbaPrefs.edit {
-            putBoolean(PREF_GBA_LOCKED, isGbaLocked)
-        }
-        activeGbaSlots().forEach { applyStoredGbaVolume(it) }
+        globalGbaPrefs.edit { putBoolean(PREF_GBA_LOCKED, isGbaLocked) }
+        activeSlots.forEach { applyStoredGbaVolume(it) }
         updateGbaDimmingState()
     }
 
@@ -335,7 +394,7 @@ class GbaEmulationManager(
     }
 
     private fun restoreViewFromPrefs(view: GbaOverlayView, slot: Int, index: Int) {
-        val sp = slotPrefs.getValue(slot)
+        val sp = slotPrefs[slot] ?: return
         val sw =
             sp.getFloat(PREF_GBA_WIDTH, DEFAULT_GBA_WIDTH).coerceIn(GBA_MIN_WIDTH, GBA_MAX_WIDTH)
         val sh = sw / view.aspectRatio
@@ -356,6 +415,11 @@ class GbaEmulationManager(
         binding.root.post { applyGbaLayout() }
     }
 
+    fun toggleTouchPassthrough() {
+        isTouchPassthrough = !isTouchPassthrough
+        globalGbaPrefs.edit { putBoolean(PREF_GBA_TOUCH_PASSTHROUGH, isTouchPassthrough) }
+    }
+
     fun resetGbaScreens() {
         if (gbaViews.isEmpty() || isGbaLocked) return
         activity.runOnUiThread {
@@ -363,7 +427,7 @@ class GbaEmulationManager(
             gbaViews.forEachIndexed { i, v ->
                 val x = DEFAULT_GBA_X + i * GBA_RESET_OFFSET
                 val y = h - DEFAULT_GBA_HEIGHT - DEFAULT_GBA_X - i * GBA_RESET_OFFSET
-                slotPrefs.getValue(v.gbaSlot).edit {
+                slotPrefs[v.gbaSlot]?.edit {
                     putFloat(PREF_GBA_X, x)
                     putFloat(PREF_GBA_Y, y)
                     putFloat(PREF_GBA_WIDTH, DEFAULT_GBA_WIDTH)
@@ -374,11 +438,75 @@ class GbaEmulationManager(
         }
     }
 
-    fun resetGbaCore() = activeGbaSlots().forEach { GbaRenderer.resetGbaCore(it) }
+    fun resetGbaCore() {
+        val slots = activeSlots
+        if (slots.isEmpty()) return
+
+        if (slots.size == 1) {
+            showResetOptions(slots[0])
+        } else {
+            val slotEntries =
+                slots.map { activity.getString(R.string.gba_slot_name, it + 1) }.toTypedArray()
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.emulation_reset_gba)
+                .setItems(slotEntries) { _, index ->
+                    showResetOptions(slots[index])
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun showResetOptions(slot: Int) {
+        val options = arrayOf(
+            activity.getString(R.string.emulation_reset_gba_game),
+            activity.getString(R.string.emulation_reset_gba_multiboot)
+        )
+
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(activity.getString(R.string.emulation_reset_gba_title, slot + 1))
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> confirmReset(slot, isMultiboot = false)
+                    1 -> confirmReset(slot, isMultiboot = true)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmReset(slot: Int, isMultiboot: Boolean) {
+        val message = if (isMultiboot) {
+            activity.getString(R.string.emulation_reset_gba_multiboot_confirm, slot + 1)
+        } else {
+            activity.getString(R.string.emulation_reset_gba_confirm, slot + 1)
+        }
+
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.emulation_reset_gba)
+            .setMessage(message)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                if (isMultiboot) {
+                    val romSetting = when (slot) {
+                        0 -> StringSetting.MAIN_GBA_ROM_PATH_1
+                        1 -> StringSetting.MAIN_GBA_ROM_PATH_2
+                        2 -> StringSetting.MAIN_GBA_ROM_PATH_3
+                        3 -> StringSetting.MAIN_GBA_ROM_PATH_4
+                        else -> null
+                    }
+                    settings?.let { romSetting?.setString(it, "") }
+                    GbaRenderer.resetToMultiboot(slot)
+                } else {
+                    GbaRenderer.resetGbaCore(slot)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
 
     fun adjustGbaVolume() {
-        val activeSlots = activeGbaSlots()
-        if (activeSlots.isEmpty()) return
+        val slots = activeSlots
+        if (slots.isEmpty()) return
 
         val padding = (24 * activity.resources.displayMetrics.density).toInt()
         val content = LinearLayout(activity).apply {
@@ -386,7 +514,7 @@ class GbaEmulationManager(
             setPadding(padding, padding / 2, padding, 0)
         }
 
-        activeSlots.forEach { slot ->
+        slots.forEach { slot ->
             val label = TextView(activity)
             val slider = Slider(activity).apply {
                 valueFrom = 0f; valueTo = 100f; stepSize = 1f
@@ -410,7 +538,7 @@ class GbaEmulationManager(
             .setTitle(R.string.emulation_gba_volume)
             .setView(content)
             .setNeutralButton(R.string.input_reset_to_default) { _, _ ->
-                activeSlots.forEach { setGbaVolumePercent(it, 100) }
+                slots.forEach { setGbaVolumePercent(it, 100) }
             }
             .setPositiveButton(R.string.ok, null)
             .show()
@@ -419,11 +547,11 @@ class GbaEmulationManager(
     private fun applyStoredGbaVolume(slot: Int) = setGbaVolume(slot, getGbaVolumePercent(slot))
 
     private fun getGbaVolumePercent(slot: Int): Int =
-        slotPrefs.getValue(slot).getInt(GBA_VOLUME_PREF, 100).coerceIn(0, 100)
+        slotPrefs[slot]?.getInt(GBA_VOLUME_PREF, 100)?.coerceIn(0, 100) ?: 100
 
     private fun setGbaVolumePercent(slot: Int, percent: Int) {
         val clampedPercent = percent.coerceIn(0, 100)
-        slotPrefs.getValue(slot).edit { putInt(GBA_VOLUME_PREF, clampedPercent) }
+        slotPrefs[slot]?.edit { putInt(GBA_VOLUME_PREF, clampedPercent) }
         setGbaVolume(slot, clampedPercent)
     }
 
@@ -432,8 +560,8 @@ class GbaEmulationManager(
     }
 
     fun showGbaSlotSelection() {
-        val activeSlots = activeGbaSlots()
-        if (activeSlots.isEmpty()) {
+        val slots = activeSlots
+        if (slots.isEmpty()) {
             MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.emulation_gba_slot_selection)
                 .setPositiveButton(R.string.ok, null)
@@ -443,26 +571,14 @@ class GbaEmulationManager(
 
         val currentValue = getGbaActiveSlot()
         val slotEntries =
-            activeSlots.map { activity.getString(R.string.gba_slot_name, it + 1) }.toTypedArray()
-        val checkedItem = activeSlots.indexOf(currentValue)
+            slots.map { activity.getString(R.string.gba_slot_name, it + 1) }.toTypedArray()
+        val checkedItem = slots.indexOf(currentValue)
 
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.emulation_gba_slot_selection)
             .setSingleChoiceItems(slotEntries, checkedItem) { dialog, indexSelected ->
-                val newSlot = activeSlots[indexSelected]
-                setGbaActiveSlot(newSlot)
-
-                val controllerSetting = IntSetting.MAIN_OVERLAY_GC_CONTROLLER
-                val currentController = controllerSetting.int
-                if (currentController in 0..3 &&
-                    IntSetting.getSettingForSIDevice(currentController).int == InputOverlay.EMULATED_GBA_CONTROLLER
-                ) {
-                    settings?.let { controllerSetting.setInt(it, newSlot) }
-                }
-
+                selectGbaSlot(slots[indexSelected])
                 dialog.dismiss()
-                updateGbaDimmingState()
-                onRefreshOverlay?.invoke()
             }
             .setNeutralButton(R.string.emulation_more_controller_settings) { _, _ ->
                 SettingsActivity.launch(activity, MenuTag.SETTINGS)
@@ -470,41 +586,42 @@ class GbaEmulationManager(
             .show()
     }
 
-    fun getGbaActiveSlot(): Int {
+    private fun selectGbaSlot(slot: Int) {
+        setGbaActiveSlot(slot)
+
         val isWii = NativeLibrary.IsGameMetadataValid() && NativeLibrary.IsEmulatingWii()
         val controllerSetting =
             if (isWii) IntSetting.MAIN_OVERLAY_WII_CONTROLLER else IntSetting.MAIN_OVERLAY_GC_CONTROLLER
-        val controllerIndex = controllerSetting.int
 
-        if (controllerIndex in 0..3 &&
-            IntSetting.getSettingForSIDevice(controllerIndex).int == InputOverlay.EMULATED_GBA_CONTROLLER
+        if (controllerSetting.int in 0..3 &&
+            IntSetting.getSettingForSIDevice(controllerSetting.int).int == InputOverlay.EMULATED_GBA_CONTROLLER
         ) {
-            return controllerIndex
+            settings?.let { controllerSetting.setInt(it, slot) }
         }
 
+        updateGbaDimmingState()
+        onRefreshOverlay?.invoke()
+    }
+
+    fun getGbaActiveSlot(): Int {
+        val slots = activeSlots
+        val isWii = NativeLibrary.IsGameMetadataValid() && NativeLibrary.IsEmulatingWii()
+        val controllerIndex =
+            (if (isWii) IntSetting.MAIN_OVERLAY_WII_CONTROLLER else IntSetting.MAIN_OVERLAY_GC_CONTROLLER).int
         val selectedSlot = IntSetting.MAIN_GBA_ACTIVE_SLOT.int
-        if (IntSetting.getSettingForSIDevice(selectedSlot).int == InputOverlay.EMULATED_GBA_CONTROLLER) {
-            return selectedSlot
-        }
 
-        for (i in 0 until 4) {
-            if (IntSetting.getSettingForSIDevice(i).int == InputOverlay.EMULATED_GBA_CONTROLLER) {
-                return i
-            }
+        return when {
+            controllerIndex in slots -> controllerIndex
+            selectedSlot in slots -> selectedSlot
+            else -> slots.firstOrNull() ?: selectedSlot
         }
-
-        return selectedSlot
     }
 
     private fun ensureValidGbaSlot() {
         val current = IntSetting.MAIN_GBA_ACTIVE_SLOT.int
-        if (IntSetting.getSettingForSIDevice(current).int != InputOverlay.EMULATED_GBA_CONTROLLER) {
-            for (i in 0 until 4) {
-                if (IntSetting.getSettingForSIDevice(i).int == InputOverlay.EMULATED_GBA_CONTROLLER) {
-                    setGbaActiveSlot(i)
-                    break
-                }
-            }
+        val slots = activeSlots
+        if (current !in slots) {
+            slots.firstOrNull()?.let { setGbaActiveSlot(it) }
         }
     }
 
@@ -535,6 +652,7 @@ class GbaEmulationManager(
         const val GBA_RESET_OFFSET = 20f
         const val PREF_GBA_OVERLAY_GLOBAL = "gba_overlay"
         const val PREF_GBA_LOCKED = "gba_locked"
+        const val PREF_GBA_TOUCH_PASSTHROUGH = "gba_touch_passthrough"
         const val PREF_GBA_WIDTH = "gba_width"
         const val PREF_GBA_HEIGHT = "gba_height"
         const val PREF_GBA_X = "gba_x"

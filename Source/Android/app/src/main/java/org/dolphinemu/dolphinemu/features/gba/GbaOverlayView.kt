@@ -3,7 +3,14 @@
 package org.dolphinemu.dolphinemu.features.gba
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.PorterDuff
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
@@ -19,6 +26,7 @@ class GbaOverlayView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val destRect = Rect()
+    private val borderRect = RectF()
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(120, 255, 255, 255)
         style = Paint.Style.STROKE
@@ -45,16 +53,16 @@ class GbaOverlayView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     }
 
     fun drawFrame(bitmap: Bitmap) {
-        if (!holder.surface.isValid) return
+        if (!holder.surface.isValid || bitmap.isRecycled) return
 
         if (!isScreenVisible) {
             if (needsBorderRedraw) {
                 needsBorderRedraw = false
                 val canvas = holder.lockCanvas() ?: return
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                val rect = RectF(2f, 2f, width - 2f, height - 2f)
-                canvas.drawRoundRect(rect, 12f, 12f, borderPaint)
-                canvas.drawText("GBA", width / 2f, height / 2f + 8f, borderTextPaint)
+                borderRect.set(2f, 2f, width - 2f, height - 2f)
+                canvas.drawRoundRect(borderRect, 12f, 12f, borderPaint)
+                canvas.drawText("GBA ${gbaSlot + 1}", width / 2f, height / 2f + 8f, borderTextPaint)
                 holder.unlockCanvasAndPost(canvas)
             }
             return
@@ -74,7 +82,8 @@ class GbaOverlayView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     fun onDoubleTap() {
         isScreenVisible = !isScreenVisible
-        if (!isScreenVisible) needsBorderRedraw = true
+        needsBorderRedraw = true
+        GbaRenderer.requestRedraw(gbaSlot)
     }
 
     override fun performClick() = super.performClick() || true

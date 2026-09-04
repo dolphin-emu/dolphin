@@ -23,6 +23,14 @@ Java_org_dolphinemu_dolphinemu_features_gba_GbaRenderer_resetGbaCore(JNIEnv*, jc
 #endif
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_gba_GbaRenderer_resetToMultiboot(JNIEnv*, jclass, jint slot)
+{
+#ifdef HAS_LIBMGBA
+  Pad::SetGBAMultibootReset(slot, true);
+#endif
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_gba_GbaRenderer_setGbaVolume(
     JNIEnv*, jclass, jint slot, jint volume)
 {

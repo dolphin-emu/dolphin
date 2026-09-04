@@ -663,6 +663,12 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_snap_gba_layout">Snap GBA Layout</string>
     <string name="emulation_gba_reset_layout">Reset GBA Screen Positions</string>
     <string name="emulation_reset_gba">Reset GBA</string>
+    <string name="emulation_reset_gba_title">Reset GBA Slot %1$d</string>
+    <string name="emulation_reset_gba_game">Reset Game</string>
+    <string name="emulation_reset_gba_multiboot">Eject cart and Reset?</string>
+    <string name="emulation_reset_gba_confirm">Are you sure you want to reset GBA Slot %1$d?</string>
+    <string name="emulation_reset_gba_multiboot_confirm">Are you sure you want to eject cart and Reset GBA Slot %1$d?.</string>
+    <string name="emulation_gba_touch_passthrough">Touch Passthrough</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

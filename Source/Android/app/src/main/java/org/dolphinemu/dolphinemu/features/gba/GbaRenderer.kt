@@ -16,11 +16,13 @@ object GbaRenderer {
     private const val GBA_HEIGHT = 160
     private const val BYTES_PER_PIXEL = 4
     private const val GBA_BUFFER_SIZE = GBA_WIDTH * GBA_HEIGHT * BYTES_PER_PIXEL
-
     private const val GB_WIDTH = 160
     private const val GB_HEIGHT = 144
     @JvmStatic
     external fun resetGbaCore(slot: Int)
+    @JvmStatic
+    external fun resetToMultiboot(slot: Int)
+
     @JvmStatic
     external fun setGbaVolume(slot: Int, volume: Int)
     @JvmStatic
@@ -36,8 +38,10 @@ object GbaRenderer {
 
     private val bitmaps = arrayOfNulls<Bitmap>(4)
     private val handler = Handler(HandlerThread("GBA render").apply { start() }.looper)
+
     @Volatile
-    private var activeViews = emptyList<GbaOverlayView>()
+    private var slotToView = arrayOfNulls<GbaOverlayView>(4)
+
     @Volatile
     private var attached = false
 
@@ -46,14 +50,16 @@ object GbaRenderer {
     @Keep
     @JvmStatic
     fun onGbaFrameBuffer(slot: Int, buffer: ByteBuffer) {
-        if (!attached) return
-        val view = activeViews.find { it.gbaSlot == slot } ?: return
+        if (!attached || slot !in 0..3) return
+        val view = slotToView[slot] ?: return
+        if (!view.isScreenVisible) return
 
         buffer.rewind()
-        val w = if (buffer.remaining() == GBA_BUFFER_SIZE) GBA_WIDTH else GB_WIDTH
+        val remaining = buffer.remaining()
+        val w = if (remaining == GBA_BUFFER_SIZE) GBA_WIDTH else GB_WIDTH
         val h = if (w == GBA_WIDTH) GBA_HEIGHT else GB_HEIGHT
 
-        val bitmap = bitmaps[slot]?.takeIf { (it.width == w) && (it.height == h) }
+        val bitmap = bitmaps[slot]?.takeIf { it.width == w && it.height == h }
             ?: createBitmap(w, h).also { bitmaps[slot] = it }
 
         bitmap.copyPixelsFromBuffer(buffer)
@@ -65,9 +71,14 @@ object GbaRenderer {
         }
     }
 
-    fun requestRedraw(slot: Int) = bitmaps[slot]?.let { bmp ->
-        activeViews.find { it.gbaSlot == slot }?.let { v ->
-            handler.post { if (v.holder.surface.isValid) v.drawFrame(bmp) }
+    fun requestRedraw(slot: Int) {
+        if (slot !in 0..3) return
+        val bmp = bitmaps[slot] ?: return
+        val view = slotToView[slot] ?: return
+        handler.post {
+            if (attached && view.holder.surface.isValid) {
+                view.drawFrame(bmp)
+            }
         }
     }
 
@@ -77,14 +88,20 @@ object GbaRenderer {
     }
 
     fun updateViews(views: List<GbaOverlayView>) {
-        activeViews = views
+        val newMap = arrayOfNulls<GbaOverlayView>(4)
+        views.forEach { newMap[it.gbaSlot] = it }
+        slotToView = newMap
         views.forEach { if (it.surfaceReady) requestRedraw(it.gbaSlot) }
     }
 
     fun detach() {
         handler.removeCallbacksAndMessages(null)
         attached = false
-        activeViews = emptyList()
+        slotToView = arrayOfNulls(4)
+        for (i in 0 until 4) {
+            bitmaps[i]?.recycle()
+            bitmaps[i] = null
+        }
     }
 
     @JvmStatic

@@ -8,6 +8,11 @@
         android:title="@string/emulation_snap_gba_layout" />
 
     <item
+        android:id="@+id/menu_emulation_gba_touch_passthrough"
+        android:checkable="true"
+        android:title="@string/emulation_gba_touch_passthrough" />
+
+    <item
         android:id="@+id/menu_emulation_gba_reset"
         android:title="@string/emulation_gba_reset_layout" />
 

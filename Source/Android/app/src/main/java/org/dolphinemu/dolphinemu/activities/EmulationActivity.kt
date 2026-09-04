@@ -479,6 +479,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val popup = PopupMenu(this, anchor)
         popup.menuInflater.inflate(R.menu.menu_gba_controls, popup.menu)
         popup.menu.findItem(R.id.menu_emulation_gba_snap)?.isChecked = gba.isGbaLocked
+        popup.menu.findItem(R.id.menu_emulation_gba_touch_passthrough)?.isChecked = gba.isTouchPassthrough
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
         popup.show()
     }
@@ -511,6 +512,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_GBA_SNAP -> {
                 item.isChecked = !item.isChecked
                 gba.toggleGbaSnap()
+            }
+
+            MENU_ACTION_GBA_TOUCH_PASSTHROUGH -> {
+                item.isChecked = !item.isChecked
+                gba.toggleTouchPassthrough()
             }
         }
     }
@@ -564,6 +570,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_GBA_RESET -> gba.resetGbaScreens()
             MENU_ACTION_GBA_RESET_CORE -> gba.resetGbaCore()
             MENU_ACTION_GBA_SLOT -> gba.showGbaSlotSelection()
+            MENU_ACTION_GBA_TOUCH_PASSTHROUGH -> gba.toggleTouchPassthrough()
         }
     }
 
@@ -1142,6 +1149,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_GBA_CONTROLS = 42
         const val MENU_ACTION_GBA_VOLUME = 43
         const val MENU_ACTION_GBA_SLOT = 44
+        const val MENU_ACTION_GBA_TOUCH_PASSTHROUGH = 45
 
         init {
             buttonsActionsMap.apply {
@@ -1161,6 +1169,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_gba_reset_core, MENU_ACTION_GBA_RESET_CORE)
                 append(R.id.menu_emulation_gba_volume, MENU_ACTION_GBA_VOLUME)
                 append(R.id.menu_emulation_gba_slot, MENU_ACTION_GBA_SLOT)
+                append(R.id.menu_emulation_gba_touch_passthrough, MENU_ACTION_GBA_TOUCH_PASSTHROUGH)
             }
         }
 
