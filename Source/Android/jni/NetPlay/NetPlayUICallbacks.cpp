@@ -5,6 +5,8 @@
 
 #include <fmt/format.h>
 
+#include <arpa/inet.h>
+
 #include "Common/TraversalClient.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
@@ -19,21 +21,22 @@ namespace
 {
 std::string InetAddressToString(const Common::TraversalInetAddress& addr)
 {
-  std::string ip;
-
   if (addr.isIPV6)
   {
-    ip = "IPv6-Not-Implemented";
+    char ipv6[INET6_ADDRSTRLEN]{};
+    if (!inet_ntop(AF_INET6, addr.address, ipv6, sizeof(ipv6)))
+      return "?:?";
+
+    return fmt::format("[{}]:{}", ipv6, ntohs(addr.port));
   }
-  else
+
+  std::string ip;
+  const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+  ip = std::to_string(ipv4[0]);
+  for (u32 i = 1; i != 4; ++i)
   {
-    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
-    ip = std::to_string(ipv4[0]);
-    for (u32 i = 1; i != 4; ++i)
-    {
-      ip += ".";
-      ip += std::to_string(ipv4[i]);
-    }
+    ip += ".";
+    ip += std::to_string(ipv4[i]);
   }
 
   return fmt::format("{}:{}", ip, ntohs(addr.port));

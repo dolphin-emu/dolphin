@@ -7,6 +7,13 @@
 #include <string>
 #include <utility>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -72,7 +79,16 @@ static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
   ENetAddress eaddr{};
   if (address.isIPV6)
   {
-    eaddr.port = 0;  // no support yet :(
+    char ipv6[INET6_ADDRSTRLEN]{};
+    if (inet_ntop(AF_INET6, address.address, ipv6, sizeof(ipv6)) &&
+        enet_address_set_host(&eaddr, ipv6) == 0)
+    {
+      eaddr.port = ntohs(address.port);
+    }
+    else
+    {
+      eaddr.port = 0;
+    }
   }
   else
   {
