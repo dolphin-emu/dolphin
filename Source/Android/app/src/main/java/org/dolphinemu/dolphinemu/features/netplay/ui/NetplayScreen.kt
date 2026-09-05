@@ -110,6 +110,7 @@ import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.TraversalState
 import org.dolphinemu.dolphinemu.model.GameFile
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
@@ -811,6 +812,7 @@ private fun GameGridItem(
     gameFile: GameFile,
     onClick: () -> Unit,
 ) {
+    val titleDatabase = GameFileCacheManager.getTitleDatabase()
     Card(
         onClick = onClick,
     ) {
@@ -820,7 +822,7 @@ private fun GameGridItem(
                     .data(gameFile)
                     .error(R.drawable.no_banner)
                     .build(),
-                contentDescription = gameFile.getTitle(),
+                contentDescription = gameFile.getTitle(titleDatabase),
                 contentScale = ContentScale.Crop,
                 imageLoader = CoilUtils.imageLoader,
                 modifier = Modifier
@@ -828,7 +830,7 @@ private fun GameGridItem(
                     .aspectRatio(0.7f)
             )
             Text(
-                text = gameFile.getTitle(),
+                text = gameFile.getTitle(titleDatabase),
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 2,
                 minLines = 2,

@@ -12,7 +12,7 @@ class GameFile private constructor(private val pointer: Long) {
 
     external fun getPlatform(): Int
 
-    external fun getTitle(): String
+    external fun getTitle(titleDatabase: TitleDatabase?): String
 
     external fun getDescription(): String
 
