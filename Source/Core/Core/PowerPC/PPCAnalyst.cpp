@@ -585,7 +585,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   code->crIn = BitSet8(0);
   if (opinfo->flags & FL_READ_ALL_CR)
   {
-    code->crIn = BitSet8(0xFF);
+    code->crIn = BitSet8::AllTrue();
   }
   else if (opinfo->flags & FL_READ_CRn)
   {
@@ -607,7 +607,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   code->crOut = BitSet8(0);
   if (opinfo->flags & FL_SET_ALL_CR)
-    code->crOut = BitSet8(0xFF);
+    code->crOut = BitSet8::AllTrue();
   else if (opinfo->flags & FL_SET_CRn)
     code->crOut[code->inst.CRFD] = true;
   else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
