@@ -102,8 +102,10 @@ void JitInterface::UpdateMembase()
 #endif
   if (ppc_state.msr.DR)
   {
-    ppc_state.mem_ptr =
-        fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
+    ppc_state.mem_ptr = fastmem_arena ? (ppc_state.pagetable_update_pending ?
+                                             memory.GetLogicalBaseWithoutPageTable() :
+                                             memory.GetLogicalBaseWithPageTable()) :
+                                        memory.GetLogicalPageMappingsBase();
   }
   else
   {
