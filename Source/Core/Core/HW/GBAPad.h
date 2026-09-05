@@ -23,6 +23,7 @@ InputConfig* GetGBAConfig();
 
 GCPadStatus GetGBAStatus(int pad_num);
 void SetGBAReset(int pad_num, bool reset);
+void SetGBAMultibootReset(int pad_num, bool reset);
 
 ControllerEmu::ControlGroup* GetGBAGroup(int pad_num, GBAPadGroup group);
 }  // namespace Pad

@@ -28,6 +28,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -36,6 +38,7 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
+import org.dolphinemu.dolphinemu.features.gba.GbaEmulationManager
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
 import org.dolphinemu.dolphinemu.features.infinitybase.model.Figure
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
@@ -72,6 +75,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var emulationFragment: EmulationFragment? = null
 
     private lateinit var settings: Settings
+
+    private val _isMenuShowing = MutableLiveData(false)
+    val isMenuShowing: LiveData<Boolean> get() = _isMenuShowing
+
+    lateinit var gba: GbaEmulationManager
 
     override var themeId = 0
 
@@ -218,6 +226,16 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         binding = ActivityEmulationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        gba = GbaEmulationManager(this, binding)
+        gba.initSettings(settings, onRefreshOverlay = { emulationFragment?.refreshInputOverlay() })
+        gba.initViews()
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            _isMenuShowing.value =
+                supportFragmentManager.findFragmentById(R.id.frame_menu) != null ||
+                    supportFragmentManager.findFragmentById(R.id.frame_submenu) != null
+        }
+
         setInsets()
 
         // Find or create the EmulationFragment
@@ -339,6 +357,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             emulationFragment?.refreshInputOverlay()
 
             updateDisplaySettings()
+
+            gba.onTitleChanged()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
@@ -347,7 +367,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     override fun onDestroy() {
         super.onDestroy()
+        gba.onDestroy()
         settings.close()
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        gba.onConfigurationChanged()
     }
 
     override fun onBackPressed() {
@@ -454,6 +480,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         popup.show()
     }
 
+    val hasActiveGbaScreens get() = gba.gbaViews.isNotEmpty()
+
+    fun showGbaControlsMenu(anchor: View) {
+        val popup = PopupMenu(this, anchor)
+        popup.menuInflater.inflate(R.menu.menu_gba_controls, popup.menu)
+        popup.menu.findItem(R.id.menu_emulation_gba_snap)?.isChecked = gba.isGbaLocked
+        popup.menu.findItem(R.id.menu_emulation_gba_touch_passthrough)?.isChecked = gba.isTouchPassthrough
+        popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
+        popup.show()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val action = buttonsActionsMap[item.itemId, -1]
         if (action >= 0) {
@@ -477,6 +514,16 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_SET_IR_RECENTER -> {
                 item.isChecked = !item.isChecked
                 toggleRecenter(item.isChecked)
+            }
+
+            MENU_ACTION_GBA_SNAP -> {
+                item.isChecked = !item.isChecked
+                gba.toggleGbaSnap()
+            }
+
+            MENU_ACTION_GBA_TOUCH_PASSTHROUGH -> {
+                item.isChecked = !item.isChecked
+                gba.toggleTouchPassthrough()
             }
         }
     }
@@ -525,6 +572,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
+            MENU_ACTION_GBA_SNAP -> gba.toggleGbaSnap()
+            MENU_ACTION_GBA_VOLUME -> gba.adjustGbaVolume()
+            MENU_ACTION_GBA_RESET -> gba.resetGbaScreens()
+            MENU_ACTION_GBA_RESET_CORE -> gba.resetGbaCore()
+            MENU_ACTION_GBA_SLOT -> gba.showGbaSlotSelection()
+            MENU_ACTION_GBA_TOUCH_PASSTHROUGH -> gba.toggleTouchPassthrough()
         }
     }
 
@@ -540,9 +593,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private fun editControlsPlacement() {
         if (emulationFragment!!.isConfiguringControls) {
             emulationFragment?.stopConfiguringControls()
+            gba.setGbaViewsTouchable(true)
         } else {
             closeSubmenu()
             closeMenu()
+            gba.setGbaViewsTouchable(false)
             emulationFragment?.startConfiguringControls()
         }
     }
@@ -870,7 +925,15 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .setSingleChoiceItems(
                 entries.toArray(arrayOf<CharSequence>()), checkedItem
             ) { _: DialogInterface?, indexSelected: Int ->
-                controllerSetting.setInt(settings, values[indexSelected])
+                val selectedValue = values[indexSelected]
+                controllerSetting.setInt(settings, selectedValue)
+
+                if (selectedValue in 0..3 &&
+                    IntSetting.getSettingForSIDevice(selectedValue).int == InputOverlay.EMULATED_GBA_CONTROLLER
+                ) {
+                    IntSetting.MAIN_GBA_ACTIVE_SLOT.setInt(settings, selectedValue)
+                }
+
                 emulationFragment?.refreshInputOverlay()
             }
             .setPositiveButton(R.string.ok, null)
@@ -982,6 +1045,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             if (anyMenuClosed)
                 return true
         }
+        if (gba.handleTouch(event))
+            return true
+
         return super.dispatchTouchEvent(event)
     }
 
@@ -1084,6 +1150,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_GBA_SNAP = 39
+        const val MENU_ACTION_GBA_RESET = 40
+        const val MENU_ACTION_GBA_RESET_CORE = 41
+        const val MENU_ACTION_GBA_CONTROLS = 42
+        const val MENU_ACTION_GBA_VOLUME = 43
+        const val MENU_ACTION_GBA_SLOT = 44
+        const val MENU_ACTION_GBA_TOUCH_PASSTHROUGH = 45
 
         init {
             buttonsActionsMap.apply {
@@ -1097,6 +1170,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_ir_recenter, MENU_SET_IR_RECENTER)
                 append(R.id.menu_emulation_set_ir_mode, MENU_SET_IR_MODE)
                 append(R.id.menu_emulation_choose_doubletap, MENU_ACTION_CHOOSE_DOUBLETAP)
+                append(R.id.menu_gba_controls, MENU_ACTION_GBA_CONTROLS)
+                append(R.id.menu_emulation_gba_snap, MENU_ACTION_GBA_SNAP)
+                append(R.id.menu_emulation_gba_reset, MENU_ACTION_GBA_RESET)
+                append(R.id.menu_emulation_gba_reset_core, MENU_ACTION_GBA_RESET_CORE)
+                append(R.id.menu_emulation_gba_volume, MENU_ACTION_GBA_VOLUME)
+                append(R.id.menu_emulation_gba_slot, MENU_ACTION_GBA_SLOT)
+                append(R.id.menu_emulation_gba_touch_passthrough, MENU_ACTION_GBA_TOUCH_PASSTHROUGH)
             }
         }
 

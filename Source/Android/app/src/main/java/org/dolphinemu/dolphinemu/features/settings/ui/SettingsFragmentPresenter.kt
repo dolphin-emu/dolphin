@@ -866,6 +866,46 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_1,
+                R.string.gba_rom_path_1,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_2,
+                R.string.gba_rom_path_2,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_3,
+                R.string.gba_rom_path_3,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_ROM_PATH_4,
+                R.string.gba_rom_path_4,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
             DirectoryPicker(
                 context,
                 StringSetting.MAIN_GBA_SAVES_PATH,
@@ -2552,6 +2592,17 @@ class SettingsFragmentPresenter(
                         R.string.gc_adapter_bongos_description
                     )
                 )
+            }
+            13 -> {
+                // GBA(integrated)
+                val gbaPad = EmulatedController.getGbaPad(gcPadNumber)
+
+                if (!TextUtils.isEmpty(gameId)) {
+                    addControllerPerGameSettings(sl, gbaPad, gcPadNumber)
+                } else {
+                    addControllerMetaSettings(sl, gbaPad)
+                    addControllerMappingSettings(sl, gbaPad, null)
+                }
             }
         }
     }
