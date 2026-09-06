@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Core/PowerPC/Gekko.h"

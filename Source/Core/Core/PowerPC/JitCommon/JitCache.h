@@ -4,11 +4,9 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <chrono>
 #include <cstring>
 #include <functional>
-#include <map>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -16,8 +14,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/LazyMemoryRegionBitSet.h"
+#include "Common/MemArena.h"
 #include "Common/RangeSet.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
@@ -190,6 +188,8 @@ private:
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which link to an address.
+  // TODO: In profiling, its percentage is low, but not zero. Replacing std::unordered_map with a
+  // faster hashmap wouldn't hurt.
   std::unordered_map<u32, std::vector<JitBlock*>> links_to;  // destination_PC -> number
 
   // Map indexed by the physical address of the entry point | the shifted MSR.
@@ -205,6 +205,8 @@ private:
   //
   // The entries are referenced by other members of this struct, so references must be stable upon
   // insertion and erasure (which is the case with std::unordered_map).
+  // TODO: Maybe a more performant hashmap, with the value wrapped in unique_ptr for reference
+  // stability, may still be more performant? This one is more significant in profiling.
   std::unordered_map<u32, JitBlock> block_map;  // start_addr -> block
 
   // Range of overlapping code indexed by a masked physical address.
@@ -213,6 +215,7 @@ private:
   static constexpr u32 BLOCK_RANGE_SIZE = 0x100;
   // While an ordered map may grant more performance by iterating through contigous macroblocks,
   // actually taking advantage of it would make the code much more messy.
+  // TODO: Like above, a more performant hashmap would be appreciated.
   std::unordered_map<u32, std::vector<JitBlock*>> block_range_map;
 
   // This bitset shows which cachelines overlap with any blocks.

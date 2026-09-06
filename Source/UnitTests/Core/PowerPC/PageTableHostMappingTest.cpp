@@ -7,11 +7,11 @@
 
 #include <fmt/format.h>
 
-#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
