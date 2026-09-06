@@ -978,6 +978,9 @@ enum class BooleanSetting(
             defaultValue
         )
 
+    fun getBoolean(layer: Int): Boolean =
+        NativeConfig.getBoolean(layer, file, section, key, defaultValue)
+
     override fun setBoolean(settings: Settings, newValue: Boolean) {
         if (!NativeConfig.isSettingSaveable(file, section, key)) {
             throw UnsupportedOperationException("Unsupported setting: $file, $section, $key")
