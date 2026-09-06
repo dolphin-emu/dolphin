@@ -235,6 +235,12 @@ else()
       " Enable generic build if you really want a JIT-less binary.")
 endif()
 
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+  set(DOLPHIN_HOST ARM64)
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x64|x86_64|amd64|AMD64")
+  set(DOLPHIN_HOST x64)
+endif()
+
 if(CMAKE_GENERATOR MATCHES "Ninja")
   check_and_add_flag(DIAGNOSTICS_COLOR -fdiagnostics-color)
 elseif(CMAKE_GENERATOR MATCHES "Visual Studio")
