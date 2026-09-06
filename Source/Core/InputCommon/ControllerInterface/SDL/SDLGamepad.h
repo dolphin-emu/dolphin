@@ -350,6 +350,9 @@ public:
     return Core::DeviceRemoval::Keep;
   }
 
+  std::unique_ptr<Core::SpringEffect> CreateSpringEffect() override;
+  std::unique_ptr<Core::FrictionEffect> CreateFrictionEffect() override;
+
 private:
   void UpdateRumble()
   {
