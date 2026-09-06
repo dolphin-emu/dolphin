@@ -6,7 +6,6 @@
 #include <array>
 #include <cstddef>
 #include <iosfwd>
-#include <map>
 #include <string_view>
 #include <unordered_set>
 #include <utility>
@@ -99,8 +98,8 @@ protected:
     u32 downcountAmount;
     u32 numLoadStoreInst;
     u32 numFloatingPointInst;
-    // If this is set, we need to generate an exception handler for the fastmem load.
-    u8* fastmemLoadStore;
+    // If this is true, we need to generate an exception handler for the fastmem load.
+    bool fastmemLoadStore;
     // If this is set, a load or store already prepared a jump to the exception handler for us,
     // so just fixup that branch instead of testing for a DSI again.
     bool fixupExceptionHandler;
