@@ -1036,8 +1036,8 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* near_start = GetWritableCodePtr();
     u8* far_start = m_far_code.GetWritableCodePtr();
 
-    JitBlock* b = blocks.AllocateBlock(em_address);
-    if (DoJit(em_address, b, nextPC))
+    JitBlock b = blocks.InitBlock(em_address);
+    if (DoJit(em_address, &b, nextPC))
     {
       // Code generation succeeded.
 
@@ -1057,10 +1057,10 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
       // Store the used memory regions in the block so we know what to mark as unused when the
       // block gets invalidated.
-      b->near_begin = near_start;
-      b->near_end = near_end;
-      b->far_begin = far_start;
-      b->far_end = far_end;
+      b.near_begin = near_start;
+      b.near_end = near_end;
+      b.far_begin = far_start;
+      b.far_end = far_end;
 
       if (!m_fault_to_handler_temp.empty())
       {
@@ -1069,7 +1069,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
         m_fault_to_handler.emplace(near_start, m_fault_to_handler_temp);
       }
 
-      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+      blocks.FinalizeBlock(std::move(b), jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
       LogGeneratedCode();
