@@ -40,6 +40,7 @@
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/FrameGeneration.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
@@ -2919,16 +2920,46 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   uniforms.padding = 0;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
+  // Everything above is what a generated frame has to do again for itself, against its own copy of
+  // the EFB. Without it, whatever the game builds out of this texture, a reflection, a shadow map,
+  // the downsampled scene a heat haze distorts, stays fixed on the moment the emulated GPU made it
+  // while the geometry around it moves, which reads as that one effect juddering on its own.
+  //
+  // The uniform block goes in whole. What the copy shader wants out of it is the copy shader's
+  // business, and a replay only has to hand it back the same answers.
+  //
+  // The copy that makes the external framebuffer is kept apart from the rest. It is not something
+  // a replayed draw ever samples; it is the last thing that happens to a frame before it is shown,
+  // and it is where the pixel engine's gamma, the deflicker filter and the clamping are applied. A
+  // generated frame has to go through the same one or it reaches the display toned differently from
+  // the real frames it sits between.
+  if (entry->is_xfb_copy)
+  {
+    g_vertex_manager->GetFrameRecorder().RecordXFBCopy(
+        copy_pipeline, linear_filter, &uniforms, sizeof(uniforms), entry->texture->GetConfig());
+  }
+  else
+  {
+    g_vertex_manager->GetFrameRecorder().RecordCopy(copy_pipeline, is_depth_copy, linear_filter,
+                                                    &uniforms, sizeof(uniforms), entry);
+  }
+
   // Use the copy pipeline to render the VRAM copy.
-  g_gfx->SetAndDiscardFramebuffer(entry->framebuffer.get());
-  g_gfx->SetViewportAndScissor(entry->framebuffer->GetRect());
-  g_gfx->SetPipeline(copy_pipeline);
-  g_gfx->SetTexture(0, src_texture);
+  DrawEFBCopy(entry->framebuffer.get(), src_texture, copy_pipeline, linear_filter);
+}
+
+void TextureCacheBase::DrawEFBCopy(AbstractFramebuffer* destination, AbstractTexture* source,
+                                   const AbstractPipeline* pipeline, bool linear_filter)
+{
+  g_gfx->SetAndDiscardFramebuffer(destination);
+  g_gfx->SetViewportAndScissor(destination->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, source);
   g_gfx->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
                                             RenderState::GetPointSamplerState());
   g_gfx->Draw(0, 3);
   g_gfx->EndUtilityDrawing();
-  entry->texture->FinishedRendering();
+  destination->GetColorAttachment()->FinishedRendering();
 }
 
 void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
