@@ -431,8 +431,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   }
   else
   {
-    // FIFO log does not contain any frames, cannot continue.
-    PanicAlertFmt("FIFO file is invalid, cannot playback.");
+    PanicAlertFmt("FIFO file doesn't contain any frame, cannot playback.");
     system.GetFifoPlayer().Close();
     return;
   }
