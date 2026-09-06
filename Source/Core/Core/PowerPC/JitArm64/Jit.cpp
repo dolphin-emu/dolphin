@@ -31,6 +31,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/Host.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
@@ -56,8 +57,11 @@ JitArm64::JitArm64(Core::System& system)
 
 JitArm64::~JitArm64() = default;
 
-void JitArm64::Init()
+bool JitArm64::Init()
 {
+  if (!CheckValidity())
+    return false;
+
   InitFastmemArena();
 
   RefreshConfig();
@@ -80,7 +84,9 @@ void JitArm64::Init()
   SetOptimizationEnabled(true);
   gpr.Init(this);
   fpr.Init(this);
-  blocks.Init();
+
+  if (!blocks.Init())
+    return false;
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -89,6 +95,8 @@ void JitArm64::Init()
   InitBLROptimization();
 
   GenerateAsmAndResetFreeMemoryRanges();
+
+  return true;
 }
 
 void JitArm64::SetBlockLinkingEnabled(bool enabled)
@@ -1176,7 +1184,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (IsProfilingEnabled())
     ABI_CallFunction(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
 
-  if (code_block.m_gqr_used.Count() == 1 && !js.pairedQuantizeAddresses.contains(js.blockStart))
+  if (code_block.m_gqr_used.Count() == 1 &&
+      !js.pairedQuantizeAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
   {
     int gqr = *code_block.m_gqr_used.begin();
     if (!code_block.m_gqr_modified[gqr] && !GQR(m_ppc_state, gqr))
@@ -1202,7 +1211,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   m_constant_propagation.Clear();
 
-  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
+  if (!js.noSpeculativeConstantsAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
   {
     IntializeSpeculativeConstants();
   }
@@ -1233,7 +1242,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
+      bool gatherPipeIntCheck =
+          js.fifoWriteAddresses.TestBit(prev_address / sizeof(UGeckoInstruction));
 
       if (jo.optimizeGatherPipe &&
           (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))

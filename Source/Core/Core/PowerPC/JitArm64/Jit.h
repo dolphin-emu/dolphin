@@ -30,7 +30,7 @@ public:
   JitArm64& operator=(JitArm64&&) = delete;
   ~JitArm64() override;
 
-  void Init() override;
+  [[nodiscard]] bool Init() override;
   void Shutdown() override;
 
   JitCommon::ConstantPropagation& GetConstantPropagation() { return m_constant_propagation; }

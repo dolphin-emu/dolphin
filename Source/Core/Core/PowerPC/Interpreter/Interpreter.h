@@ -32,7 +32,7 @@ public:
   Interpreter& operator=(Interpreter&&) = delete;
   ~Interpreter() override;
 
-  void Init() override;
+  bool Init() override;
   void Shutdown() override;
   void SingleStep() override;
   int SingleStepInner();
