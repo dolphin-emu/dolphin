@@ -71,6 +71,7 @@ public:
 signals:
   void DetectInputComplete();
   void TestOutputComplete();
+  void OnMappingChange();
 
 private:
   std::shared_ptr<ciface::Core::Device> GetSelectedDevice() const;
