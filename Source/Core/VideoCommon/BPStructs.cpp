@@ -212,7 +212,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false,
                                        cycles_into_future);
     }
-    DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
+    DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#04X}", bp.newvalue & 0xFFFF);
     return;
   }
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
@@ -228,7 +228,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true,
                                        cycles_into_future);
     }
-    DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
+    DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#04X}", bp.newvalue & 0xFFFF);
     return;
   }
 
