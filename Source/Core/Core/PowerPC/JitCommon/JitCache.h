@@ -12,7 +12,6 @@
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -182,9 +181,16 @@ private:
   // Fast but risky block lookup based on fast_block_map.
   size_t FastLookupIndexForAddress(u32 effective_address, CPUEmuFeatureFlags feature_flags);
 
+  // In a typical game (Mario Kart Wii, branch following enabled) we have, after running the attract
+  // screen for a while:
+  // - Around 50,000 blocks
+  // - Around 30,000 are linked by another block, total entries around 80000.
+  // - Around 10,000 ranges are occupied in the block_range_map (BLOCK_RANGE_SIZE = 0x100), total
+  // entries around 100,000.
+
   // links_to hold all exit points of all valid blocks in a reverse way.
-  // It is used to query all blocks which links to an address.
-  std::unordered_map<u32, std::unordered_set<JitBlock*>> links_to;  // destination_PC -> number
+  // It is used to query all blocks which link to an address.
+  std::unordered_map<u32, std::vector<JitBlock*>> links_to;  // destination_PC -> number
 
   // Map indexed by the physical address of the entry point | the shifted MSR.
   // There is no need to involve the effective address: if the BAT is changed, the block cache is
@@ -206,7 +212,7 @@ private:
   // in macro blocks of each 0x100 bytes.
   static constexpr u32 BLOCK_RANGE_SIZE = 0x100;
   static constexpr u32 BLOCK_RANGE_MAP_MASK = ~(BLOCK_RANGE_SIZE - 1);
-  std::map<u32, std::unordered_set<JitBlock*>> block_range_map;
+  std::map<u32, std::vector<JitBlock*>> block_range_map;
 
   // This bitset shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.

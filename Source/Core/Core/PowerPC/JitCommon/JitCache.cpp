@@ -188,14 +188,18 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock&& b, bool block_link,
                         Common::DivideRoundingUp(range_end, VALID_BLOCK_CACHE_LINE_SIZE));
 
     for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
-      block_range_map[i].insert(&block);
+    {
+      auto& v = block_range_map[i];
+      if (!std::ranges::contains(v, &block))
+        v.push_back(&block);
+    }
   }
 
   if (block_link)
   {
     for (const auto& e : block.linkData)
     {
-      links_to[e.exitAddress].insert(&block);
+      links_to[e.exitAddress].push_back(&block);
     }
 
     LinkBlock(block);
@@ -376,7 +380,12 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
           for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
           {
             if (i != start->first)
-              block_range_map[i].erase(block);
+            {
+              auto& v = block_range_map[i];
+              auto b = std::ranges::find(v, block);
+              if (b != v.end())
+                v.erase(b);
+            }
           }
         }
 
@@ -410,7 +419,12 @@ void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
   for (auto [range_start, range_end] : mutable_block.physical_addresses)
   {
     for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
-      block_range_map[i].erase(&mutable_block);
+    {
+      auto& v = block_range_map[i];
+      auto b = std::ranges::find(v, &mutable_block);
+      if (b != v.end())
+        v.erase(b);
+    }
   }
 
   DestroyBlock(mutable_block);
@@ -512,12 +526,17 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block)
   // Delete linking addresses
   for (const auto& e : block.linkData)
   {
-    auto it = links_to.find(e.exitAddress);
-    if (it == links_to.end())
+    auto map_it = links_to.find(e.exitAddress);
+    if (map_it == links_to.end())
       continue;
-    it->second.erase(&block);
-    if (it->second.empty())
-      links_to.erase(it);
+
+    auto vec_it = std::ranges::find(map_it->second, &block);
+    if (vec_it == map_it->second.end())
+      continue;
+    std::iter_swap(vec_it, &map_it->second.back());
+    map_it->second.pop_back();
+    if (map_it->second.empty())
+      links_to.erase(map_it);
   }
 
   // Raise an signal if we are going to call this block again
