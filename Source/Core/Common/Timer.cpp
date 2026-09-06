@@ -98,7 +98,7 @@ static constexpr int TIMER_RESOLUTION_MS = 1;
 
 void Timer::IncreaseResolution()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   // Disable execution speed and timer resolution throttling process-wide.
   // This mainly will keep Dolphin marked as high performance if it's in the background. The OS
   // should make it high performance if it's in the foreground anyway (or for some specific
