@@ -242,6 +242,31 @@ struct TCacheEntry
 
 using RcTcacheEntry = std::shared_ptr<TCacheEntry>;
 
+struct PartialTextureUpdateContext
+{
+  RcTcacheEntry target_entry;
+  RcTcacheEntry source_entry;
+
+  bool needs_reinterpret = false;
+  RcTcacheEntry reinterpret_entry;
+
+  bool needs_palette = false;
+  TLUTFormat tlutfmt = TLUTFormat::IA8;
+  u32 texel_offset;
+  RcTcacheEntry palette_entry;
+
+  bool needs_scale = false;
+  RcTcacheEntry source_scale_entry;
+
+  // Store off the original target for reference during scale operation
+  RcTcacheEntry target_prescaled_entry;
+
+  // Rectangles, post scaling
+  MathUtil::Rectangle<int> src_rect;
+  MathUtil::Rectangle<int> dst_rect;
+  u32 layers_to_copy = 0;
+};
+
 class TextureCacheBase
 {
 public:
@@ -319,6 +344,8 @@ public:
   static void RenderReinterpretEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
                                      TextureFormat old_format, TextureFormat new_format);
 
+  void ExecutePartialTextureUpdate(PartialTextureUpdateContext context);
+
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
   // Returns false if the configuration is not supported.
@@ -371,6 +398,10 @@ private:
   RcTcacheEntry CreateReinterpretEntry(const RcTcacheEntry& existing_entry,
                                        TextureFormat new_format);
 
+  PartialTextureUpdateContext
+  BuildPartialUpdateContext(const RcTcacheEntry& target, const RcTcacheEntry& source,
+                            const u8* palette, TLUTFormat tlutfmt, bool is_palette_texture,
+                            u32 block_width, u32 block_height, u32 block_size, u32 numBlocksX);
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
                                         TLUTFormat tlutfmt);
   void StitchXFBCopy(RcTcacheEntry& entry_to_update);
@@ -428,6 +459,10 @@ private:
   // m_bound_textures are actually active in the current draw
   // It's valid for textures to be in here after they've been invalidated
   std::array<RcTcacheEntry, 8> m_bound_textures{};
+
+  // Overlapping entries collected during partial texture updates.
+  // Kept as a member so the buffer capacity is preserved across calls.
+  std::vector<RcTcacheEntry> m_partial_texture_update_entries;
 
   TexPool m_texture_pool;
   u64 m_last_entry_id = 0;
