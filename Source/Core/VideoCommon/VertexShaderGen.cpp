@@ -22,52 +22,68 @@ VertexShaderUid GetVertexShaderUid()
   VertexShaderUid out;
   vertex_shader_uid_data* const uid_data = out.GetUidData();
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
-  uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
+
+  uid_data->components =
+      VertexLoaderManager::g_current_components & (VB_HAS_SHARED | VB_HAS_TEXMTXIDXALL);
+
+  // Move UV components into texcoord_elem_count
+  for (u32 i = 0; i < 8; i++)
+  {
+    if (VertexLoaderManager::g_current_components & (VB_HAS_UV0 << i))
+    {
+      // Hardcode to 2 components (ApplyDriverBugs will replace this with an exact count if needed)
+      uid_data->texGenInfo[i].texcoord_elem_count = 2;
+    }
+  }
 
   GetLightingShaderUid(uid_data->lighting);
 
   // transform texcoords
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    auto& texinfo = uid_data->texGenInfo[i];
 
+    // sourcerow, inputform and texgentype each have an extra bit that gets ignored later.
+    // Validate and eliminate them now to save space in the UID.
+    ASSERT(xfmem.texMtxInfo[i].sourcerow <= SourceRow::Tex7);
     texinfo.sourcerow = xfmem.texMtxInfo[i].sourcerow;
-    texinfo.texgentype = xfmem.texMtxInfo[i].texgentype;
-    texinfo.inputform = xfmem.texMtxInfo[i].inputform;
 
+    texinfo.inputform = xfmem.texMtxInfo[i].inputform == TexInputForm::ABC1 ? TexInputForm::ABC1 :
+                                                                              TexInputForm::AB11;
+    auto texgentype = xfmem.texMtxInfo[i].texgentype;
     // first transformation
-    switch (texinfo.texgentype)
+    switch (texgentype)
     {
+    default:
+    case TexGenType::Regular:
+      texinfo.is_regular_texgen = true;
+      texinfo.regular.projection = xfmem.texMtxInfo[i].projection;
+
+      // only put dualTexTrans_enabled in UID if we have at least one regular texgen.
+      uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
+
+      // CHECKME: does this only work for regular tex gen types?
+      if (uid_data->dualTexTrans_enabled)
+      {
+        texinfo.regular.postmtx_index = xfmem.postMtxInfo[i].index;
+        texinfo.regular.postmtx_normalize = xfmem.postMtxInfo[i].normalize;
+      }
+      break;
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
+      texinfo.is_regular_texgen = false;
+      texinfo.other.texgentype = texgentype;
+
+      // transform the light dir into tangent space
+      texinfo.other.emboss_sourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
-      {
-        // transform the light dir into tangent space
-        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
-      else
-      {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
+        texinfo.other.emboss_lightshift = xfmem.texMtxInfo[i].embosslightshift;
       break;
     case TexGenType::Color0:
     case TexGenType::Color1:
+      texinfo.is_regular_texgen = false;
+      texinfo.other.texgentype = texgentype;
       break;
-    case TexGenType::Regular:
-    default:
-      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
-                                           << i;
-      break;
-    }
-
-    uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
-    // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
-    {
-      auto& postInfo = uid_data->postMtxInfo[i];
-      postInfo.index = xfmem.postMtxInfo[i].index;
-      postInfo.normalize = xfmem.postMtxInfo[i].normalize;
     }
   }
 
@@ -163,10 +179,10 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
 {
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    auto& texinfo = uid_data->texGenInfo[i];
     out.Write("vec3 dolphin_transform_texcoord{}(vec4 coord)\n", i);
     out.Write("{{\n");
-    if (texinfo.texgentype != TexGenType::Regular)
+    if (!texinfo.is_regular_texgen)
     {
       out.Write("\treturn vec3(coord.xyz);\n");
     }
@@ -176,7 +192,7 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
       if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("\tint tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (texinfo.regular.projection == TexSize::STQ)
         {
           out.Write("\tresult = vec3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -190,7 +206,7 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (texinfo.regular.projection == TexSize::STQ)
         {
           out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]));\n",
@@ -206,14 +222,14 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
       // CHECKME: does this only work for regular tex gen types?
       if (uid_data->dualTexTrans_enabled)
       {
-        auto& postInfo = uid_data->postMtxInfo[i];
+        auto postmtx_index = texinfo.regular.postmtx_index;
 
         out.Write("\tvec4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                   "\tvec4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                   "\tvec4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                  postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+                  postmtx_index & 0x3f, (postmtx_index + 1) & 0x3f, (postmtx_index + 2) & 0x3f);
 
-        if (postInfo.normalize)
+        if (texinfo.regular.postmtx_normalize)
           out.Write("\tresult = normalize(result);\n");
 
         // multiply by postmatrix
@@ -313,7 +329,7 @@ static void WriteVertexDefines(APIType, const ShaderHostConfig&,
 
   for (u32 i = 0; i < uid_data->numTexGens; i++)
   {
-    if ((uid_data->components & (VB_HAS_UV0 << i)) != 0)
+    if (uid_data->texGenInfo[i].texcoord_elem_count != 0)
     {
       out.Write("#define HAS_TEXTURE_COORD_{} 1\n", i);
     }
@@ -415,7 +431,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     {
       const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
 
-      if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
+      if (uid_data->texGenInfo[i].texcoord_elem_count != 0 || has_texmtx != 0)
       {
         out.Write("ATTRIBUTE_LOCATION({:s}) in float{} rawtex{};\n", ShaderAttrib::TexCoord0 + i,
                   has_texmtx != 0 ? 3 : 2, i);
@@ -472,30 +488,25 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     for (int i = 0; i < 8; i++)
     {
-      if (uid_data->components & (VB_HAS_UV0 << i))
+      switch (uid_data->texGenInfo[i].texcoord_elem_count)
       {
-        u32 ncomponents = (uid_data->texcoord_elem_count >> (2 * i)) & 3;
-        if (ncomponents < 2)
-        {
-          out.Write("  float tex{};\n", i);
-          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}, 0.0f, 0.0f);\n", i);
-        }
-        else if (ncomponents == 2)
-        {
-          out.Write("  float tex{0}_0;\n"
-                    "  float tex{0}_1;\n",
-                    i);
-          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, 0.0f);\n", i);
-        }
-        else
-        {
-          out.Write("  float tex{0}_0;\n"
-                    "  float tex{0}_1;\n"
-                    "  float tex{0}_2;\n",
-                    i);
-          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, i.tex{0}_2);\n",
-                              i);
-        }
+      case 1:
+        out.Write("  float tex{};\n", i);
+        input_extract.Write("float3 rawtex{0} = float3(i.tex{0}, 0.0f, 0.0f);\n", i);
+        break;
+      case 2:
+        out.Write("  float tex{0}_0;\n"
+                  "  float tex{0}_1;\n",
+                  i);
+        input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, 0.0f);\n", i);
+        break;
+      case 3:
+        out.Write("  float tex{0}_0;\n"
+                  "  float tex{0}_1;\n"
+                  "  float tex{0}_2;\n",
+                  i);
+        input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, i.tex{0}_2);\n", i);
+        break;
       }
     }
     out.Write("}};\n\n"
@@ -633,7 +644,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    auto& texinfo = uid_data->texGenInfo[i];
 
     out.Write("\t{{\n");
     out.Write("\t\tvec4 coord = vec4(0.0, 0.0, 1.0, 1.0);\n");
@@ -649,7 +660,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       break;
     case SourceRow::Colors:
-      ASSERT(texinfo.texgentype == TexGenType::Color0 || texinfo.texgentype == TexGenType::Color1);
+      ASSERT(!texinfo.is_regular_texgen);
+      ASSERT(texinfo.other.texgentype == TexGenType::Color0 ||
+             texinfo.other.texgentype == TexGenType::Color1);
       break;
     case SourceRow::BinormalT:
       if ((uid_data->components & VB_HAS_TANGENT) != 0)
@@ -664,9 +677,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       break;
     default:
-      ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
       u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
-      if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
+      if (uid_data->texGenInfo[texnum].texcoord_elem_count != 0)
       {
         out.Write("\t\tcoord = vec4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
@@ -917,23 +929,25 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
 
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    auto& texinfo = uid_data->texGenInfo[i];
 
-    switch (texinfo.texgentype)
+    auto texgentype = texinfo.is_regular_texgen ? TexGenType::Regular : texinfo.other.texgentype;
+
+    switch (texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
       out.Write("\t{{\n");
       // transform the light dir into tangent space
       out.Write("\t\tvec3 ldir = normalize(" LIGHT_POS ".xyz - vertex_output.position.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+                LIGHT_POS_PARAMS(texinfo.other.emboss_lightshift));
 
       out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix();\n");
       out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix();\n");
       out.Write("\t\tvertex_output.texture_coord_{}.xyz = vertex_output.texture_coord_{}.xyz + "
                 "vec3(dot(ldir, tangent), "
                 "dot(ldir, binormal), 0.0);\n",
-                i, texinfo.embosssourceshift);
+                i, texinfo.other.emboss_sourceshift);
       out.Write("\t}}\n");
       break;
     case TexGenType::Color0:
