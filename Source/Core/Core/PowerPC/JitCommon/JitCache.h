@@ -176,16 +176,30 @@ private:
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, CPUEmuFeatureFlags feature_flags);
 
+  // Get index for block_map lookup
+  static u32 MapLookupIndex(u32 physical_address, CPUEmuFeatureFlags feature_flags);
+
   // Fast but risky block lookup based on fast_block_map.
-  size_t FastLookupIndexForAddress(u32 address, u32 msr);
+  size_t FastLookupIndexForAddress(u32 effective_address, CPUEmuFeatureFlags feature_flags);
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
   std::unordered_map<u32, std::unordered_set<JitBlock*>> links_to;  // destination_PC -> number
 
-  // Map indexed by the physical address of the entry point.
+  // Map indexed by the physical address of the entry point | the shifted MSR.
+  // There is no need to involve the effective address: if the BAT is changed, the block cache is
+  // completely cleared. If page tables are changed... for performance reasons, we currently assume
+  // that no game is so evil to actually use them for instructions. Still, including the effective
+  // address in the key wouldn't help, because everything else here relies on effective addresses
+  // being stable.
+  // TODO: If block linking and fast lookups are disabled, then the above shouldn't be a problem,
+  // but it's untested.
+  //
   // This is used to query the block based on the current PC in a slow way.
-  std::multimap<u32, JitBlock> block_map;  // start_addr -> block
+  //
+  // The entries are referenced by other members of this struct, so references must be stable upon
+  // insertion and erasure (which is the case with std::unordered_map).
+  std::unordered_map<u32, JitBlock> block_map;  // start_addr -> block
 
   // Range of overlapping code indexed by a masked physical address.
   // This is used for invalidation of memory regions. The range is grouped
@@ -200,8 +214,7 @@ private:
   Common::LazyMemoryRegionBitSet valid_block{(1ULL << 32) / VALID_BLOCK_CACHE_LINE_SIZE};
 
   // This contains the entry points for each block.
-  // It is used by the assembly dispatcher to quickly
-  // know where to jump based on pc and msr bits.
+  // It is used by the assembly dispatcher to quickly know where to jump based on pc and msr bits.
   Common::LazyMemoryRegion m_entry_points_arena;
   u8** m_entry_points_ptr = nullptr;
 

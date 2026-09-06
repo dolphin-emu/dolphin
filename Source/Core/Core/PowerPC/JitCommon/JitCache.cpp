@@ -153,7 +153,9 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock&& b, bool block_link,
                                       const PPCAnalyst::CodeBlock& code_block,
                                       const PPCAnalyst::CodeBuffer& code_buffer)
 {
-  JitBlock& block = block_map.emplace(b.physicalAddress, std::move(b))->second;
+  JitBlock& block =
+      block_map.emplace(MapLookupIndex(b.physicalAddress, b.feature_flags), std::move(b))
+          .first->second;
 
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
   if (m_entry_points_ptr)
@@ -227,15 +229,11 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, CPUEmuFeatureFla
     translated_addr = translated.address;
   }
 
-  auto iter = block_map.equal_range(translated_addr);
-  for (; iter.first != iter.second; iter.first++)
-  {
-    JitBlock& b = iter.first->second;
-    if (b.effectiveAddress == addr && b.feature_flags == feature_flags)
-      return &b;
-  }
+  auto iter = block_map.find(MapLookupIndex(translated_addr, feature_flags));
+  if (iter == block_map.end())
+    return nullptr;
 
-  return nullptr;
+  return &iter->second;
 }
 
 const u8* JitBaseBlockCache::Dispatch()
@@ -384,16 +382,7 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 
         // And remove the block.
         DestroyBlock(*block);
-        auto block_map_iter = block_map.equal_range(block->physicalAddress);
-        while (block_map_iter.first != block_map_iter.second)
-        {
-          if (&block_map_iter.first->second == block)
-          {
-            block_map.erase(block_map_iter.first);
-            break;
-          }
-          block_map_iter.first++;
-        }
+        block_map.erase(MapLookupIndex(block->physicalAddress, block->feature_flags));
         iter = start->second.erase(iter);
       }
       else
@@ -412,13 +401,11 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 
 void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
 {
-  const auto equal_range = block_map.equal_range(block.physicalAddress);
-  const auto block_map_iter = std::ranges::find(equal_range.first, equal_range.second, &block,
-                                                [](const auto& kv) { return &kv.second; });
-  if (block_map_iter == equal_range.second) [[unlikely]]
+  auto iter = block_map.find(MapLookupIndex(block.physicalAddress, block.feature_flags));
+  if (iter == block_map.end()) [[unlikely]]
     return;
 
-  JitBlock& mutable_block = block_map_iter->second;
+  JitBlock& mutable_block = iter->second;
 
   for (auto [range_start, range_end] : mutable_block.physical_addresses)
   {
@@ -427,7 +414,7 @@ void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
   }
 
   DestroyBlock(mutable_block);
-  block_map.erase(block_map_iter);  // The original JitBlock reference is now dangling.
+  block_map.erase(iter);  // The original JitBlock reference is now dangling.
 }
 
 const u32* JitBaseBlockCache::GetBlockBitSet() const
@@ -576,14 +563,21 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, CPUEmuFeatureFlags
   return block;
 }
 
-size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address, u32 feature_flags)
+u32 JitBaseBlockCache::MapLookupIndex(u32 physical_address, CPUEmuFeatureFlags feature_flags)
+{
+  // The feature flags are shifted as much as possible because the physical RAM can be extended.
+  // TODO: Maybe check that they are indeed disjoint?
+  return feature_flags << (32 - std::bit_width(CPUEmuFeatureFlags::FEATURE_FLAG_END_OF_ENUMERATION -
+                                               1)) |
+         (physical_address >> 2);
+}
+
+size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 effective_address,
+                                                    CPUEmuFeatureFlags feature_flags)
 {
   if (m_entry_points_ptr)
   {
-    return (static_cast<size_t>(feature_flags) << 30) | (address >> 2);
+    return (static_cast<size_t>(feature_flags) << 30) | (effective_address >> 2);
   }
-  else
-  {
-    return (address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
-  }
+  return (effective_address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
 }
