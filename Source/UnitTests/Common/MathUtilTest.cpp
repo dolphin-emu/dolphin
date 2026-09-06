@@ -5,6 +5,32 @@
 
 #include "Common/MathUtil.h"
 
+TEST(MathUtil, DegreesToRadians)
+{
+  EXPECT_EQ(0.0, MathUtil::DegreesToRadians(0.0));
+  EXPECT_EQ(std::numbers::pi_v<double>, MathUtil::DegreesToRadians(180.0));
+  EXPECT_EQ(std::numbers::pi_v<double> / 2, MathUtil::DegreesToRadians(90.0));
+  EXPECT_EQ(std::numbers::pi_v<double> / 4, MathUtil::DegreesToRadians(45.0));
+  EXPECT_EQ(2 * std::numbers::pi_v<double>, MathUtil::DegreesToRadians(360.0));
+
+  // Negative angles
+  EXPECT_EQ(-std::numbers::pi_v<double> / 2, MathUtil::DegreesToRadians(-90.0));
+  EXPECT_EQ(-std::numbers::pi_v<double>, MathUtil::DegreesToRadians(-180.0));
+}
+
+TEST(MathUtil, RadiansToDegrees)
+{
+  EXPECT_EQ(0.0, MathUtil::RadiansToDegrees(0.0));
+  EXPECT_EQ(180.0, MathUtil::RadiansToDegrees(std::numbers::pi_v<double>));
+  EXPECT_EQ(90.0, MathUtil::RadiansToDegrees(std::numbers::pi_v<double> / 2));
+  EXPECT_EQ(45.0, MathUtil::RadiansToDegrees(std::numbers::pi_v<double> / 4));
+  EXPECT_EQ(360.0, MathUtil::RadiansToDegrees(2 * std::numbers::pi_v<double>));
+
+  // Negative angles
+  EXPECT_EQ(-90.0, MathUtil::RadiansToDegrees(-std::numbers::pi_v<double> / 2));
+  EXPECT_EQ(-180.0, MathUtil::RadiansToDegrees(-std::numbers::pi_v<double>));
+}
+
 TEST(MathUtil, IntLog2)
 {
   EXPECT_EQ(0, MathUtil::IntLog2(1));
@@ -18,8 +44,23 @@ TEST(MathUtil, IntLog2)
   EXPECT_EQ(63, MathUtil::IntLog2(0xFFFFFFFFFFFFFFFFull));
 }
 
+TEST(MathUtil, IsPow2)
+{
+  EXPECT_FALSE(MathUtil::IsPow2(std::numeric_limits<int>::min()));
+  EXPECT_FALSE(MathUtil::IsPow2(-2));
+  EXPECT_FALSE(MathUtil::IsPow2(-1));
+  EXPECT_FALSE(MathUtil::IsPow2(0));
+  EXPECT_TRUE(MathUtil::IsPow2(1));
+  EXPECT_TRUE(MathUtil::IsPow2(2));
+  EXPECT_FALSE(MathUtil::IsPow2(3));
+  EXPECT_TRUE(MathUtil::IsPow2(4));
+  EXPECT_FALSE(MathUtil::IsPow2(5));
+  EXPECT_FALSE(MathUtil::IsPow2(std::numeric_limits<int>::max()));
+}
+
 TEST(MathUtil, NextPowerOf2)
 {
+  EXPECT_EQ(1U, MathUtil::NextPowerOf2(0));
   EXPECT_EQ(4U, MathUtil::NextPowerOf2(3));
   EXPECT_EQ(4U, MathUtil::NextPowerOf2(4));
   EXPECT_EQ(8U, MathUtil::NextPowerOf2(6));
