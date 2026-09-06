@@ -1,0 +1,2 @@
+@echo off
+"@QTPATHS_EXE@" -qtconf "%~dp0target_qt.conf" %*
