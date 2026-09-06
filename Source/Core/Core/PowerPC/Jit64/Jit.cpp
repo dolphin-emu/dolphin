@@ -612,7 +612,6 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
 {
   // If nobody has taken care of this yet (this can be removed when all branches are done)
-  JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
@@ -648,7 +647,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     JMP(asm_routines.dispatcher_no_timing_check, true);
   }
 
-  b->linkData.push_back(linkData);
+  js.link_data_temp.push_back(linkData);
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
