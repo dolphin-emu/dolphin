@@ -7,15 +7,16 @@
 #include <array>
 #include <cstring>
 #include <functional>
-#include <map>
 #include <ranges>
 #include <set>
 #include <span>
 #include <utility>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
+#include "Common/RangeSet.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -30,6 +31,26 @@
 #endif
 
 using namespace Gen;
+
+static auto covered_macroblocks(const Common::RangeSet<u32>& ranges, u32 step)
+{
+  return ranges
+         // Merge ranges with contigous macroblocks, so that each macroblock is generated only once.
+         | std::views::chunk_by([step](auto&& a, auto&& b) {
+             const u32 a_last_macroblock = (a.second - 1) / step;
+             const u32 b_first_macroblock = (b.first / step);
+             return a_last_macroblock >= b_first_macroblock - 1;
+           }) |
+         std::views::transform([step](auto&& chunk) {
+           const u32 start = chunk.front().first;
+           const u32 end = chunk.back().second;
+
+           const u32 l = start / step;
+           const u32 r = (end - 1) / step;
+           return std::views::iota(l, r + 1);
+         }) |
+         std::views::join;
+}
 
 bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
 {
@@ -150,7 +171,7 @@ JitBlock JitBaseBlockCache::InitBlock(u32 em_address)
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock&& b, bool block_link,
-                                      const PPCAnalyst::CodeBlock& code_block,
+                                      PPCAnalyst::CodeBlock& code_block,
                                       const PPCAnalyst::CodeBuffer& code_buffer)
 {
   JitBlock& block =
@@ -169,7 +190,10 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock&& b, bool block_link,
   }
   block.fast_block_map_index = index;
 
-  block.physical_addresses = code_block.m_physical_addresses;
+  // TODO C++23: If RangeSet starts using flat_map, it would make more sense to copy instead, so
+  // that code_block.m_physical_addresses keeps a high capacity, thus minimizing allocations due to
+  // exceeded capacity. (Also make code_block const.)
+  block.physical_addresses = std::move(code_block.m_physical_addresses);
 
   block.originalSize = code_block.m_num_instructions;
   if (m_jit.IsDebuggingEnabled())
@@ -186,13 +210,10 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock&& b, bool block_link,
   {
     valid_block.SetBits(range_start / VALID_BLOCK_CACHE_LINE_SIZE,
                         Common::DivideRoundingUp(range_end, VALID_BLOCK_CACHE_LINE_SIZE));
-
-    for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
-    {
-      auto& v = block_range_map[i];
-      if (!std::ranges::contains(v, &block))
-        v.push_back(&block);
-    }
+  }
+  for (u32 i : covered_macroblocks(block.physical_addresses, BLOCK_RANGE_SIZE))
+  {
+    block_range_map[i].push_back(&block);
   }
 
   if (block_link)
@@ -360,51 +381,57 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
 
 void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 {
+  const u32 start = address / BLOCK_RANGE_SIZE;
+  const u32 end = Common::DivideRoundingUp(address + length, BLOCK_RANGE_SIZE);
   // Iterate over all macro blocks which overlap the given range.
-  auto start = block_range_map.lower_bound(address & BLOCK_RANGE_MAP_MASK);
-  auto end = block_range_map.lower_bound(address + length);
-  while (start != end)
+  for (u32 i = start; i < end; ++i)
   {
-    // Iterate over all blocks in the macro block.
-    auto iter = start->second.begin();
-    while (iter != start->second.end())
-    {
-      JitBlock* block = *iter;
-      if (block->OverlapsPhysicalRange(address, length))
+    const auto macroblock = block_range_map.find(i);
+    if (macroblock == block_range_map.end())
+      continue;
+
+    const auto erase_from_everywhere_else = [&](JitBlock* block) {
+      for (u32 j : covered_macroblocks(block->physical_addresses, BLOCK_RANGE_SIZE))
       {
-        // If the block overlaps, also remove all other occupied slots in the other macro blocks.
-        // This will leak empty macro blocks, but they may be reused or cleared later on.
-        for (auto [range_start, range_end] : block->physical_addresses)
+        // This is not the most efficient: if an erasure covers many macroblocks, then the erasure
+        // will be one-by-one on the other macroblocks just because they are not the "current" one.
+        // But the function is currently low when profiling, so it doesn't matter.
+        if (j != i)
         {
-          DEBUG_ASSERT(range_start != range_end);
-          for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
-          {
-            if (i != start->first)
-            {
-              auto& v = block_range_map[i];
-              auto b = std::ranges::find(v, block);
-              if (b != v.end())
-                v.erase(b);
-            }
-          }
+          auto macro_it = block_range_map.find(j);
+          DEBUG_ASSERT(macro_it != block_range_map.end());
+          auto b = std::ranges::find(macro_it->second, block);
+          DEBUG_ASSERT(b != macro_it->second.end());
+          // Erase b through swap and pop_back (it's more efficient, and we don't care about order).
+          std::iter_swap(b, &macro_it->second.back());
+          macro_it->second.pop_back();
+          // If the macro block is empty, drop it.
+          if (macro_it->second.empty())
+            block_range_map.erase(macro_it);
         }
+      }
+      DestroyBlock(*block);
+      block_map.erase(MapLookupIndex(block->physicalAddress, block->feature_flags));
+    };
 
-        // And remove the block.
-        DestroyBlock(*block);
-        block_map.erase(MapLookupIndex(block->physicalAddress, block->feature_flags));
-        iter = start->second.erase(iter);
-      }
-      else
-      {
-        iter++;
-      }
+    // Iterate over all blocks in the macro block.
+    if (i * BLOCK_RANGE_SIZE >= address && (i + 1) * BLOCK_RANGE_SIZE < address + length)
+    {
+      // The entire macroblock is encompassed by the erasure, no need to check for overlap.
+      std::ranges::for_each(macroblock->second, erase_from_everywhere_else);
+      block_range_map.erase(macroblock);
     }
-
-    // If the macro block is empty, drop it.
-    if (start->second.empty())
-      start = block_range_map.erase(start);
     else
-      start++;
+    {
+      auto to_erase = std::ranges::partition(macroblock->second, [&](JitBlock* block) {
+        return !block->OverlapsPhysicalRange(address, length);
+      });
+      std::ranges::for_each(to_erase, erase_from_everywhere_else);
+      macroblock->second.erase(std::ranges::begin(to_erase), std::ranges::end(to_erase));
+      // If the macro block is empty, drop it.
+      if (macroblock->second.empty())
+        block_range_map.erase(macroblock);
+    }
   }
 }
 
@@ -412,19 +439,23 @@ void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
 {
   auto iter = block_map.find(MapLookupIndex(block.physicalAddress, block.feature_flags));
   if (iter == block_map.end()) [[unlikely]]
+  {
+    DEBUG_ASSERT(false);
     return;
+  }
 
   JitBlock& mutable_block = iter->second;
 
-  for (auto [range_start, range_end] : mutable_block.physical_addresses)
+  for (u32 i : covered_macroblocks(mutable_block.physical_addresses, BLOCK_RANGE_SIZE))
   {
-    for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
-    {
-      auto& v = block_range_map[i];
-      auto b = std::ranges::find(v, &mutable_block);
-      if (b != v.end())
-        v.erase(b);
-    }
+    auto macro_it = block_range_map.find(i);
+    DEBUG_ASSERT(macro_it != block_range_map.end());
+    auto b = std::ranges::find(macro_it->second, &mutable_block);
+    DEBUG_ASSERT(b != macro_it->second.end());
+    std::iter_swap(b, &macro_it->second.back());
+    macro_it->second.pop_back();
+    if (macro_it->second.empty())
+      block_range_map.erase(macro_it);
   }
 
   DestroyBlock(mutable_block);

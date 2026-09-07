@@ -69,7 +69,7 @@ public:
 
     const T& to() const { return It->second.To; }
 
-    std::pair<T, T> operator*() { return {from(), to()}; }
+    std::pair<T, T> operator*() const { return {from(), to()}; }
 
     const_iterator& operator++()
     {
