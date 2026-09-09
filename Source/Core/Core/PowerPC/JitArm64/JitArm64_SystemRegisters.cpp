@@ -230,7 +230,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
-  WriteExceptionExit(js.compilerPC + 4, true);
+  WriteExceptionExit(js.op->address + 4, true);
 }
 
 void JitArm64::mfmsr(UGeckoInstruction inst)
@@ -359,7 +359,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   MOVI2R(WA, static_cast<u32>(ProgramExceptionCause::Trap));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR1));
 
-  WriteExceptionExit(js.compilerPC, false, true);
+  WriteExceptionExit(js.op->address, false, true);
 
   SwitchToNearCode();
 
@@ -369,7 +369,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   {
     gpr.Flush(FlushMode::Full, WA);
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
-    WriteExit(js.compilerPC + 4);
+    WriteExit(js.op->address + 4);
   }
 }
 

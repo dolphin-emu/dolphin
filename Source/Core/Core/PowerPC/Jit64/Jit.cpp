@@ -199,7 +199,6 @@ bool Jit64::BackPatch(SContext* ctx)
 
   js.generatingTrampoline = true;
   js.trampolineExceptionHandler = entry.exception_handler_at_loc;
-  js.compilerPC = entry.pc;
 
   // Generate the trampoline.
   const u8* trampoline = trampolines.GenerateTrampoline(entry);
@@ -273,7 +272,6 @@ bool Jit64::Init()
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   js.fastmemLoadStore = false;
-  js.compilerPC = 0;
 
   const size_t routines_size = asm_routines.CODE_SIZE;
   const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
@@ -373,8 +371,8 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
   if (js.op->canEndBlock)
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
-    MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
+    MOV(32, PPCSTATE(pc), Imm32(js.op->address));
+    MOV(32, PPCSTATE(npc), Imm32(js.op->address + 4));
   }
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
@@ -395,7 +393,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
   if (js.op->canEndBlock)
   {
-    if (js.isLastInstruction)
+    if (js.IsLastInstruction())
     {
       MOV(32, R(RSCRATCH), PPCSTATE(npc));
       MOV(32, PPCSTATE(pc), R(RSCRATCH));
@@ -404,7 +402,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
     else
     {
       MOV(32, R(RSCRATCH), PPCSTATE(npc));
-      CMP(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+      CMP(32, R(RSCRATCH), Imm32(js.op->address + 4));
       FixupBranch c = J_CC(CC_Z);
       MOV(32, PPCSTATE(pc), R(RSCRATCH));
       WriteExceptionExit();
@@ -436,7 +434,7 @@ void Jit64::HLEFunction(u32 hook_index)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
+  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.op->address, hook_index, &m_system);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -861,7 +859,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* far_start = m_far_code.GetWritableCodePtr();
 
     JitBlock b = blocks.InitBlock(em_address);
-    if (DoJit(em_address, &b, nextPC))
+    if (DoJit(&b, nextPC))
     {
       // Code generation succeeded.
 
@@ -934,11 +932,9 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
   return true;
 }
 
-bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool Jit64::DoJit(JitBlock* b, u32 nextPC)
 {
   js.firstFPInstructionFound = false;
-  js.isLastInstruction = false;
-  js.blockStart = em_address;
   js.fifoBytesSinceCheck = 0;
   js.mustCheckFifo = false;
   js.curBlock = b;
@@ -963,7 +959,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
-  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  MOV(32, PPCSTATE(pc), Imm32(b->effectiveAddress));
 #endif
 
   // Start up the register allocators
@@ -981,7 +977,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (!js.pairedQuantizeAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+  if (!js.pairedQuantizeAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
     BitSet8 gqr_static = ComputeStaticGQRs(code_block);
@@ -989,7 +985,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       SwitchToFarCode();
       const u8* target = GetCodePtr();
-      MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+      MOV(32, PPCSTATE(pc), Imm32(b->effectiveAddress));
       ABI_PushRegistersAndAdjustStack({}, 0);
       ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                          static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
@@ -1010,7 +1006,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (!js.noSpeculativeConstantsAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+  if (!js.noSpeculativeConstantsAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     IntializeSpeculativeConstants();
   }
@@ -1020,7 +1016,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
-    js.compilerPC = op.address;
     js.op = &op;
     js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
@@ -1028,11 +1023,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->num_cycles;
     js.fastmemLoadStore = false;
     js.fixupExceptionHandler = false;
-
-    if (i == (code_block.m_num_instructions - 1))
-    {
-      js.isLastInstruction = true;
-    }
 
     if (i != 0)
     {
@@ -1271,7 +1261,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
-      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
+      const std::string ppc_inst =
+          Common::GekkoDisassembler::Disassemble(op.inst.hex, b->effectiveAddress);
       NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif
@@ -1374,7 +1365,7 @@ void Jit64::IntializeSpeculativeConstants()
       {
         SwitchToFarCode();
         target = GetCodePtr();
-        MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+        MOV(32, PPCSTATE(pc), Imm32(js.curBlock->effectiveAddress));
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                            static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));

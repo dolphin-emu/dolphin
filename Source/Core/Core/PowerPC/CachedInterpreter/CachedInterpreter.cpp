@@ -312,7 +312,7 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
     JitBlock b = m_block_cache.InitBlock(em_address);
     b.normalEntry = b.near_begin = GetWritableCodePtr();
 
-    if (DoJit(em_address, &b, nextPC))
+    if (DoJit(&b, nextPC))
     {
       // Record what memory region was used so we know what to free if this block gets invalidated.
       b.near_end = GetWritableCodePtr();
@@ -345,15 +345,14 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
   std::exit(-1);
 }
 
-bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool CachedInterpreter::DoJit(JitBlock* b, u32 nextPC)
 {
-  js.blockStart = em_address;
+  js.curBlock = b;
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
-  js.curBlock = b;
 
   auto& interpreter = m_system.GetInterpreter();
   auto& power_pc = m_system.GetPowerPC();
@@ -368,27 +367,24 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
     js.op = &op;
 
-    js.compilerPC = op.address;
-    js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     js.downcountAmount += op.opinfo->num_cycles;
     if (op.opinfo->flags & FL_LOADSTORE)
       ++js.numLoadStoreInst;
     if (op.opinfo->flags & FL_USE_FPU)
       ++js.numFloatingPointInst;
 
-    if (HandleFunctionHooking(js.compilerPC))
+    if (HandleFunctionHooking(op.address))
       break;
 
     if (!op.skip)
     {
-      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
-          breakpoints.IsAddressBreakPoint(js.compilerPC))
+      if (IsDebuggingEnabled() && !cpu.IsStepping() && breakpoints.IsAddressBreakPoint(op.address))
       {
-        Write(CheckBreakpoint, {power_pc, js.compilerPC, js.downcountAmount});
+        Write(CheckBreakpoint, {power_pc, op.address, js.downcountAmount});
       }
       if (!js.firstFPInstructionFound && (op.opinfo->flags & FL_USE_FPU) != 0)
       {
-        Write(CheckFPU, {power_pc, js.compilerPC, js.downcountAmount});
+        Write(CheckFPU, {power_pc, op.address, js.downcountAmount});
         js.firstFPInstructionFound = true;
       }
 
@@ -397,7 +393,7 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op)))
       {
         const InterpretAndCheckExceptionsOperands operands = {
-            {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst},
+            {interpreter, Interpreter::GetInterpreterOp(op.inst), op.address, op.inst},
             power_pc,
             js.downcountAmount};
         Write(op.canEndBlock ? CallbackCast(InterpretAndCheckExceptions<true>) :
@@ -407,13 +403,13 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       else
       {
         const InterpretOperands operands = {interpreter, Interpreter::GetInterpreterOp(op.inst),
-                                            js.compilerPC, op.inst};
+                                            op.address, op.inst};
         Write(op.canEndBlock ? CallbackCast(Interpret<true>) : CallbackCast(Interpret<false>),
               operands);
       }
 
       if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
-        Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
+        Write(CheckIdle, {m_system.GetCoreTiming(), b->effectiveAddress});
       if (op.canEndBlock)
         WriteEndBlock();
     }

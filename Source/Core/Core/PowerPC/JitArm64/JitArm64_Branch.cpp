@@ -31,7 +31,7 @@ void JitArm64::sc(UGeckoInstruction inst)
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   }
 
-  WriteExceptionExit(js.compilerPC + 4, false, true);
+  WriteExceptionExit(js.op->address + 4, false, true);
 }
 
 void JitArm64::rfi(UGeckoInstruction inst)
@@ -115,7 +115,7 @@ void JitArm64::bx(UGeckoInstruction inst)
   if (inst.LK)
   {
     WA = gpr.GetScopedReg();
-    MOVI2R(WA, js.compilerPC + 4);
+    MOVI2R(WA, js.op->address + 4);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   }
 
@@ -128,7 +128,7 @@ void JitArm64::bx(UGeckoInstruction inst)
       BitSet32 gpr_caller_save = gpr.GetCallerSavedUsed();
       if (WA != ARM64Reg::INVALID_REG && js.op->skipLRStack)
         gpr_caller_save[DecodeReg(WA)] = false;
-      WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, gpr_caller_save,
+      WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, gpr_caller_save,
                              fpr.GetCallerSavedUsed());
     }
     if (inst.LK && !js.op->skipLRStack)
@@ -136,7 +136,7 @@ void JitArm64::bx(UGeckoInstruction inst)
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
       // better than calling the dispatcher.
-      FakeLKExit(js.compilerPC + 4, WA);
+      FakeLKExit(js.op->address + 4, WA);
     }
 
     return;
@@ -149,7 +149,7 @@ void JitArm64::bx(UGeckoInstruction inst)
   {
     if (IsBranchWatchEnabled())
     {
-      WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, {}, {});
+      WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, {}, {});
     }
 
     if (WA == ARM64Reg::INVALID_REG)
@@ -170,9 +170,9 @@ void JitArm64::bx(UGeckoInstruction inst)
   {
     const BitSet32 gpr_caller_save =
         WA != ARM64Reg::INVALID_REG ? BitSet32{DecodeReg(WA)} & CALLER_SAVED_GPRS : BitSet32{};
-    WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, gpr_caller_save, {});
+    WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, gpr_caller_save, {});
   }
-  WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4, WA);
+  WriteExit(js.op->branchTo, inst.LK, js.op->address + 4, WA);
 }
 
 void JitArm64::bcx(UGeckoInstruction inst)
@@ -218,7 +218,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
 
     if (inst.LK)
     {
-      MOVI2R(WA, js.compilerPC + 4);
+      MOVI2R(WA, js.op->address + 4);
       STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     }
 
@@ -231,7 +231,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
         BitSet32 gpr_caller_save = gpr.GetCallerSavedUsed();
         if (WA != ARM64Reg::INVALID_REG && js.op->skipLRStack)
           gpr_caller_save[DecodeReg(WA)] = false;
-        WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, gpr_caller_save,
+        WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, gpr_caller_save,
                                fpr.GetCallerSavedUsed());
       }
       if (inst.LK && !js.op->skipLRStack)
@@ -239,7 +239,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
         // We have to fake the stack as the RET instruction was not
         // found in the same block. This is a big overhead, but still
         // better than calling the dispatcher.
-        FakeLKExit(js.compilerPC + 4, WA);
+        FakeLKExit(js.op->address + 4, WA);
       }
       return;
     }
@@ -250,7 +250,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
     if (IsBranchWatchEnabled())
     {
       BitSet32 gpr_caller_save = gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WB)};
-      WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, gpr_caller_save,
+      WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, gpr_caller_save,
                              fpr.GetCallerSavedUsed());
     }
     if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
@@ -265,7 +265,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
     }
     else
     {
-      WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4, WA);
+      WriteExit(js.op->branchTo, inst.LK, js.op->address + 4, WA);
     }
 
     if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -280,13 +280,13 @@ void JitArm64::bcx(UGeckoInstruction inst)
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     if (IsBranchWatchEnabled())
     {
-      WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, {}, {});
+      WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {}, {});
     }
-    WriteExit(js.compilerPC + 4);
+    WriteExit(js.op->address + 4);
   }
   else if (IsBranchWatchEnabled())
   {
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, gpr.GetCallerSavedUsed(),
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, gpr.GetCallerSavedUsed(),
                             fpr.GetCallerSavedUsed());
   }
 }
@@ -315,7 +315,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   if (inst.LK_3)
   {
     WB = gpr.GetScopedReg();
-    MOVI2R(WB, js.compilerPC + 4);
+    MOVI2R(WB, js.op->address + 4);
     STR(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   }
 
@@ -330,9 +330,9 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
     if (WB != ARM64Reg::INVALID_REG)
       gpr_caller_save[DecodeReg(WB)] = true;
     gpr_caller_save &= CALLER_SAVED_GPRS;
-    WriteBranchWatchDestInRegister(js.compilerPC, WA, inst, gpr_caller_save, {});
+    WriteBranchWatchDestInRegister(js.op->address, WA, inst, gpr_caller_save, {});
   }
-  WriteExit(WA, inst.LK_3, js.compilerPC + 4, WB);
+  WriteExit(WA, inst.LK_3, js.op->address + 4, WB);
 }
 
 void JitArm64::bclrx(UGeckoInstruction inst)
@@ -374,7 +374,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 
     if (inst.LK)
     {
-      MOVI2R(WB, js.compilerPC + 4);
+      MOVI2R(WB, js.op->address + 4);
       STR(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     }
 
@@ -399,7 +399,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
                               BitSet32{DecodeReg(WA)} & CALLER_SAVED_GPRS;
         fpr_caller_save = {};
       }
-      WriteBranchWatchDestInRegister(js.compilerPC, WA, inst, gpr_caller_save, fpr_caller_save);
+      WriteBranchWatchDestInRegister(js.op->address, WA, inst, gpr_caller_save, fpr_caller_save);
     }
     if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
     {
@@ -428,14 +428,14 @@ void JitArm64::bclrx(UGeckoInstruction inst)
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     if (IsBranchWatchEnabled())
     {
-      WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, {}, {});
+      WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {}, {});
     }
-    WriteExit(js.compilerPC + 4);
+    WriteExit(js.op->address + 4);
   }
   else if (IsBranchWatchEnabled())
   {
     const BitSet32 gpr_caller_save = gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WA)};
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, gpr_caller_save,
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, gpr_caller_save,
                             fpr.GetCallerSavedUsed());
   }
 }
