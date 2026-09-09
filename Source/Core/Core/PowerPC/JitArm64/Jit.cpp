@@ -269,7 +269,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   {
     // also flush the program counter
     auto WA = gpr.GetScopedReg();
-    MOVI2R(WA, js.compilerPC);
+    MOVI2R(WA, js.op->address);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pc));
     ADD(WA, WA, 4);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
@@ -292,7 +292,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   if (js.op->canEndBlock)
   {
-    if (js.isLastInstruction)
+    if (js.isLastInstruction())
     {
       auto WA = gpr.GetScopedReg();
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
@@ -305,7 +305,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
       {
         auto WB = gpr.GetScopedReg();
-        MOVI2R(WB, js.compilerPC + 4);
+        MOVI2R(WB, js.op->address + 4);
         CMP(WB, WA);
       }
       FixupBranch c = B(CC_EQ);
@@ -330,7 +330,7 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
-  ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
+  ABI_CallFunction(&HLE::ExecuteFromJIT, js.op->address, hook_index, &m_system);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -401,7 +401,7 @@ void JitArm64::IntializeSpeculativeConstants()
       {
         SwitchToFarCode();
         fail = GetCodePtr();
-        MOVI2R(DISPATCHER_PC, js.blockStart);
+        MOVI2R(DISPATCHER_PC, js.curBlock->effectiveAddress);
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
         ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                          static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
@@ -895,7 +895,7 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, A
   gpr.Flush(FlushMode::MaintainState, temp_gpr);
   fpr.Flush(FlushMode::MaintainState, temp_fpr);
 
-  WriteExceptionExit(js.compilerPC, false, true);
+  WriteExceptionExit(js.op->address, false, true);
 
   if (switch_to_far_code)
     SwitchToNearCode();
@@ -1037,7 +1037,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* far_start = m_far_code.GetWritableCodePtr();
 
     JitBlock b = blocks.InitBlock(em_address);
-    if (DoJit(em_address, &b, nextPC))
+    if (DoJit(&b, nextPC))
     {
       // Code generation succeeded.
 
@@ -1165,14 +1165,12 @@ std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
   }
 }
 
-bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool JitArm64::DoJit(JitBlock* b, u32 nextPC)
 {
   auto& cpu = m_system.GetCPU();
 
-  js.isLastInstruction = false;
   js.firstFPInstructionFound = false;
   js.assumeNoPairedQuantize = false;
-  js.blockStart = em_address;
   js.fifoBytesSinceCheck = 0;
   js.mustCheckFifo = false;
   js.downcountAmount = 0;
@@ -1190,7 +1188,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     ABI_CallFunction(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
 
   if (code_block.m_gqr_used.Count() == 1 &&
-      !js.pairedQuantizeAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+      !js.pairedQuantizeAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     int gqr = *code_block.m_gqr_used.begin();
     if (!code_block.m_gqr_modified[gqr] && !GQR(m_ppc_state, gqr))
@@ -1200,7 +1198,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       FixupBranch fail = B();
       SwitchToFarCode();
       SetJumpTarget(fail);
-      MOVI2R(DISPATCHER_PC, js.blockStart);
+      MOVI2R(DISPATCHER_PC, b->effectiveAddress);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
       ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                        static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
@@ -1216,7 +1214,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   m_constant_propagation.Clear();
 
-  if (!js.noSpeculativeConstantsAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+  if (!js.noSpeculativeConstantsAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     IntializeSpeculativeConstants();
   }
@@ -1226,13 +1224,11 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
-    js.compilerPC = op.address;
+    js.op->address = op.address;
     js.op = &op;
     js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
-    js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->num_cycles;
-    js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
     // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
     if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
@@ -1297,7 +1293,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         gpr.Flush(FlushMode::MaintainState, WA);
         fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-        WriteExceptionExit(js.compilerPC, true, true);
+        WriteExceptionExit(op.address, true, true);
         SwitchToNearCode();
         SetJumpTarget(no_ext_exception);
         SetJumpTarget(exit);
@@ -1372,7 +1368,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
         }
 
-        WriteExceptionExit(js.compilerPC, false, true);
+        WriteExceptionExit(op.address, false, true);
 
         SwitchToNearCode();
 

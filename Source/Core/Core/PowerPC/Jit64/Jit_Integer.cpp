@@ -2560,7 +2560,7 @@ void Jit64::twX(UGeckoInstruction inst)
     gpr.Flush();
     fpr.Flush();
 
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.op->address));
     WriteExceptionExit();
 
     SwitchToNearCode();
@@ -2570,6 +2570,6 @@ void Jit64::twX(UGeckoInstruction inst)
   {
     gpr.Flush();
     fpr.Flush();
-    WriteExit(js.compilerPC + 4);
+    WriteExit(js.op->address + 4);
   }
 }
