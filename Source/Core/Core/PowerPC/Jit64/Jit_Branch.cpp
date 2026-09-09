@@ -34,7 +34,7 @@ void Jit64::sc(UGeckoInstruction inst)
 
   gpr.Flush();
   fpr.Flush();
-  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
+  MOV(32, PPCSTATE(pc), Imm32(js.op->address + 4));
   LOCK();
   OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
   WriteExceptionExit();
@@ -113,19 +113,19 @@ void Jit64::bx(UGeckoInstruction inst)
   // We must always process the following sentence, even if branch following is inlining the
   // function call.
   if (inst.LK)
-    MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
+    MOV(32, PPCSTATE_LR, Imm32(js.op->address + 4));
 
   // PPCAnalyzer::Analyze() followed the branch, thus the next instruction of the block is the
   // destination of the branch, no need to do anything.
   if (js.op->branchAction == PPCAnalyst::BranchAction::Follow)
   {
-    WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, CallerSavedRegistersInUse());
+    WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, CallerSavedRegistersInUse());
     if (inst.LK && !js.op->skipLRStack)
     {
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
       // better than calling the dispatcher.
-      FakeBLCall(js.compilerPC + 4);
+      FakeBLCall(js.op->address + 4);
     }
     return;
   }
@@ -133,7 +133,7 @@ void Jit64::bx(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
-  WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, {});
+  WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, {});
 #ifdef ACID_TEST
   if (inst.LK)
     AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
@@ -144,7 +144,7 @@ void Jit64::bx(UGeckoInstruction inst)
   }
   else
   {
-    WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+    WriteExit(js.op->branchTo, inst.LK, js.op->address + 4);
   }
 }
 
@@ -176,19 +176,19 @@ void Jit64::bcx(UGeckoInstruction inst)
   }
 
   if (inst.LK)
-    MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
+    MOV(32, PPCSTATE_LR, Imm32(js.op->address + 4));
 
   // PPCAnalyzer::Analyze() followed this unconditional branch, thus the next instruction of the
   // block is the destination of the branch, no need to do anything.
   if (js.op->branchAction == PPCAnalyst::BranchAction::Follow)
   {
-    WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, CallerSavedRegistersInUse());
+    WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, CallerSavedRegistersInUse());
     if (inst.LK && !js.op->skipLRStack)
     {
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
       // better than calling the dispatcher.
-      FakeBLCall(js.compilerPC + 4);
+      FakeBLCall(js.op->address + 4);
     }
     return;
   }
@@ -199,14 +199,14 @@ void Jit64::bcx(UGeckoInstruction inst)
     gpr.Flush();
     fpr.Flush();
 
-    WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, {});
+    WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, {});
     if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
     {
       WriteIdleExit(js.op->branchTo);
     }
     else
     {
-      WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+      WriteExit(js.op->branchTo, inst.LK, js.op->address + 4);
     }
   }
 
@@ -219,10 +219,10 @@ void Jit64::bcx(UGeckoInstruction inst)
   {
     gpr.Flush();
     fpr.Flush();
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, {});
-    WriteExit(js.compilerPC + 4);
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
+    WriteExit(js.op->address + 4);
   }
-  WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, CallerSavedRegistersInUse());
+  WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
@@ -244,10 +244,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     if (inst.LK_3)
-      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
+      MOV(32, PPCSTATE_LR, Imm32(js.op->address + 4));  // LR = PC + 4;
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-    WriteBranchWatchDestInRSCRATCH(js.compilerPC, inst, BitSet32{RSCRATCH});
-    WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+    WriteBranchWatchDestInRSCRATCH(js.op->address, inst, BitSet32{RSCRATCH});
+    WriteExitDestInRSCRATCH(inst.LK_3, js.op->address + 4);
   }
   else
   {
@@ -262,15 +262,15 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
     if (inst.LK_3)
-      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
+      MOV(32, PPCSTATE_LR, Imm32(js.op->address + 4));  // LR = PC + 4;
 
     {
       RCForkGuard gpr_guard = gpr.Fork();
       RCForkGuard fpr_guard = fpr.Fork();
       gpr.Flush();
       fpr.Flush();
-      WriteBranchWatchDestInRSCRATCH(js.compilerPC, inst, BitSet32{RSCRATCH});
-      WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+      WriteBranchWatchDestInRSCRATCH(js.op->address, inst, BitSet32{RSCRATCH});
+      WriteExitDestInRSCRATCH(inst.LK_3, js.op->address + 4);
       // Would really like to continue the block here, but it ends. TODO.
     }
     SetJumpTarget(b);
@@ -279,10 +279,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     {
       gpr.Flush();
       fpr.Flush();
-      WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, {});
-      WriteExit(js.compilerPC + 4);
+      WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
+      WriteExit(js.op->address + 4);
     }
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
   }
 }
 
@@ -321,7 +321,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (!m_enable_blr_optimization)
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
   if (inst.LK)
-    MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
+    MOV(32, PPCSTATE_LR, Imm32(js.op->address + 4));
 
   {
     RCForkGuard gpr_guard = gpr.Fork();
@@ -331,12 +331,12 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
     if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
     {
-      WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, {});
+      WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, {});
       WriteIdleExit(js.op->branchTo);
     }
     else
     {
-      WriteBranchWatchDestInRSCRATCH(js.compilerPC, inst, BitSet32{RSCRATCH});
+      WriteBranchWatchDestInRSCRATCH(js.op->address, inst, BitSet32{RSCRATCH});
       WriteBLRExit();
     }
   }
@@ -350,11 +350,11 @@ void Jit64::bclrx(UGeckoInstruction inst)
   {
     gpr.Flush();
     fpr.Flush();
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, {});
-    WriteExit(js.compilerPC + 4);
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
+    WriteExit(js.op->address + 4);
   }
   else
   {
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
   }
 }
