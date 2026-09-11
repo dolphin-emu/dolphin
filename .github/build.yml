@@ -1,0 +1,37 @@
+name: Build Dolphin SWBF3
+on: [push, workflow_dispatch]
+
+jobs:
+  build-android:
+      runs-on: ubuntu-latest
+          steps:
+                - name: Checkout Code
+                        uses: actions/checkout@v4
+                                with:
+                                          fetch-depth: 0
+
+                                                - name: Setup Java JDK 17
+                                                        uses: actions/setup-java@v4
+                                                                with:
+                                                                          java-version: '17'
+                                                                                    distribution: 'temurin'
+
+                                                                                          - name: Ambil dan Gabungkan PR 13227
+                                                                                                  run: |
+                                                                                                            git config --global user.name "Budyman2920"
+                                                                                                                      git config --global user.email "fauzanromadhon735@gmail.com"
+                                                                                                                                git fetch https://github.com pull/13227/head:pr13227
+                                                                                                                                          git merge pr13227 --no-edit
+
+                                                                                                                                                - name: Rakit APK Resmi
+                                                                                                                                                        run: |
+                                                                                                                                                                  cd Source/Android
+                                                                                                                                                                            chmod +x gradlew
+                                                                                                                                                                                      ./gradlew assembleDebug
+
+                                                                                                                                                                                            - name: Simpan Hasil APK
+                                                                                                                                                                                                    uses: actions/upload-artifact@v4
+                                                                                                                                                                                                            with:
+                                                                                                                                                                                                                      name: Dolphin-SWBF3-PR13227
+                                                                                                                                                                                                                                path: Source/Android/app/build/outputs/apk/debug/app-debug.apk
+                                                                                                                                                                                                                                
