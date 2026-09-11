@@ -356,6 +356,10 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("atan2"));
   m_functions_combo->addItem(QStringLiteral("sqrt"));
   m_functions_combo->addItem(QStringLiteral("pow"));
+  m_functions_combo->addItem(QStringLiteral("floor"));
+  m_functions_combo->addItem(QStringLiteral("ceil"));
+  m_functions_combo->addItem(QStringLiteral("round"));
+  m_functions_combo->addItem(QStringLiteral("trunc"));
   m_functions_combo->addItem(QStringLiteral("min"));
   m_functions_combo->addItem(QStringLiteral("max"));
   m_functions_combo->addItem(QStringLiteral("clamp"));
