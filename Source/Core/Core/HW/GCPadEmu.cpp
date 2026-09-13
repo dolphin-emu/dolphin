@@ -8,12 +8,14 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Core.h"
 #include "Core/HW/GCPad.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -95,6 +97,9 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
               "If unchecked, the connection state of the emulated controller is linked\n"
               "to the connection state of the real default device (if there is one).")},
       false);
+
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(HOTKEYS_GROUP));
+  m_hotkeys->AddInput(_trans("Toggle Turbo Mode"), true);
 }
 
 std::string GCPad::GetName() const
@@ -129,6 +134,8 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
     return m_options;
   case PadGroup::Triforce:
     return m_triforce;
+  case PadGroup::Hotkeys:
+    return m_hotkeys;
   default:
     return nullptr;
   }
@@ -140,6 +147,9 @@ GCPadStatus GCPad::GetInput() const
 
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
+
+  m_hotkeys->UpdateState();
+  Core::UpdateTurboModeToggle(m_hotkeys->GetSettingsModifier()[0], &m_turbo_mode_toggled);
 
   if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected() ||
         m_input_override_function))

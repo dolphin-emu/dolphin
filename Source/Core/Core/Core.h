@@ -28,6 +28,8 @@ class System;
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
+void UpdateTurboModeToggle(bool toggled, bool* previously_toggled);
+
 void Callback_NewField(Core::System& system);
 
 enum class State

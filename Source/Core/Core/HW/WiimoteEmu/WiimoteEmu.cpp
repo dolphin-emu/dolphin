@@ -64,6 +64,10 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
 
+// Index into the Hotkeys group, which the constructor fills in this order:
+// 0 Sideways Toggle, 1 Upright Toggle, 2 Sideways Hold, 3 Upright Hold, 4 Toggle Turbo Mode.
+static const std::size_t HOTKEY_TOGGLE_TURBO_MODE = 4;
+
 void Wiimote::Reset()
 {
   const bool want_determinism = Core::WantsDeterminism();
@@ -266,6 +270,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   // this setting modifier is not toggled
   m_hotkeys->AddInput(_trans("Sideways Hold"), false);
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
+  // turns the emulation speed limit off and back on, see Core::UpdateTurboModeToggle
+  m_hotkeys->AddInput(_trans("Toggle Turbo Mode"), true);
 
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
@@ -484,6 +490,9 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
   m_hotkeys->UpdateState();
+
+  Core::UpdateTurboModeToggle(m_hotkeys->GetSettingsModifier()[HOTKEY_TOGGLE_TURBO_MODE],
+                              &m_turbo_mode_toggled);
 
   // Update our motion simulations.
   StepDynamics();

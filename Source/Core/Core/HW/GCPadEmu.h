@@ -18,6 +18,7 @@ namespace ControllerEmu
 class AnalogStick;
 class Buttons;
 class MixedTriggers;
+class ModifySettingsButton;
 }  // namespace ControllerEmu
 
 enum class PadGroup
@@ -31,6 +32,7 @@ enum class PadGroup
   Mic,
   Options,
   Triforce,
+  Hotkeys,
 };
 
 class GCPad : public ControllerEmu::EmulatedController
@@ -63,6 +65,7 @@ public:
   static constexpr const char* MIC_GROUP = _trans("Microphone");
   static constexpr const char* OPTIONS_GROUP = _trans("Options");
   static constexpr const char* TRIFORCE_GROUP = _trans("Triforce");
+  static constexpr const char* HOTKEYS_GROUP = _trans("Hotkeys");
 
   static constexpr const char* A_BUTTON = "A";
   static constexpr const char* B_BUTTON = "B";
@@ -95,8 +98,10 @@ private:
   ControllerEmu::Buttons* m_mic;
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::Buttons* m_triforce;
-
   ControllerEmu::SettingValue<bool> m_always_connected_setting;
+  ControllerEmu::ModifySettingsButton* m_hotkeys;
+
+  mutable bool m_turbo_mode_toggled = false;
 
   const unsigned int m_index;
 };

@@ -302,6 +302,8 @@ private:
   ControllerEmu::IMUCursor* m_imu_ir;
   ControllerEmu::IRPassthrough* m_ir_passthrough;
 
+  bool m_turbo_mode_toggled = false;
+
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;

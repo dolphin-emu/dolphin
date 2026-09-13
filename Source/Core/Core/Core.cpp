@@ -142,6 +142,15 @@ void SetIsThrottlerTempDisabled(bool disable)
   s_is_throttler_temp_disabled = disable;
 }
 
+void UpdateTurboModeToggle(bool toggled, bool* previously_toggled)
+{
+  if (toggled == *previously_toggled)
+    return;
+
+  *previously_toggled = toggled;
+  s_is_throttler_temp_disabled = !s_is_throttler_temp_disabled;
+}
+
 void FrameUpdateOnCPUThread()
 {
   if (NetPlay::IsNetPlayRunning())
