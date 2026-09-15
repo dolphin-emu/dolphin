@@ -43,7 +43,7 @@ public:
 
   void Jit(u32 address) override;
   void Jit(u32 address, bool clear_cache_and_retry_on_failure);
-  bool DoJit(JitBlock* b, u32 nextPC);
+  bool DoJit(JitBlock* b);
 
   void EraseSingleBlock(const JitBlock& block) override;
   std::vector<MemoryStats> GetMemoryStats() const override;
