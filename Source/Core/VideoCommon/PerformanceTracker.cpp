@@ -31,13 +31,13 @@ void PerformanceTracker::Reset()
   m_raw_dts.Clear();
   m_dt_queue.clear();
 
-  m_dt_total = DT::zero();
-  m_last_raw_dt = DT::zero();
+  m_running_variance.Clear();
+  m_last_raw_dt.store(DT::zero(), std::memory_order_relaxed);
   m_last_time = Clock::now();
-  m_hz_avg = 0.0;
-  m_dt_avg = DT::zero();
-  m_dt_std = DT::zero();
-  m_is_last_time_sane = false;
+  m_hz_avg.store(0.0, std::memory_order_relaxed);
+  m_dt_avg.store(DT::zero(), std::memory_order_relaxed);
+  m_dt_std.store(DT::zero(), std::memory_order_relaxed);
+  m_is_last_time_sane.store(false, std::memory_order_relaxed);
 }
 
 void PerformanceTracker::Count()
@@ -47,58 +47,54 @@ void PerformanceTracker::Count()
   const DT diff{current_time - m_last_time};
   m_last_time = current_time;
 
-  if (!m_is_last_time_sane)
+  if (!m_is_last_time_sane.load(std::memory_order_relaxed))
   {
-    m_is_last_time_sane = true;
+    m_is_last_time_sane.store(true, std::memory_order_relaxed);
     return;
   }
 
-  m_last_raw_dt = diff;
+  m_last_raw_dt.store(diff, std::memory_order_relaxed);
   m_raw_dts.Push(diff);
 }
 
 void PerformanceTracker::UpdateStats()
 {
-  DT diff{};
-  while (m_raw_dts.Pop(diff))
-    HandleRawDt(diff);
-
-  // Update Std Dev
-  MathUtil::RunningVariance<double> variance;
-  for (auto dt : m_dt_queue)
-    variance.Push(DT_s(dt).count());
-  m_dt_std = std::chrono::duration_cast<DT>(DT_s(variance.PopulationStandardDeviation()));
-}
-
-void PerformanceTracker::HandleRawDt(DT diff)
-{
-  if (m_dt_queue.size() == MAX_DT_QUEUE_SIZE)
-    PopBack();
-
-  PushFront(diff);
+  if (m_raw_dts.Empty())
+    return;
 
   const DT window{GetSampleWindow()};
+  auto hz_avg = m_hz_avg.load(std::memory_order_relaxed);
 
-  while (m_dt_total - m_dt_queue.back() >= window)
-    PopBack();
+  DT diff{};
+  while (m_raw_dts.Pop(diff))
+  {
+    if (m_dt_queue.size() == MAX_DT_QUEUE_SIZE)
+      PopBack();
 
-  // Simple Moving Average Throughout the Window
-  const DT dt_avg = m_dt_total / m_dt_queue.size();
-  const double hz = DT_s(1.0) / dt_avg;
-  m_dt_avg = dt_avg;
+    PushFront(diff);
 
-  // Exponential Moving Average
-  const DT_s rc = SAMPLE_RC_RATIO * std::min(window, m_dt_total);
-  const double a = 1.0 - std::exp(-(DT_s(diff) / rc));
+    while (DT(static_cast<long>(m_running_variance.Total())) - m_dt_queue.back() >= window)
+      PopBack();
 
-  // Sometimes euler averages can break when the average is inf/nan
-  const auto hz_avg = m_hz_avg.load();
-  if (std::isfinite(hz_avg))
-    m_hz_avg = hz_avg + a * (hz - hz_avg);
-  else
-    m_hz_avg = hz;
+    // Simple Moving Average Throughout the Window
+    const double hz = DT_s(1.0) / DT(static_cast<long>(m_running_variance.Mean()));
 
-  LogRenderTimeToFile(diff);
+    // Exponential Moving Average
+    const DT_s rc = SAMPLE_RC_RATIO * DT(static_cast<long>(m_running_variance.Total()));
+    const double a = 1.0 - std::exp(-(DT_s(diff) / rc));
+
+    // Sometimes euler averages can break when the average is inf/nan
+    if (std::isfinite(hz_avg))
+      hz_avg = std::lerp(hz_avg, hz, a);
+    else
+      hz_avg = hz;
+
+    LogRenderTimeToFile(diff);
+  }
+  m_dt_avg.store(DT(static_cast<long>(m_running_variance.Mean())), std::memory_order_relaxed);
+  m_hz_avg.store(hz_avg, std::memory_order_relaxed);
+  m_dt_std.store(DT(static_cast<long>(m_running_variance.PopulationStandardDeviation())),
+                 std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetSampleWindow() const
@@ -109,27 +105,27 @@ DT PerformanceTracker::GetSampleWindow() const
 
 double PerformanceTracker::GetHzAvg() const
 {
-  return m_hz_avg;
+  return m_hz_avg.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetDtAvg() const
 {
-  return m_dt_avg;
+  return m_dt_avg.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetDtStd() const
 {
-  return m_dt_std;
+  return m_dt_std.load(std::memory_order_relaxed);
 }
 
 DT PerformanceTracker::GetLastRawDt() const
 {
-  return m_last_raw_dt;
+  return m_last_raw_dt.load(std::memory_order_relaxed);
 }
 
 void PerformanceTracker::InvalidateLastTime()
 {
-  m_is_last_time_sane = false;
+  m_is_last_time_sane.store(false, std::memory_order_relaxed);
 }
 
 void PerformanceTracker::ImPlotPlotLines(const char* label) const
@@ -175,12 +171,12 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
 void PerformanceTracker::PushFront(DT value)
 {
   m_dt_queue.push_front(value);
-  m_dt_total += value;
+  m_running_variance.Push(value.count());
 }
 
 void PerformanceTracker::PopBack()
 {
-  m_dt_total -= m_dt_queue.back();
+  m_running_variance.Pop(m_dt_queue.back().count());
   m_dt_queue.pop_back();
 }
 
