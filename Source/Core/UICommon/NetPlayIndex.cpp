@@ -131,7 +131,7 @@ void NetPlayIndex::NotificationLoop()
     auto response = request.Get(
         fmt::format(
             "{base}/v0/session/active?secret={secret}&player_count={player_count}&game={game}"
-            "&in_game={in_game}",
+            "&in_game={in_game:d}",
             fmt::arg("base", Config::Get(Config::NETPLAY_INDEX_URL)), fmt::arg("secret", m_secret),
             fmt::arg("player_count", m_player_count),
             fmt::arg("game", request.EscapeComponent(m_game)), fmt::arg("in_game", m_in_game)),
@@ -167,7 +167,7 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
   Common::HttpRequest request;
   auto response = request.Get(
       fmt::format("{base}/v0/session/add?name={name}&region={region}&game={game}"
-                  "&password={password}&method={method}&server_id={server_id}&in_game={in_game}"
+                  "&password={password:d}&method={method}&server_id={server_id}&in_game={in_game:d}"
                   "&port={port}&player_count={player_count}&version={version}",
                   fmt::arg("base", Config::Get(Config::NETPLAY_INDEX_URL)),
                   fmt::arg("name", request.EscapeComponent(session.name)),
@@ -176,7 +176,8 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
                   fmt::arg("password", session.has_password), fmt::arg("method", session.method),
                   fmt::arg("server_id", session.server_id), fmt::arg("in_game", session.in_game),
                   fmt::arg("port", session.port), fmt::arg("player_count", session.player_count),
-                  fmt::arg("version", Common::GetScmDescStr())));
+                  fmt::arg("version", Common::GetScmDescStr())),
+      {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
   if (!response.has_value())
   {
     m_last_error = "NO_RESPONSE";
