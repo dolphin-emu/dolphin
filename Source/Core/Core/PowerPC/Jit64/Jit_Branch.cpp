@@ -38,6 +38,7 @@ void Jit64::sc(UGeckoInstruction inst)
   LOCK();
   OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
   WriteExceptionExit();
+  js.wroteUnconditionalExit = true;
 }
 
 void Jit64::rfi(UGeckoInstruction inst)
@@ -64,6 +65,7 @@ void Jit64::rfi(UGeckoInstruction inst)
   // NPC = SRR0;
   MOV(32, R(RSCRATCH), PPCSTATE_SRR0);
   WriteRfiExitDestInRSCRATCH();
+  js.wroteUnconditionalExit = true;
 }
 
 template <bool condition>
@@ -146,6 +148,7 @@ void Jit64::bx(UGeckoInstruction inst)
   {
     WriteExit(js.op->branchTo, inst.LK, js.op->address + 4);
   }
+  js.wroteUnconditionalExit = true;
 }
 
 // TODO - optimize to hell and beyond
@@ -215,14 +218,18 @@ void Jit64::bcx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush();
     fpr.Flush();
     WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
     WriteExit(js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
-  WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
+  else
+  {
+    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
+  }
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
@@ -248,6 +255,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     WriteBranchWatchDestInRSCRATCH(js.op->address, inst, BitSet32{RSCRATCH});
     WriteExitDestInRSCRATCH(inst.LK_3, js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
   else
   {
@@ -271,18 +279,22 @@ void Jit64::bcctrx(UGeckoInstruction inst)
       fpr.Flush();
       WriteBranchWatchDestInRSCRATCH(js.op->address, inst, BitSet32{RSCRATCH});
       WriteExitDestInRSCRATCH(inst.LK_3, js.op->address + 4);
-      // Would really like to continue the block here, but it ends. TODO.
     }
     SetJumpTarget(b);
 
-    if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+    if (js.isLastInstruction())
     {
       gpr.Flush();
       fpr.Flush();
       WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
       WriteExit(js.op->address + 4);
+      js.wroteUnconditionalExit = true;
     }
-    WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, CallerSavedRegistersInUse());
+    else
+    {
+      WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst,
+                              CallerSavedRegistersInUse());
+    }
   }
 }
 
@@ -346,12 +358,13 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush();
     fpr.Flush();
     WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {});
     WriteExit(js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
   else
   {

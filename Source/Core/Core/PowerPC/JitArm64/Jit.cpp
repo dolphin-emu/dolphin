@@ -265,9 +265,11 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
   fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues != PPCAnalyst::InstructionContinue::Always)
   {
     // also flush the program counter
+    // TODO: While all instructions that mess with PC may end the block, not all instructions that
+    // may end the block necessarily mess with the PC.
     auto WA = gpr.GetScopedReg();
     MOVI2R(WA, js.op->address);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pc));
@@ -290,28 +292,28 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   if (js.op->opinfo->flags & FL_SET_MSR)
     EmitUpdateMembase();
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Never)
   {
-    if (js.isLastInstruction())
+    auto WA = gpr.GetScopedReg();
+    LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
+    WriteExceptionExit(WA);
+    js.wroteUnconditionalExit = true;
+  }
+  else if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
+  {
+    // only exit if ppcstate.npc was changed
+    // TODO: Currently all instructions with PPCAnalyst::InstructionContinue::Maybe mess with PC,
+    // but that may change later.
+    auto WA = gpr.GetScopedReg();
+    LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
     {
-      auto WA = gpr.GetScopedReg();
-      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
-      WriteExceptionExit(WA);
+      auto WB = gpr.GetScopedReg();
+      MOVI2R(WB, js.op->address + 4);
+      CMP(WB, WA);
     }
-    else
-    {
-      // only exit if ppcstate.npc was changed
-      auto WA = gpr.GetScopedReg();
-      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
-      {
-        auto WB = gpr.GetScopedReg();
-        MOVI2R(WB, js.op->address + 4);
-        CMP(WB, WA);
-      }
-      FixupBranch c = B(CC_EQ);
-      WriteExceptionExit(WA);
-      SetJumpTarget(c);
-    }
+    FixupBranch c = B(CC_EQ);
+    WriteExceptionExit(WA);
+    SetJumpTarget(c);
   }
   else if (ShouldHandleFPExceptionForInstruction(js.op))
   {
@@ -917,6 +919,7 @@ bool JitArm64::HandleFunctionHooking(u32 address)
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
   js.downcountAmount += js.st.numCycles;
   WriteExit(DISPATCHER_PC);
+  js.wroteUnconditionalExit = true;
   return true;
 }
 
@@ -1018,16 +1021,16 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
+  analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    m_ppc_state.npc = nextPC;
+    m_ppc_state.npc = em_address;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
     m_system.GetJitInterface().UpdateMembase();
-    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", em_address);
     return;
   }
 
@@ -1037,7 +1040,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* far_start = m_far_code.GetWritableCodePtr();
 
     JitBlock b = blocks.InitBlock(em_address);
-    if (DoJit(&b, nextPC))
+    if (DoJit(&b))
     {
       // Code generation succeeded.
 
@@ -1165,7 +1168,7 @@ std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
   }
 }
 
-bool JitArm64::DoJit(JitBlock* b, u32 nextPC)
+bool JitArm64::DoJit(JitBlock* b)
 {
   auto& cpu = m_system.GetCPU();
 
@@ -1175,6 +1178,7 @@ bool JitArm64::DoJit(JitBlock* b, u32 nextPC)
   js.mustCheckFifo = false;
   js.downcountAmount = 0;
   js.skipInstructions = 0;
+  js.wroteUnconditionalExit = false;
   js.curBlock = b;
   js.carryFlag = CarryFlag::InPPCState;
   js.numLoadStoreInst = 0;
@@ -1220,7 +1224,7 @@ bool JitArm64::DoJit(JitBlock* b, u32 nextPC)
   }
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions && !js.wroteUnconditionalExit; i++)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
@@ -1449,11 +1453,13 @@ bool JitArm64::DoJit(JitBlock* b, u32 nextPC)
     js.skipInstructions = 0;
   }
 
-  if (code_block.m_broken)
+  DEBUG_ASSERT(js.wroteUnconditionalExit ||
+               js.op->instructionContinues != PPCAnalyst::InstructionContinue::Never);
+  if (!js.wroteUnconditionalExit)
   {
     gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
-    WriteExit(nextPC);
+    WriteExit(js.op->address + 4);
   }
 
   if (HasWriteFailed() || m_far_code.HasWriteFailed())

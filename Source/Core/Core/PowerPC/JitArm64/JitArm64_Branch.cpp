@@ -32,6 +32,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   }
 
   WriteExceptionExit(js.op->address + 4, false, true);
+  js.wroteUnconditionalExit = true;
 }
 
 void JitArm64::rfi(UGeckoInstruction inst)
@@ -72,6 +73,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR0));
 
   WriteExceptionExit(WA);
+  js.wroteUnconditionalExit = true;
 }
 
 template <bool condition>
@@ -173,6 +175,7 @@ void JitArm64::bx(UGeckoInstruction inst)
     WriteBranchWatch<true>(js.op->address, js.op->branchTo, inst, gpr_caller_save, {});
   }
   WriteExit(js.op->branchTo, inst.LK, js.op->address + 4, WA);
+  js.wroteUnconditionalExit = true;
 }
 
 void JitArm64::bcx(UGeckoInstruction inst)
@@ -274,7 +277,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
       SetJumpTarget(pCTRDontBranch);
   }
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush(FlushMode::Full, WA);
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
@@ -283,6 +286,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
       WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {}, {});
     }
     WriteExit(js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
   else if (IsBranchWatchEnabled())
   {
@@ -333,6 +337,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
     WriteBranchWatchDestInRegister(js.op->address, WA, inst, gpr_caller_save, {});
   }
   WriteExit(WA, inst.LK_3, js.op->address + 4, WB);
+  js.wroteUnconditionalExit = true;
 }
 
 void JitArm64::bclrx(UGeckoInstruction inst)
@@ -422,7 +427,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
       SetJumpTarget(pCTRDontBranch);
   }
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush(FlushMode::Full, WA);
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
@@ -431,6 +436,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
       WriteBranchWatch<false>(js.op->address, js.op->address + 4, inst, {}, {});
     }
     WriteExit(js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
   else if (IsBranchWatchEnabled())
   {

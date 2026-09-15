@@ -17,6 +17,7 @@
 #include <windows.h>
 #endif
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/HostDisassembler.h"
@@ -372,8 +373,10 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   fpr.Flush(BitSet32(0xFFFFFFFF), RegCache::FlushMode::Full,
             RegCache::IgnoreDiscardedRegisters::Yes);
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues != PPCAnalyst::InstructionContinue::Always)
   {
+    // TODO: While all instructions that mess with PC may end the block, not all instructions that
+    // may end the block necessarily mess with the PC.
     MOV(32, PPCSTATE(pc), Imm32(js.op->address));
     MOV(32, PPCSTATE(npc), Imm32(js.op->address + 4));
   }
@@ -394,23 +397,23 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   if (js.op->opinfo->flags & FL_SET_MSR)
     EmitUpdateMembase();
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Never)
   {
-    if (js.isLastInstruction())
-    {
-      MOV(32, R(RSCRATCH), PPCSTATE(npc));
-      MOV(32, PPCSTATE(pc), R(RSCRATCH));
-      WriteExceptionExit();
-    }
-    else
-    {
-      MOV(32, R(RSCRATCH), PPCSTATE(npc));
-      CMP(32, R(RSCRATCH), Imm32(js.op->address + 4));
-      FixupBranch c = J_CC(CC_Z);
-      MOV(32, PPCSTATE(pc), R(RSCRATCH));
-      WriteExceptionExit();
-      SetJumpTarget(c);
-    }
+    MOV(32, R(RSCRATCH), PPCSTATE(npc));
+    MOV(32, PPCSTATE(pc), R(RSCRATCH));
+    WriteExceptionExit();
+    js.wroteUnconditionalExit = true;
+  }
+  else if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
+  {
+    // TODO: Currently all instructions with PPCAnalyst::InstructionContinue::Maybe mess with PC,
+    // but that may change later.
+    MOV(32, R(RSCRATCH), PPCSTATE(npc));
+    CMP(32, R(RSCRATCH), Imm32(js.op->address + 4));
+    FixupBranch c = J_CC(CC_Z);
+    MOV(32, PPCSTATE(pc), R(RSCRATCH));
+    WriteExceptionExit();
+    SetJumpTarget(c);
   }
   else if (ShouldHandleFPExceptionForInstruction(js.op))
   {
@@ -843,16 +846,16 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
+  analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    m_ppc_state.npc = nextPC;
+    m_ppc_state.npc = em_address;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
     m_system.GetJitInterface().UpdateMembase();
-    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", em_address);
     return;
   }
 
@@ -862,7 +865,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* far_start = m_far_code.GetWritableCodePtr();
 
     JitBlock b = blocks.InitBlock(em_address);
-    if (DoJit(&b, nextPC))
+    if (DoJit(&b))
     {
       // Code generation succeeded.
 
@@ -935,7 +938,7 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
   return true;
 }
 
-bool Jit64::DoJit(JitBlock* b, u32 nextPC)
+bool Jit64::DoJit(JitBlock* b)
 {
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
@@ -974,6 +977,7 @@ bool Jit64::DoJit(JitBlock* b, u32 nextPC)
 
   js.downcountAmount = 0;
   js.skipInstructions = 0;
+  js.wroteUnconditionalExit = false;
   js.carryFlag = CarryFlag::InPPCState;
   js.constantGqrValid = BitSet8();
 
@@ -1015,7 +1019,7 @@ bool Jit64::DoJit(JitBlock* b, u32 nextPC)
   }
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions && !js.wroteUnconditionalExit; i++)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
@@ -1275,11 +1279,13 @@ bool Jit64::DoJit(JitBlock* b, u32 nextPC)
     js.skipInstructions = 0;
   }
 
-  if (code_block.m_broken)
+  DEBUG_ASSERT(js.wroteUnconditionalExit ||
+               js.op->instructionContinues != PPCAnalyst::InstructionContinue::Never);
+  if (!js.wroteUnconditionalExit)
   {
     gpr.Flush();
     fpr.Flush();
-    WriteExit(nextPC);
+    WriteExit(js.op->address + 4);
   }
 
   // When linking to an entry point immediately following it in memory, a JIT block's furthest
@@ -1417,6 +1423,7 @@ bool Jit64::HandleFunctionHooking(u32 address)
   MOV(32, R(RSCRATCH), PPCSTATE(npc));
   js.downcountAmount += js.st.numCycles;
   WriteExitDestInRSCRATCH();
+  js.wroteUnconditionalExit = true;
   return true;
 }
 

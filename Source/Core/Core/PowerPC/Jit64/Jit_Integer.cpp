@@ -462,12 +462,13 @@ void Jit64::DoMergedBranchCondition()
 
   SetJumpTarget(pDontBranch);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush();
     fpr.Flush();
     WriteBranchWatch<false>(nextPC, nextPC + 4, next, {});
     WriteExit(nextPC + 4);
+    js.wroteUnconditionalExit = true;
   }
   else
   {
@@ -508,13 +509,15 @@ void Jit64::DoMergedBranchImmediate(s64 val)
     gpr.Flush();
     fpr.Flush();
     DoMergedBranch();
+    js.wroteUnconditionalExit = true;
   }
-  else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  else if (js.isLastInstruction())
   {
     gpr.Flush();
     fpr.Flush();
     WriteBranchWatch<false>(nextPC, nextPC + 4, next, {});
     WriteExit(nextPC + 4);
+    js.wroteUnconditionalExit = true;
   }
   else
   {
@@ -2564,12 +2567,5 @@ void Jit64::twX(UGeckoInstruction inst)
     WriteExceptionExit();
 
     SwitchToNearCode();
-  }
-
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-  {
-    gpr.Flush();
-    fpr.Flush();
-    WriteExit(js.op->address + 4);
   }
 }

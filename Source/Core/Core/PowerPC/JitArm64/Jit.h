@@ -294,7 +294,7 @@ protected:
   Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
                                            Arm64Gen::ARM64Reg tmp2);
 
-  bool DoJit(JitBlock* b, u32 nextPC);
+  bool DoJit(JitBlock* b);
 
   void Trace();
 

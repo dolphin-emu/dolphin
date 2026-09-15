@@ -473,6 +473,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 
   MOV(32, R(RSCRATCH), Imm32(js.op->address + 4));
   WriteExitDestInRSCRATCH();
+  js.wroteUnconditionalExit = true;
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)

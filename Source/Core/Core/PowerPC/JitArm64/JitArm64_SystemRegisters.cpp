@@ -231,6 +231,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   WriteExceptionExit(js.op->address + 4, true);
+  js.wroteUnconditionalExit = true;
 }
 
 void JitArm64::mfmsr(UGeckoInstruction inst)
@@ -365,11 +366,12 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   SetJumpTarget(dont_trap);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+  if (js.isLastInstruction())
   {
     gpr.Flush(FlushMode::Full, WA);
     fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     WriteExit(js.op->address + 4);
+    js.wroteUnconditionalExit = true;
   }
 }
 
