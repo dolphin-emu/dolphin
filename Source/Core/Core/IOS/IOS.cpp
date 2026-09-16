@@ -221,7 +221,7 @@ static void ReleasePPCAncast(Core::System& system)
 void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
-  if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE) ||
+  if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE) &&
       SConfig::GetInstance().GetSimulatedMemorySize() <= Memory::MEM1_SIZE_RETAIL)
   {
     return;
