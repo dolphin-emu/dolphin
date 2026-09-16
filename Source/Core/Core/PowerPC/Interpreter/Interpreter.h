@@ -40,6 +40,9 @@ public:
   void Run() override;
   void ClearCache() override;
   const char* GetName() const override;
+  // `m_end_block` is also used by the JIT for FallbackToInterpreter.
+  // Thus, it's set to true even when it unnecessary for the interpreter (e.g. block cache erasure).
+  bool* GetEndBlock_JIT() { return &m_end_block; }
 
   static void unknown_instruction(Interpreter& interpreter, UGeckoInstruction inst);
 

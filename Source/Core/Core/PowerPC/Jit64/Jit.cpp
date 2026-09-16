@@ -379,6 +379,14 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
     // may end the block necessarily mess with the PC.
     MOV(32, PPCSTATE(pc), Imm32(js.op->address));
     MOV(32, PPCSTATE(npc), Imm32(js.op->address + 4));
+
+    if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
+    {
+      // Set Interpreter::m_end_block to false (to check it for later), as the interpreter is
+      // designed to set it to true only in the functions and back to false only in its main loop.
+      MOV(64, R(RSCRATCH), ImmPtr(m_system.GetInterpreter().GetEndBlock_JIT()));
+      MOV(8, MatR(RSCRATCH), Imm8(0));
+    }
   }
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
@@ -406,14 +414,16 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   }
   else if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
   {
-    // TODO: Currently all instructions with PPCAnalyst::InstructionContinue::Maybe mess with PC,
-    // but that may change later.
+    // Check if we need to exit to dispatcher right now (e.g. a conditional branch was taken, or the
+    // block cache was cleared).
+    // TODO: Not all instructions with PPCAnalyst::InstructionContinue::Maybe mess with PC.
+    MOV(64, R(RSCRATCH), ImmPtr(m_system.GetInterpreter().GetEndBlock_JIT()));
+    CMP(8, MatR(RSCRATCH), Imm8(0));
+    FixupBranch dont_early_exit = J_CC(CC_Z);
     MOV(32, R(RSCRATCH), PPCSTATE(npc));
-    CMP(32, R(RSCRATCH), Imm32(js.op->address + 4));
-    FixupBranch c = J_CC(CC_Z);
     MOV(32, PPCSTATE(pc), R(RSCRATCH));
     WriteExceptionExit();
-    SetJumpTarget(c);
+    SetJumpTarget(dont_early_exit);
   }
   else if (ShouldHandleFPExceptionForInstruction(js.op))
   {
