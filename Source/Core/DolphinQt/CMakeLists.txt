@@ -1,9 +1,22 @@
-if (MSVC)
+if (WIN32)
+  set(DOLPHIN_QT_X64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/x64")
+  set(DOLPHIN_QT_ARM64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/ARM64")
+
   if(_M_ARM_64)
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/ARM64")
+    set(DOLPHIN_QT_ROOT "${DOLPHIN_QT_ARM64_ROOT}")
+    set(DOLPHIN_QT_TARGET_SPEC "win32-arm64-msvc")
   else()
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/x64")
+    set(DOLPHIN_QT_ROOT "${DOLPHIN_QT_X64_ROOT}")
+    set(DOLPHIN_QT_TARGET_SPEC "win32-msvc")
   endif()
+
+  if(DOLPHIN_HOST STREQUAL "ARM64")
+    set(DOLPHIN_QT_HOST_ROOT "${DOLPHIN_QT_ARM64_ROOT}")
+  else()
+    set(DOLPHIN_QT_HOST_ROOT "${DOLPHIN_QT_X64_ROOT}")
+  endif()
+
+  list(APPEND CMAKE_PREFIX_PATH "${DOLPHIN_QT_ROOT}")
 endif()
 
 set(CMAKE_AUTOMOC ON)
@@ -557,7 +570,21 @@ if (WIN32)
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
-  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
+  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}" REQUIRED)
+  find_program(QTPATHS_EXE NAMES qtpaths6 qtpaths HINTS "${QT_BINARY_DIRECTORY}" REQUIRED)
+
+  # We don't use target_qt.conf/qtpaths.bat from a Qt build because they use absolute paths.
+  configure_file(
+    "target_qt.conf.in"
+    "${CMAKE_BINARY_DIR}/target_qt.conf"
+    @ONLY
+  )
+  configure_file(
+    "qtpaths.bat.in"
+    "${CMAKE_BINARY_DIR}/qtpaths.bat"
+    @ONLY
+  )
+  set(QTPATHS_SHIM "${CMAKE_BINARY_DIR}/qtpaths.bat")
 
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.
@@ -575,7 +602,8 @@ if (WIN32)
   #
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
-            "${WINDEPLOYQT_EXE}" --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            "${WINDEPLOYQT_EXE}" --qtpaths="${QTPATHS_SHIM}"
+                                 --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
                                  --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
