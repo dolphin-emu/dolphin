@@ -38,7 +38,7 @@ public:
   int SingleStepInner();
 
   void Run() override;
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
   const char* GetName() const override;
   // `m_end_block` is also used by the JIT for FallbackToInterpreter.
   // Thus, it's set to true even when it unnecessary for the interpreter (e.g. block cache erasure).

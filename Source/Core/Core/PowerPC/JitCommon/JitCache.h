@@ -127,6 +127,9 @@ public:
 
   [[nodiscard]] virtual bool Init();
   void Shutdown();
+  // For performance reasons it does not call DestroyBlock for each block, thus blocks will not get
+  // unlinked. So, if this is called while inside the JIT, the caller needs to exit to dispatcher
+  // ASAP to avoid problems.
   void Clear();
   [[nodiscard]] bool Reset();
 

@@ -245,9 +245,16 @@ static InstructionContinue DoesInstructionContinue(const CodeOp& op)
     const UGeckoInstruction& inst = op.inst;
     if (IsMtspr(inst))
     {
+      // TODO: Should there be a check if the MMCR actually changed, instead of always exiting?
       if (GetSPRIndex(inst) == SPR_MMCR0 || GetSPRIndex(inst) == SPR_MMCR1)
       {
         return InstructionContinue::Never;
+      }
+      // They may wipe the entire instruction cache, which requires exiting to dispatcher.
+      if ((GetSPRIndex(inst) >= SPR_IBAT0U && GetSPRIndex(inst) <= SPR_DBAT7L) ||
+          GetSPRIndex(inst) == SPR_HID0 || GetSPRIndex(inst) == SPR_HID4)
+      {
+        return InstructionContinue::Maybe;
       }
       return InstructionContinue::Always;
     }

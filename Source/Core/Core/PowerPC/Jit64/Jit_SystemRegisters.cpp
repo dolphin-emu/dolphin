@@ -278,17 +278,30 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
   case SPR_HID0:
   {
-    RCOpArg Rd = gpr.Use(d, RCMode::Read);
-    RegCache::Realize(Rd);
+    {
+      RCOpArg Rd = gpr.Use(d, RCMode::Read);
+      RegCache::Realize(Rd);
 
-    MOV(32, R(RSCRATCH), Rd);
+      MOV(32, R(RSCRATCH), Rd);
+    }
     BTR(32, R(RSCRATCH), Imm8(31 - 20));  // ICFI
     MOV(32, PPCSTATE_SPR(iIndex), R(RSCRATCH));
     FixupBranch dont_reset_icache = J_CC(CC_NC);
-    BitSet32 regs = CallerSavedRegistersInUse();
-    ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunctionPP(DoICacheReset, &m_ppc_state, &m_system.GetJitInterface());
-    ABI_PopRegistersAndAdjustStack(regs, 0);
+    {
+      RCForkGuard gpr_guard = gpr.Fork();
+      RCForkGuard fpr_guard = fpr.Fork();
+      gpr.Flush();
+      fpr.Flush();
+      ABI_PushRegistersAndAdjustStack({}, 0);
+      ABI_CallFunctionPP(DoICacheReset, &m_ppc_state, &m_system.GetJitInterface());
+      ABI_PopRegistersAndAdjustStack({}, 0);
+
+      MOV(32, PPCSTATE(pc), Imm32(js.op->address + 4));
+      // With the instruction cache cleared, we need to exit to dispatcher immediately (see
+      // ClearCache comment).
+      WriteExit(js.op->address + 4, false, 0, false);
+    }
+
     SetJumpTarget(dont_reset_icache);
     return;
   }
@@ -471,8 +484,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   SetJumpTarget(noExceptionsPending);
   SetJumpTarget(eeDisabled);
 
-  MOV(32, R(RSCRATCH), Imm32(js.op->address + 4));
-  WriteExitDestInRSCRATCH();
+  WriteExit(js.op->address + 4, false, 0, false);
   js.wroteUnconditionalExit = true;
 }
 

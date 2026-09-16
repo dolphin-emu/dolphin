@@ -87,7 +87,7 @@ public:
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
 
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
 
   const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
   const char* GetName() const override { return "JIT64"; }
@@ -100,8 +100,8 @@ public:
   void EmitUpdateMembase();
   void MSRUpdated(const Gen::OpArg& msr, Gen::X64Reg scratch_reg);
   void FakeBLCall(u32 after);
-  void WriteExit(u32 destination, bool bl = false, u32 after = 0);
-  void JustWriteExit(u32 destination, bool bl, u32 after);
+  void WriteExit(u32 destination, bool bl = false, u32 after = 0, bool link = true);
+  void JustWriteExit(u32 destination, bool bl, u32 after, bool link = true);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
   void WriteBLRExit();
   void WriteExceptionExit();

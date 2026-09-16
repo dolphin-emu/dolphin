@@ -36,7 +36,7 @@ public:
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
 
   void Run() override;
   void SingleStep() override;

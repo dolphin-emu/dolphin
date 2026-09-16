@@ -456,11 +456,13 @@ std::size_t CachedInterpreter::DisassembleFarCode(const JitBlock& block, std::os
   return 0;
 }
 
-void CachedInterpreter::ClearCache()
+void CachedInterpreter::ClearCache(bool poison)
 {
   m_block_cache.Clear();
   m_block_cache.ClearRangesToFree();
-  ClearCodeSpace();
+  // If !poison, the cached interpreter doesn't have the same worries as the JIT: no block linking
+  // nor erased information that requires exiting immediately.
+  ClearCodeSpace(poison);
   ResetFreeMemoryRanges();
   RefreshConfig();
   Host_JitCacheInvalidation();

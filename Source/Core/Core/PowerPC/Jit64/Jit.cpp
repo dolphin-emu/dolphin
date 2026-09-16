@@ -25,6 +25,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
@@ -313,18 +314,24 @@ bool Jit64::Init()
   return true;
 }
 
-void Jit64::ClearCache()
+void Jit64::ClearCache(bool poison)
 {
   blocks.Clear();
   blocks.ClearRangesToFree();
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
   m_const_pool.Clear();
-  ClearCodeSpace();
+  ClearCodeSpace(poison);
   Clear();
-  RefreshConfig();
-  asm_routines.Regenerate();
   ResetFreeMemoryRanges();
+  // If !poison, it's because the JIT has to exit to dispatcher immediately after, and the jump to
+  // it will not get modified, so the dispatcher must not change. While it could be rewritten
+  // exactly the same, why risk that?
+  if (poison)
+  {
+    RefreshConfig();
+    asm_routines.Regenerate();
+  }
   Host_JitCacheInvalidation();
 }
 
@@ -602,7 +609,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   }
 }
 
-void Jit64::WriteExit(u32 destination, bool bl, u32 after)
+void Jit64::WriteExit(u32 destination, bool bl, u32 after, bool link)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -617,10 +624,10 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
-  JustWriteExit(destination, bl, after);
+  JustWriteExit(destination, bl, after, link);
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, bool link)
 {
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
@@ -659,7 +666,10 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     JMP(asm_routines.dispatcher_no_timing_check, true);
   }
 
-  b->linkData.push_back(linkData);
+  if (link)
+  {
+    b->linkData.push_back(linkData);
+  }
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)

@@ -42,7 +42,7 @@ public:
   void DoBacktrace(uintptr_t access_address, SContext* ctx);
   bool HandleFastmemFault(SContext* ctx);
 
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
 
   CommonAsmRoutinesBase* GetAsmRoutines() override { return this; }
   void Run() override;

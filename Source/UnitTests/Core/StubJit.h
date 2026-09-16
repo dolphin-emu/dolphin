@@ -14,7 +14,7 @@ public:
   // CPUCoreBase methods
   bool Init() override { return true; }
   void Shutdown() override {}
-  void ClearCache() override {}
+  void ClearCache(bool) override {}
   void Run() override {}
   void SingleStep() override {}
   const char* GetName() const override { return nullptr; }

@@ -174,19 +174,25 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   return success;
 }
 
-void JitArm64::ClearCache()
+void JitArm64::ClearCache(bool poison)
 {
   m_fault_to_handler.clear();
 
   blocks.Clear();
   blocks.ClearRangesToFree();
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
-  m_far_code_0.ClearCodeSpace();
-  m_near_code_0.ClearCodeSpace();
-  m_near_code_1.ClearCodeSpace();
-  m_far_code_1.ClearCodeSpace();
-  RefreshConfig();
+  m_far_code_0.ClearCodeSpace(poison);
+  m_near_code_0.ClearCodeSpace(poison);
+  m_near_code_1.ClearCodeSpace(poison);
+  m_far_code_1.ClearCodeSpace(poison);
+  if (poison)
+  {
+    RefreshConfig();
+  }
 
+  // Problem: if !poison, unlike x86, the ASM routines aren't separate and need regeneration.
+  // However, since they are generated in the exact same way, then the jumps from the JIT should
+  // still be valid.
   GenerateAsmAndResetFreeMemoryRanges();
 }
 
