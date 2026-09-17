@@ -252,6 +252,17 @@ bool SwapChain::SelectPresentMode()
     return true;
   }
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+  if (m_is_recreating_surface)
+  {
+    if (Common::Contains(present_modes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
+      m_present_mode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+    else
+      m_present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    return true;
+  }
+#endif
+
   // Prefer screen-tearing, if possible, for lowest latency.
   if (Common::Contains(present_modes, VK_PRESENT_MODE_IMMEDIATE_KHR))
   {
@@ -604,9 +615,14 @@ bool SwapChain::RecreateSurface(void* native_handle)
   m_next_fullscreen_state = false;
 
   // Finally re-create the swap chain
+  m_is_recreating_surface = true;
   if (!CreateSwapChain() || !SetupSwapChainImages())
+  {
+    m_is_recreating_surface = false;
     return false;
-
+  }
+  m_is_recreating_surface = false;
+  RecreateSwapChain();
   return true;
 }
 
