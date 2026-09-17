@@ -9,6 +9,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace ciface::SDL
 {
@@ -276,6 +277,155 @@ std::string Gamepad::GetSource() const
 SDL_JoystickID Gamepad::GetSDLInstanceID() const
 {
   return SDL_GetJoystickID(m_joystick);
+}
+
+class ScopedHapticEffect
+{
+public:
+  explicit ScopedHapticEffect(SDL_Haptic* haptic) : m_haptic{haptic} {}
+
+protected:
+  ~ScopedHapticEffect() { UpdateEffect(nullptr); }
+
+  void UpdateEffect(const SDL_HapticEffect* effect)
+  {
+    if (effect == nullptr)
+    {
+      if (m_effect_id != -1)
+      {
+        SDL_DestroyHapticEffect(m_haptic, std::exchange(m_effect_id, -1));
+      }
+
+      return;
+    }
+
+    if (m_effect_id == -1)
+    {
+      // Create and start a new effect.
+      m_effect_id = SDL_CreateHapticEffect(m_haptic, effect);
+      if (m_effect_id == -1)
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
+        return;
+      }
+
+      if (!SDL_RunHapticEffect(m_haptic, m_effect_id, 1))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
+    }
+    else
+    {
+      // Update an already running effect.
+      if (!SDL_UpdateHapticEffect(m_haptic, m_effect_id, effect))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
+    }
+  }
+
+private:
+  SDL_Haptic* const m_haptic;
+  int m_effect_id = -1;
+};
+
+class SpringEffect final : ScopedHapticEffect, public Core::SpringEffect
+{
+public:
+  using ScopedHapticEffect::ScopedHapticEffect;
+
+  void SetForce(double gain, double center_position) override
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "SpringEffect: {:.2} {:.2}", gain, center_position);
+
+    if (gain == 0.0)
+    {
+      UpdateEffect(nullptr);
+      return;
+    }
+
+    SDL_HapticEffect effect{
+        .type = SDL_HAPTIC_SPRING,
+    };
+
+    auto& condition = effect.condition;
+
+    // TODO: Why does only SDL_HAPTIC_POLAR do the correct thing for my Sidewinder joystick?
+    // I would expect SDL_HAPTIC_STEERING_AXIS to be more reliable..
+    // condition.direction.type = SDL_HAPTIC_POLAR;
+    condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
+
+    // Is "infinity" always supported ?
+    // condition.length = SDL_HAPTIC_INFINITY;
+    condition.length = 0x7fff;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition.right_sat[0] = unsigned_gain;
+    condition.left_sat[0] = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition.right_coeff[0] = coeff;
+    condition.left_coeff[0] = coeff;
+
+    condition.center[0] = ControllerEmu::MapFloat<s16>(center_position, 0);
+
+    UpdateEffect(&effect);
+  }
+};
+
+class FrictionEffect final : ScopedHapticEffect, public Core::FrictionEffect
+{
+public:
+  using ScopedHapticEffect::ScopedHapticEffect;
+
+  void SetForce(double gain) override
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "FrictionEffect: {:.2}", gain);
+
+    if (gain == 0.0)
+    {
+      UpdateEffect(nullptr);
+      return;
+    }
+
+    SDL_HapticEffect effect{
+        .type = SDL_HAPTIC_FRICTION,
+    };
+
+    auto& condition = effect.condition;
+
+    // TODO: Why does only SDL_HAPTIC_POLAR do the correct thing for my Sidewinder joystick?
+    // I would expect SDL_HAPTIC_STEERING_AXIS to be more reliable..
+    // condition.direction.type = SDL_HAPTIC_POLAR;
+    condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
+
+    // Is "infinity" always supported ?
+    condition.length = SDL_HAPTIC_INFINITY;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition.right_sat[0] = unsigned_gain;
+    condition.left_sat[0] = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition.right_coeff[0] = coeff;
+    condition.left_coeff[0] = coeff;
+
+    UpdateEffect(&effect);
+  }
+};
+
+std::unique_ptr<Core::SpringEffect> Gamepad::CreateSpringEffect()
+{
+  if (m_haptic == nullptr)
+    return nullptr;
+
+  return std::make_unique<SpringEffect>(m_haptic);
+}
+
+std::unique_ptr<Core::FrictionEffect> Gamepad::CreateFrictionEffect()
+{
+  if (m_haptic == nullptr)
+    return nullptr;
+
+  return std::make_unique<FrictionEffect>(m_haptic);
 }
 
 std::string Gamepad::Button::GetName() const
