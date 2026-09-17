@@ -200,6 +200,8 @@ enum class IntSetting(
     override val int: Int
         get() = NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, file, section, key, defaultValue)
 
+    fun getInt(layer: Int): Int = NativeConfig.getInt(layer, file, section, key, defaultValue)
+
     override fun setInt(settings: Settings, newValue: Int) {
         if (!NativeConfig.isSettingSaveable(file, section, key)) {
             throw UnsupportedOperationException("Unsupported setting: $file, $section, $key")
