@@ -292,6 +292,7 @@ struct VideoConfig final
 
   bool bEFBEmulateFormatChanges = false;
   bool bSkipEFBCopyToRam = false;
+  u8 uSkipEFBCopyToRamClearByte = 0;
   bool bSkipXFBCopyToRam = false;
   bool bDisableCopyToVRAM = false;
   bool bDeferEFBCopies = false;
