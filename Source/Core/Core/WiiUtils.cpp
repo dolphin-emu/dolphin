@@ -977,10 +977,19 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
   }
 
+  // used_clusters_user is computed by querying each user path directly, which follows
+  // symlinks. root_stats comes from a recursive scan of "/", which does not descend into
+  // symlinks. If a user path is a symlink to an external directory (e.g. a save folder
+  // symlinked out for external backup/sync), used_clusters_user can end up bigger than
+  // root_stats->used_clusters. Subtracting without a floor then underflows these u64s.
   result.used_clusters_user = used_clusters_user;
-  result.used_clusters_system = root_stats ? (root_stats->used_clusters - used_clusters_user) : 0;
+  result.used_clusters_system = root_stats && root_stats->used_clusters > used_clusters_user ?
+                                    root_stats->used_clusters - used_clusters_user :
+                                    0;
   result.used_inodes_user = used_inodes_user;
-  result.used_inodes_system = root_stats ? (root_stats->used_inodes - used_inodes_user) : 0;
+  result.used_inodes_system = root_stats && root_stats->used_inodes > used_inodes_user ?
+                                  root_stats->used_inodes - used_inodes_user :
+                                  0;
 
   return result;
 }
