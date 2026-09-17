@@ -18,7 +18,7 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void Update() override;
+  void Update(u32, u32) override;
 
   void Swap() override;
 

@@ -137,6 +137,9 @@ WindowSystemInfo PlatformWin32::GetWindowSystemInfo() const
   wsi.type = WindowSystemType::Windows;
   wsi.render_window = reinterpret_cast<void*>(m_hwnd);
   wsi.render_surface = reinterpret_cast<void*>(m_hwnd);
+  wsi.render_surface_width = m_window_width;
+  wsi.render_surface_height = m_window_height;
+  wsi.render_surface_scale = 1.f;
   return wsi;
 }
 
@@ -192,8 +195,9 @@ LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wPa
 
   case WM_SIZE:
   {
+    UpdateWindowPosition();
     if (g_presenter)
-      g_presenter->ResizeSurface();
+      g_presenter->ResizeSurface(m_window_width, m_window_height, 1.f);
   }
   break;
 
