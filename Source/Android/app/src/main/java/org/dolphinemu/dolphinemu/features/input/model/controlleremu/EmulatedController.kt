@@ -66,5 +66,8 @@ class EmulatedController private constructor(private val pointer: Long) : Contro
 
         @JvmStatic
         external fun getSidewaysWiimoteSetting(controllerIndex: Int): NumericSetting
+
+        @JvmStatic
+        external fun getGbaPad(controllerIndex: Int): EmulatedController
     }
 }
