@@ -352,6 +352,33 @@ bool IniFile::Save(const std::string& filename)
   return File::RenameSync(temp, filename);
 }
 
+bool IniFile::CompareValues(IniFile& other) const
+{
+  if (sections.size() != other.sections.size())
+    return false;
+
+  for (const Section& s : sections)
+  {
+    const Section* os = other.GetSection(s.name);
+    if (!os)
+      return false;
+
+    if (s.values.size() != os->values.size())
+      return false;
+
+    for (const auto& [key, val] : s.values)
+    {
+      const auto it = os->values.find(key);
+      if (it == os->values.end())
+        return false;
+      if (it->second != val)
+        return false;
+    }
+  }
+
+  return true;
+}
+
 // Unit test. TODO: Move to the real unit test framework.
 /*
    int main()
