@@ -13,7 +13,6 @@ set(SRCS
 )
 
 add_library(imgui STATIC ${SRCS})
-dolphin_disable_warnings(imgui)
 
 target_include_directories(imgui
   PUBLIC
