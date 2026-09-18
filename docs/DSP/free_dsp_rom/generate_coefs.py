@@ -1,4 +1,6 @@
-from numpy import *
+#!/usr/bin/env python3
+
+import numpy as np
 from struct import pack
 
 def convert_coefs(c):
@@ -12,14 +14,14 @@ def convert_coefs(c):
 def pack_coefs(short_coefs):
     return b''.join(pack('>H', c) for c in short_coefs)
 
-x = linspace(-2, 2, 512, endpoint=True)
+x = np.linspace(-2, 2, 512, endpoint=True)
 
-w1 = hamming(512)
-w2 = kaiser(512, pi * 9/4)
+w1 = np.hamming(512)
+w2 = np.kaiser(512, np.pi * 9/4)
 
-coef_1 = [sinc(n * 0.5)  for n in x] * w1
-coef_2 = [sinc(n * 0.75) for n in x] * w2
-coef_3 = [sinc(n)        for n in x] * w1
+coef_1 = [np.sinc(n * 0.5)  for n in x] * w1
+coef_2 = [np.sinc(n * 0.75) for n in x] * w2
+coef_3 = [np.sinc(n)        for n in x] * w1
 
 short_coefs = convert_coefs(coef_1) + convert_coefs(coef_2) + convert_coefs(coef_3) + [0] * 512
 
