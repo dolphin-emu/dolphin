@@ -148,6 +148,12 @@
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main" />
 
+        <activity
+            android:name=".savemanager.ui.SaveManagerActivity"
+            android:exported="false"
+            android:label="@string/save_file_manager"
+            android:theme="@style/Theme.Dolphin.Main" />
+
         <service
             android:name=".services.SyncChannelJobService"
             android:exported="false"
