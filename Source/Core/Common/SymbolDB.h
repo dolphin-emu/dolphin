@@ -8,6 +8,7 @@
 
 #include <map>
 #include <mutex>
+#include <ranges>
 #include <set>
 #include <string>
 #include <string_view>
@@ -123,7 +124,7 @@ public:
   void ForEachSymbol(F f) const
   {
     std::lock_guard lock(m_mutex);
-    for (const auto& [addr, symbol] : m_functions)
+    for (const auto& symbol : m_functions | std::views::values)
       f(symbol);
   }
 
@@ -142,7 +143,7 @@ public:
   void ForEachNote(F f) const
   {
     std::lock_guard lock(m_mutex);
-    for (const auto& [addr, note] : m_notes)
+    for (const auto& note : m_notes | std::views::values)
       f(note);
   }
 
