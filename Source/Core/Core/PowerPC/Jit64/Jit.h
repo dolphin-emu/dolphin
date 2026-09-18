@@ -50,7 +50,7 @@ public:
   Jit64& operator=(Jit64&&) = delete;
   ~Jit64() override;
 
-  void Init() override;
+  [[nodiscard]] bool Init() override;
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;

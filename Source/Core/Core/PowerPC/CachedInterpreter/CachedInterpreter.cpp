@@ -31,8 +31,11 @@ CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system), m_
 
 CachedInterpreter::~CachedInterpreter() = default;
 
-void CachedInterpreter::Init()
+bool CachedInterpreter::Init()
 {
+  if (!CheckValidity())
+    return false;
+
   RefreshConfig();
 
   AllocCodeSpace(CODE_SIZE);
@@ -40,11 +43,14 @@ void CachedInterpreter::Init()
 
   jo.enableBlocklink = false;
 
-  m_block_cache.Init();
+  if (!m_block_cache.Init())
+    return false;
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
   code_block.m_fpa = &js.fpa;
+
+  return true;
 }
 
 void CachedInterpreter::Shutdown()

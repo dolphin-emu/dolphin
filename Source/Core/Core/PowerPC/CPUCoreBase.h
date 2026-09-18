@@ -7,7 +7,7 @@ class CPUCoreBase
 {
 public:
   virtual ~CPUCoreBase() = default;
-  virtual void Init() = 0;
+  [[nodiscard]] virtual bool Init() = 0;
   virtual void Shutdown() = 0;
   virtual void ClearCache() = 0;
   virtual void Run() = 0;
