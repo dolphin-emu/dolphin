@@ -91,7 +91,7 @@ void PixelShaderManager::SetConstants()
     {
       // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
-      int center = ((u32)bpmem.fogRange.Base.Center) - 342;
+      int center = static_cast<u32>(bpmem.fogRange.Base.Center) - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
       ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
@@ -127,8 +127,8 @@ void PixelShaderManager::SetConstants()
 
   if (m_viewport_changed)
   {
-    constants.zbias[1][0] = (s32)xfmem.viewport.farZ;
-    constants.zbias[1][1] = (s32)xfmem.viewport.zRange;
+    constants.zbias[1][0] = static_cast<s32>(xfmem.viewport.farZ);
+    constants.zbias[1][1] = static_cast<s32>(xfmem.viewport.zRange);
     dirty = true;
     m_viewport_changed = false;
   }
