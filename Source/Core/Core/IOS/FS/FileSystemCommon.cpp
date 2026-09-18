@@ -139,12 +139,45 @@ ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
 
 void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
 {
-  const ResultCode delete_result = Delete(0, 0, directory_path);
-  if (delete_result != ResultCode::Success && delete_result != ResultCode::NotFound)
+  const auto delete_ = [this](const std::string& directory_path_) {
+    const ResultCode delete_result = Delete(0, 0, directory_path_);
+    if (delete_result != ResultCode::Success && delete_result != ResultCode::NotFound)
+    {
+      ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call Delete for {}: {}", directory_path_,
+                    delete_result);
+      return false;
+    }
+    return true;
+  };
+
+  if (directory_path != "/")
   {
-    ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call Delete: {}", delete_result);
-    p.SetVerifyMode();
-    return;
+    if (!delete_(directory_path))
+    {
+      p.SetVerifyMode();
+      return;
+    }
+  }
+  else
+  {
+    // Calling Delete for the root would return Invalid. Let's delete all children instead.
+    auto children = ReadDirectory(0, 0, directory_path);
+    if (!children)
+    {
+      ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call ReadDirectory for {}: {}", directory_path,
+                    children.error());
+      p.SetVerifyMode();
+      return;
+    }
+
+    for (const std::string& child_name : children.value())
+    {
+      if (!delete_(directory_path + child_name))
+      {
+        p.SetVerifyMode();
+        return;
+      }
+    }
   }
 
   Metadata metadata{};
@@ -156,14 +189,19 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
   p.Do(metadata.size);
   p.Do(metadata.fst_index);
 
-  const ResultCode create_directory_result = CreateDirectory(
-      metadata.uid, metadata.gid, directory_path, metadata.attribute, metadata.modes);
-  if (create_directory_result != ResultCode::Success)
+  // Again here, calling CreateDirectory for the root would return Invalid.
+  // The root always exists, so we can skip creating it.
+  if (directory_path != "/")
   {
-    ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call CreateDirectory: {}",
-                  create_directory_result);
-    p.SetVerifyMode();
-    return;
+    const ResultCode create_directory_result = CreateDirectory(
+        metadata.uid, metadata.gid, directory_path, metadata.attribute, metadata.modes);
+    if (create_directory_result != ResultCode::Success)
+    {
+      ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call CreateDirectory for {}: {}", directory_path,
+                    create_directory_result);
+      p.SetVerifyMode();
+      return;
+    }
   }
 
   // Now restore from the stream
@@ -241,7 +279,8 @@ void FileSystem::DoStateWriteOrMeasure(PointerWrap& p, const std::string& direct
   const Result<Metadata> metadata = GetMetadata(0, 0, directory_path);
   if (!metadata)
   {
-    ERROR_LOG_FMT(IOS_FS, "DoStateWriteOrMeasure failed to call GetMetadata: {}", metadata.error());
+    ERROR_LOG_FMT(IOS_FS, "DoStateWriteOrMeasure failed to call GetMetadata for {}: {}",
+                  directory_path, metadata.error());
     p.SetVerifyMode();
     return;
   }
@@ -256,8 +295,8 @@ void FileSystem::DoStateWriteOrMeasure(PointerWrap& p, const std::string& direct
   auto children = ReadDirectory(0, 0, directory_path);
   if (!children)
   {
-    ERROR_LOG_FMT(IOS_FS, "DoStateWriteOrMeasure failed to call ReadDirectory: {}",
-                  children.error());
+    ERROR_LOG_FMT(IOS_FS, "DoStateWriteOrMeasure failed to call ReadDirectory for {}: {}",
+                  directory_path, children.error());
     p.SetVerifyMode();
     return;
   }
