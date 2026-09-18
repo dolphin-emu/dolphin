@@ -87,6 +87,7 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool fastmem_arena;
+    bool alignment_exceptions;
     bool memcheck;
     bool fp_exceptions;
     bool div_by_zero_exceptions;
@@ -156,6 +157,7 @@ protected:
   bool m_enable_branch_following = false;
   bool m_enable_float_exceptions = false;
   bool m_enable_div_by_zero_exceptions = false;
+  bool m_alignment_exceptions = false;
   bool m_low_dcbz_hack = false;
   bool m_fprf = false;
   bool m_accurate_nans = false;
@@ -168,7 +170,7 @@ protected:
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 25> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 26> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
