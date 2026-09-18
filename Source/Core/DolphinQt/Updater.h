@@ -17,14 +17,15 @@ class Updater : public QThread, public AutoUpdateChecker
 {
   Q_OBJECT
 public:
-  explicit Updater(QWidget* parent, std::string update_track, std::string hash_override);
+  explicit Updater(QWidget* parent, std::string update_track, std::string hash_override,
+                   CheckType check_type);
 
   void run() override;
   void OnUpdateAvailable(const NewVersionInformation& info) override;
-  void CheckForUpdate();
 
 private:
   QWidget* m_parent;
   std::string m_update_track;
   std::string m_hash_override;
+  CheckType m_check_type;
 };
