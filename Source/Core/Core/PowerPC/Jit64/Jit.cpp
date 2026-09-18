@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <sfl/compact_vector.hpp>
 
 // for the PROFILER stuff
 #ifdef _WIN32
@@ -170,21 +171,27 @@ bool Jit64::BackPatch(SContext* ctx)
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
 
-  auto it = m_back_patch_info.find(codePtr);
-  if (it == m_back_patch_info.end())
+  // Find the block
+  auto block_it = m_back_patch_info.lower_bound(codePtr);
+  if (block_it == m_back_patch_info.end())
   {
-    PanicAlertFmt("BackPatch: no register use entry for address {}", fmt::ptr(codePtr));
+    PanicAlertFmt("BackPatch: no block returned for address {}", fmt::ptr(codePtr));
+    return false;
+  }
+  // Then find the entry
+  auto entry_it = std::ranges::find_if(
+      block_it->second, [codePtr](auto& entry) { return codePtr < entry.start + entry.len; });
+  if (entry_it == block_it->second.end())
+  {
+    PanicAlertFmt("BackPatch: entry for address {} not found in block", fmt::ptr(codePtr));
     return false;
   }
 
-  TrampolineInfo& info = it->second;
-
-  u8* exceptionHandler = nullptr;
-  if (jo.memcheck)
+  TrampolineInfo& info = *entry_it;
+  if (codePtr < info.start)
   {
-    auto it2 = m_exception_handler_at_loc.find(codePtr);
-    if (it2 != m_exception_handler_at_loc.end())
-      exceptionHandler = it2->second;
+    PanicAlertFmt("BackPatch: didn't find entry that overlaps with address {}", fmt::ptr(codePtr));
+    return false;
   }
 
   // In the trampoline code, we jump back into the block at the beginning
@@ -195,7 +202,7 @@ bool Jit64::BackPatch(SContext* ctx)
   // to insert the backpatch jump.)
 
   js.generatingTrampoline = true;
-  js.trampolineExceptionHandler = exceptionHandler;
+  js.trampolineExceptionHandler = info.exception_handler_at_loc;
   js.compilerPC = info.pc;
 
   // Generate the trampoline.
@@ -203,10 +210,8 @@ bool Jit64::BackPatch(SContext* ctx)
   js.generatingTrampoline = false;
   js.trampolineExceptionHandler = nullptr;
 
-  u8* start = info.start;
-
   // Patch the original memory operation.
-  XEmitter emitter(start, start + info.len);
+  XEmitter emitter(info.start, info.start + info.len);
   emitter.JMP(trampoline);
   // NOPs become dead code
   const u8* end = info.start + info.len;
@@ -248,6 +253,11 @@ bool Jit64::BackPatch(SContext* ctx)
     *ptr = static_cast<u32>(*ptr - info.offset);
   }
 
+  // Delete the entry
+  block_it->second.erase(entry_it);
+  if (block_it->second.empty())
+    m_back_patch_info.erase(block_it);
+
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
 
   return true;
@@ -263,7 +273,7 @@ void Jit64::Init()
 
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  js.fastmemLoadStore = nullptr;
+  js.fastmemLoadStore = false;
   js.compilerPC = 0;
 
   gpr.SetEmitter(this);
@@ -321,7 +331,13 @@ void Jit64::FreeRanges()
   // Check if any code blocks have been freed in the block cache and transfer this information to
   // the local rangesets to allow overwriting them with new code.
   for (const auto& [from, to] : blocks.GetRangesToFreeNear())
+  {
+    // Note that the erasure in m_back_patch_info isn't just a matter of memory usage: because
+    // lookups use lower_bound (from the current pc) to get the entries of the current block, it's
+    // imperative that erased blocks do not interfere.
+    m_back_patch_info.erase(from);
     m_free_ranges_near.insert(from, to);
+  }
   for (const auto& [from, to] : blocks.GetRangesToFreeFar())
     m_free_ranges_far.insert(from, to);
   blocks.ClearRangesToFree();
@@ -865,6 +881,14 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_begin = far_start;
       b->far_end = far_end;
 
+      if (!js.back_patch_info_temp.empty())
+      {
+        // The copy from temp is intentional, to minimize allocations due to exceeded vector
+        // capacity.
+        m_back_patch_info.emplace(near_start, sfl::compact_vector<TrampolineInfo>(
+                                                  sfl::from_range_t(), js.back_patch_info_temp));
+      }
+
       blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
@@ -922,6 +946,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.curBlock = b;
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
+  js.back_patch_info_temp.clear();
 
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   b->normalEntry = AlignCode4();
@@ -1003,7 +1028,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->num_cycles;
-    js.fastmemLoadStore = nullptr;
+    js.fastmemLoadStore = false;
     js.fixupExceptionHandler = false;
 
     if (i == (code_block.m_num_instructions - 1))
@@ -1203,12 +1228,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SwitchToFarCode();
         if (!js.fastmemLoadStore)
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = nullptr;
           SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
         }
         else
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
+          js.back_patch_info_temp.back().exception_handler_at_loc = GetWritableCodePtr();
         }
 
         RCForkGuard gpr_guard = gpr.Fork();
