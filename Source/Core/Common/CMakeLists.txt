@@ -138,7 +138,6 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
-  SmallVector.h
   SocketContext.cpp
   SocketContext.h
   SpanUtils.h
@@ -189,6 +188,7 @@ PUBLIC
 PRIVATE
   CURL::libcurl
   FatFs
+  sfl
   spng::spng
   watcher
   ${VTUNE_LIBRARIES}

@@ -3,6 +3,9 @@
 
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 
+#include <string>
+#include <string_view>
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 

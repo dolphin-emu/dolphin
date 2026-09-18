@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <filesystem>
 #include <locale>
-#include <map>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -16,6 +15,7 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/std.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include <lz4.h>
 #include <lzo/lzo1x.h>
@@ -110,18 +110,23 @@ constexpr u32 COOKIE_BASE = 0xBAADBABE;
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
 // because they save the exact Dolphin version to savestates.
-static const std::map<u32, std::pair<std::string, std::string>> s_old_versions = {
-    // The 16 -> 17 change modified the size of StateHeader,
-    // so versions older than that can't even be decompressed anymore
-    {17, {"3.5-1311", "3.5-1364"}}, {18, {"3.5-1366", "3.5-1371"}}, {19, {"3.5-1372", "3.5-1408"}},
-    {20, {"3.5-1409", "4.0-704"}},  {21, {"4.0-705", "4.0-889"}},   {22, {"4.0-905", "4.0-1871"}},
-    {23, {"4.0-1873", "4.0-1900"}}, {24, {"4.0-1902", "4.0-1919"}}, {25, {"4.0-1921", "4.0-1936"}},
-    {26, {"4.0-1939", "4.0-1959"}}, {27, {"4.0-1961", "4.0-2018"}}, {28, {"4.0-2020", "4.0-2291"}},
-    {29, {"4.0-2293", "4.0-2360"}}, {30, {"4.0-2362", "4.0-2628"}}, {31, {"4.0-2632", "4.0-3331"}},
-    {32, {"4.0-3334", "4.0-3340"}}, {33, {"4.0-3342", "4.0-3373"}}, {34, {"4.0-3376", "4.0-3402"}},
-    {35, {"4.0-3409", "4.0-3603"}}, {36, {"4.0-3610", "4.0-4480"}}, {37, {"4.0-4484", "4.0-4943"}},
-    {38, {"4.0-4963", "4.0-5267"}}, {39, {"4.0-5279", "4.0-5525"}}, {40, {"4.0-5531", "4.0-5809"}},
-    {41, {"4.0-5811", "4.0-5923"}}, {42, {"4.0-5925", "4.0-5946"}}};
+constexpr sfl::static_unordered_linear_map<u32, std::pair<std::string_view, std::string_view>, 26>
+    s_old_versions = {
+        // The 16 -> 17 change modified the size of StateHeader,
+        // so versions older than that can't even be decompressed anymore
+        {17, {"3.5-1311", "3.5-1364"}}, {18, {"3.5-1366", "3.5-1371"}},
+        {19, {"3.5-1372", "3.5-1408"}}, {20, {"3.5-1409", "4.0-704"}},
+        {21, {"4.0-705", "4.0-889"}},   {22, {"4.0-905", "4.0-1871"}},
+        {23, {"4.0-1873", "4.0-1900"}}, {24, {"4.0-1902", "4.0-1919"}},
+        {25, {"4.0-1921", "4.0-1936"}}, {26, {"4.0-1939", "4.0-1959"}},
+        {27, {"4.0-1961", "4.0-2018"}}, {28, {"4.0-2020", "4.0-2291"}},
+        {29, {"4.0-2293", "4.0-2360"}}, {30, {"4.0-2362", "4.0-2628"}},
+        {31, {"4.0-2632", "4.0-3331"}}, {32, {"4.0-3334", "4.0-3340"}},
+        {33, {"4.0-3342", "4.0-3373"}}, {34, {"4.0-3376", "4.0-3402"}},
+        {35, {"4.0-3409", "4.0-3603"}}, {36, {"4.0-3610", "4.0-4480"}},
+        {37, {"4.0-4484", "4.0-4943"}}, {38, {"4.0-4963", "4.0-5267"}},
+        {39, {"4.0-5279", "4.0-5525"}}, {40, {"4.0-5531", "4.0-5809"}},
+        {41, {"4.0-5811", "4.0-5923"}}, {42, {"4.0-5925", "4.0-5946"}}};
 
 static constexpr bool s_use_compression = true;
 
@@ -717,11 +722,9 @@ static bool ValidateHeaders(const StateHeader& header)
     // This is a REALLY old version, before we started writing the version string to file
     success = false;
 
-    std::pair<std::string, std::string> version_range = it->second;
-    std::string oldest_version = version_range.first;
-    std::string newest_version = version_range.second;
+    auto [oldest_version, newest_version] = it->second;
 
-    loaded_str = "Dolphin " + oldest_version + " - " + newest_version;
+    loaded_str = fmt::format("Dolphin {} - {}", oldest_version, newest_version);
   }
   else if (loaded_version != STATE_VERSION)
   {

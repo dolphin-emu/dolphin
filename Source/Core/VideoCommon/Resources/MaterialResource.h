@@ -10,8 +10,9 @@
 #include <variant>
 #include <vector>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/Buffer.h"
-#include "Common/SmallVector.h"
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
@@ -56,15 +57,14 @@ public:
     ShaderResource* m_shader_resource = nullptr;
 
     using TextureLikeResource = Resource*;
-    Common::SmallVector<TextureLikeResource, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
+    sfl::static_vector<TextureLikeResource, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
         m_texture_like_resources;
 
     // Variant for future expansion...
     using TextureLikeData = std::variant<std::shared_ptr<TextureAndSamplerResource::Data>>;
-    Common::SmallVector<TextureLikeData, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
-        m_texture_like_data;
+    sfl::static_vector<TextureLikeData, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> m_texture_like_data;
 
-    Common::SmallVector<TextureLikeReference, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
+    sfl::static_vector<TextureLikeReference, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
         m_texture_like_references;
 
     MaterialResource* m_next_material = nullptr;

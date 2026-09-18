@@ -11,11 +11,11 @@
 #include <numeric>
 #include <optional>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include <fmt/ranges.h>
+#include <sfl/static_unordered_linear_set.hpp>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -240,7 +240,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   }
 #endif
 
-  static const std::unordered_set<std::string> disc_image_extensions = {
+  static constexpr sfl::static_unordered_linear_set<std::string_view, 12> disc_image_extensions = {
       {".gcm", ".bin", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol",
        ".elf"}};
   if (disc_image_extensions.contains(extension))

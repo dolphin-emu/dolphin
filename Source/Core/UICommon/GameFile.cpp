@@ -513,7 +513,7 @@ const std::string& GameFile::GetName(Variant variant) const
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(Variant variant) const
+std::string_view GameFile::GetMaker(Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
     return m_custom_maker;

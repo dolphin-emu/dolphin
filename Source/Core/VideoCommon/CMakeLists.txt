@@ -247,6 +247,7 @@ PRIVATE
   imgui
   implot
   glslang::SPIRV
+  sfl
   tinygltf
 )
 

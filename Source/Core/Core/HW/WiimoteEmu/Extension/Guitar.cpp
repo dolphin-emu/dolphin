@@ -4,7 +4,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 
 #include <array>
-#include <map>
+
+#include "sfl/static_flat_map.hpp"
 
 #include "Common/Assert.h"
 #include "Common/Common.h"
@@ -21,7 +22,7 @@
 
 namespace WiimoteEmu
 {
-static const std::map<const ControlState, const u8> s_slider_bar_control_codes{
+constexpr sfl::static_flat_map<ControlState, u8, 6> s_slider_bar_control_codes{
     // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
     // Windows
     {0.0, 0x0F},        // not touching

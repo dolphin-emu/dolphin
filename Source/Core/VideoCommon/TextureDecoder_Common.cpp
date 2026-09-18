@@ -198,22 +198,6 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
   }
 }
 
-// returns bytes
-int TexDecoder_GetPaletteSize(TextureFormat format)
-{
-  switch (format)
-  {
-  case TextureFormat::C4:
-    return 16 * 2;
-  case TextureFormat::C8:
-    return 256 * 2;
-  case TextureFormat::C14X2:
-    return 16384 * 2;
-  default:
-    return 0;
-  }
-}
-
 // Get the "in memory" texture format of an EFB copy's format.
 // With the exception of c4/c8/c14 paletted texture formats (which are handled elsewhere)
 // this is the format the game should be using when it is drawing an EFB copy back.

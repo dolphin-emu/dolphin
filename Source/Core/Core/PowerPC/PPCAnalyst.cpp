@@ -4,11 +4,11 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 
 #include <algorithm>
-#include <map>
 #include <string>
 #include <vector>
 
 #include <fmt/format.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -318,7 +318,7 @@ static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 sta
 
 static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
 {
-  static const std::map<u32, const char* const> handlers = {
+  static constexpr sfl::static_unordered_linear_map<u32, const char*, 16> handlers{
       {0x80000100, "system_reset_exception_handler"},
       {0x80000200, "machine_check_exception_handler"},
       {0x80000300, "dsi_exception_handler"},

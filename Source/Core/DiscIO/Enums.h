@@ -93,5 +93,5 @@ Country CountryCodeToCountry(u8 country_code, Platform platform, Region region =
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version, bool is_vwii);
 
-const std::string& GetCompanyFromID(const std::string& company_id);
+std::string_view GetCompanyFromID(std::string_view company_id);
 }  // namespace DiscIO

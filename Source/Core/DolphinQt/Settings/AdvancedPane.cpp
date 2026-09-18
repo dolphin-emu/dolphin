@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Settings/AdvancedPane.h"
 
+#include <cmath>
+
 #include <QCheckBox>
 #include <QDateTimeEdit>
 #include <QFontMetrics>
@@ -14,7 +16,7 @@
 #include <QSignalBlocker>
 #include <QTimeZone>
 #include <QVBoxLayout>
-#include <cmath>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Config/Config.h"
 #include "Common/Config/Enums.h"
@@ -40,7 +42,7 @@
 
 #include "UICommon/UICommon.h"
 
-static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
+constexpr sfl::static_unordered_linear_map<PowerPC::CPUCore, const char*, 4> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
     {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
     {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler for x86-64 (recommended)")},

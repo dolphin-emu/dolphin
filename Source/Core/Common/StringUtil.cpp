@@ -890,13 +890,13 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 
 std::string GetEscapedHtml(std::string html)
 {
-  static constexpr std::array<std::array<const char*, 2>, 5> replacements{{
+  static constexpr std::array<std::pair<std::string_view, std::string_view>, 5> replacements{{
       // Escape ampersand first to avoid escaping the ampersands in other replacements
-      {{"&", "&amp;"}},
-      {{"<", "&lt;"}},
-      {{">", "&gt;"}},
-      {{"\"", "&quot;"}},
-      {{"'", "&apos;"}},
+      {"&", "&amp;"},
+      {"<", "&lt;"},
+      {">", "&gt;"},
+      {"\"", "&quot;"},
+      {"'", "&apos;"},
   }};
 
   for (const auto& [unescaped, escaped] : replacements)

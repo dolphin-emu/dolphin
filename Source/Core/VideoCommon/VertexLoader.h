@@ -8,8 +8,9 @@
 
 #include <string>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/CommonTypes.h"
-#include "Common/SmallVector.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
 class VertexLoader;
@@ -43,7 +44,7 @@ private:
   // + 2 colors + 8 texture coordinates or dummy texture coordinates + 8 texture matrices
   // merged into texture coordinates + 1 skip gives a maximum of 30
   // (Tested by VertexLoaderTest.LargeFloatVertexSpeed)
-  Common::SmallVector<TPipelineFunction, 30> m_PipelineStages;
+  sfl::static_vector<TPipelineFunction, 30> m_PipelineStages;
 
   void CompileVertexTranslator();
 

@@ -5,11 +5,12 @@
 
 #include <array>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/SmallVector.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -328,7 +329,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   }
 
   constexpr std::array<CCFlags, 5> conditions{{CC_HI, CC_LO, CC_EQ, CC_GT, CC_LT}};
-  Common::SmallVector<FixupBranch, conditions.size()> fixups;
+  sfl::static_vector<FixupBranch, conditions.size()> fixups;
 
   for (size_t i = 0; i < conditions.size(); i++)
   {

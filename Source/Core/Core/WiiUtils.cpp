@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <bitset>
 #include <cstddef>
-#include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -17,6 +16,7 @@
 
 #include <fmt/format.h>
 #include <pugixml.hpp>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -301,24 +301,25 @@ protected:
     u16 version;
   };
 
-  std::string GetDeviceRegion();
+  std::string_view GetDeviceRegion();
   std::string GetDeviceId();
 
   IOS::HLE::Kernel m_ios;
 };
 
-std::string SystemUpdater::GetDeviceRegion()
+std::string_view SystemUpdater::GetDeviceRegion()
 {
   // Try to determine the region from an installed system menu.
   const auto tmd = m_ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
   if (tmd.IsValid())
   {
     const DiscIO::Region region = tmd.GetRegion();
-    static const std::map<DiscIO::Region, std::string> regions = {{DiscIO::Region::NTSC_J, "JPN"},
-                                                                  {DiscIO::Region::NTSC_U, "USA"},
-                                                                  {DiscIO::Region::PAL, "EUR"},
-                                                                  {DiscIO::Region::NTSC_K, "KOR"},
-                                                                  {DiscIO::Region::Unknown, "EUR"}};
+    static constexpr sfl::static_unordered_linear_map<DiscIO::Region, std::string_view, 5> regions =
+        {{DiscIO::Region::NTSC_J, "JPN"},
+         {DiscIO::Region::NTSC_U, "USA"},
+         {DiscIO::Region::PAL, "EUR"},
+         {DiscIO::Region::NTSC_K, "KOR"},
+         {DiscIO::Region::Unknown, "EUR"}};
     return regions.at(region);
   }
   return "";
@@ -453,7 +454,8 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   ASSERT(doc.select_node("//DeviceId").node().text().set(device_id.c_str()));
 
   // Write the correct device region.
-  const std::string region = m_requested_region.empty() ? GetDeviceRegion() : m_requested_region;
+  const std::string region =
+      m_requested_region.empty() ? std::string(GetDeviceRegion()) : m_requested_region;
   ASSERT(doc.select_node("//RegionId").node().text().set(region.c_str()));
 
   std::ostringstream stream;

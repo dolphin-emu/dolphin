@@ -11,6 +11,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/ArmCommon.h"
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
@@ -19,7 +21,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/SmallVector.h"
 
 namespace Arm64Gen
 {
@@ -1114,7 +1115,7 @@ public:
     (check_argument(args), ...);
 
     {
-      Common::SmallVector<RegisterMove, sizeof...(Args)> pending_moves;
+      sfl::static_vector<RegisterMove, sizeof...(Args)> pending_moves;
 
       size_t i = 0;
 

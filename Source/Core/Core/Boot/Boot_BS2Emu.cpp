@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstdint>
-#include <map>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -369,11 +370,11 @@ static DiscIO::Region CodeRegion(char c)
 
 bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type)
 {
-  static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
-      {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJH"}},
-      {DiscIO::Region::NTSC_U, {"USA", "NTSC", "US", "LU"}},
-      {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LEH"}},
-      {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
+  static const sfl::static_unordered_linear_map<DiscIO::Region, RegionSetting, 4> region_settings =
+      {{DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJH"}},
+       {DiscIO::Region::NTSC_U, {"USA", "NTSC", "US", "LU"}},
+       {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LEH"}},
+       {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
   RegionSetting region_setting = entryPos->second;
 

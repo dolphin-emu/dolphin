@@ -5,9 +5,9 @@
 
 #include <memory>
 #include <string>
-#include <unordered_set>
 
 #include <fmt/format.h>
+#include "sfl/static_unordered_linear_set.hpp"
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -26,7 +26,7 @@ static bool IsSoundFile(const std::string& filename)
   SplitPath(filename, nullptr, nullptr, &extension);
   Common::ToLower(&extension);
 
-  static const std::unordered_set<std::string> extensions = {
+  static constexpr sfl::static_unordered_linear_set<std::string_view, 13> extensions = {
       ".adp",    // 1080 Avalanche, Crash Bandicoot, etc.
       ".adx",    // Sonic Adventure 2 Battle, etc.
       ".afc",    // Zelda WW

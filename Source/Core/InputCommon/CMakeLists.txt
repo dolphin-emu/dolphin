@@ -83,6 +83,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  sfl
   sfml-network
   spng::spng
 )

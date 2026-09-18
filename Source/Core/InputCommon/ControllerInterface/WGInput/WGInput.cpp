@@ -4,7 +4,6 @@
 #include "InputCommon/ControllerInterface/WGInput/WGInput.h"
 
 #include <array>
-#include <map>
 #include <string_view>
 #include <utility>
 
@@ -23,6 +22,7 @@
 #pragma comment(lib, "windowsapp")
 
 #include <fmt/format.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
@@ -452,11 +452,12 @@ private:
 
   void PopulateHaptics()
   {
-    static const std::map<uint16_t, std::string> waveform_name_map{
-        {Haptics::KnownSimpleHapticsControllerWaveforms::Click(), "Click"},
-        {Haptics::KnownSimpleHapticsControllerWaveforms::BuzzContinuous(), "Buzz"},
-        {Haptics::KnownSimpleHapticsControllerWaveforms::RumbleContinuous(), "Rumble"},
-    };
+    static constexpr sfl::static_unordered_linear_map<uint16_t, std::string_view, 3>
+        waveform_name_map{
+            {Haptics::KnownSimpleHapticsControllerWaveforms::Click(), "Click"},
+            {Haptics::KnownSimpleHapticsControllerWaveforms::BuzzContinuous(), "Buzz"},
+            {Haptics::KnownSimpleHapticsControllerWaveforms::RumbleContinuous(), "Rumble"},
+        };
 
     try
     {

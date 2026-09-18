@@ -115,11 +115,11 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
-  const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
+  std::string_view game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
 
-  QLineEdit* maker =
-      CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +
-                         m_game.GetMakerID() + ")");
+  QLineEdit* maker = CreateValueDisplay(fmt::format(
+      "{} ({})", game_maker.empty() ? std::string_view(UNKNOWN_NAME.toStdString()) : game_maker,
+      m_game.GetMakerID()));
 
   layout->addRow(tr("Name:"), internal_name);
   layout->addRow(tr("Game ID:"), game_id);
@@ -209,9 +209,9 @@ QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
   return value_display;
 }
 
-QLineEdit* InfoWidget::CreateValueDisplay(const std::string& value)
+QLineEdit* InfoWidget::CreateValueDisplay(std::string_view value)
 {
-  return CreateValueDisplay(QString::fromStdString(value));
+  return CreateValueDisplay(value);
 }
 
 void InfoWidget::CreateLanguageSelector()

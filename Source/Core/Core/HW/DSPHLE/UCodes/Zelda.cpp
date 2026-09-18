@@ -5,7 +5,8 @@
 
 #include <algorithm>
 #include <array>
-#include <map>
+
+#include "sfl/static_unordered_linear_map.hpp"
 
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
@@ -74,7 +75,7 @@ enum ZeldaUCodeFlag
   COMBINED_CMD_0D = 0x00000400,
 };
 
-static const std::map<u32, u32> UCODE_FLAGS = {
+constexpr sfl::static_unordered_linear_map<u32, u32, 14> UCODE_FLAGS = {
     // GameCube IPL/BIOS, NTSC.
     {0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB | VOLUME_EXPLICIT_STEP | NO_CMD_0D |
                      WEIRD_CMD_0C},
@@ -1535,12 +1536,15 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
       u16 idx;
       bool variable_step;
     };
-    std::map<u16, PatternInfo> samples_source_to_pattern = {
-        {VPB::SRC_CONST_PATTERN_0, {0, false}}, {VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP, {0, true}},
-        {VPB::SRC_CONST_PATTERN_1, {1, false}}, {VPB::SRC_CONST_PATTERN_2, {2, false}},
-        {VPB::SRC_CONST_PATTERN_3, {3, false}},
-    };
-    auto& pattern_info = samples_source_to_pattern[vpb->samples_source_type];
+    static constexpr sfl::static_unordered_linear_map<u16, PatternInfo, 5>
+        samples_source_to_pattern = {
+            {VPB::SRC_CONST_PATTERN_0, {0, false}},
+            {VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP, {0, true}},
+            {VPB::SRC_CONST_PATTERN_1, {1, false}},
+            {VPB::SRC_CONST_PATTERN_2, {2, false}},
+            {VPB::SRC_CONST_PATTERN_3, {3, false}},
+        };
+    const auto& pattern_info = samples_source_to_pattern.at(vpb->samples_source_type);
     u16 pattern_offset = pattern_info.idx * PATTERN_SIZE;
     s16* pattern = m_const_patterns.data() + pattern_offset;
 

@@ -8,9 +8,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <map>
 
 #include <fmt/format.h>
+#include <sfl/static_flat_map.hpp>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/StringUtil.h"
 
@@ -35,7 +36,7 @@ inline static bool IsAscii(std::string_view s)
   return std::ranges::none_of(s, [](u8 c) { return c > 127; });
 }
 
-static const std::map<std::string_view, std::string_view> operators = {
+constexpr sfl::static_flat_map<std::string_view, std::string_view, 43> operators = {
     {"nw", "operator new"},    {"nwa", "operator new[]"},
     {"dl", "operator delete"}, {"dla", "operator delete[]"},
     {"pl", "operator+"},       {"mi", "operator-"},
@@ -59,7 +60,7 @@ static const std::map<std::string_view, std::string_view> operators = {
     {"cl", "operator()"},      {"vc", "operator[]"},
     {"vt", "__vtable"}};
 
-static const std::map<char, std::string_view> types = {
+constexpr sfl::static_unordered_linear_map<char, std::string_view, 13> types = {
     {'i', "int"},          {'b', "bool"},      {'c', "char"},  {'s', "short"},
     {'l', "long"},         {'x', "long long"}, {'f', "float"}, {'d', "double"},
     {'w', "wchar_t"},      {'v', "void"},      {'e', "..."},   {'r', "long double"},

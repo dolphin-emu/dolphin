@@ -7,13 +7,13 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <map>
 #include <utility>
 #include <vector>
 
 #include <fmt/format.h>
 #include <mbedtls/md.h>
 #include <mbedtls/rsa.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -188,16 +188,18 @@ constexpr Common::ec::Signature DEFAULT_SIGNATURE = {{
 }};
 // clang-format on
 
-const std::map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t> s_type_to_size_map = {{
-    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128}, 16},
-    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::MAC}, 20},
-    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::ECC233}, 30},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA2048}, 256},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA4096}, 512},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::ECC233}, 60},
-    {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Data}, 0},
-    {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Version}, 0},
-}};
+constexpr sfl::static_unordered_linear_map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t,
+                                           8>
+    s_type_to_size_map = {
+        {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128}, 16},
+        {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::MAC}, 20},
+        {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::ECC233}, 30},
+        {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA2048}, 256},
+        {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA4096}, 512},
+        {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::ECC233}, 60},
+        {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Data}, 0},
+        {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Version}, 0},
+};
 
 static size_t GetSizeForType(IOSC::ObjectType type, IOSC::ObjectSubType subtype)
 {

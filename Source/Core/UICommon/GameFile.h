@@ -6,6 +6,7 @@
 #include <array>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -61,7 +62,7 @@ public:
   const std::string& GetFileName() const { return m_file_name; }
   const std::string& GetName(const Core::TitleDatabase& title_database) const;
   const std::string& GetName(Variant variant) const;
-  const std::string& GetMaker(Variant variant) const;
+  std::string_view GetMaker(Variant variant) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
   const std::string& GetShortName() const { return LookupUsingConfigLanguage(m_short_names); }
   const std::string& GetLongName(DiscIO::Language l) const { return Lookup(l, m_long_names); }

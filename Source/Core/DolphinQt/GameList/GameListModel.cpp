@@ -142,8 +142,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case Column::Maker:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
-      return QString::fromStdString(
-          game.GetMaker(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+      return QString::fromUtf8(game.GetMaker(UICommon::GameFile::Variant::LongAndPossiblyCustom));
     }
     break;
   case Column::FileName:
