@@ -10,7 +10,7 @@ namespace DSP::HLE
 struct VolumeData
 {
   u16 volume;
-  u16 volume_delta;
+  s16 volume_delta;
 };
 
 struct PBMixer
@@ -198,7 +198,7 @@ struct PBLowPassFilter
   s16 b0;
 };
 
-struct AXPB
+struct alignas(32) AXPB
 {
   u16 next_pb_hi;
   u16 next_pb_lo;
@@ -255,7 +255,7 @@ union PBInfImpulseResponseWM
   PBBiquadFilter biquad;
 };
 
-struct AXPBWii
+struct alignas(32) AXPBWii
 {
   u16 next_pb_hi;
   u16 next_pb_lo;
