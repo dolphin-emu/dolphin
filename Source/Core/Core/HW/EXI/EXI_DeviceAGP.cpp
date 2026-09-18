@@ -89,7 +89,7 @@ void CEXIAgp::LoadFileToROM(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    u64 filesize = pStream.GetSize();
+    const u64 filesize = pStream.GetSize();
     m_rom_size = filesize & 0xFFFFFFFF;
     m_rom_mask = (m_rom_size - 1);
 
@@ -110,7 +110,7 @@ void CEXIAgp::LoadFileToEEPROM(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    u64 filesize = pStream.GetSize();
+    const u64 filesize = pStream.GetSize();
     m_eeprom_size = filesize & 0xFFFFFFFF;
     m_eeprom_mask = (m_eeprom_size - 1);
 
@@ -152,7 +152,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
       std::vector<u8> temp_eeprom(m_eeprom_size);
       for (u32 index = 0; index < (m_eeprom_size / 8); index++)
       {
-        u64 NewVal = ((u64*)(m_eeprom.data()))[index];
+        const u64 NewVal = ((u64*)(m_eeprom.data()))[index];
         for (u32 indexb = 0; indexb < 8; indexb++)
           temp_eeprom[index * 8 + (7 - indexb)] = (NewVal >> (indexb * 8)) & 0xFF;
       }
