@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
+#include <QScreen>
 #include <QStackedWidget>
 #include <QStyleHints>
 #include <QVBoxLayout>
@@ -198,6 +199,11 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   wsi.render_surface = wsi.render_window;
 #endif
   wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
+
+  // Asked of the window system rather than of the graphics API, since none of the latter report it
+  // portably. Left at zero when there is no window to ask.
+  QScreen* const screen = window ? window->screen() : nullptr;
+  wsi.render_surface_refresh_rate = screen ? static_cast<float>(screen->refreshRate()) : 0.0f;
 
   return wsi;
 }

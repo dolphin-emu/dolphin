@@ -21,7 +21,7 @@ class SwapChain;
 class Gfx final : public ::AbstractGfx
 {
 public:
-  Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale, float backbuffer_refresh_rate);
   ~Gfx() override;
 
   static Gfx* GetInstance() { return static_cast<Gfx*>(g_gfx.get()); }
@@ -151,6 +151,7 @@ private:
   bool UpdateSamplerDescriptorTable();
 
   float m_backbuffer_scale;
+  float m_backbuffer_refresh_rate;
 
   // Owned objects
   std::unique_ptr<SwapChain> m_swap_chain;

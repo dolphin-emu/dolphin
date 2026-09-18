@@ -158,6 +158,9 @@ void VideoConfig::Refresh()
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
   bHDR = Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT);
 
+  frame_generation.bEnabled = Config::Get(Config::GFX_FRAME_GENERATION_ENABLED);
+  frame_generation.iMultiplier = Config::Get(Config::GFX_FRAME_GENERATION_MULTIPLIER);
+
   color_correction.bCorrectColorSpace = Config::Get(Config::GFX_CC_CORRECT_COLOR_SPACE);
   color_correction.game_color_space = Config::Get(Config::GFX_CC_GAME_COLOR_SPACE);
   color_correction.bCorrectGamma = Config::Get(Config::GFX_CC_CORRECT_GAMMA);
@@ -184,7 +187,28 @@ void VideoConfig::Refresh()
   bDeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
   bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
   bVISkip = Config::Get(Config::GFX_HACK_VI_SKIP);
-  bSkipPresentingDuplicateXFBs = bVISkip || Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
+
+  // Frame generation needs one present per video interface field, which is what carries the
+  // generated motion: a game producing thirty frames a second across sixty fields has a generated
+  // frame in every other one.
+  //
+  // Immediate presentation hands the picture over when the game finishes drawing rather than when
+  // the field is due, so there is one present per real frame and nowhere for the generated frames
+  // to go. That one is not overridden here: it is visible to the guest through VideoInterface and
+  // is part of what makes a movie deterministic, so frame generation stands aside instead and the
+  // interface greys it out.
+  if (bImmediateXFB)
+    frame_generation.bEnabled = false;
+
+  // Skipping duplicate fields is a different matter, and is switched off rather than stood aside
+  // from. It exists because presenting a field identical to the last one is wasted work, and with
+  // frame generation on they are not identical: the condition the setting describes no longer
+  // holds, so turning it off is not overriding what was asked for. It also defaults to on, so
+  // refusing to generate alongside it would leave the feature greyed out for everyone.
+  //
+  // VI skip stays in charge, since it removes the field timing this relies on in the first place.
+  bSkipPresentingDuplicateXFBs =
+      bVISkip || (Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS) && !frame_generation.bEnabled);
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);

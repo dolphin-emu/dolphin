@@ -43,4 +43,8 @@ struct WindowSystemInfo
 
   // Scale of the render surface. For hidpi systems, this will be >1.
   float render_surface_scale = 1.0f;
+
+  // How often the display holding the render surface refreshes, in hertz. Zero where the host
+  // cannot say, which reads as "assume one refresh per emulated field".
+  float render_surface_refresh_rate = 0.0f;
 };

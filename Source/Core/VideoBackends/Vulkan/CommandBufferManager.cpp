@@ -537,6 +537,13 @@ void CommandBufferManager::DeferImageDestruction(VkImage image, VmaAllocation al
       [image, alloc] { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
 }
 
+void CommandBufferManager::DeferPipelineDestruction(VkPipeline object)
+{
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
+      [object] { vkDestroyPipeline(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();

@@ -116,12 +116,13 @@ static void APIENTRY ClearDepthf(GLfloat depthval)
   glClearDepth(depthval);
 }
 
-OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
+OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale,
+               float backbuffer_refresh_rate)
     : m_main_gl_context(std::move(main_gl_context)),
       m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
       m_current_depth_state(RenderState::GetInvalidDepthState()),
       m_current_blend_state(RenderState::GetInvalidBlendingState()),
-      m_backbuffer_scale(backbuffer_scale)
+      m_backbuffer_scale(backbuffer_scale), m_backbuffer_refresh_rate(backbuffer_refresh_rate)
 {
   // Create the window framebuffer.
   if (!m_main_gl_context->IsHeadless())
@@ -729,7 +730,7 @@ SurfaceInfo OGLGfx::GetSurfaceInfo() const
 {
   return {std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
           std::max(m_main_gl_context->GetBackBufferHeight(), 1u), m_backbuffer_scale,
-          AbstractTextureFormat::RGBA8};
+          AbstractTextureFormat::RGBA8, m_backbuffer_refresh_rate};
 }
 
 }  // namespace OGL
