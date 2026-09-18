@@ -61,13 +61,14 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
         val gameFile = mGameFiles[position]
 
         holder.apply {
+            val title = gameFile.getTitle(GameFileCacheManager.getTitleDatabase())
             if (BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
-                binding.textGameTitle.text = gameFile.getTitle()
+                binding.textGameTitle.text = title
                 binding.textGameTitle.visibility = View.VISIBLE
                 binding.textGameTitleInner.visibility = View.GONE
                 binding.textGameCaption.visibility = View.VISIBLE
             } else {
-                binding.textGameTitleInner.text = gameFile.getTitle()
+                binding.textGameTitleInner.text = title
                 binding.textGameTitleInner.visibility = View.VISIBLE
                 binding.textGameTitle.visibility = View.GONE
                 binding.textGameCaption.visibility = View.GONE

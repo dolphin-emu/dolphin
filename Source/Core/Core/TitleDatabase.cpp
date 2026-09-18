@@ -135,4 +135,9 @@ std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Langu
     return gametdb_id;
   return fmt::format("{} ({})", title_name, gametdb_id);
 }
+
+const std::unordered_map<std::string, std::string>& TitleDatabase::GetUserTitleMap() const
+{
+  return m_user_title_map;
+}
 }  // namespace Core
