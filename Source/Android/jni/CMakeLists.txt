@@ -10,6 +10,8 @@ add_library(main SHARED
   Config/ConfigChangedCallback.cpp
   Config/NativeConfig.cpp
   Config/PostProcessing.cpp
+  EventHook.cpp
+  EventHook.h
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
@@ -36,6 +38,7 @@ add_library(main SHARED
   MainAndroid.cpp
   RiivolutionPatches.cpp
   SkylanderConfig.cpp
+  VideoInterface.cpp
   WiiUtils.cpp
 )
 
