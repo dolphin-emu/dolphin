@@ -533,7 +533,7 @@ u32 MMU::Read_Opcode(u32 address)
 TryReadInstResult MMU::TryReadInstruction(u32 address)
 {
   bool from_bat = true;
-  if (m_ppc_state.msr.IR)
+  if (m_ppc_state.msr.IR && (address & 0x8000'0000) != 0)
   {
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
