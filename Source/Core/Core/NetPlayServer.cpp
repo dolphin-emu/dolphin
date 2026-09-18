@@ -26,6 +26,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Network.h"
 #include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
@@ -114,6 +115,7 @@ NetPlayServer::~NetPlayServer()
 #ifdef USE_UPNP
   Common::UPnP::StopPortmapping();
 #endif
+  m_discovery_server.Stop();
 }
 
 // called from ---GUI--- thread
@@ -174,6 +176,9 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     if (forward_port && !traversal_config.use_traversal)
       Common::UPnP::TryPortmapping(port);
 #endif
+
+    m_discovery_server.Start();
+    UpdateDiscoveryPayload();
   }
 }
 
@@ -265,6 +270,7 @@ void NetPlayServer::ThreadFunc()
       m_index.SetPlayerCount(static_cast<int>(m_players.size()));
       m_index.SetGame(m_selected_game_name);
       m_index.SetInGame(m_is_running);
+      UpdateDiscoveryPayload();
 
       m_update_pings = false;
     }
@@ -1024,6 +1030,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       break;
 
     m_is_running = false;
+    UpdateDiscoveryPayload();
 
     // tell clients to stop game
     sf::Packet spac;
@@ -1319,6 +1326,7 @@ bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
 
   m_selected_game_identifier = sync_identifier;
   m_selected_game_name = netplay_name;
+  UpdateDiscoveryPayload();
 
   // send changed game to clients
   sf::Packet spac;
@@ -1695,6 +1703,7 @@ bool NetPlayServer::StartGame()
 
   m_start_pending = false;
   m_is_running = true;
+  UpdateDiscoveryPayload();
 
   return true;
 }
@@ -2568,4 +2577,18 @@ void NetPlayServer::ChunkedDataAbort()
   m_chunked_data_event.Set();
   m_chunked_data_complete_event.Set();
 }
+
+void NetPlayServer::UpdateDiscoveryPayload()
+{
+  m_discovery_server.Update(NetPlay::Discovery::Payload{
+      .server_name = Common::GetHostname().value_or(Common::GetScmRevStr()),
+      .version = Common::GetScmDescStr(),
+      .game_name = m_selected_game_name,
+      .player_count = static_cast<u8>(m_players.size()),
+      .in_game = m_is_running,
+      .port = GetPort(),
+      .platform = NetPlay::Discovery::GetCurrentPlatform(),
+  });
+}
+
 }  // namespace NetPlay
