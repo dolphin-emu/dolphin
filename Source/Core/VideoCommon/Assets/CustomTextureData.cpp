@@ -4,9 +4,7 @@
 #include "VideoCommon/Assets/CustomTextureData.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <functional>
 
 #include "Common/Align.h"

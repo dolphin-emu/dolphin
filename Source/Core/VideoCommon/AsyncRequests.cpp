@@ -7,8 +7,6 @@
 
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoEvents.h"
 
 AsyncRequests AsyncRequests::s_singleton;
 

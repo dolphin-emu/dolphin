@@ -4,7 +4,6 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 
 #include <algorithm>
-#include <cstring>
 
 #include "Common/Assert.h"
 #include "VideoCommon/AbstractTexture.h"

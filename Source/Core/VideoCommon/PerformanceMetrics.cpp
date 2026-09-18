@@ -8,7 +8,6 @@
 #include <imgui.h>
 #include <implot.h>
 
-#include "Common/HookableEvent.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"

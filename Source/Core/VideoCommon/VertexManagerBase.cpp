@@ -4,7 +4,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 
 #include <array>
-#include <cmath>
 #include <memory>
 
 #include "Common/ChunkFile.h"
@@ -38,7 +37,6 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"

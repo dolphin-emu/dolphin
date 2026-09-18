@@ -3,16 +3,11 @@
 
 #include "VideoCommon/TextureDecoder.h"
 
-#include <algorithm>
-#include <cmath>
-
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder_Util.h"
-#include "VideoCommon/VideoConfig.h"
 
 // GameCube/Wii texture decoder
 
