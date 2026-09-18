@@ -187,6 +187,7 @@ inline T FromBigEndian(T data)
 template <typename value_type>
 struct BigEndianValue
 {
+  using target_type = value_type;
   static_assert(std::is_arithmetic<value_type>(), "value_type must be an arithmetic type");
   BigEndianValue() = default;
   explicit BigEndianValue(value_type val) { *this = val; }
