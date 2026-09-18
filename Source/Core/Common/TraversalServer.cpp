@@ -20,6 +20,7 @@
 #include <systemd/sd-daemon.h>
 #endif
 
+#include "Common/Network.h"
 #include "Common/Random.h"
 #include "Common/TraversalProto.h"
 
@@ -467,8 +468,8 @@ int main()
     tv.tv_usec = 300000;
     fd_set readSet;
     FD_ZERO(&readSet);
-    FD_SET(sock, &readSet);
-    FD_SET(sockAlt, &readSet);
+    Common::Safe_FD_SET(sock, &readSet);
+    Common::Safe_FD_SET(sockAlt, &readSet);
     rv = select(std::max(sock, sockAlt) + 1, &readSet, nullptr, nullptr, &tv);
     if (rv < 0)
     {
