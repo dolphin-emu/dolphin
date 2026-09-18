@@ -106,7 +106,7 @@ ControlState Force::GetReturnSpeed() const
 
 ControlState Force::GetTwistAngle() const
 {
-  return m_angle_setting.GetValue() * MathUtil::TAU / 360;
+  return MathUtil::DegreesToRadians(m_angle_setting.GetValue());
 }
 
 ControlState Force::GetMaxDistance() const

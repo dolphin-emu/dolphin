@@ -69,7 +69,7 @@ ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
 
 ControlState Tilt::GetMaxRotationalVelocity() const
 {
-  return m_max_rotational_velocity.GetValue() * MathUtil::TAU;
+  return m_max_rotational_velocity.GetValue() * MathUtil::TAU_v<ControlState>;
 }
 
 Control* Tilt::GetModifierInput() const
