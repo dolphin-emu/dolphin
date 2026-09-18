@@ -344,8 +344,8 @@ void AESndUCode::DoMixing()
       right += m_parameter_block.right;
       left += m_parameter_block.left;
       // Clamping from set40 mode
-      right = std::clamp(right, -32768, 32767);
-      left = std::clamp(left, -32768, 32767);
+      right = MathUtil::SaturatingCast<s16>(right);
+      left = MathUtil::SaturatingCast<s16>(left);
       m_output_buffer[sample_index * 2 + 0] = right;
       m_output_buffer[sample_index * 2 + 1] = left;
       sample_index++;
@@ -421,8 +421,8 @@ void AESndUCode::DoMixing()
         const s32 mixed_l = (static_cast<s32>(new_l) * m_parameter_block.volume_l) >> 8;
         const s32 mixed_r = (static_cast<s32>(new_r) * m_parameter_block.volume_r) >> 8;
         // Clamping from set40 mode
-        m_parameter_block.left = std::clamp(mixed_l, -32768, 32767);
-        m_parameter_block.right = std::clamp(mixed_r, -32768, 32767);
+        m_parameter_block.left = MathUtil::SaturatingCast<s16>(mixed_l);
+        m_parameter_block.right = MathUtil::SaturatingCast<s16>(mixed_r);
       }
       // no_mix - we don't need to do anything as we modify m_parameter_block.left/right in place
     }

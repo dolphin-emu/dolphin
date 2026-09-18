@@ -630,9 +630,9 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
     // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
     // in a real texture format, so does this conversion actually ever happen?)
-    u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
-    u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
-    u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
+    u8 R = MathUtil::SaturatingCast<u8>(1.164f * Y + 1.596f * V);
+    u8 G = MathUtil::SaturatingCast<u8>(1.164f * Y - 0.392f * U - 0.813f * V);
+    u8 B = MathUtil::SaturatingCast<u8>(1.164f * Y + 2.017f * U);
     dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
   }
   break;
@@ -719,13 +719,13 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
       // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
       // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB
       // isn't in a real texture format, so does this conversion actually ever happen?)
-      u8 R1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
-      u8 G1 = static_cast<u8>(std::clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
+      u8 R1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 + 1.596f * V);
+      u8 G1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 - 0.392f * U - 0.813f * V);
+      u8 B1 = MathUtil::SaturatingCast<u8>(1.164f * Y1 + 2.017f * U);
 
-      u8 R2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
-      u8 G2 = static_cast<u8>(std::clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
+      u8 R2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 + 1.596f * V);
+      u8 G2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 - 0.392f * U - 0.813f * V);
+      u8 B2 = MathUtil::SaturatingCast<u8>(1.164f * Y2 + 2.017f * U);
 
       u32 rgba = 0xff000000 | B1 << 16 | G1 << 8 | R1;
       std::memcpy(dst_ptr, &rgba, sizeof(rgba));

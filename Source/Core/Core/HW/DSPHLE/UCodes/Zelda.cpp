@@ -1117,7 +1117,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
           for (u16 j = 0; j < 8; ++j)
             sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
           sample >>= 15;
-          buffer[i] = std::clamp(sample, -0x8000, 0x7FFF);
+          buffer[i] = MathUtil::SaturatingCast<s16>(sample);
         }
       };
 
@@ -1211,7 +1211,7 @@ void ZeldaAudioRenderer::ApplyLowPassFilter(MixingBuffer* buf, VPB* vpb)
     tmp *= coeff;
     tmp >>= 7;
     tmp += yn1;
-    s16 yn0 = std::clamp<s64>(tmp, -0x8000, 0x7FFF);
+    s16 yn0 = MathUtil::SaturatingCast<s16>(tmp);
     (*buf)[i] = yn0;
 
     yn1 = yn0;
@@ -1237,7 +1237,7 @@ void ZeldaAudioRenderer::ApplyBiquadFilter(MixingBuffer* buf, VPB* vpb)
     tmp += vpb->biquad_bn2 * xn2;
     tmp += vpb->biquad_an1 * yn1;
     tmp += vpb->biquad_an2 * yn2;
-    s16 yn0 = std::clamp<s64>(tmp >> 15, -0x8000, 0x7FFF);
+    s16 yn0 = MathUtil::SaturatingCast<s16>(tmp >> 15);
     (*buf)[i] = yn0;
 
     xn2 = xn1;
@@ -1626,7 +1626,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
         dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
       dst_sample_unclamped >>= 16;
 
-      dst_sample = (s16)std::clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF);
+      dst_sample = MathUtil::SaturatingCast<s16>(dst_sample_unclamped);
 
       pos += ratio;
     }
@@ -1874,7 +1874,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
     {
       s32 sample = delta * nibble + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
       sample >>= 11;
-      sample = std::clamp(sample, -0x8000, 0x7fff);
+      sample = MathUtil::SaturatingCast<s16>(sample);
       *dst++ = (s16)sample;
       yn2 = yn1;
       yn1 = sample;

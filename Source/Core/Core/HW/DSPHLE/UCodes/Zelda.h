@@ -7,6 +7,7 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 namespace Core
@@ -63,7 +64,7 @@ private:
       s32 tmp = (u32)(*buf)[i] * (u32)vol;
       tmp >>= 16 - B;
 
-      (*buf)[i] = (s16)std::clamp(tmp, -0x8000, 0x7FFF);
+      (*buf)[i] = MathUtil::SaturatingCast<s16>(tmp);
     }
   }
   template <size_t N>
@@ -105,7 +106,7 @@ private:
     while (count--)
     {
       s32 vol_src = ((s32)*src++ * (s32)vol) >> 15;
-      *dst++ += std::clamp(vol_src, -0x8000, 0x7FFF);
+      *dst++ += MathUtil::SaturatingCast<s16>(vol_src);
     }
   }
 
