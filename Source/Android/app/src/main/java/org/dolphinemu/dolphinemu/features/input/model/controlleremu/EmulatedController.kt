@@ -56,6 +56,12 @@ class EmulatedController private constructor(private val pointer: Long) : Contro
         external fun getWiimote(controllerIndex: Int): EmulatedController
 
         @JvmStatic
+        external fun getHotkeys(): EmulatedController
+
+        @JvmStatic
+        external fun getSupportedHotkeyIndices(): IntArray
+
+        @JvmStatic
         external fun getWiimoteAttachment(
             controllerIndex: Int,
             attachmentIndex: Int
