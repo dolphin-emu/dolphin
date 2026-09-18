@@ -28,7 +28,7 @@ u32 WiiSpeakState::GetDefaultSamplingRate() const
 
 namespace
 {
-class MicrophoneWiiSpeak final : public Microphone
+class MicrophoneWiiSpeak final : public AudioCommon::Microphone
 {
 public:
   explicit MicrophoneWiiSpeak(const WiiSpeakState& sampler)
