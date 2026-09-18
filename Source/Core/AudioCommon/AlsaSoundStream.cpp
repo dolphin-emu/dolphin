@@ -49,8 +49,8 @@ void AlsaSound::SoundLoop()
   {
     while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
     {
-      m_mixer->Mix(mix_buffer, frames_to_deliver);
-      int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+      m_mixer->Mix(mix_buffer.data(), frames_to_deliver);
+      int rc = snd_pcm_writei(handle, mix_buffer.data(), frames_to_deliver);
       if (rc == -EPIPE)
       {
         // Underrun
