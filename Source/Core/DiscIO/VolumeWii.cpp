@@ -175,7 +175,8 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   if (m_has_hashes && m_has_encryption &&
       m_reader->SupportsReadWiiDecrypted(offset, length, partition_data_offset))
   {
-    return m_reader->ReadWiiDecrypted(offset, length, buffer, partition_data_offset);
+    return m_reader->ReadWiiDecrypted(offset, length, buffer, partition_data_offset,
+                                      partition_details.key->get());
   }
 
   if (!m_has_hashes)
@@ -586,12 +587,15 @@ bool VolumeWii::EncryptGroup(
   std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
   std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
 
+  auto decrypt_context = Common::AES::CreateContextDecrypt(key.data());
+
   const bool success =
       HashGroup(unencrypted_data.data(), unencrypted_hashes.data(), [&](size_t block) {
         if (offset + (block + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
         {
           if (!blob->ReadWiiDecrypted(offset + block * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
-                                      unencrypted_data[block].data(), partition_data_offset))
+                                      unencrypted_data[block].data(), partition_data_offset,
+                                      decrypt_context.get()))
           {
             return false;
           }

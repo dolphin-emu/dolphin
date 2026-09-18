@@ -65,7 +65,8 @@ public:
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
   bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
-  bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
+  bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
+                        Common::AES::Context* aes_context = nullptr) override;
 
   static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
                                       File::DirectIOFile* outfile,
