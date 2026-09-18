@@ -211,6 +211,7 @@ private:
   void DisplayWelcomeMessage();
 
   void SetHardcoreMode();
+  void HandleConfigChanged();
 
   template <typename T>
   void FilterApprovedIni(std::vector<T>& codes, std::string_view game_id, u16 revision) const;
@@ -257,6 +258,7 @@ private:
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   rc_client_t* m_client{};
+  std::string m_host_url;
   std::atomic<Core::System*> m_system{};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
