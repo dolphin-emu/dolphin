@@ -558,7 +558,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
       const BitSet32 registers_in_use = registers_to_save(scratch_registers_to_save);
       ABI_PushRegistersAndAdjustStack(registers_in_use, 0);
-      ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+      QuickCallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
       ABI_PopRegistersAndAdjustStack(registers_in_use, 0);
     }
 
@@ -711,7 +711,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         MOVAPD(XMM0, R(Rc_rounded_duplicated));
         MOVAPD(XMM1, Ra);
 
-        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+        QuickCallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
 
         // We will read from the upper lane of Rc_rounded_duplicated later,
         // so we need to make sure that that lane isn't overwritten.
@@ -732,7 +732,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         MOVHLPS(XMM0, Rc_rounded_duplicated);
         MOVHLPS(XMM1, Ra.GetSimpleReg());
 
-        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+        QuickCallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
 
         ABI_PopRegistersAndAdjustStack(registers_in_use_2, 0);
 
@@ -778,7 +778,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         MOVAPD(XMM0, R(Rc_rounded_duplicated));
         MOVAPD(XMM1, Ra);
 
-        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+        QuickCallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
 
         ABI_PopRegistersAndAdjustStack(registers_in_use, 0);
       }

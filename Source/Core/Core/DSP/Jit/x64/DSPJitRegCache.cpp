@@ -501,11 +501,6 @@ void DSPJitRegCache::PopRegs()
   }
 }
 
-X64Reg DSPJitRegCache::MakeABICallSafe(X64Reg reg)
-{
-  return reg;
-}
-
 void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
 {
   ASSERT_MSG(DSPLLE, reg < m_regs.size(), "bad register name {}", reg);
