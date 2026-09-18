@@ -88,7 +88,8 @@ function(dolphin_find_optional_system_library library bundled_path)
           break()
         endif()
       endwhile()
-      # Quietly check all the listed versions
+      # Quietly check all the listed versions, from newest to oldest.
+      list(SORT version_list COMPARE NATURAL ORDER DESCENDING)
       foreach(version IN LISTS version_list)
         find_package(${library} ${version} ${ARGN} QUIET)
         if(${library}_FOUND)
