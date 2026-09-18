@@ -67,6 +67,11 @@ public:
   void SetChunkedProgress(int pid, u64 progress) override;
   void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
 
+  const NetPlay::SyncIdentifier& GetCurrentGameIdentifier() const
+  {
+    return m_current_game_identifier;
+  }
+
 private:
   jobject GetNetplaySessionLocalRef(JNIEnv* env) const;
 

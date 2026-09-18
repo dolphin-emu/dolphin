@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -156,6 +157,7 @@ fun DolphinScaffold(
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -175,11 +177,13 @@ fun DolphinScaffold(
                 TopAppBar(
                     title = title,
                     navigationIcon = navigationIcon,
+                    actions = actions,
                 )
             } else {
                 MediumTopAppBar(
                     title = title,
                     navigationIcon = navigationIcon,
+                    actions = actions,
                     scrollBehavior = topAppBarScrollBehavior,
                 )
             }
