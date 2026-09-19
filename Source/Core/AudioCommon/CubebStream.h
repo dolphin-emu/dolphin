@@ -16,7 +16,7 @@
 #include <cubeb/cubeb.h>
 #endif
 
-class CubebStream final : public SoundStream
+    class CubebStream final : public SoundStream
 {
 #ifdef HAVE_CUBEB
 public:
@@ -38,11 +38,19 @@ private:
     std::size_t wiimote_index;
   };
 
+  struct GBAStreamData
+  {
+    CubebStream* self;
+    std::size_t gba_index;
+  };
+
   bool m_stereo = false;
   std::shared_ptr<cubeb> m_ctx;
   cubeb_stream* m_stream = nullptr;
   std::array<WiimoteStreamData, 4> m_wiimote_stream_data{};
   std::array<cubeb_stream*, 4> m_wiimote_streams{};
+  std::array<GBAStreamData, 4> m_gba_stream_data{};
+  std::array<cubeb_stream*, 4> m_gba_streams{};
 
   std::vector<short> m_short_buffer;
   std::vector<float> m_floatstereo_buffer;
@@ -60,5 +68,8 @@ private:
                                   const void* /*input_buffer*/, void* output_buffer,
                                   long num_frames);
   static void WiimoteStateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
+  static long GBADataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
+                              void* output_buffer, long num_frames);
+  static void GBAStateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
 #endif
 };
