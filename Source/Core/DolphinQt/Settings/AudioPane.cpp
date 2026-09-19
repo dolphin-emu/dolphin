@@ -30,6 +30,7 @@
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -437,9 +438,13 @@ void AudioPane::UpdateGBARoutingEnabled()
 
   for (std::size_t i = 0; i < 4; ++i)
   {
-    // TODO: Figure out how to check for GBA (Integrated), then implement condition here (as on line 414)
-    m_gba_output_enable[i]->setEnabled(routing_on);
-    m_gba_output_device[i]->setEnabled(routing_on && m_gba_output_enable[i]->isChecked());
+    const u32 device_type = Config::Get(Config::GetInfoForSIDevice(static_cast<u32>(i)));
+    const bool is_gba_connected = static_cast<SerialInterface::SIDevices>(device_type) ==
+                                  SerialInterface::SIDEVICE_GC_GBA_EMULATED;
+
+    m_gba_output_enable[i]->setEnabled(routing_on && is_gba_connected);
+    m_gba_output_device[i]->setEnabled(routing_on && is_gba_connected &&
+                                       m_gba_output_enable[i]->isChecked());
   }
 #endif
 }
