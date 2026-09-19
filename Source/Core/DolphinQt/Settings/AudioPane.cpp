@@ -29,8 +29,8 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -561,11 +561,11 @@ void AudioPane::AddDescriptions()
   }
 
   static const char TR_GBA_ROUTING_DESCRIPTION[] =
-    QT_TR_NOOP("Routes each GBA's speaker audio to a separate audio output device. "
-                "This setting cannot be changed while emulation is active."
-                "<br><br>This setting is disabled when an audio backend other than "
-                "Cubeb is selected."
-                "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      QT_TR_NOOP("Routes each GBA's speaker audio to a separate audio output device. " 
+                 "This setting cannot be changed while emulation is active." 
+                 "<br><br>This setting is disabled when an audio backend other than "
+                 "Cubeb is selected." 
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_GBA_OUTPUT_ENABLE_DESCRIPTION[] =
       QT_TR_NOOP("Enables routing this GBA's speaker audio to a separate output device.");
   static const char TR_GBA_OUTPUT_DEVICE_DESCRIPTION[] =
