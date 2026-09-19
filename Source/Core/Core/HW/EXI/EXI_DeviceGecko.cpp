@@ -123,7 +123,7 @@ void GeckoSockServer::ClientThread()
     bool did_nothing = true;
 
     {
-      std::lock_guard lk(transfer_lock);
+      std::lock_guard lk(recv_lock);
 
       // what's an ideal buffer size?
       std::array<char, 128> buffer;
@@ -138,18 +138,28 @@ void GeckoSockServer::ClientThread()
 
         recv_fifo.insert(recv_fifo.end(), buffer.data(), buffer.data() + got);
       }
+    }  // unlock recv
+
+    {
+      std::lock_guard lk(send_lock);
 
       if (!send_fifo.empty())
       {
-        did_nothing = false;
+        std::size_t sent;
 
         std::vector<char> packet(send_fifo.begin(), send_fifo.end());
-        send_fifo.clear();
 
-        if (client->send(&packet[0], packet.size()) == sf::Socket::Status::Disconnected)
+        if (client->send(packet.data(), packet.size(), sent) == sf::Socket::Status::Disconnected)
           client_running.Clear();
+
+        if (sent)
+        {
+          did_nothing = false;
+
+          send_fifo.erase(send_fifo.begin(), send_fifo.begin() + sent);
+        }
       }
-    }  // unlock transfer
+    }  // unlock send
 
     if (did_nothing)
       Common::YieldCPU();
@@ -194,7 +204,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   {
     if (m_recv_buffer.empty())
     {
-      std::lock_guard lk(transfer_lock);
+      std::lock_guard lk(recv_lock);
       m_recv_buffer.swap(recv_fifo);
     }
     if (!m_recv_buffer.empty())
@@ -209,23 +219,35 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   // |= 0x04000000 if successful
   case CMD_SEND:
   {
-    std::lock_guard lk(transfer_lock);
-    send_fifo.push_back(_uData >> 20);
-    _uData = 0x04000000;
+    std::lock_guard lk(send_lock);
+
+    if (send_fifo.size() < 512)
+    {
+      send_fifo.push_back(_uData >> 20);
+      _uData = 0x04000000;
+    }
+    else
+    {
+      _uData = 0;
+    }
+
     break;
   }
 
   // Check if ok for Gecko -> PC, or FIFO full
   // |= 0x04000000 if FIFO is not full
   case CMD_CHK_TX:
-    _uData = 0x04000000;
+  {
+    std::lock_guard lk(send_lock);
+    _uData = send_fifo.size() < 512 ? 0x04000000 : 0;
     break;
+  }
 
   // Check if data in FIFO for PC -> Gecko, or FIFO empty
   // |= 0x04000000 if data in recv FIFO
   case CMD_CHK_RX:
   {
-    std::lock_guard lk(transfer_lock);
+    std::lock_guard lk(recv_lock);
     _uData = m_recv_buffer.empty() && recv_fifo.empty() ? 0 : 0x04000000;
     break;
   }
