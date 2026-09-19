@@ -49,6 +49,7 @@ public:
   void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
   std::size_t MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples, std::size_t num_samples);
   void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
+  std::size_t MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
@@ -200,6 +201,8 @@ private:
   int m_config_audio_buffer_ms;
   bool m_config_wiimote_routing_enabled = false;
   std::array<bool, 4> m_config_wiimote_output_enabled{};
+  bool m_config_gba_routing_enabled = false;
+  std::array<bool, 4> m_config_gba_output_enabled{};
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

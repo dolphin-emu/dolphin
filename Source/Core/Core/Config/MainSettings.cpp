@@ -716,6 +716,23 @@ const std::array<Info<std::string>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OU
     Info<std::string>{{System::Main, "Core", "Wiimote3AudioOutputDevice"}, ""},
     Info<std::string>{{System::Main, "Core", "Wiimote4AudioOutputDevice"}, ""}};
 
+// Main.GBAAudioRouting
+
+const Info<bool> MAIN_GBA_AUDIO_ROUTING_ENABLED{
+  {System::Main, "Core", "GBAAudioRoutingEnabled"}, false};
+const std::array<Info<bool>, GBA_SPEAKER_COUNT > MAIN_GBA_AUDIO_OUTPUT_ENABLED = {
+    Info<bool>{{System::Main, "Core", "GBA1AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "GBA2AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "GBA3AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "GBA4AudioOutputEnabled"}, false},
+};
+const std::array<Info<std::string>, GBA_SPEAKER_COUNT> MAIN_GBA_AUDIO_OUTPUT_DEVICE = {
+    Info<std::string>{{System::Main, "Core", "GBA1AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "GBA2AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "GBA3AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "GBA4AudioOutputDevice"}, ""},
+};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)

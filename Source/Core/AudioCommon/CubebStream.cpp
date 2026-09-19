@@ -15,8 +15,8 @@
 #include <objbase.h>
 #endif
 
-// ~10 ms - needs to be at least 240 for surround
-constexpr u32 BUFFER_SAMPLES = 512;
+    // ~10 ms - needs to be at least 240 for surround
+    constexpr u32 BUFFER_SAMPLES = 512;
 
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                                void* output_buffer, long num_frames)
@@ -46,6 +46,19 @@ long CubebStream::WiimoteDataCallback(cubeb_stream* stream, void* user_data,
 }
 
 void CubebStream::WiimoteStateCallback(cubeb_stream* stream, void* user_data, cubeb_state state)
+{
+}
+
+long CubebStream::GBADataCallback(cubeb_stream* stream, void* user_data,
+                                  const void* /*input_buffer*/, void* output_buffer,
+                                  long num_frames)
+{
+  const auto* data = static_cast<const GBAStreamData*>(user_data);
+  data->self->m_mixer->MixGBA(data->gba_index, static_cast<short*>(output_buffer), num_frames);
+  return num_frames;
+}
+
+void CubebStream::GBAStateCallback(cubeb_stream* stream, void* user_data, cubeb_state state)
 {
 }
 
@@ -145,6 +158,50 @@ bool CubebStream::Init()
           }
         }
       }
+
+      // Create per-GBA streams for audio routing (Gamecube games only, when enabled)
+      if (return_value && Config::Get(Config::MAIN_GBA_AUDIO_ROUTING_ENABLED))
+      {
+        static const char* const GBA_STREAM_NAMES[4] = {
+            "Dolphin GBA 1 Audio", "Dolphin GBA 2 Audio", "Dolphin GBA 3 Audio",
+            "Dolphin GBA 4 Audio"};
+
+        cubeb_stream_params gba_params{};
+        gba_params.rate = m_mixer->GetSampleRate();
+        gba_params.channels = 2;
+        gba_params.format = CUBEB_SAMPLE_S16NE;
+        gba_params.layout = CUBEB_LAYOUT_STEREO;
+
+        for (std::size_t i = 0; i < m_gba_streams.size(); ++i)
+        {
+          if (!Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]))
+            continue;
+
+          const std::string device_id_str =
+              Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_DEVICE[i]);
+          const cubeb_devid output_devid =
+              device_id_str.empty() ?
+                  nullptr :
+                  static_cast<cubeb_devid>(CubebUtils::GetOutputDeviceById(device_id_str));
+
+          u32 gba_min_latency = 0;
+          cubeb_get_min_latency(m_ctx.get(), &gba_params, &gba_min_latency);
+
+          m_gba_stream_data[i] = {this, i};
+
+          const int result = cubeb_stream_init(
+              m_ctx.get(), &m_gba_streams[i], GBA_STREAM_NAMES[i], nullptr, nullptr,
+              output_devid, &gba_params, std::max(BUFFER_SAMPLES, gba_min_latency),
+              GBADataCallback, GBAStateCallback, &m_gba_stream_data[i]);
+
+          if (result != CUBEB_OK)
+          {
+            ERROR_LOG_FMT(AUDIO, "Failed to create Cubeb stream for GBA {} audio split",
+                          i + 1);
+            m_gba_streams[i] = nullptr;
+          }
+        }
+      }
     }
 
 #ifdef _WIN32
@@ -171,6 +228,11 @@ bool CubebStream::SetRunning(bool running)
         if (ws)
           cubeb_stream_start(ws);
       }
+      for (auto& gs : m_gba_streams)
+      {
+        if (gs)
+          cubeb_stream_start(gs);
+      }
     }
     else
     {
@@ -179,6 +241,11 @@ bool CubebStream::SetRunning(bool running)
       {
         if (ws)
           cubeb_stream_stop(ws);
+      }
+      for (auto& gs : m_gba_streams)
+      {
+        if (gs)
+          cubeb_stream_stop(gs);
       }
     }
 #ifdef _WIN32
@@ -202,6 +269,15 @@ CubebStream::~CubebStream()
         cubeb_stream_stop(ws);
         cubeb_stream_destroy(ws);
         ws = nullptr;
+      }
+    }
+    for (auto& gs : m_gba_streams)
+    {
+      if (gs)
+      {
+        cubeb_stream_stop(gs);
+        cubeb_stream_destroy(gs);
+        gs = nullptr;
       }
     }
 #ifdef _WIN32
