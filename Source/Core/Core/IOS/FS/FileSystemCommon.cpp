@@ -193,8 +193,9 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
   // The root always exists, so we can skip creating it.
   if (directory_path != "/")
   {
-    const ResultCode create_directory_result = CreateDirectory(
-        metadata.uid, metadata.gid, directory_path, metadata.attribute, metadata.modes);
+    // UID 0 is used to avoid AccessDenied.
+    const ResultCode create_directory_result =
+        CreateDirectory(0, 0, directory_path, metadata.attribute, metadata.modes);
     if (create_directory_result != ResultCode::Success)
     {
       ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call CreateDirectory for {}: {}", directory_path,
@@ -202,6 +203,17 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
       p.SetVerifyMode();
       return;
     }
+  }
+
+  // Change the UID and GID from 0 to the intended values.
+  const ResultCode set_metadata_result = SetMetadata(0, directory_path, metadata.uid, metadata.gid,
+                                                     metadata.attribute, metadata.modes);
+  if (set_metadata_result != ResultCode::Success)
+  {
+    ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call SetMetadata for {}: {}", directory_path,
+                  set_metadata_result);
+    p.SetVerifyMode();
+    return;
   }
 
   // Now restore from the stream
@@ -220,13 +232,25 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
 
     if (child_metadata.is_file)
     {
+      // UID 0 is used to avoid AccessDenied.
       const ResultCode create_file_result =
-          CreateFile(child_metadata.uid, child_metadata.gid, child_path, child_metadata.attribute,
-                     child_metadata.modes);
+          CreateFile(0, 0, child_path, child_metadata.attribute, child_metadata.modes);
       if (create_file_result != ResultCode::Success)
       {
-        ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call CreateFile for {}: {}", child_name,
+        ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call CreateFile for {}: {}", child_path,
                       create_file_result);
+        p_.SetVerifyMode();
+        return;
+      }
+
+      // Change the UID and GID from 0 to the intended values.
+      const ResultCode set_metadata_result =
+          SetMetadata(0, child_path, child_metadata.uid, child_metadata.gid,
+                      child_metadata.attribute, child_metadata.modes);
+      if (set_metadata_result != ResultCode::Success)
+      {
+        ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call SetMetadata for {}: {}", child_path,
+                      set_metadata_result);
         p_.SetVerifyMode();
         return;
       }
@@ -235,7 +259,7 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
       Result<FileHandle> handle = OpenFile(0, 0, child_path, Mode::Write);
       if (!handle)
       {
-        ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call OpenFile for {}: {}", child_name,
+        ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call OpenFile for {}: {}", child_path,
                       handle.error());
         p_.SetVerifyMode();
         return;
@@ -251,7 +275,7 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
         Result<size_t> write_result = handle->Write(buffer.data(), bytes_to_write);
         if (!write_result)
         {
-          ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call Write for {}: {}", child_name,
+          ERROR_LOG_FMT(IOS_FS, "DoStateRead failed to call Write for {}: {}", child_path,
                         write_result.error());
           p_.SetVerifyMode();
           return;
@@ -259,7 +283,7 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
         if (*write_result != bytes_to_write)
         {
           ERROR_LOG_FMT(IOS_FS, "DoStateRead tried to write {} bytes to {} but wrote {} bytes",
-                        child_name, bytes_to_write, *write_result);
+                        child_path, bytes_to_write, *write_result);
           p_.SetVerifyMode();
           return;
         }
