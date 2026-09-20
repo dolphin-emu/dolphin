@@ -536,7 +536,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
       }
 
       const int idx = m_saves[i].UsesBlock(block);
-      if (idx != -1)
+      if (idx >= 0)
       {
         if (!m_saves[i].LoadSaveBlocks())
         {
