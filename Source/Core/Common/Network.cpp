@@ -802,7 +802,7 @@ const char* StrNetworkError()
 
 bool SetPlatformSocketOptions(int fd [[maybe_unused]])
 {
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
   int opt_no_sigpipe = 1;
   if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
   {
