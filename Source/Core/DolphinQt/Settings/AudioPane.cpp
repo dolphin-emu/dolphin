@@ -29,6 +29,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
@@ -242,6 +243,34 @@ void AudioPane::CreateWidgets()
   }
 #endif
 
+// GBA Audio Routing
+#ifdef HAVE_CUBEB
+  m_gba_routing_box = new QGroupBox(tr("GBA Audio Routing"));
+  auto* gba_routing_layout = new QVBoxLayout;
+  m_gba_routing_box->setLayout(gba_routing_layout);
+
+  m_gba_routing_enable =
+      new ConfigBool(tr("Enable GBA Audio Routing"), Config::MAIN_GBA_AUDIO_ROUTING_ENABLED);
+  gba_routing_layout->addWidget(m_gba_routing_enable);
+
+  for (std::size_t i = 0; i < Config::GBA_SPEAKER_COUNT; ++i)
+  {
+    auto* row_widget = new QWidget;
+    auto* row_layout = new QHBoxLayout(row_widget);
+    row_layout->setContentsMargins(0, 0, 0, 0);
+
+    m_gba_output_enable[i] =
+        new ConfigBool(tr("GBA %1").arg(i + 1), Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]);
+    m_gba_output_device[i] =
+        new ConfigStringChoice(output_devices, Config::MAIN_GBA_AUDIO_OUTPUT_DEVICE[i]);
+
+    row_layout->addWidget(m_gba_output_enable[i]);
+    row_layout->addWidget(m_gba_output_device[i], 1);
+
+    gba_routing_layout->addWidget(row_widget);
+  }
+#endif
+
   auto* const main_vbox_layout = new QVBoxLayout;
 
   main_vbox_layout->addWidget(dsp_box);
@@ -249,6 +278,7 @@ void AudioPane::CreateWidgets()
   main_vbox_layout->addWidget(playback_box);
 #ifdef HAVE_CUBEB
   main_vbox_layout->addWidget(m_wiimote_routing_box);
+  main_vbox_layout->addWidget(m_gba_routing_box);
 #endif
 
   m_main_layout = new QHBoxLayout;
@@ -276,15 +306,25 @@ void AudioPane::ConnectWidgets()
 #ifdef HAVE_CUBEB
   connect(m_wiimote_routing_enable, &ConfigBool::toggled, this,
           [this](bool) { UpdateWiimoteRoutingEnabled(); });
+  connect(m_gba_routing_enable, &ConfigBool::toggled, this,
+          [this](bool) { UpdateGBARoutingEnabled(); });
   for (std::size_t i = 0; i < 4; ++i)
   {
     connect(m_wiimote_output_enable[i], &ConfigBool::toggled, this,
             [this](bool) { UpdateWiimoteRoutingEnabled(); });
   }
+  for (std::size_t i = 0; i < Config::GBA_SPEAKER_COUNT; ++i)
+  {
+    connect(m_gba_output_enable[i], &ConfigBool::toggled, this,
+            [this](bool) { UpdateGBARoutingEnabled(); });
+  }
   // Also react to external config changes: wiimote source type, speaker data, BT passthrough.
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
           &AudioPane::UpdateWiimoteRoutingEnabled);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &AudioPane::UpdateGBARoutingEnabled);
   UpdateWiimoteRoutingEnabled();
+  UpdateGBARoutingEnabled();
 #endif
 }
 
@@ -321,6 +361,7 @@ void AudioPane::OnBackendChanged()
 
 #ifdef HAVE_CUBEB
   UpdateWiimoteRoutingEnabled();
+  UpdateGBARoutingEnabled();
 #endif
 }
 
@@ -349,6 +390,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
 #ifdef HAVE_CUBEB
   UpdateWiimoteRoutingEnabled();
+  UpdateGBARoutingEnabled();
 #endif
 }
 
@@ -379,6 +421,33 @@ void AudioPane::UpdateWiimoteRoutingEnabled()
     m_wiimote_output_enable[i]->setEnabled(routing_on && is_emulated);
     m_wiimote_output_device[i]->setEnabled(routing_on && is_emulated &&
                                            m_wiimote_output_enable[i]->isChecked());
+  }
+#endif
+}
+
+void AudioPane::UpdateGBARoutingEnabled()
+{
+#ifdef HAVE_CUBEB
+  if (!m_gba_routing_box)
+    return;
+
+  const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
+  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool group_usable = !running && is_cubeb;
+
+  m_gba_routing_enable->setEnabled(group_usable);
+
+  const bool routing_on = group_usable && m_gba_routing_enable->isChecked();
+
+  for (std::size_t i = 0; i < Config::GBA_SPEAKER_COUNT; ++i)
+  {
+    const u32 device_type = Config::Get(Config::GetInfoForSIDevice(static_cast<u32>(i)));
+    const bool is_gba_connected = static_cast<SerialInterface::SIDevices>(device_type) ==
+                                  SerialInterface::SIDEVICE_GC_GBA_EMULATED;
+
+    m_gba_output_enable[i]->setEnabled(routing_on && is_gba_connected);
+    m_gba_output_device[i]->setEnabled(routing_on && is_gba_connected &&
+                                       m_gba_output_enable[i]->isChecked());
   }
 #endif
 }
@@ -491,6 +560,31 @@ void AudioPane::AddDescriptions()
       m_wiimote_output_enable[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_ENABLE_DESCRIPTION));
       m_wiimote_output_device[i]->SetTitle(tr("Wii Remote %1").arg(i + 1));
       m_wiimote_output_device[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_DEVICE_DESCRIPTION));
+    }
+  }
+
+  static const char TR_GBA_ROUTING_DESCRIPTION[] =
+      QT_TR_NOOP("Routes each GBA's speaker audio to a separate audio output device. "
+                 "This setting cannot be changed while emulation is active."
+                 "<br><br>This setting is disabled when an audio backend other than "
+                 "Cubeb is selected."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_GBA_OUTPUT_ENABLE_DESCRIPTION[] =
+      QT_TR_NOOP("Enables routing this GBA's speaker audio to a separate output device.");
+  static const char TR_GBA_OUTPUT_DEVICE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects the audio output device for this GBA's speaker audio."
+                 "<br><br>This setting is disabled when this port is not set to GBA "
+                 "(Integrated).");
+
+  if (m_gba_routing_box)
+  {
+    m_gba_routing_enable->SetTitle(tr("Enable GBA Audio Routing"));
+    m_gba_routing_enable->SetDescription(tr(TR_GBA_ROUTING_DESCRIPTION));
+    for (std::size_t i = 0; i < Config::GBA_SPEAKER_COUNT; ++i)
+    {
+      m_gba_output_enable[i]->SetDescription(tr(TR_GBA_OUTPUT_ENABLE_DESCRIPTION));
+      m_gba_output_device[i]->SetTitle(tr("GBA %1").arg(i + 1));
+      m_gba_output_device[i]->SetDescription(tr(TR_GBA_OUTPUT_DEVICE_DESCRIPTION));
     }
   }
 #endif
