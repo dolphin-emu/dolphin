@@ -153,6 +153,7 @@ fun NetplayScreen(
     controllerMapping: ControllerMapping,
     onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
     onWiiRemoteChanged: (port: Int, player: Player?) -> Unit,
+    wifiDirectGroupLost: Flow<Unit>,
 ) {
     val scrollState = rememberScrollState()
 
@@ -292,6 +293,11 @@ fun NetplayScreen(
 
         val currentTraversalError = traversalError
 
+        var showWifiDirectGroupLostDialog by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            wifiDirectGroupLost.collect { showWifiDirectGroupLostDialog = true }
+        }
+
         when {
             showConnectionLostDialog -> {
                 AlertDialog(
@@ -364,6 +370,18 @@ fun NetplayScreen(
                         onSkipDualCoreWarning()
                     },
                     onDismiss = { showDualCoreWarning = false },
+                )
+            }
+
+            showWifiDirectGroupLostDialog -> {
+                AlertDialog(
+                    text = { Text(stringResource(R.string.netplay_wifi_direct_group_lost)) },
+                    confirmButton = {
+                        TextButton(onClick = onBackClicked) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    },
+                    onDismissRequest = onBackClicked,
                 )
             }
         }
@@ -1705,6 +1723,7 @@ private fun PreviewNetplayScreen() {
         controllerMapping = ControllerMapping.emptyControllerMapping(),
         onGamecubePortChanged = { _, _ -> },
         onWiiRemoteChanged = { _, _ -> },
+        wifiDirectGroupLost = emptyFlow(),
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,

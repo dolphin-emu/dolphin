@@ -13,6 +13,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -105,6 +106,9 @@ class NetplayViewModel(
 
     val gameDigestProgress = netplaySession.gameDigestProgress
 
+    private val _wifiDirectGroupLost = Channel<Unit>(Channel.CONFLATED)
+    val wifiDirectGroupLost = _wifiDirectGroupLost.receiveAsFlow()
+
     init {
         if (netplaySession.isHosting) {
             setInitialGame()
@@ -112,6 +116,13 @@ class NetplayViewModel(
                 collectTraversalState()
             } else {
                 fetchExternalIp()
+            }
+        }
+
+        if (wifiDirectSession != null) {
+            viewModelScope.launch {
+                wifiDirectSession.isGroupActive.first { !it }
+                _wifiDirectGroupLost.send(Unit)
             }
         }
 
