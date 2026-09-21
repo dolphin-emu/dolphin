@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -153,14 +154,6 @@ std::string AutoControllerAssignment::ExtractDeviceName(const std::string& quali
   return (last_slash != std::string::npos) ? qualified_name.substr(last_slash + 1) : qualified_name;
 }
 
-int AutoControllerAssignment::ExtractDeviceId(const std::string& qualified_name)
-{
-  // Parse "Source/{id}/{name}" and return the numeric id (the DeviceQualifier "cid").
-  ciface::Core::DeviceQualifier devq;
-  devq.FromString(qualified_name);
-  return devq.cid;
-}
-
 void AutoControllerAssignment::LoadProfileForController(
     InputConfig* config, ControllerEmu::EmulatedController* controller,
     const std::string& device_name, const std::string& force_device,
@@ -247,6 +240,34 @@ std::vector<std::string> AutoControllerAssignment::GetConnectedSDLDevices() cons
   return sdl_devices;
 }
 
+std::vector<std::string> AutoControllerAssignment::GetConnectedBluetoothWiimotes() const
+{
+  // Qualified names of the live internal Bluetooth Wii Remote devices, ordered by id.
+  // These ids are NOT kept in sync with the SDL device ids: the SDL devices get renumbered
+  // whenever the SDL backend re-enumerates (ids are reassigned from zero), while the
+  // Bluetooth devices keep theirs. So the Bluetooth device must be looked up from the live
+  // list rather than derived from an SDL id.
+  std::vector<std::pair<int, std::string>> wiimotes;
+
+  for (const auto& device : g_controller_interface.GetAllDevices())
+  {
+    if (device->GetSource() == WIIMOTE_BLUETOOTH_SOURCE &&
+        device->GetName() == WIIMOTE_BLUETOOTH_NAME)
+    {
+      wiimotes.emplace_back(device->GetId(), device->GetQualifiedName());
+    }
+  }
+
+  std::ranges::sort(wiimotes, {}, &std::pair<int, std::string>::first);
+
+  std::vector<std::string> result;
+  result.reserve(wiimotes.size());
+  for (auto& [id, name] : wiimotes)
+    result.push_back(std::move(name));
+
+  return result;
+}
+
 void AutoControllerAssignment::AssignGCPadSlots(const std::vector<std::string>& sdl_devices)
 {
   InputConfig* gc_config = Pad::GetConfig();
@@ -315,6 +336,12 @@ void AutoControllerAssignment::AssignWiimoteSlots(const std::vector<std::string>
 
   // Every slot is set unconditionally on every pass (idempotent) — see the note in
   // AssignGCPadSlots for why.
+  //
+  // Live Bluetooth Wii Remote devices, in id order. The Nth detected Wiimote is mapped to
+  // the Nth entry here.
+  const std::vector<std::string> bluetooth_wiimotes = GetConnectedBluetoothWiimotes();
+  int wiimote_ordinal = 0;
+
   for (int slot = 0; slot < num_slots; ++slot)
   {
     auto* controller = wii_config->GetController(slot);
@@ -332,14 +359,25 @@ void AutoControllerAssignment::AssignWiimoteSlots(const std::vector<std::string>
         // Remote pointing at Dolphin's internal Bluetooth device (not "Real Wii
         // Remote") and load the stock Wiimote profile, keeping native gyro/pointer.
         //
-        // A physical Wiimote is exposed both as an SDL device and as an internal
-        // Bluetooth device, and both share the same numeric id (e.g. the remote at
-        // "SDL/1/Nintendo RVL-CNT-01" is driven via "Bluetooth/1/Wii Remote"). So the
-        // Bluetooth device is derived directly from the SDL device's id. This stays
-        // correct after a disconnect, where ids are freed but survivors keep theirs.
-        const int sdl_id = ExtractDeviceId(device_string);
-        const std::string bluetooth_device =
-            fmt::format("{}/{}/{}", WIIMOTE_BLUETOOTH_SOURCE, sdl_id, WIIMOTE_BLUETOOTH_NAME);
+        // Map the Nth detected Wiimote to the Nth live Bluetooth Wii Remote device. The
+        // Bluetooth name must NOT be derived from the SDL device's id: SDL devices are
+        // renumbered when the SDL backend re-enumerates, while Bluetooth ids are not, so
+        // the two drift apart (e.g. the survivor of a two-remote disconnect becomes
+        // SDL/0 while still being Bluetooth/1).
+        std::string bluetooth_device;
+        if (wiimote_ordinal < static_cast<int>(bluetooth_wiimotes.size()))
+        {
+          bluetooth_device = bluetooth_wiimotes[wiimote_ordinal];
+        }
+        else
+        {
+          // The Bluetooth device hasn't been enumerated yet (can happen transiently right
+          // after a remote connects). Fall back to the ordinal-derived name; a later pass
+          // corrects it once the device appears.
+          bluetooth_device = fmt::format("{}/{}/{}", WIIMOTE_BLUETOOTH_SOURCE, wiimote_ordinal,
+                                         WIIMOTE_BLUETOOTH_NAME);
+        }
+        ++wiimote_ordinal;
 
         INFO_LOG_FMT(CONTROLLERINTERFACE,
                      "AutoControllerAssignment: Wiimote slot {} -> '{}' (Wiimote '{}')", slot + 1,
