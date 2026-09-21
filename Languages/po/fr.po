@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-22 20:35+0200\n"
+"POT-Creation-Date: 2026-09-21 20:15+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Pascal <pascal2j-language@yahoo.com>, 2013-2026\n"
 "Language-Team: French (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -339,7 +339,7 @@ msgstr "Ce titre ne peut pas être démarré."
 msgid "Emu Thread already running"
 msgstr "Thread d'émulation déjà en cours d'exécution"
 
-#: Source/Core/Core/Core.cpp:565
+#: Source/Core/Core/Core.cpp:562
 #, c++-format
 msgid ""
 "Failed to sync SD card with folder. All changes made this session will be "
@@ -1588,11 +1588,11 @@ msgstr ""
 "Leu jeu a écrasé la sauvegarde d'un autre jeu, corruption de données "
 "probable. {0:#x}, {1:#x}"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:601
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:607
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT incorrect, Dolphin va quitter"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:611
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:617
 #, c++-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT ({0}) does not match that of "
@@ -1601,7 +1601,7 @@ msgstr ""
 "Attention, le nombre de blocs indiqués par le BAT ({0}) ne correspond pas à "
 "l'entête de fichier chargée ({1})"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:654
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:660
 #, c++-format
 msgid ""
 "Failed to find new filename.\n"
@@ -2665,7 +2665,7 @@ msgstr "Erreur LZO interne - échec de la décompression"
 #: Source/Core/Core/NetPlayCommon.cpp:222
 #: Source/Core/Core/NetPlayCommon.cpp:321
 msgid "LZO error - output is too large"
-msgstr ""
+msgstr "Erreur LZO - la sortie est trop grande"
 
 #: Source/Core/Core/NetPlayCommon.cpp:228
 #, c++-format
@@ -2674,7 +2674,7 @@ msgstr "Erreur d'écriture du fichier : {0}"
 
 #: Source/Core/Core/NetPlayCommon.cpp:332
 msgid "LZO error - output size mismatch"
-msgstr ""
+msgstr "Erreur LZO - la taille de la sortie ne correspond pas"
 
 #: Source/Core/Core/NetPlayServer.cpp:127
 msgid "Enet Didn't Initialize"
@@ -2953,7 +2953,7 @@ msgstr ""
 "Impossible d'écrire le fichier de sortie \"{0}\".\n"
 "Vérifiez que vous avez d'espace libre sur le lecteur de destination."
 
-#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "Europe"
 msgstr "Europe"
 
@@ -3100,12 +3100,12 @@ msgstr "Impossible d'écrire vers le fichier {0}"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:106
 msgid "Failed to connect to Redump.info"
-msgstr ""
+msgstr "Impossible de se connecter à Redump.info"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:213
 #: Source/Core/DiscIO/VolumeVerifier.cpp:312
 msgid "Failed to parse Redump.info data"
-msgstr ""
+msgstr "Impossible de traiter les données de Redump.info"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:308
 #, c++-format
@@ -3425,6 +3425,8 @@ msgid ""
 "This is a good dump according to Redump.info, but Dolphin has found "
 "problems. This might be a bug in Dolphin."
 msgstr ""
+"D'après Redump.info, ceci est un bon dump, mais Dolphin a trouvé des "
+"problèmes. Ceci peut être un bug dans Dolphin."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1391
 msgid "Dolphin is unable to verify unlicensed discs."
@@ -3568,11 +3570,11 @@ msgstr "Utilisation de Qt %1"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:80
 msgid "Using SDL %1"
-msgstr ""
+msgstr "Utilisation de SDL %1"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:82
 msgid "SDL disabled"
-msgstr ""
+msgstr "SDL désactivé"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:84
 msgid "Check for updates"
@@ -4366,7 +4368,7 @@ msgstr "&Retirer le Code"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:112
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:352
 msgid "Disable All"
-msgstr ""
+msgstr "Tout désactiver"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:137
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:317
@@ -4386,7 +4388,7 @@ msgstr "Afficher d'abord les codes désactivés"
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:174
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:354
 msgid "Enable All"
-msgstr ""
+msgstr "Tout activer"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:213
 msgid "Clone and &Edit Code..."
@@ -7053,34 +7055,46 @@ msgid ""
 "is the bottleneck.<br><br>This setting is disabled when Arbitrary Mipmap "
 "Detection is enabled.<br><br>"
 msgstr ""
+"Active le décodage des textures par le GPU à la place du CPU.<br><br> Ceci "
+"peut entraîner des gains de performance dans certains cas, ou pour les "
+"systèmes où le CPU n'est pas assez puissant.<br><br>Ce réglage est désactivé "
+"lorsque la détection des mipmaps arbitraires est activée.<br><br>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
 msgid ""
 "<dolphin_emphasis>The %1 backend doesn't support GPU Texture Decoding.</"
 "dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Le moteur %1 ne prend pas en charge le décodage de texture "
+"par le GPU.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:271
 msgid ""
 "<dolphin_emphasis>GPU Texture Decoding is currently disabled by Arbitrary "
 "Mipmap Detection.</dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Le décodage de texture par le GPU est désactivé par la "
+"détection des mipmaps arbitraires.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:285
 msgid ""
 "Disables bounding box emulation.<br><br>This may improve GPU performance "
 "significantly, but some games will break.<br><br>"
 msgstr ""
+"Désactive l'émulation de Bounding Box.<br><br>Cela peut beaucoup améliorer "
+"les performances du GPU, mais certains jeux ne fonctionneront plus.<br><br>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:295
 msgid "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
-msgstr ""
+msgstr "<dolphin_emphasis>Dans le doute, cochez cette case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:300
 msgid ""
 "<dolphin_emphasis>The %1 backend doesn't support Bounding Box emulation.</"
 "dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Le moteur %1 ne prend pas en charge l'émulation de la "
+"bounding box.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:67
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:40
@@ -8018,7 +8032,7 @@ msgstr "SHA-1 :"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:87
 msgid "Redump.info Status:"
-msgstr ""
+msgstr "État de Redump.info :"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 msgid "Verify Integrity"
@@ -11917,11 +11931,11 @@ msgstr "Gestionnaire de &cheats"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:285
 msgid "&FIFO Player"
-msgstr ""
+msgstr "Lecteur &FIFO"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:287
 msgid "&Emulated USB Devices"
-msgstr ""
+msgstr "&Appareils USB émulés"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:288
 msgid "&Skylanders Portal"
@@ -11949,7 +11963,7 @@ msgstr "Parcourir les sessions &NetPlay..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "&Achievements"
-msgstr ""
+msgstr "&Succès"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:305
 msgid "RetroAchievements Development"
@@ -11957,95 +11971,95 @@ msgstr "Développement de RetroAchievements"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:313
 msgid "Load &GameCube Main Menu"
-msgstr ""
+msgstr "Charger le Menu Principal de la &GameCube"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:315
 msgid "NTSC-&J"
-msgstr ""
+msgstr "NTSC-&J"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "NTSC-&U"
-msgstr ""
+msgstr "NTSC-&U"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "&PAL"
-msgstr ""
+msgstr "&PAL"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "&Triforce"
-msgstr ""
+msgstr "&Triforce"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:325
 msgid "&Memory Card Manager"
-msgstr ""
+msgstr "Gestionnaire de cartes &mémoires"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:331
 msgid "Install &WAD..."
-msgstr ""
+msgstr "Installer un &WAD..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:332
 msgid "Manage &NAND"
-msgstr ""
+msgstr "Gestion de &NAND"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:333
 msgid "Import &BootMii NAND Backup..."
-msgstr ""
+msgstr "Importer une sauvegarde &BootMii de la NAND..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Check &NAND..."
-msgstr ""
+msgstr "Vérifier la &NAND..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:336
 msgid "Extract &Certificates from NAND"
-msgstr ""
+msgstr "Extraire les &certificats de la NAND"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:344
 msgid "Perform Online System &Update"
-msgstr ""
+msgstr "Effectuer une mise à &jour en ligne"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:346
 msgid "&Current Region"
-msgstr ""
+msgstr "&Région actuelle"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:348
 msgid "&Europe"
-msgstr ""
+msgstr "&Europe"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:350
 msgid "&Japan"
-msgstr ""
+msgstr "&Japon"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "&Korea"
-msgstr ""
+msgstr "&Corée"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:354
 msgid "&United States"
-msgstr ""
+msgstr "&États-Unis"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:360
 msgid "Import &Wii Save..."
-msgstr ""
+msgstr "Importer une sauvegarde &Wii..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:362
 msgid "Import &Wii Saves..."
-msgstr ""
+msgstr "Importer des sauvegardes de la &Wii..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:364
 msgid "Export All &Wii Saves"
-msgstr ""
+msgstr "Exporter toutes les sauvegardes &Wii"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:367
 msgid "&Connect Wii Remotes"
-msgstr ""
+msgstr "&Connecter les Wiimotes"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:375
 msgid "Connect Wii Remote &%1"
-msgstr ""
+msgstr "Connecter la Wiimote &%1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:381
 msgid "Connect &Balance Board"
-msgstr ""
+msgstr "Connecter la &Balance Board"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:388
 msgid "&Emulation"
@@ -12523,7 +12537,7 @@ msgstr "Modules RSO"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1076
 msgid "Show &Demangled Names"
-msgstr ""
+msgstr "Afficher les noms &démêlés"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1079
 msgid "&Load Symbol Map"
@@ -12571,11 +12585,11 @@ msgstr "&Patcher les fonctions HLE"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1137
 msgid "Load vWii &System Menu %1"
-msgstr ""
+msgstr "Charger le menu %1 du &système vWii"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1138
 msgid "Load Wii &System Menu %1"
-msgstr ""
+msgstr "Charger le Menu &Système Wii %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1196
 msgid "Select Title to Install to NAND"
@@ -14018,6 +14032,11 @@ msgid ""
 "information.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Ajuste la quantité de RAM de la console émulée aux valeurs fournies."
+"<br><br><b>ATTENTION</b> : Activer ceci va faire planter la plupart des "
+"jeux. Par défaut, Dolphin détermine la valeur requise en se basant sur les "
+"informations du jeu. <br><br><dolphin_emphasis>Dans le doute, décochez cette "
+"case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:284
 msgid "Custom RTC Options"
@@ -15332,7 +15351,7 @@ msgstr "Afficher les statistiques de projection"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:105
 msgid "Show XFB Resolution"
-msgstr ""
+msgstr "Afficher la résolution du XFB"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:142
 msgid ""
@@ -15539,6 +15558,9 @@ msgid ""
 "product of width and height.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Affiche la taille du tampon d'image externe (XFB) émulé en pixels, en "
+"produit de la largeur par la hauteur.<br><br><dolphin_emphasis>Dans le "
+"doute, décochez cette case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:49
 msgid "Select a Game"
@@ -17066,27 +17088,27 @@ msgstr "Joue à un jeu"
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "East Asia"
 msgstr "Asie de l'Est"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "China"
 msgstr "Chine"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "North America"
 msgstr "Amérique du Nord"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "South America"
 msgstr "Amérique du Sud"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "Oceania"
 msgstr "Océanie"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:255
+#: Source/Core/UICommon/NetPlayIndex.cpp:256
 msgid "Africa"
 msgstr "Afrique"
 
