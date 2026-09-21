@@ -92,6 +92,7 @@
 #define WIISDSYNC_DIR "WiiSDSync"
 #define ASSEMBLY_DIR "SavedAssembly"
 #define WIIBANNERS_DIR "WiiBanners"
+#define SOUNDS_DIR "Sounds"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
