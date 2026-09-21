@@ -65,6 +65,9 @@ abstract class WifiDirectSession(
 
     protected val peers = _peers.asStateFlow()
 
+    val isGroupActive = currentGroupNetworkName
+        .map { it != null }
+
     init {
         val intentFilter = IntentFilter().apply {
             addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
