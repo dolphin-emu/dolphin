@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -77,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -114,6 +116,7 @@ import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
+import org.dolphinemu.dolphinemu.ui.theme.OutlinedBoxPaddingValues
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
 import org.dolphinemu.dolphinemu.ui.theme.ReadOnlyTextField
 import org.dolphinemu.dolphinemu.ui.theme.bottomFadeOverlay
@@ -741,7 +744,7 @@ private fun Chat(
     OutlinedBox(
         onClick = { onShowBottomSheetChanged(true) },
         label = { Text(stringResource(R.string.netplay_chat_label)) },
-        fadeContentTop = true,
+        contentPadding = OutlinedBoxPaddingValues(top = 10.dp),
         modifier = modifier
     ) {
         LazyColumn(
@@ -752,6 +755,19 @@ private fun Chat(
         ) {
             messages()
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
     }
 }
 
