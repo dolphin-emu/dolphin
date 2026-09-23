@@ -2637,7 +2637,7 @@ void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_
   u8* ptr = dst;
   for (u32 i = 0; i < num_blocks_y; i++)
   {
-    std::memset(ptr, 0, bytes_per_row);
+    std::memset(ptr, g_ActiveConfig.uSkipEFBCopyToRamClearByte, bytes_per_row);
     ptr += stride;
   }
 }
