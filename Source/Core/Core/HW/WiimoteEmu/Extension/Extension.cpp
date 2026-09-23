@@ -130,7 +130,7 @@ void BalanceBoard::BuildDesiredExtensionState(DesiredExtensionState* target_stat
         value = *override_value;
       }
     }
-    state.sensor_weight[i] = std::clamp(value, ControlState(0.0), ControlState(1.0));
+    state.sensor_weight[i] = static_cast<u8>(std::lround(std::clamp(value, ControlState(0.0), ControlState(1.0)) * 255.0));
   }
 }
 
@@ -160,7 +160,7 @@ void BalanceBoard::Update(const DesiredExtensionState& target_state)
 
   for (size_t i = 0; i < desired_state.sensor_weight.size(); ++i)
   {
-    const u16 raw = WeightToRaw(i, desired_state.sensor_weight[i] * MAX_SENSOR_WEIGHT_KG);
+    const u16 raw = WeightToRaw(i, (desired_state.sensor_weight[i] / 255.0) * MAX_SENSOR_WEIGHT_KG);
     m_registers[i * 2] = static_cast<u8>(raw >> 8);
     m_registers[i * 2 + 1] = static_cast<u8>(raw & 0xFF);
   }
