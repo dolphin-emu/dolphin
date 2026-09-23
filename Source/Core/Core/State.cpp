@@ -997,36 +997,39 @@ void Shutdown()
   s_flush_unsaved_data_hook.reset();
 }
 
+static void SaveSlotFromCore(Core::System& system, u32 slot)
+{
+  // Save the selected slot through the same core-side path as SaveAs, but attach a history key
+  // so the asynchronous writer can retain the previous contents of this slot.
+  s_compress_and_dump_thread.WaitForCompletion();
+
+  const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
+  Common::UniqueBuffer<u8> buffer{buffer_size_estimate};
+
+  if (const auto actual_size = SaveToBuffer(system, buffer))
+  {
+    buffer.assign(buffer.extract().first, actual_size);
+    CompressAndDumpStateArgs dump_args{
+        .buffer = std::move(buffer),
+        .filename = MakeStateFilename(slot),
+        .history_slot = slot,
+        .task_lock = GetStateSaveTaskLock(),
+    };
+    Core::DisplayMessage("Saving State...", 1000);
+    s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
+  }
+  else
+  {
+    Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+  }
+}
+
 void Save(Core::System& system, u32 slot)
 {
   if (slot < 1 || slot > NUM_STATES)
     return;
 
-  Core::RunOnCPUThread(system, [&system, slot] {
-    // Save the selected slot through the same core-side path as SaveAs, but attach a history key
-    // so the asynchronous writer can retain the previous contents of this slot.
-    s_compress_and_dump_thread.WaitForCompletion();
-
-    const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
-    Common::UniqueBuffer<u8> buffer{buffer_size_estimate};
-
-    if (const auto actual_size = SaveToBuffer(system, buffer))
-    {
-      buffer.assign(buffer.extract().first, actual_size);
-      CompressAndDumpStateArgs dump_args{
-          .buffer = std::move(buffer),
-          .filename = MakeStateFilename(slot),
-          .history_slot = slot,
-          .task_lock = GetStateSaveTaskLock(),
-      };
-      Core::DisplayMessage("Saving State...", 1000);
-      s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
-    }
-    else
-    {
-      Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
-    }
-  });
+  Core::RunOnCPUThread(system, [&system, slot] { SaveSlotFromCore(system, slot); });
 }
 
 void Load(Core::System& system, u32 slot)
@@ -1057,11 +1060,6 @@ void ClearHistory(Core::System& system, u32 slot)
     ClearHistoryFiles(slot);
     Core::DisplayMessage(fmt::format("Cleared savestate history for Slot {}", slot), 2000);
   });
-}
-
-void Load(Core::System& system, u32 slot)
-{
-  LoadAs(system, MakeStateFilename(slot));
 }
 
 void LoadLastSaved(Core::System& system, int i)
@@ -1100,7 +1098,7 @@ void SaveFirstSaved(Core::System& system)
       slot = used_slots.front().slot;
     }
 
-    SaveAsFromCore(system, MakeStateFilename(*slot));
+    SaveSlotFromCore(system, *slot);
   });
 }
 
