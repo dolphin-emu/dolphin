@@ -19,8 +19,9 @@ class System;
 
 namespace State
 {
-// number of states
+// Number of savestate slots and historical versions retained per slot.
 static const u32 NUM_STATES = 10;
+static const u32 NUM_STATE_HISTORY = 8;
 
 struct StateHeaderLegacy
 {
@@ -85,6 +86,7 @@ void Shutdown();
 // Returns a string containing information of the savestate in the given slot
 // which can be presented to the user for identification purposes
 std::string GetInfoStringOfSlot(u32 slot, bool translate = true);
+std::string GetInfoStringOfHistory(u32 slot, u32 history, bool translate = true);
 
 // Returns when the savestate in the given slot was created, or 0 if the slot is empty.
 u64 GetUnixTimeOfSlot(u32 slot);
@@ -94,6 +96,8 @@ u64 GetUnixTimeOfSlot(u32 slot);
 //    If we're in the main CPU thread then they run immediately instead.
 void Save(Core::System& system, u32 slot);
 void Load(Core::System& system, u32 slot);
+void LoadHistory(Core::System& system, u32 slot, u32 history);
+void ClearHistory(Core::System& system, u32 slot);
 
 void SaveAs(Core::System& system, std::string filename);
 void LoadAs(Core::System& system, std::string filename);
