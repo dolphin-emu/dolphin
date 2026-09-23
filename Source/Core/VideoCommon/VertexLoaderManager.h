@@ -5,9 +5,9 @@
 
 #include <array>
 #include <memory>
-#include <string>
 #include <unordered_map>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "VideoCommon/CPMemory.h"

@@ -17,7 +17,6 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/PixelShaderManager.h"

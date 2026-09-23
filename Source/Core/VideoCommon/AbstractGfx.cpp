@@ -7,7 +7,6 @@
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VertexManagerBase.h"
