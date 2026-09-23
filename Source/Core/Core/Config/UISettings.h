@@ -19,6 +19,7 @@ extern const Info<bool> MAIN_USE_DISCORD_PRESENCE;
 extern const Info<bool> MAIN_USE_GAME_COVERS;
 extern const Info<bool> MAIN_FOCUSED_HOTKEYS;
 extern const Info<bool> MAIN_RECURSIVE_ISO_PATHS;
+extern const Info<bool> MAIN_AUTOMATIC_CONTROLLERS;
 extern const Info<std::string> MAIN_CURRENT_STATE_PATH;
 
 }  // namespace Config

@@ -183,6 +183,12 @@ enum class BooleanSetting(
         "UseGameCovers",
         true
     ),
+    MAIN_AUTOMATIC_CONTROLLERS(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_GENERAL,
+        "AutomaticControllers",
+        false
+    ),
     MAIN_DEBUG_JIT_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitOff", false),
     MAIN_DEBUG_JIT_LOAD_STORE_OFF(
         Settings.FILE_DOLPHIN,
