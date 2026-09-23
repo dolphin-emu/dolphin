@@ -152,6 +152,7 @@ jobs:
           Included changes:
           - Improved EFB texture/RAM invalidation handling for Rhythm Heaven Fever and Excite Truck.
           - Added floor(), ceil(), round(), and trunc() controller-input expression functions.
+          - Added 8-deep per-slot savestate history with restore and clear-history controls.
           - Updated macOS build tooling for current Xcode/macOS requirements.
           EOF
           gh release create "$TAG" \
