@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <locale>
 #include <map>
+#include <optional>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
