@@ -23,6 +23,7 @@
 #include <utility>
 
 #include <QDesktopServices>
+#include <QGuiApplication>
 #include <QDir>
 #include <QErrorMessage>
 #include <QFileDialog>
@@ -514,6 +515,7 @@ void GameList::ShowContextMenu(const QPoint&)
     }
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
+    menu->addAction(tr("Copy Game Path"), this, &GameList::CopyGamePath);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
 #ifdef _WIN32
     menu->addAction(tr("Add Shortcut to Desktop"), this, [this] {
@@ -715,6 +717,15 @@ void GameList::SetDefaultISO()
 
   Settings::Instance().SetDefaultGame(
       QDir::toNativeSeparators(QString::fromStdString(game->GetFilePath())));
+}
+
+void GameList::CopyGamePath()
+{
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  QGuiApplication::clipboard()->setText(QString::fromStdString(game->GetFilePath()));
 }
 
 void GameList::OpenContainingFolder()
