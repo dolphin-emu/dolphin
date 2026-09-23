@@ -116,6 +116,8 @@ private:
   void StateLoadSlot();
   void StateSaveSlot();
   void StateLoadSlotAt(int slot);
+  void StateLoadHistoryAt(int history);
+  void StateClearHistory();
   void StateSaveSlotAt(int slot);
   void StateLoadLastSavedAt(int slot);
   void StateLoadUndo();
