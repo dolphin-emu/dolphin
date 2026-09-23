@@ -80,6 +80,8 @@ signals:
   void StateLoadSlot();
   void StateSaveSlot();
   void StateLoadSlotAt(int slot);
+  void StateLoadHistoryAt(int history);
+  void StateClearHistory();
   void StateSaveSlotAt(int slot);
   void StateLoadUndo();
   void StateSaveUndo();
@@ -251,6 +253,7 @@ private:
   QMenu* m_state_slot_menu;
   QActionGroup* m_state_slots;
   QMenu* m_state_load_slots_menu;
+  QMenu* m_state_load_history_menu;
   QMenu* m_state_save_slots_menu;
 
   // Movie
