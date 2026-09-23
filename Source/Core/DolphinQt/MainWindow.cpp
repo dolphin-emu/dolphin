@@ -541,6 +541,8 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StateLoadSlot, this, &MainWindow::StateLoadSlot);
   connect(m_menu_bar, &MenuBar::StateSaveSlot, this, &MainWindow::StateSaveSlot);
   connect(m_menu_bar, &MenuBar::StateLoadSlotAt, this, &MainWindow::StateLoadSlotAt);
+  connect(m_menu_bar, &MenuBar::StateLoadHistoryAt, this, &MainWindow::StateLoadHistoryAt);
+  connect(m_menu_bar, &MenuBar::StateClearHistory, this, &MainWindow::StateClearHistory);
   connect(m_menu_bar, &MenuBar::StateSaveSlotAt, this, &MainWindow::StateSaveSlotAt);
   connect(m_menu_bar, &MenuBar::StateLoadUndo, this, &MainWindow::StateLoadUndo);
   connect(m_menu_bar, &MenuBar::StateSaveUndo, this, &MainWindow::StateSaveUndo);
@@ -1542,6 +1544,16 @@ void MainWindow::StateSaveSlot()
 void MainWindow::StateLoadSlotAt(int slot)
 {
   State::Load(m_system, slot);
+}
+
+void MainWindow::StateLoadHistoryAt(int history)
+{
+  State::LoadHistory(m_system, m_state_slot, history);
+}
+
+void MainWindow::StateClearHistory()
+{
+  State::ClearHistory(m_system, m_state_slot);
 }
 
 void MainWindow::StateLoadLastSavedAt(int slot)
