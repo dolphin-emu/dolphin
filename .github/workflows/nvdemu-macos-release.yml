@@ -65,7 +65,7 @@ jobs:
             -DPOSTPROCESS_BUNDLE=ON \
             -DMACOS_CODE_SIGNING=ON \
             -DMACOS_CODE_SIGNING_IDENTITY=- \
-            -DENABLE_AUTOUPDATE=OFF \
+            -DENABLE_AUTOUPDATE=ON \
             -DENABLE_ANALYTICS=OFF \
             -DENABLE_TESTS=OFF \
             -DUSE_SYSTEM_LIBS=OFF \
@@ -173,6 +173,7 @@ jobs:
           - Added 8-deep per-slot savestate history with restore and clear-history controls.
           - Updated macOS build tooling for current Xcode/macOS requirements.
           - Added virtual Wii Balance Board emulation for Wii Fit and Wii Fit Plus.
+          - NVDEMU releases now check GitHub Releases for updates.
           EOF
           gh release create "$TAG" \
             "release/Dolphin-NVDEMU-macOS-universal.dmg" \
