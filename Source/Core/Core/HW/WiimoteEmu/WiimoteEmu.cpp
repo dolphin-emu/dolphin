@@ -711,6 +711,15 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+  if (m_index == WIIMOTE_BALANCE_BOARD)
+  {
+    constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::BALANCE_BOARD;
+    m_attachments->SetSelectedAttachment(DEFAULT_EXT);
+    m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults();
+    m_motion_plus_setting.SetValue(false);
+    return;
+  }
+
 #ifdef ANDROID
   // Rumble
   m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
@@ -811,15 +820,6 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
     m_ir_passthrough->SetControlExpression(i * 3 + 2, fmt::format("`IR Object {} Size`", i + 1));
   }
 #endif
-
-  if (m_index == WIIMOTE_BALANCE_BOARD)
-  {
-    constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::BALANCE_BOARD;
-    m_attachments->SetSelectedAttachment(DEFAULT_EXT);
-    m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults();
-    m_motion_plus_setting.SetValue(false);
-    return;
-  }
 
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
