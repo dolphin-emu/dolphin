@@ -446,12 +446,14 @@ void InputBackend::ConfigChanged()
 
       const std::string description = server_info[0];
       const std::string server_address = server_info[1];
-      const auto port = std::stoi(server_info[2]);
-      if (port >= std::numeric_limits<u16>::max())
+      // The server list is user-edited config; a non-numeric port (or an IPv6
+      // address, which splits on its own colons) must skip the entry, not throw.
+      int port = 0;
+      if (!TryParse(server_info[2], &port) || port <= 0 || port >= std::numeric_limits<u16>::max())
       {
         continue;
       }
-      u16 server_port = static_cast<u16>(port);
+      const u16 server_port = static_cast<u16>(port);
 
       m_servers.emplace_back(description, server_address, server_port);
     }
