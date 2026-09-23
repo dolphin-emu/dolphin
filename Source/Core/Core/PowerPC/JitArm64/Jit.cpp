@@ -139,20 +139,33 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
     {
       const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
-          m_ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
+          m_ppc_state.msr.DR ?
+              (m_ppc_state.pagetable_update_pending ? memory.GetLogicalBaseWithoutPageTable() :
+                                                      memory.GetLogicalBaseWithPageTable()) :
+              memory.GetPhysicalBase());
 
       if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
       {
-        ERROR_LOG_FMT(DYNA_REC,
-                      "JitArm64 address calculation overflowed. This should never happen! "
-                      "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}, "
-                      "mem_ptr {}, pbase {}, lbase {}",
-                      ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR,
-                      fmt::ptr(m_ppc_state.mem_ptr), fmt::ptr(memory.GetPhysicalBase()),
-                      fmt::ptr(memory.GetLogicalBase()));
+        ASSERT_MSG(DYNA_REC, false,
+                   "JitArm64 address calculation overflowed!\n\n"
+                   "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}, "
+                   "pagetable update pending {}, mem_ptr {}, pbase {}, lbase1 {}, lbase2 {}",
+                   ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR,
+                   m_ppc_state.pagetable_update_pending, fmt::ptr(m_ppc_state.mem_ptr),
+                   fmt::ptr(memory.GetPhysicalBase()),
+                   fmt::ptr(memory.GetLogicalBaseWithoutPageTable()),
+                   fmt::ptr(memory.GetLogicalBaseWithPageTable()));
+      }
+      else if (m_ppc_state.msr.DR && m_ppc_state.pagetable_update_pending)
+      {
+        // Switch from logical base without page table to logical base with page table,
+        // then rerun the code that faulted.
+        m_system.GetMMU().PageTableUpdated();
+        success = true;
       }
       else
       {
+        // Backpatch the code that faulted.
         success = HandleFastmemFault(ctx);
       }
     }
@@ -282,7 +295,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   // We must also update constant propagation
   m_constant_propagation.ClearGPRs(js.op->regsOut);
 
-  if (js.op->opinfo->flags & FL_SET_MSR)
+  if (js.op->opinfo->flags & (FL_SET_MSR | FL_TLBIE))
     EmitUpdateMembase();
 
   if (js.op->canEndBlock)
@@ -429,10 +442,10 @@ void JitArm64::MSRUpdated(u32 msr)
 {
   // Update mem_ptr
   auto& memory = m_system.GetMemory();
-  MOVP2R(MEM_REG,
-         UReg_MSR(msr).DR ?
-             (jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
-             (jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
+  MOVP2R(MEM_REG, UReg_MSR(msr).DR ? (jo.fastmem ? memory.GetLogicalBaseWithPageTable() :
+                                                   memory.GetLogicalPageMappingsBase()) :
+                                     (jo.fastmem ? memory.GetPhysicalBase() :
+                                                   memory.GetPhysicalPageMappingsBase()));
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 
   // Update feature_flags
@@ -476,7 +489,8 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
 
   // Update mem_ptr
   auto& memory = m_system.GetMemory();
-  MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
+  MOVP2R(MEM_REG,
+         jo.fastmem ? memory.GetLogicalBaseWithPageTable() : memory.GetLogicalPageMappingsBase());
   MOVP2R(XA, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
   TST(msr, LogicalImm(1ULL << UReg_MSR{}.DR.StartBit(), GPRSize::B32));
   CSEL(MEM_REG, MEM_REG, XA, CCFlags::CC_NEQ);
