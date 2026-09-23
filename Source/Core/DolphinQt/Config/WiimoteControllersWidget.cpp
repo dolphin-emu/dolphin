@@ -222,7 +222,11 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
-  m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
+  m_wiimote_balance_board = new QComboBox();
+  m_wiimote_balance_board->addItem(tr("None"));
+  m_wiimote_balance_board->addItem(tr("Emulated Balance Board"));
+  m_wiimote_balance_board->addItem(tr("Real Balance Board"));
+  m_wiimote_balance_board_configure = new NonDefaultQPushButton(tr("Configure"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
   m_wiimote_ciface = new QCheckBox(tr("Connect Wii Remotes for Emulated Controllers"));
 
@@ -265,7 +269,10 @@ void WiimoteControllersWidget::CreateLayout()
     m_wiimote_layout->addWidget(wm_button, wm_row, 3);
   }
 
-  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 1, 1, -1);
+  const int balance_board_row = m_wiimote_layout->rowCount();
+  m_wiimote_layout->addWidget(new QLabel(tr("Balance Board")), balance_board_row, 1);
+  m_wiimote_layout->addWidget(m_wiimote_balance_board, balance_board_row, 2);
+  m_wiimote_layout->addWidget(m_wiimote_balance_board_configure, balance_board_row, 3);
   m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 1, 1, -1);
 
   m_wiimote_layout->addWidget(m_wiimote_ciface, m_wiimote_layout->rowCount(), 0, 1, -1);
@@ -303,8 +310,12 @@ void WiimoteControllersWidget::ConnectWidgets()
     LoadSettings(Core::GetState(Core::System::GetInstance()));
   });
 
-  connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
-          &WiimoteControllersWidget::SaveSettings);
+  connect(m_wiimote_balance_board, &QComboBox::currentIndexChanged, this, [this] {
+    SaveSettings();
+    LoadSettings(Core::GetState(Core::System::GetInstance()));
+  });
+  connect(m_wiimote_balance_board_configure, &QPushButton::clicked, this,
+          &WiimoteControllersWidget::OnBalanceBoardConfigure);
   connect(m_wiimote_speaker_data, &QCheckBox::toggled, this,
           &WiimoteControllersWidget::SaveSettings);
   connect(m_bluetooth_adapters, &QComboBox::activated, this,
@@ -405,6 +416,18 @@ void WiimoteControllersWidget::OnWiimoteRefreshPressed()
   WiimoteReal::Refresh();
 }
 
+void WiimoteControllersWidget::OnBalanceBoardConfigure()
+{
+  if (m_wiimote_balance_board->currentIndex() != 1)
+    return;
+
+  auto* window = new MappingWindow(this, MappingWindow::Type::MAPPING_WIIMOTE_EMU,
+                                   WIIMOTE_BALANCE_BOARD);
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
+}
+
 void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
 {
   MappingWindow::Type type;
@@ -446,8 +469,8 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
     SignalBlocking(m_wiimote_boxes[i])
         ->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
-  SignalBlocking(m_wiimote_real_balance_board)
-      ->setChecked(Config::Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real);
+  SignalBlocking(m_wiimote_balance_board)
+      ->setCurrentIndex(static_cast<int>(Config::Get(Config::WIIMOTE_BB_SOURCE)));
   SignalBlocking(m_wiimote_speaker_data)
       ->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
   SignalBlocking(m_wiimote_ciface)
@@ -493,7 +516,10 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
                                      static_cast<int>(i) < num_local_wiimotes);
   }
 
-  m_wiimote_real_balance_board->setEnabled(enable_emu_bt && !running_netplay);
+  m_wiimote_balance_board->setEnabled(enable_emu_bt && !running_netplay);
+  m_wiimote_balance_board_configure->setEnabled(enable_emu_bt && !running_netplay &&
+                                                m_wiimote_balance_board->currentIndex() ==
+                                                    static_cast<int>(WiimoteSource::Emulated));
   m_wiimote_speaker_data->setEnabled(enable_emu_bt && !running_netplay);
 
   const bool ciface_wiimotes = m_wiimote_ciface->isChecked();
@@ -517,7 +543,7 @@ void WiimoteControllersWidget::SaveSettings()
                              m_wiimote_passthrough->isChecked());
 
     const WiimoteSource bb_source =
-        m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
+        static_cast<WiimoteSource>(m_wiimote_balance_board->currentIndex());
     Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
     for (size_t i = 0; i < m_wiimote_groups.size(); i++)

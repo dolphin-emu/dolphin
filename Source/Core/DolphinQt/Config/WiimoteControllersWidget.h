@@ -42,6 +42,7 @@ private:
   void OnBluetoothAdapterRefreshComplete(std::span<const USBUtils::DeviceInfo> devices);
   void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure(size_t index);
+  void OnBalanceBoardConfigure();
   void StartBluetoothAdapterRefresh();
   void UpdateBluetoothAdapterWidgetsEnabled(Core::State state);
 
@@ -74,7 +75,8 @@ private:
   QPushButton* m_wiimote_sync;
   QPushButton* m_wiimote_reset;
   QCheckBox* m_wiimote_continuous_scanning;
-  QCheckBox* m_wiimote_real_balance_board;
+  QComboBox* m_wiimote_balance_board;
+  QPushButton* m_wiimote_balance_board_configure;
   QCheckBox* m_wiimote_speaker_data;
   QCheckBox* m_wiimote_ciface;
   QToolButton* m_wiimote_refresh;
