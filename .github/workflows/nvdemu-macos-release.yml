@@ -33,6 +33,8 @@ jobs:
           submodules: recursive
 
       - name: Install build dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
         run: |
           brew install qt cmake ccache
 
@@ -40,9 +42,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ccache
-          key: macos-ccache-${{ matrix.arch }}
+          key: macos-ccache-${{ matrix.arch }}-${{ github.run_id }}
           restore-keys: |
-            macos-ccache-${{ matrix.arch }}
+            macos-ccache-${{ matrix.arch }}-
 
       - name: Configure compiler cache
         run: |
