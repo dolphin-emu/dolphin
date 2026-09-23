@@ -3,6 +3,7 @@
 
 #include "DolphinTool/ConvertCommand.h"
 
+#include <array>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -12,6 +13,7 @@
 
 #include <OptionParser.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Blob.h"
@@ -56,6 +58,7 @@ static std::optional<DiscIO::BlobType> ParseFormatString(const std::string& form
 
 int ConvertCommand(const std::vector<std::string>& args)
 {
+  using namespace std::literals;
   optparse::OptionParser parser;
 
   parser.usage("usage: convert [options]... [FILE]...");
@@ -79,11 +82,14 @@ int ConvertCommand(const std::vector<std::string>& args)
       .help("Path to the destination FILE.")
       .metavar("FILE");
 
+  static constexpr std::array formats{"rvz"sv, "iso"sv, "gcz"sv, "wia"sv};
   parser.add_option("-f", "--format")
       .type("string")
       .action("store")
-      .help("Container format to use. Default is RVZ. [%choices]")
-      .choices({"iso", "gcz", "wia", "rvz"});
+      .help("Container format to use. Default is RVZ.")
+      .metavar(fmt::format("{}", fmt::join(formats, "|")))
+      .choices(formats.begin(), formats.end())
+      .set_default(formats[0]);
 
   parser.add_option("-s", "--scrub")
       .action("store_true")
@@ -95,12 +101,14 @@ int ConvertCommand(const std::vector<std::string>& args)
       .help("Block size for GCZ/WIA/RVZ formats, as an integer. Suggested value for RVZ: 131072 "
             "(128 KiB)");
 
+  static constexpr std::array compression_methods{"none"sv, "zstd"sv, "bzip2"sv, "lzma"sv,
+                                                  "lzma2"sv};
   parser.add_option("-c", "--compression")
       .type("string")
       .action("store")
-      .help("Compression method to use when converting to WIA/RVZ. Suggested value for RVZ: zstd "
-            "[%choices]")
-      .choices({"none", "zstd", "bzip2", "lzma", "lzma2"});
+      .help("Compression method to use when converting to WIA/RVZ. Suggested value for RVZ: zstd")
+      .metavar(fmt::format("{}", fmt::join(compression_methods, "|")))
+      .choices(compression_methods.begin(), compression_methods.end());
 
   parser.add_option("-l", "--compression_level")
       .type("int")
@@ -135,11 +143,6 @@ int ConvertCommand(const std::vector<std::string>& args)
 
   // --format
   const std::optional<DiscIO::BlobType> format_o = ParseFormatString(options["format"]);
-  if (!format_o.has_value())
-  {
-    fmt::print(std::cerr, "Error: No output format set\n");
-    return EXIT_FAILURE;
-  }
   const DiscIO::BlobType format = format_o.value();
 
   // Open the blob reader
