@@ -641,8 +641,8 @@ WIARVZFileReader<RVZ>::Chunk::Chunk(File::DirectIOFile* file, u64 offset_in_file
       m_rvz_packed_size(rvz_packed_size), m_data_offset(data_offset)
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
-      Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, Common::SHA1::DIGEST_LEN) /
-          Common::SHA1::DIGEST_LEN * VolumeWii::BLOCKS_PER_GROUP * sizeof(HashExceptionEntry) +
+      Common::DivideRoundingUp(VolumeWii::BLOCK_HEADER_SIZE, Common::SHA1::DIGEST_LEN) *
+          VolumeWii::BLOCKS_PER_GROUP * sizeof(HashExceptionEntry) +
       sizeof(u16);
 
   m_out_bytes_allocated_for_exceptions =
@@ -909,7 +909,7 @@ void WIARVZFileReader<RVZ>::AddRawDataEntry(u64 offset, u64 size, int chunk_size
     return;
 
   const u32 group_index = *total_groups;
-  const u32 groups = static_cast<u32>(Common::AlignUp(size, chunk_size) / chunk_size);
+  const u32 groups = static_cast<u32>(Common::DivideRoundingUp(size, chunk_size));
   *total_groups += groups;
 
   data_entries->emplace_back(raw_data_entries->size());
@@ -924,7 +924,7 @@ typename WIARVZFileReader<RVZ>::PartitionDataEntry WIARVZFileReader<RVZ>::Create
 {
   const u32 group_index = *total_groups;
   const u64 rounded_size = Common::AlignDown(size, VolumeWii::BLOCK_TOTAL_SIZE);
-  const u32 groups = static_cast<u32>(Common::AlignUp(rounded_size, chunk_size) / chunk_size);
+  const u32 groups = static_cast<u32>(Common::DivideRoundingUp(rounded_size, chunk_size));
   *total_groups += groups;
 
   data_entries->emplace_back(partition_entries.size(), index);
@@ -1334,8 +1334,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
     auto aes_context = Common::AES::CreateContextDecrypt(partition_entry.partition_key.data());
 
-    const u64 groups = Common::AlignUp(parameters.data.size(), VolumeWii::GROUP_TOTAL_SIZE) /
-                       VolumeWii::GROUP_TOTAL_SIZE;
+    const u64 groups =
+        Common::DivideRoundingUp(parameters.data.size(), VolumeWii::GROUP_TOTAL_SIZE);
 
     ASSERT(parameters.data.size() % VolumeWii::BLOCK_TOTAL_SIZE == 0);
     const u64 blocks = parameters.data.size() / VolumeWii::BLOCK_TOTAL_SIZE;
@@ -1344,7 +1344,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
                                      exception_lists_per_chunk * VolumeWii::BLOCKS_PER_GROUP :
                                      VolumeWii::BLOCKS_PER_GROUP / chunks_per_wii_group;
 
-    const u64 chunks = Common::AlignUp(blocks, blocks_per_chunk) / blocks_per_chunk;
+    const u64 chunks = Common::DivideRoundingUp(blocks, blocks_per_chunk);
 
     const u64 in_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_TOTAL_SIZE;
     const u64 out_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_DATA_SIZE;
@@ -1932,7 +1932,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
         data_offset_in_partition += bytes_to_read;
       }
 
-      groups_processed += Common::AlignUp(bytes_to_read, chunk_size) / chunk_size;
+      groups_processed += Common::DivideRoundingUp(bytes_to_read, chunk_size);
     }
 
     ASSERT(data_size == 0);

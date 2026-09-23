@@ -70,9 +70,11 @@ Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state,
 
 Interpreter::~Interpreter() = default;
 
-void Interpreter::Init()
+bool Interpreter::Init()
 {
   m_end_block = false;
+
+  return true;
 }
 
 void Interpreter::Shutdown()

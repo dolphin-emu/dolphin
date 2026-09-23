@@ -693,7 +693,7 @@ static u64 ComputeUsedClusters(const File::FSTEntry& parent_entry)
     if (entry.isDirectory)
       clusters += ComputeUsedClusters(entry);
     else
-      clusters += Common::AlignUp(entry.size, CLUSTER_SIZE) / CLUSTER_SIZE;
+      clusters += Common::DivideRoundingUp(entry.size, CLUSTER_SIZE);
   }
   return clusters;
 }
