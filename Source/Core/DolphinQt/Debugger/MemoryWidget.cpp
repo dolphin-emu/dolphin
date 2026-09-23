@@ -45,7 +45,7 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
 
-  setHidden(!Settings::Instance().IsMemoryVisible() || !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsMemoryVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
