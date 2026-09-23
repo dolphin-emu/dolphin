@@ -3,6 +3,7 @@
 
 #include "jni/HotkeyScheduler.h"
 
+#include <chrono>
 #include <cmath>
 #include <jni.h>
 #include <thread>
@@ -13,6 +14,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -22,6 +24,9 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -34,12 +39,57 @@ constexpr int POLL_INTERVAL_MS = 5;
 
 std::thread s_thread;
 Common::Flag s_stop_requested;
+Common::Flag s_foreground{true};
+Common::Flag s_any_hotkey_set;
+Common::Event s_wakeup;
 
 int s_state_slot = 1;
 
 bool IsHotkey(int id, bool held = false)
 {
   return HotkeyManagerEmu::IsPressed(id, held);
+}
+
+bool IsAnyHotkeySet()
+{
+  InputConfig* const config = HotkeyManagerEmu::GetConfig();
+  if (config == nullptr || config->ControllersNeedToBeCreated())
+    return false;
+
+  auto* const hotkeys = static_cast<HotkeyManager*>(config->GetController(0));
+
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+
+  for (const int hotkey : GetSupportedHotkeys())
+  {
+    const int group = hotkeys->FindGroupByID(hotkey);
+    const int index = hotkeys->GetIndexForGroup(group, hotkey);
+    const auto* const control_group =
+        HotkeyManagerEmu::GetHotkeyGroup(static_cast<HotkeyGroup>(group));
+
+    if (!control_group->controls[index]->control_ref->GetExpression().empty())
+      return true;
+  }
+
+  return false;
+}
+
+bool ShouldPoll()
+{
+  if (!s_foreground.IsSet() || !s_any_hotkey_set.IsSet())
+    return false;
+
+  if (!HotkeyManagerEmu::IsEnabled())
+    return false;
+
+  return Core::GetState(Core::System::GetInstance()) != Core::State::Stopping;
+}
+
+// Buttons already held when polling resumes must not count as new presses
+void ConsumePendingPresses()
+{
+  for (const int hotkey : GetSupportedHotkeys())
+    IsHotkey(hotkey);
 }
 
 void ShowVolumeOSD()
@@ -196,19 +246,24 @@ void Run()
 {
   Common::SetCurrentThreadName("HotkeyScheduler");
 
+  bool was_polling = false;
+
   while (!s_stop_requested.IsSet())
   {
-    Common::SleepCurrentThread(POLL_INTERVAL_MS);
+    if (!ShouldPoll())
+    {
+      was_polling = false;
+      s_wakeup.Wait();
+      continue;
+    }
+
+    s_wakeup.WaitFor(std::chrono::milliseconds(POLL_INTERVAL_MS));
+
+    if (s_stop_requested.IsSet())
+      break;
 
     ControllerInterface::SetCurrentInputChannel(ciface::InputChannel::Host);
     g_controller_interface.UpdateInput();
-
-    if (!HotkeyManagerEmu::IsEnabled())
-      continue;
-
-    Core::System& system = Core::System::GetInstance();
-    if (Core::GetState(system) == Core::State::Stopping)
-      continue;
 
     ControlReference::SetInputGate(true);
 
@@ -216,6 +271,15 @@ void Run()
     // Skipping either one leaves half the groups reading as unpressed.
     HotkeyManagerEmu::GetStatus(false);
     HotkeyManagerEmu::GetStatus(true);
+
+    if (!was_polling)
+    {
+      ConsumePendingPresses();
+      was_polling = true;
+      continue;
+    }
+
+    Core::System& system = Core::System::GetInstance();
 
     HandleGeneralHotkeys();
     HandleEmulationSpeedHotkeys();
@@ -233,7 +297,9 @@ void Start()
 
   HotkeyManagerEmu::Enable(true);
   s_state_slot = 1;
+  s_any_hotkey_set.Set(IsAnyHotkeySet());
   s_stop_requested.Clear();
+  s_wakeup.Reset();
   s_thread = std::thread(Run);
 }
 
@@ -243,9 +309,22 @@ void Stop()
     return;
 
   s_stop_requested.Set();
+  s_wakeup.Set();
   s_thread.join();
 
   Core::SetIsThrottlerTempDisabled(false);
+}
+
+void SetBackgroundExecutionAllowed(bool allowed)
+{
+  s_foreground.Set(allowed);
+  s_wakeup.Set();
+}
+
+void RefreshActiveHotkeys()
+{
+  s_any_hotkey_set.Set(IsAnyHotkeySet());
+  s_wakeup.Set();
 }
 
 const std::vector<int>& GetSupportedHotkeys()
@@ -294,5 +373,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_Hotke
     JNIEnv*, jclass, jboolean enabled)
 {
   HotkeyManagerEmu::Enable(enabled == JNI_TRUE);
+  HotkeyScheduler::RefreshActiveHotkeys();
 }
 }
