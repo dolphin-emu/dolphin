@@ -412,7 +412,8 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
   m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
   m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
-  m_state_load_menu->addAction(tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
+  m_state_load_history_menu =
+      m_state_load_menu->addMenu(tr("State History for Selected Slot"));
 
   for (int i = 1; i <= 10; i++)
   {
@@ -420,6 +421,16 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 
     connect(action, &QAction::triggered, this, [=, this] { emit StateLoadSlotAt(i); });
   }
+
+  for (u32 i = 1; i <= State::NUM_STATE_HISTORY; ++i)
+  {
+    QAction* action = m_state_load_history_menu->addAction(QString{});
+    connect(action, &QAction::triggered, this, [=, this] { emit StateLoadHistoryAt(i); });
+  }
+
+  m_state_load_history_menu->addSeparator();
+  m_state_load_history_menu->addAction(tr("Clear History for Selected Slot"), this,
+                                       &MenuBar::StateClearHistory);
 }
 
 void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
@@ -465,6 +476,10 @@ void MenuBar::UpdateStateSlotMenu()
   QList<QAction*> actions_slot = m_state_slots->actions();
   QList<QAction*> actions_load = m_state_load_slots_menu->actions();
   QList<QAction*> actions_save = m_state_save_slots_menu->actions();
+  const u32 selected_slot = static_cast<u32>(Settings::Instance().GetStateSlot());
+  m_state_load_history_menu->setTitle(
+      tr("State History for Selected Slot %1").arg(selected_slot));
+
   for (int i = 0; i < actions_slot.length(); i++)
   {
     int slot = i + 1;
@@ -472,6 +487,16 @@ void MenuBar::UpdateStateSlotMenu()
     actions_load.at(i)->setText(tr("Load from Slot %1 - %2").arg(slot).arg(info));
     actions_save.at(i)->setText(tr("Save to Slot %1 - %2").arg(slot).arg(info));
     actions_slot.at(i)->setText(tr("Select Slot %1 - %2").arg(slot).arg(info));
+  }
+
+  const QList<QAction*> history_actions = m_state_load_history_menu->actions();
+  for (u32 history = 1; history <= State::NUM_STATE_HISTORY; ++history)
+  {
+    const QString info =
+        QString::fromStdString(State::GetInfoStringOfHistory(selected_slot, history));
+    history_actions.at(static_cast<int>(history - 1))
+        ->setText(tr("Load History %1 - %2").arg(history).arg(info));
+    history_actions.at(static_cast<int>(history - 1))->setEnabled(info != tr("Empty"));
   }
 }
 
