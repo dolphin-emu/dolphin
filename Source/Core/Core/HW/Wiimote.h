@@ -95,6 +95,8 @@ ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
                                                     WiimoteEmu::DrawsomeTabletGroup group);
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group);
+ControllerEmu::ControlGroup* GetBalanceBoardGroup(int number,
+                                                   WiimoteEmu::BalanceBoardGroup group);
 }  // namespace Wiimote
 
 namespace WiimoteReal

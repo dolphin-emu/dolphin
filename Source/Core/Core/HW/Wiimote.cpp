@@ -159,6 +159,13 @@ ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::Shinkans
       ->GetShinkansenGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetBalanceBoardGroup(int number,
+                                                   WiimoteEmu::BalanceBoardGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetBalanceBoardGroup(group);
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
