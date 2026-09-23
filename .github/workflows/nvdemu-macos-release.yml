@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - nvdemu-macos-universal-2609
+      - master
   workflow_dispatch:
 
 permissions:
