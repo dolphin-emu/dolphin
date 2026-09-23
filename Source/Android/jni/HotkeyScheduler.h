@@ -5,10 +5,13 @@
 
 #include <vector>
 
-namespace HotkeyScheduler {
-    void Start();
+namespace HotkeyScheduler
+{
+void Start();
 
-    void Stop();
+void Stop();
 
-    const std::vector<int> &GetSupportedHotkeys();
+void RefreshActiveHotkeys();
+
+const std::vector<int>& GetSupportedHotkeys();
 }  // namespace HotkeyScheduler
