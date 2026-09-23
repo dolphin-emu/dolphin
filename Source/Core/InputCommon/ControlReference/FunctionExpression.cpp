@@ -720,6 +720,14 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<SqrtExpression>();
   if (name == "pow")
     return std::make_unique<PowExpression>();
+  if (name == "floor")
+    return std::make_unique<FloorExpression>();
+  if (name == "ceil")
+    return std::make_unique<CeilExpression>();
+  if (name == "round")
+    return std::make_unique<RoundExpression>();
+  if (name == "trunc")
+    return std::make_unique<TruncExpression>();
   if (name == "min")
     return std::make_unique<MinExpression>();
   if (name == "max")
