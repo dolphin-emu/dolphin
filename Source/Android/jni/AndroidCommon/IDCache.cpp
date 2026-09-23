@@ -151,6 +151,10 @@ static jclass s_audio_utils_class;
 static jmethodID s_audio_utils_get_sample_rate;
 static jmethodID s_audio_utils_get_frames_per_buffer;
 
+static jclass s_title_database_class;
+static jfieldID s_title_database_pointer;
+static jmethodID s_title_database_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -721,6 +725,21 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jclass GetTitleDatabaseClass()
+{
+  return s_title_database_class;
+}
+
+jfieldID GetTitleDatabasePointer()
+{
+  return s_title_database_pointer;
+}
+
+jmethodID GetTitleDatabaseConstructor()
+{
+  return s_title_database_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -1014,6 +1033,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_audio_utils_get_frames_per_buffer =
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
+
+  const jclass title_database_class =
+      env->FindClass("org/dolphinemu/dolphinemu/model/TitleDatabase");
+  s_title_database_class = reinterpret_cast<jclass>(env->NewGlobalRef(title_database_class));
+  s_title_database_pointer = env->GetFieldID(title_database_class, "pointer", "J");
+  s_title_database_constructor = env->GetMethodID(title_database_class, "<init>", "(J)V");
+  env->DeleteLocalRef(title_database_class);
 
   return JNI_VERSION;
 }
