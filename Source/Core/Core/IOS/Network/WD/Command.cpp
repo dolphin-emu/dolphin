@@ -349,7 +349,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     u16* results = (u16*)memory.GetPointerForRange(request.io_vectors.at(0).address,
                                                    sizeof(u16) + sizeof(BSSInfo));
     // first u16 indicates number of BSSInfo following
-    results[0] = Common::swap16(1);
+    results[0] = Common::swap16(2);
 
     BSSInfo* bss = (BSSInfo*)&results[1];
     memset(bss, 0, sizeof(BSSInfo));
@@ -365,6 +365,19 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     bss->ssid_length = Common::swap16((u16)strlen(ssid));
 
     bss->channel = Common::swap16(2);
+
+    // Add Nintendo Wi-Fi USB Connector access point
+    // The next BSSInfo loaded is at the current address plus bss->length * 2
+    bss += 2;
+    memset(bss, 0, sizeof(BSSInfo));
+
+    bss->length = Common::swap16(sizeof(BSSInfo));
+    bss->rssi = Common::swap16(0xffff);
+
+    for (int i = 0; i < BSSID_SIZE; ++i)
+      bss->bssid[i] = i;
+    memcpy(bss->ssid, "NWCUSBAP\0\1", 10);
+    bss->ssid_length = Common::swap16(0x20);
   }
   break;
 
