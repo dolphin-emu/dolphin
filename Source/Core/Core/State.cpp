@@ -89,6 +89,7 @@ struct CompressAndDumpStateArgs
 {
   Common::UniqueBuffer<u8> buffer;
   std::string filename;
+  std::optional<u32> history_slot;
   std::shared_lock<decltype(s_state_saves_in_progress)> task_lock;
 };
 
@@ -309,6 +310,61 @@ static std::string MakeStateFilename(u32 number)
                      SConfig::GetInstance().GetGameID(), number);
 }
 
+static std::string MakeStateHistoryFilename(u32 slot, u32 history)
+{
+  return fmt::format("{}.history{:02d}", MakeStateFilename(slot), history);
+}
+
+static void RotateStateHistory(u32 slot)
+{
+  const std::string filename = MakeStateFilename(slot);
+
+  for (u32 i = NUM_STATE_HISTORY; i > 1; --i)
+  {
+    const std::string from = MakeStateHistoryFilename(slot, i - 1);
+    const std::string to = MakeStateHistoryFilename(slot, i);
+    const std::string from_dtm = from + ".dtm";
+    const std::string to_dtm = to + ".dtm";
+
+    if (File::Exists(to))
+      File::Delete(to);
+    if (File::Exists(to_dtm))
+      File::Delete(to_dtm);
+
+    if (File::Exists(from))
+      File::Rename(from, to);
+    if (File::Exists(from_dtm))
+      File::Rename(from_dtm, to_dtm);
+  }
+
+  const std::string history = MakeStateHistoryFilename(slot, 1);
+  const std::string history_dtm = history + ".dtm";
+  if (File::Exists(history))
+    File::Delete(history);
+  if (File::Exists(history_dtm))
+    File::Delete(history_dtm);
+
+  if (File::Exists(filename))
+  {
+    std::error_code ec;
+    std::filesystem::copy_file(StringToPath(filename), StringToPath(history),
+                               std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec)
+      WARN_LOG_FMT(CORE, "Failed to create savestate history {}: {}", history, ec.message());
+  }
+
+  const std::string dtmname = filename + ".dtm";
+  if (File::Exists(dtmname))
+  {
+    std::error_code ec;
+    std::filesystem::copy_file(StringToPath(dtmname), StringToPath(history_dtm),
+                               std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec)
+      WARN_LOG_FMT(CORE, "Failed to create savestate history movie {}: {}", history_dtm,
+                   ec.message());
+  }
+}
+
 static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
 {
   std::vector<SlotWithTimestamp> result;
@@ -322,6 +378,40 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
     result.emplace_back(SlotWithTimestamp{.slot = i, .timestamp = header.legacy_header.time});
   }
   return result;
+}
+
+std::string GetInfoStringOfHistory(u32 slot, u32 history, bool translate)
+{
+  std::lock_guard lk{s_state_saves_in_progress};
+
+  if (slot < 1 || slot > NUM_STATES || history < 1 || history > NUM_STATE_HISTORY)
+    return translate ? Common::GetStringT("Unknown") : "Unknown";
+
+  const std::string filename = MakeStateHistoryFilename(slot, history);
+  if (!File::Exists(filename))
+    return translate ? Common::GetStringT("Empty") : "Empty";
+
+  StateHeader header;
+  if (!ReadHeader(filename, header))
+    return translate ? Common::GetStringT("Unknown") : "Unknown";
+
+  return SystemTimeAsDoubleToString(header.legacy_header.time);
+}
+
+static void ClearHistoryFiles(u32 slot)
+{
+  if (slot < 1 || slot > NUM_STATES)
+    return;
+
+  for (u32 history = 1; history <= NUM_STATE_HISTORY; ++history)
+  {
+    const std::string filename = MakeStateHistoryFilename(slot, history);
+    const std::string dtmname = filename + ".dtm";
+    if (File::Exists(filename))
+      File::Delete(filename);
+    if (File::Exists(dtmname))
+      File::Delete(dtmname);
+  }
 }
 
 static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f)
@@ -393,6 +483,9 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
 {
   const auto& buffer = save_args.buffer;
   const std::string& filename = save_args.filename;
+
+  if (save_args.history_slot.has_value())
+    RotateStateHistory(*save_args.history_slot);
 
   // Find free temporary filename.
 
@@ -485,6 +578,7 @@ static void SaveAsFromCore(Core::System& system, std::string filename)
     CompressAndDumpStateArgs dump_args{
         .buffer = std::move(buffer),
         .filename = std::move(filename),
+        .history_slot = std::nullopt,
         .task_lock = GetStateSaveTaskLock(),
     };
     Core::DisplayMessage("Saving State...", 1000);
@@ -904,7 +998,63 @@ void Shutdown()
 
 void Save(Core::System& system, u32 slot)
 {
-  SaveAs(system, MakeStateFilename(slot));
+  if (slot < 1 || slot > NUM_STATES)
+    return;
+
+  Core::RunOnCPUThread(system, [&system, slot, lock = GetStateSaveTaskLock()] {
+    // Save the selected slot through the same core-side path as SaveAs, but attach a history key
+    // so the asynchronous writer can retain the previous contents of this slot.
+    s_compress_and_dump_thread.WaitForCompletion();
+
+    const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
+    Common::UniqueBuffer<u8> buffer{buffer_size_estimate};
+
+    if (const auto actual_size = SaveToBuffer(system, buffer))
+    {
+      buffer.assign(buffer.extract().first, actual_size);
+      CompressAndDumpStateArgs dump_args{
+          .buffer = std::move(buffer),
+          .filename = MakeStateFilename(slot),
+          .history_slot = slot,
+          .task_lock = std::move(lock),
+      };
+      Core::DisplayMessage("Saving State...", 1000);
+      s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
+    }
+    else
+    {
+      Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+    }
+  });
+}
+
+void Load(Core::System& system, u32 slot)
+{
+  LoadAs(system, MakeStateFilename(slot));
+}
+
+void LoadHistory(Core::System& system, u32 slot, u32 history)
+{
+  if (slot < 1 || slot > NUM_STATES || history < 1 || history > NUM_STATE_HISTORY)
+    return;
+
+  if (!CheckIfStateLoadIsAllowed(system))
+    return;
+
+  Core::RunOnCPUThread(system, [&system, slot, history] {
+    LoadAsFromCore(system, MakeStateHistoryFilename(slot, history));
+  });
+}
+
+void ClearHistory(Core::System& system, u32 slot)
+{
+  if (slot < 1 || slot > NUM_STATES)
+    return;
+
+  Core::RunOnCPUThread(system, [slot] {
+    ClearHistoryFiles(slot);
+    Core::DisplayMessage(fmt::format("Cleared savestate history for Slot {}", slot), 2000);
+  });
 }
 
 void Load(Core::System& system, u32 slot)
