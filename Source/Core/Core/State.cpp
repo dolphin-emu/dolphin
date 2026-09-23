@@ -1002,7 +1002,7 @@ void Save(Core::System& system, u32 slot)
   if (slot < 1 || slot > NUM_STATES)
     return;
 
-  Core::RunOnCPUThread(system, [&system, slot, lock = GetStateSaveTaskLock()] {
+  Core::RunOnCPUThread(system, [&system, slot] {
     // Save the selected slot through the same core-side path as SaveAs, but attach a history key
     // so the asynchronous writer can retain the previous contents of this slot.
     s_compress_and_dump_thread.WaitForCompletion();
@@ -1017,7 +1017,7 @@ void Save(Core::System& system, u32 slot)
           .buffer = std::move(buffer),
           .filename = MakeStateFilename(slot),
           .history_slot = slot,
-          .task_lock = std::move(lock),
+          .task_lock = GetStateSaveTaskLock(),
       };
       Core::DisplayMessage("Saving State...", 1000);
       s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
