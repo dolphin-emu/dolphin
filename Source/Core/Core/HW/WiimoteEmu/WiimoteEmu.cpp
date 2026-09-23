@@ -103,7 +103,7 @@ void Wiimote::Reset()
     file.read(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
     file.close();
   }
-  else
+  else if (m_index != WIIMOTE_BALANCE_BOARD)
   {
     // Load some default data.
 
@@ -150,18 +150,15 @@ void Wiimote::Reset()
         0x00, 0x00, 0x66, 0x99, 0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
     m_eeprom.unk_2 = EEPROM_DATA_16D0;
 
-    if (m_index != WIIMOTE_BALANCE_BOARD)
+    std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
+    if (File::Exists(mii_file))
     {
-      std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
-      if (File::Exists(mii_file))
-      {
       // Import from the existing mii.bin file, if present
       std::ifstream file;
       File::OpenFStream(file, mii_file, std::ios::binary | std::ios::in);
       file.read(reinterpret_cast<char*>(m_eeprom.mii_data_1.data()), m_eeprom.mii_data_1.size());
       m_eeprom.mii_data_2 = m_eeprom.mii_data_1;
-        file.close();
-      }
+      file.close();
     }
   }
 
