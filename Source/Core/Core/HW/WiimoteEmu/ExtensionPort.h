@@ -22,6 +22,7 @@ enum ExtensionNumber : u8
   DRAWSOME_TABLET,
   TATACON,
   SHINKANSEN,
+  BALANCE_BOARD,
 
   MAX
 };

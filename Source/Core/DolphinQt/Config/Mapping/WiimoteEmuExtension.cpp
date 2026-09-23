@@ -24,6 +24,7 @@
 
 WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(window)
 {
+  CreateBalanceBoardLayout();
   CreateClassicLayout();
   CreateDrumsLayout();
   CreateGuitarLayout();
@@ -37,6 +38,23 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateMainLayout();
 
   ChangeExtensionType(WiimoteEmu::ExtensionNumber::NONE);
+}
+
+void WiimoteEmuExtension::CreateBalanceBoardLayout()
+{
+  auto* layout = new QGridLayout();
+  m_balance_board_box = new QGroupBox(tr("Wii Balance Board"), this);
+  layout->addWidget(CreateGroupBox(tr("Top Left"),
+                                   Wiimote::GetBalanceBoardGroup(GetPort(), WiimoteEmu::BalanceBoardGroup::TopLeft)), 0, 0);
+  layout->addWidget(CreateGroupBox(tr("Top Right"),
+                                   Wiimote::GetBalanceBoardGroup(GetPort(), WiimoteEmu::BalanceBoardGroup::TopRight)), 0, 1);
+  layout->addWidget(CreateGroupBox(tr("Bottom Left"),
+                                   Wiimote::GetBalanceBoardGroup(GetPort(), WiimoteEmu::BalanceBoardGroup::BottomLeft)), 1, 0);
+  layout->addWidget(CreateGroupBox(tr("Bottom Right"),
+                                   Wiimote::GetBalanceBoardGroup(GetPort(), WiimoteEmu::BalanceBoardGroup::BottomRight)), 1, 1);
+  layout->addWidget(CreateGroupBox(tr("Board Button"),
+                                   Wiimote::GetBalanceBoardGroup(GetPort(), WiimoteEmu::BalanceBoardGroup::Button)), 2, 0, 1, 2);
+  m_balance_board_box->setLayout(layout);
 }
 
 void WiimoteEmuExtension::CreateClassicLayout()
@@ -245,6 +263,7 @@ void WiimoteEmuExtension::CreateMainLayout()
 {
   m_main_layout = new QHBoxLayout();
 
+  m_main_layout->addWidget(m_balance_board_box);
   m_main_layout->addWidget(m_classic_box);
   m_main_layout->addWidget(m_drums_box);
   m_main_layout->addWidget(m_guitar_box);
@@ -278,6 +297,7 @@ void WiimoteEmuExtension::ChangeExtensionType(u32 type)
 {
   using WiimoteEmu::ExtensionNumber;
 
+  m_balance_board_box->setHidden(type != ExtensionNumber::BALANCE_BOARD);
   m_none_box->setHidden(type != ExtensionNumber::NONE);
   m_nunchuk_box->setHidden(type != ExtensionNumber::NUNCHUK);
   m_classic_box->setHidden(type != ExtensionNumber::CLASSIC);

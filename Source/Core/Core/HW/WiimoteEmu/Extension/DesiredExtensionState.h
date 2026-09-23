@@ -52,7 +52,8 @@ public:
                   ExtNumTypePair<ExtensionNumber::UDRAW_TABLET, UDrawTablet>,
                   ExtNumTypePair<ExtensionNumber::DRAWSOME_TABLET, DrawsomeTablet>,
                   ExtNumTypePair<ExtensionNumber::TATACON, TaTaCon>,
-                  ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>>::type;
+                  ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>,
+                  ExtNumTypePair<ExtensionNumber::BALANCE_BOARD, BalanceBoard>>::type;
 
   ExtensionData data = std::monostate{};
 };

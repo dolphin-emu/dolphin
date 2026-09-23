@@ -54,8 +54,14 @@ void WiimoteEmuGeneral::CreateMainLayout()
 
   m_extension_combo_dynamic_indicator->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored);
 
-  for (const auto& attachment : ce_extension->GetAttachmentList())
-    m_extension_combo->addItem(tr(attachment->GetDisplayName().c_str()));
+  for (size_t i = 0; i < ce_extension->GetAttachmentList().size(); ++i)
+  {
+    const bool is_balance_board = i == WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
+    if ((GetPort() == WIIMOTE_BALANCE_BOARD) != is_balance_board)
+      continue;
+    const auto& attachment = ce_extension->GetAttachmentList()[i];
+    m_extension_combo->addItem(tr(attachment->GetDisplayName().c_str()), static_cast<int>(i));
+  }
 
   extension->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -91,20 +97,20 @@ void WiimoteEmuGeneral::Connect()
           &MappingWindow::ActivateExtensionTab);
 }
 
-void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
+void WiimoteEmuGeneral::OnAttachmentChanged(int index)
 {
+  const int extension = m_extension_combo->itemData(index).toInt();
   GetParent()->ShowExtensionMotionTabs(extension == WiimoteEmu::ExtensionNumber::NUNCHUK);
-
   m_extension_widget->ChangeExtensionType(extension);
-
   m_configure_ext_button->setEnabled(extension != WiimoteEmu::ExtensionNumber::NONE);
 }
 
-void WiimoteEmuGeneral::OnAttachmentSelected(int extension)
+void WiimoteEmuGeneral::OnAttachmentSelected(int index)
 {
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
+  const int extension = m_extension_combo->itemData(index).toInt();
   ce_extension->SetSelectedAttachment(extension);
 
   ConfigChanged();
@@ -116,7 +122,8 @@ void WiimoteEmuGeneral::ConfigChanged()
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
-  m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+  m_extension_combo->setCurrentIndex(
+      m_extension_combo->findData(static_cast<int>(ce_extension->GetSelectedAttachment())));
 
   m_extension_combo_dynamic_indicator->setVisible(
       !ce_extension->GetSelectionSetting().IsSimpleValue());
@@ -127,7 +134,8 @@ void WiimoteEmuGeneral::Update()
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
-  m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+  m_extension_combo->setCurrentIndex(
+      m_extension_combo->findData(static_cast<int>(ce_extension->GetSelectedAttachment())));
 }
 
 void WiimoteEmuGeneral::LoadSettings()

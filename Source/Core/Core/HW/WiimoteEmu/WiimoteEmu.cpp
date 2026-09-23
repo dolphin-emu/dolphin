@@ -166,8 +166,11 @@ void Wiimote::Reset()
 
   // Initialize i2c bus:
   m_i2c_bus.Reset();
-  m_i2c_bus.AddSlave(&m_speaker_logic);
-  m_i2c_bus.AddSlave(&m_camera_logic);
+  if (m_index != WIIMOTE_BALANCE_BOARD)
+  {
+    m_i2c_bus.AddSlave(&m_speaker_logic);
+    m_i2c_bus.AddSlave(&m_camera_logic);
+  }
 
   // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
@@ -211,17 +214,23 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
-  for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
+  if (m_index == WIIMOTE_BALANCE_BOARD)
   {
-    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, A_BUTTON);
   }
-  m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
+  else
+  {
+    for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
+      m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
+  }
 
   // D-Pad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
-  for (const char* named_direction : named_directions)
+  if (m_index != WIIMOTE_BALANCE_BOARD)
   {
-    m_dpad->AddInput(Translatability::Translate, named_direction);
+    for (const char* named_direction : named_directions)
+      m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 
   // i18n: "Point" refers to the action of pointing a Wii Remote.
@@ -279,8 +288,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoard>());
 
-  m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
+  m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")},
+                             m_index != WIIMOTE_BALANCE_BOARD);
 
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
@@ -428,6 +439,13 @@ ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) 
       ->GetGroup(group);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup group) const
+{
+  return static_cast<BalanceBoard*>(
+             m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::ProcessExtensionPortEvent()
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
@@ -524,9 +542,12 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   else
     target_state->motion_plus = std::nullopt;
 
-  // Build Extension state.
-  // This also allows the extension to perform any regular duties it may need.
-  // (e.g. Nunchuk motion simulation step)
+  // Build Extension state. The Balance Board occupies the dedicated fifth HID slot.
+  if (m_index == WIIMOTE_BALANCE_BOARD &&
+      m_attachments->GetSelectedAttachment() != ExtensionNumber::BALANCE_BOARD)
+  {
+    m_attachments->SetSelectedAttachment(ExtensionNumber::BALANCE_BOARD);
+  }
   static_cast<Extension*>(
       m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
       ->BuildDesiredExtensionState(&target_state->extension);
@@ -791,6 +812,15 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   }
 #endif
 
+  if (m_index == WIIMOTE_BALANCE_BOARD)
+  {
+    constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::BALANCE_BOARD;
+    m_attachments->SetSelectedAttachment(DEFAULT_EXT);
+    m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults();
+    m_motion_plus_setting.SetValue(false);
+    return;
+  }
+
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
@@ -823,6 +853,9 @@ bool Wiimote::IsUpright() const
 
 void Wiimote::SetRumble(bool on)
 {
+  if (m_index == WIIMOTE_BALANCE_BOARD || m_rumble->controls.empty())
+    return;
+
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
 }

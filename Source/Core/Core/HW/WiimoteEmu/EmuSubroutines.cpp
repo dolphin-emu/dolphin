@@ -145,9 +145,13 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
 {
   if (WIIMOTE_BALANCE_BOARD == m_index)
   {
-    // Prevent M+ or anything else silly from being attached to a balance board.
-    // In the future if we support an emulated balance board we can force the BB "extension" here.
-    return;
+    desired_extension_number = ExtensionNumber::BALANCE_BOARD;
+    desired_motion_plus = false;
+  }
+  else if (desired_extension_number == ExtensionNumber::BALANCE_BOARD)
+  {
+    desired_extension_number = ExtensionNumber::NONE;
+    desired_motion_plus = false;
   }
 
   // FYI: AttachExtension also connects devices to the i2c bus

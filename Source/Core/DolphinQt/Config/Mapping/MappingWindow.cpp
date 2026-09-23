@@ -19,6 +19,7 @@
 #include <QVBoxLayout>
 
 #include "Core/HotkeyManager.h"
+#include "Core/HW/Wiimote.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -476,7 +477,9 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     auto* extension_motion_input = new WiimoteEmuExtensionMotionInput(this);
     auto* extension_motion_simulation = new WiimoteEmuExtensionMotionSimulation(this);
     widget = new WiimoteEmuGeneral(this, extension);
-    setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
+    setWindowTitle(GetPort() == WIIMOTE_BALANCE_BOARD
+                       ? tr("Wii Balance Board")
+                       : tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
     AddWidget(tr("Motion Simulation"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Motion Input"), new WiimoteEmuMotionControlIMU(this));

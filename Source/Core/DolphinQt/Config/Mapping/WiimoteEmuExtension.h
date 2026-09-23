@@ -24,6 +24,7 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
 
+  void CreateBalanceBoardLayout();
   void CreateClassicLayout();
   void CreateDrumsLayout();
   void CreateGuitarLayout();
@@ -38,6 +39,7 @@ private:
 
   // Main
   QHBoxLayout* m_main_layout;
+  QGroupBox* m_balance_board_box;
   QGroupBox* m_classic_box;
   QGroupBox* m_drums_box;
   QGroupBox* m_guitar_box;

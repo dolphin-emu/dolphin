@@ -72,6 +72,7 @@ enum class UDrawTabletGroup;
 enum class DrawsomeTabletGroup;
 enum class TaTaConGroup;
 enum class ShinkansenGroup;
+enum class BalanceBoardGroup;
 
 template <typename T>
 void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
@@ -155,6 +156,7 @@ public:
   ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
   ControllerEmu::ControlGroup* GetShinkansenGroup(ShinkansenGroup group) const;
+  ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;

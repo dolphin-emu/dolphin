@@ -12,6 +12,12 @@
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
+namespace ControllerEmu
+{
+class Buttons;
+class ControlGroup;
+}  // namespace ControllerEmu
+
 namespace WiimoteEmu
 {
 struct DesiredExtensionState;
@@ -57,6 +63,46 @@ private:
 };
 
 // This class provides the encryption and initialization behavior of most extensions.
+enum class BalanceBoardGroup
+{
+  Button,
+  TopRight,
+  BottomRight,
+  TopLeft,
+  BottomLeft,
+};
+
+class BalanceBoard final : public Extension
+{
+public:
+  static constexpr u8 I2C_ADDR = 0x52;
+  static constexpr double MAX_SENSOR_WEIGHT_KG = 34.0;
+
+  struct DesiredState
+  {
+    std::array<ControlState, 4> sensor_weight;
+  };
+
+  BalanceBoard();
+  bool ReadDeviceDetectPin() const override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
+  void Reset() override;
+  void DoState(PointerWrap& p) override;
+  void LoadDefaults() override;
+
+  ControllerEmu::ControlGroup* GetGroup(BalanceBoardGroup group);
+
+private:
+  static u16 WeightToRaw(size_t sensor, double weight_kg);
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
+  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+
+  ControllerEmu::Buttons* m_button;
+  std::array<ControllerEmu::ControlGroup*, 4> m_sensor_groups;
+  std::array<u8, 0x100> m_registers{};
+};
+
 class EncryptedExtension : public Extension
 {
 public:
