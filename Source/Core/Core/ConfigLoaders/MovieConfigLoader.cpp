@@ -47,6 +47,8 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
 
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);
   config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, dtm->bSkipEFBCopyToRam);
+  config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM_CLEAR_BYTE,
+                    dtm->uSkipEFBCopyToRamClearByte);
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
   config_layer->Set(Config::GFX_HACK_IMMEDIATE_XFB, dtm->bImmediateXFB);
   config_layer->Set(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, dtm->bSkipXFBCopyToRam);
