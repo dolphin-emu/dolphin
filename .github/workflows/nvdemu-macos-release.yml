@@ -1,4 +1,5 @@
 name: NVDEMU Dolphin macOS Release
+# Release trigger validation
 
 on:
   push:
