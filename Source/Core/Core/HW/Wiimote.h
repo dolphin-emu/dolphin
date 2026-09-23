@@ -29,6 +29,7 @@ enum class UDrawTabletGroup;
 enum class DrawsomeTabletGroup;
 enum class TaTaConGroup;
 enum class ShinkansenGroup;
+enum class BalanceBoardGroup;
 }  // namespace WiimoteEmu
 
 enum
