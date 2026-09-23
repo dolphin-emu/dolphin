@@ -1,0 +1,161 @@
+name: NVDEMU Dolphin macOS Release
+
+on:
+  push:
+    branches:
+      - nvdemu-macos-universal-2609
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install qt cmake
+
+      - name: Configure
+        run: |
+          QT_PREFIX="$(brew --prefix qt)"
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_PREFIX_PATH="$QT_PREFIX" \
+            -DPOSTPROCESS_BUNDLE=ON \
+            -DMACOS_CODE_SIGNING=ON \
+            -DMACOS_CODE_SIGNING_IDENTITY=- \
+            -DENABLE_AUTOUPDATE=OFF \
+            -DENABLE_ANALYTICS=OFF \
+            -DENABLE_TESTS=OFF \
+            -DUSE_SYSTEM_LIBS=OFF \
+            -DDISTRIBUTOR=NVDEMU
+
+      - name: Build Dolphin
+        run: |
+          cmake --build build --target dolphin-emu --parallel "$(sysctl -n hw.logicalcpu)"
+          test -d build/Binaries/Dolphin.app
+          ditto build/Binaries/Dolphin.app "Dolphin-${{ matrix.arch }}.app"
+
+      - name: Upload architecture build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dolphin-macos-${{ matrix.arch }}
+          path: Dolphin-${{ matrix.arch }}.app
+          if-no-files-found: error
+
+  package:
+    name: Package universal DMG
+    needs: build
+    runs-on: macos-15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download arm64 app
+        uses: actions/download-artifact@v4
+        with:
+          name: dolphin-macos-arm64
+          path: artifacts/arm64
+
+      - name: Download x86_64 app
+        uses: actions/download-artifact@v4
+        with:
+          name: dolphin-macos-x86_64
+          path: artifacts/x86_64
+
+      - name: Merge universal app
+        run: |
+          rm -rf universal
+          mkdir -p universal
+          python3 - <<'PY'
+          from BuildMacOSUniversalBinary import recursive_merge_binaries
+          recursive_merge_binaries(
+              "artifacts/arm64/Dolphin-arm64.app",
+              "artifacts/x86_64/Dolphin-x86_64.app",
+              "universal/Dolphin.app",
+          )
+          PY
+
+      - name: Re-sign merged app
+        run: |
+          if [ -d "universal/Dolphin.app/Contents/Helpers/Dolphin Updater.app" ]; then
+            Tools/mac-codesign.sh -t -e preserve - "universal/Dolphin.app/Contents/Helpers/Dolphin Updater.app"
+          fi
+          Tools/mac-codesign.sh -t -e preserve - "universal/Dolphin.app"
+          codesign --verify --deep --strict --verbose=2 "universal/Dolphin.app"
+
+      - name: Verify universal binary
+        run: |
+          EXEC="universal/Dolphin.app/Contents/MacOS/Dolphin"
+          file "$EXEC"
+          lipo -info "$EXEC"
+          test "$(lipo -archs "$EXEC" | tr ' ' '\n' | grep -c '^arm64$')" -eq 1
+          test "$(lipo -archs "$EXEC" | tr ' ' '\n' | grep -c '^x86_64$')" -eq 1
+
+      - name: Create DMG
+        run: |
+          rm -rf dmg-root release
+          mkdir -p dmg-root release
+          ditto universal/Dolphin.app "dmg-root/Dolphin.app"
+          ln -s /Applications "dmg-root/Applications"
+          cat > "dmg-root/README.txt" <<'EOF'
+          NVDEMU Dolphin macOS build
+
+          Drag Dolphin.app to the Applications folder to install.
+
+          This build is ad-hoc signed and is not notarized by Apple.
+          EOF
+          hdiutil create \
+            -volname "NVDEMU Dolphin" \
+            -srcfolder "dmg-root" \
+            -ov \
+            -format UDZO \
+            "release/Dolphin-NVDEMU-macOS-universal.dmg"
+          shasum -a 256 "release/Dolphin-NVDEMU-macOS-universal.dmg" > "release/Dolphin-NVDEMU-macOS-universal.dmg.sha256"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="nvde-macos-2026.09.${GITHUB_RUN_ID}"
+          TITLE="NVDEMU Dolphin macOS Universal ${GITHUB_RUN_NUMBER}"
+          cat > release-notes.md <<EOF
+          # ${TITLE}
+
+          Universal macOS build containing both Apple Silicon (arm64) and Intel (x86_64).
+
+          macOS deployment target: 12.0 Monterey.
+
+          Included changes:
+          - Improved EFB texture/RAM invalidation handling for Rhythm Heaven Fever and Excite Truck.
+          - Added floor(), ceil(), round(), and trunc() controller-input expression functions.
+          - Updated macOS build tooling for current Xcode/macOS requirements.
+          EOF
+          gh release create "$TAG" \
+            "release/Dolphin-NVDEMU-macOS-universal.dmg" \
+            "release/Dolphin-NVDEMU-macOS-universal.dmg.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TITLE" \
+            --notes-file release-notes.md \
+            --target "$GITHUB_SHA"
