@@ -27,6 +27,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 // We need to include TextureDecoder.h for the texMem array.
 // TODO: Move texMem somewhere else so this isn't an issue.
@@ -392,6 +393,115 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
   }
 }
 
+void FifoPlayer::HighlightObject(std::function<void()> draw)
+{
+  // Backup the current state to restore it later.
+  FlushWGP();
+  const BPMemory bpmem_orig = bpmem;
+  const XFMemory xfmem_orig = xfmem;
+
+  // Set up state shared between the two artificial draws.
+  GenMode genmode{};
+  genmode.numtexgens = 0;
+  genmode.numcolchans = 0;
+  genmode.unused = 0;
+  genmode.flat_shading = false;
+  genmode.multisampling = false;
+  genmode.numtevstages = 0;  // one TEV stage
+  genmode.cull_mode = CullMode::None;
+  genmode.numindstages = 0;
+  genmode.zfreeze = bool(bpmem_orig.genMode.zfreeze);
+  LoadBPReg(BPMEM_GENMODE, genmode.hex);
+  LoadXFReg(XFMEM_SETNUMCHAN, 0);
+  LoadXFReg(XFMEM_SETNUMTEXGENS, 0);
+
+  TevStageCombiner tev{};
+  tev.colorC.op = TevOp::Add;
+  tev.colorC.a = TevColorArg::Konst;
+  tev.colorC.b = TevColorArg::Zero;
+  tev.colorC.c = TevColorArg::Zero;
+  tev.colorC.d = TevColorArg::Zero;
+  tev.colorC.bias = TevBias::Zero;
+  tev.colorC.scale = TevScale::Scale1;
+  tev.colorC.dest = TevOutput::Prev;
+  LoadBPReg(BPMEM_TEV_COLOR_ENV, tev.colorC.hex);
+
+  tev.alphaC.a = TevAlphaArg::Konst;
+  tev.alphaC.b = TevAlphaArg::Zero;
+  tev.alphaC.c = TevAlphaArg::Zero;
+  tev.alphaC.d = TevAlphaArg::Zero;
+  tev.alphaC.bias = TevBias::Zero;
+  tev.alphaC.scale = TevScale::Scale1;
+  tev.alphaC.dest = TevOutput::Prev;
+  LoadBPReg(BPMEM_TEV_ALPHA_ENV, tev.alphaC.hex);
+
+  LoadBPReg(BPMEM_TREF, TwoTevStageOrders{}.hex);
+
+  // No fog.
+  FogParam3 fog{};
+  fog.fsel = FogType::Off;
+  LoadBPReg(BPMEM_FOGPARAM3, fog.hex);
+
+  // No blending, just overwrite both color and alpha.
+  BlendMode blendmode{};
+  blendmode.blend_enable = false;
+  blendmode.color_update = true;
+  blendmode.alpha_update = true;
+  LoadBPReg(BPMEM_BLENDMODE, blendmode.hex);
+
+  // Use the constant color and set alpha to 1.
+  TevKSel ksel{};
+  ksel.kcsel_even = KonstSel::K0;
+  ksel.kasel_even = KonstSel::V1;
+  LoadBPReg(BPMEM_TEV_KSEL, ksel.hex);
+
+  // Draw red unconditionally.
+  ZMode zmode0{};
+  zmode0.test_enable = false;
+  zmode0.update_enable = false;
+  LoadBPReg(BPMEM_ZMODE, zmode0.hex);
+  TevReg reg0{};
+  reg0.ra.red = 0xFF;
+  reg0.ra.alpha = 0xFF;
+  reg0.ra.type = TevRegType::Constant;
+  reg0.bg.blue = 0;
+  reg0.bg.green = 0;
+  reg0.bg.type = TevRegType::Constant;
+  LoadBPReg(BPMEM_TEV_COLOR_RA, reg0.ra.hex);
+  LoadBPReg(BPMEM_TEV_COLOR_BG, reg0.bg.hex);
+  draw();
+
+  // Draw green where the original depth test passes.
+  ZMode zmode1 = bpmem_orig.zmode;
+  zmode1.update_enable = false;
+  LoadBPReg(BPMEM_ZMODE, zmode1.hex);
+  TevReg reg1{};
+  reg1.ra.red = 0;
+  reg1.ra.alpha = 0xFF;
+  reg1.ra.type = TevRegType::Constant;
+  reg1.bg.blue = 0;
+  reg1.bg.green = 0xFF;
+  reg1.bg.type = TevRegType::Constant;
+  LoadBPReg(BPMEM_TEV_COLOR_RA, reg1.ra.hex);
+  LoadBPReg(BPMEM_TEV_COLOR_BG, reg1.bg.hex);
+  draw();
+
+  // Reset the state.
+  LoadBPReg(BPMEM_GENMODE, bpmem_orig.genMode.hex);
+  LoadXFReg(XFMEM_SETNUMCHAN, xfmem_orig.numChan.hex);
+  LoadXFReg(XFMEM_SETNUMTEXGENS, xfmem_orig.numTexGen.hex);
+  LoadBPReg(BPMEM_TREF, bpmem_orig.tevorders[0].hex);
+  LoadBPReg(BPMEM_BLENDMODE, bpmem_orig.blendmode.hex);
+  LoadBPReg(BPMEM_FOGPARAM3, bpmem_orig.fog.c_proj_fsel.hex);
+  LoadBPReg(BPMEM_TEV_KSEL, bpmem_orig.tevksel.ksel[0].hex);
+  LoadBPReg(BPMEM_TEV_COLOR_ENV, bpmem_orig.combiners[0].colorC.hex);
+  LoadBPReg(BPMEM_TEV_ALPHA_ENV, bpmem_orig.combiners[0].alphaC.hex);
+
+  LoadBPReg(BPMEM_ZMODE, bpmem_orig.zmode.hex);
+  LoadBPReg(BPMEM_TEV_COLOR_RA, bpmem_orig.tevregs[0].ra.hex);
+  LoadBPReg(BPMEM_TEV_COLOR_BG, bpmem_orig.tevregs[0].bg.hex);
+}
+
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
@@ -413,10 +523,12 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   for (const FramePart& part : info.parts)
   {
     bool show_part;
+    bool is_last;
 
     if (part.m_type == FramePartType::PrimitiveData)
     {
       show_part = m_ObjectRangeStart <= object_num && object_num <= m_ObjectRangeEnd;
+      is_last = object_num == m_ObjectRangeEnd;
       object_num++;
     }
     else
@@ -424,10 +536,16 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
       // We always include commands and EFB copies, as commands from earlier objects still apply to
       // later ones (games generally do not reconfigure everything for each object)
       show_part = true;
+      is_last = false;
     }
 
     if (show_part)
-      WriteFramePart(part, &memory_update, frame);
+    {
+      if (is_last)
+        HighlightObject([&] { WriteFramePart(part, &memory_update, frame); });
+      else
+        WriteFramePart(part, &memory_update, frame);
+    }
   }
 
   FlushWGP();
