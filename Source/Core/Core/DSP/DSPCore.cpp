@@ -33,7 +33,7 @@ static bool VerifyRoms(const SDSP& dsp)
     u32 hash_drom;  // dsp_coef.bin
   };
 
-  static const std::array<DspRomHashes, 7> known_roms = {{
+  static constexpr std::array<DspRomHashes, 7> known_roms = {{
       // Official Nintendo ROM
       {0x66f334fe, 0xf3b93527},
 

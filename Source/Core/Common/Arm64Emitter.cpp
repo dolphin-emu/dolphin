@@ -13,12 +13,12 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <sfl/static_vector.hpp>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/SmallVector.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1854,17 +1854,17 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   constexpr size_t max_parts = sizeof(T) / 2;
 
-  Common::SmallVector<Part, max_parts> best_parts;
+  sfl::static_vector<Part, max_parts> best_parts;
   Approach best_approach;
   u64 best_base;
 
-  const auto instructions_required = [](const Common::SmallVector<Part, max_parts>& parts,
+  const auto instructions_required = [](const sfl::static_vector<Part, max_parts>& parts,
                                         Approach approach) {
     return parts.size() + (approach > Approach::MOVNBase);
   };
 
   const auto try_base = [&](T base, Approach approach, bool first_time) {
-    Common::SmallVector<Part, max_parts> parts;
+    sfl::static_vector<Part, max_parts> parts;
 
     for (size_t i = 0; i < max_parts; ++i)
     {

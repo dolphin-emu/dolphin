@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include <map>
 #include <mutex>
 #include <queue>
 #include <vector>
+
+#include <sfl/static_flat_map.hpp>
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -68,7 +69,7 @@ struct SkyData
   Type type = Type::Unknown;
 };
 
-extern const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders;
+extern const sfl::static_flat_map<std::pair<u16, u16>, SkyData, 517> list_skylanders;
 class SkylanderUSB final : public Device
 {
 public:

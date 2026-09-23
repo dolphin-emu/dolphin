@@ -12,6 +12,7 @@
 #include <utility>
 
 #include <fmt/format.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include <android/input.h>
 #include <android/keycodes.h>
@@ -92,7 +93,7 @@ std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qu
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
-const std::array<std::string_view, MAX_KEYCODE + 1> KEYCODE_NAMES = {
+constexpr std::array<std::string_view, MAX_KEYCODE + 1> KEYCODE_NAMES = {
     "Unknown",
     "Soft Left",
     "Soft Right",
@@ -394,7 +395,7 @@ std::string ConstructAxisNamePrefix(int source)
   // A device is allowed to have two axes with the same axis ID but different source IDs,
   // so we have to make sure to include the source in the axis name.
 
-  static const std::unordered_map<int, std::string> source_names{
+  constexpr sfl::static_unordered_linear_map<int, std::string_view, 15> source_names{
       {AINPUT_SOURCE_KEYBOARD, "Keyboard"},
       {AINPUT_SOURCE_DPAD, "Dpad"},
       {AINPUT_SOURCE_GAMEPAD, "Gamepad"},

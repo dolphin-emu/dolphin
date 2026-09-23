@@ -7,13 +7,13 @@
 #include <charconv>
 #include <cwchar>
 #include <functional>
-#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <fmt/format.h>
+#include <sfl/static_unordered_linear_map.hpp>
 #ifdef HAVE_LIBUDEV
 #include <libudev.h>
 #endif
@@ -40,36 +40,37 @@
 #include "Core/LibusbUtils.h"
 
 // Device names for known Wii peripherals.
-static const std::map<USBUtils::DeviceInfo, std::string> s_known_devices{{
-    {{0x046d, 0x0a03}, "Logitech Microphone"},
-    {{0x057e, 0x0308}, "Wii Speak"},
-    {{0x057e, 0x0309}, "Nintendo USB Microphone"},
-    {{0x057e, 0x030a}, "Ubisoft Motion Tracking Camera"},
-    {{0x0e6f, 0x0129}, "Disney Infinity Reader (Portal Device)"},
-    {{0x12ba, 0x0200}, "Harmonix Guitar for PlayStation 3"},
-    {{0x12ba, 0x0210}, "Harmonix Drum Kit for PlayStation 3"},
-    {{0x12ba, 0x0218}, "Harmonix Drum Kit for PlayStation 3"},
-    {{0x12ba, 0x2330}, "Harmonix RB3 Keyboard for PlayStation 3"},
-    {{0x12ba, 0x2338}, "Harmonix RB3 MIDI Keyboard Interface for PlayStation 3"},
-    {{0x12ba, 0x2430}, "Harmonix RB3 Mustang Guitar for PlayStation 3"},
-    {{0x12ba, 0x2438}, "Harmonix RB3 MIDI Guitar Interface for PlayStation 3"},
-    {{0x12ba, 0x2530}, "Harmonix RB3 Squier Guitar for PlayStation 3"},
-    {{0x12ba, 0x2538}, "Harmonix RB3 MIDI Guitar Interface for PlayStation 3"},
-    {{0x1430, 0x0100}, "Tony Hawk Ride Skateboard"},
-    {{0x1430, 0x0150}, "Skylanders Portal"},
-    {{0x1bad, 0x0004}, "Harmonix Guitar Controller for Nintendo Wii"},
-    {{0x1bad, 0x0005}, "Harmonix Drum Controller for Nintendo Wii"},
-    {{0x1bad, 0x3010}, "Harmonix Guitar Controller for Nintendo Wii"},
-    {{0x1bad, 0x3110}, "Harmonix Drum Controller for Nintendo Wii"},
-    {{0x1bad, 0x3138}, "Harmonix Drum Controller for Nintendo Wii"},
-    {{0x1bad, 0x3330}, "Harmonix RB3 Keyboard for Nintendo Wii"},
-    {{0x1bad, 0x3338}, "Harmonix RB3 MIDI Keyboard Interface for Nintendo Wii"},
-    {{0x1bad, 0x3430}, "Harmonix RB3 Mustang Guitar for Nintendo Wii"},
-    {{0x1bad, 0x3438}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
-    {{0x1bad, 0x3530}, "Harmonix RB3 Squier Guitar for Nintendo Wii"},
-    {{0x1bad, 0x3538}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
-    {{0x21a4, 0xac40}, "EA Active NFL"},
-}};
+constexpr sfl::static_unordered_linear_map<USBUtils::DeviceInfo, std::string_view, 28>
+    s_known_devices{
+        {{0x046d, 0x0a03}, "Logitech Microphone"},
+        {{0x057e, 0x0308}, "Wii Speak"},
+        {{0x057e, 0x0309}, "Nintendo USB Microphone"},
+        {{0x057e, 0x030a}, "Ubisoft Motion Tracking Camera"},
+        {{0x0e6f, 0x0129}, "Disney Infinity Reader (Portal Device)"},
+        {{0x12ba, 0x0200}, "Harmonix Guitar for PlayStation 3"},
+        {{0x12ba, 0x0210}, "Harmonix Drum Kit for PlayStation 3"},
+        {{0x12ba, 0x0218}, "Harmonix Drum Kit for PlayStation 3"},
+        {{0x12ba, 0x2330}, "Harmonix RB3 Keyboard for PlayStation 3"},
+        {{0x12ba, 0x2338}, "Harmonix RB3 MIDI Keyboard Interface for PlayStation 3"},
+        {{0x12ba, 0x2430}, "Harmonix RB3 Mustang Guitar for PlayStation 3"},
+        {{0x12ba, 0x2438}, "Harmonix RB3 MIDI Guitar Interface for PlayStation 3"},
+        {{0x12ba, 0x2530}, "Harmonix RB3 Squier Guitar for PlayStation 3"},
+        {{0x12ba, 0x2538}, "Harmonix RB3 MIDI Guitar Interface for PlayStation 3"},
+        {{0x1430, 0x0100}, "Tony Hawk Ride Skateboard"},
+        {{0x1430, 0x0150}, "Skylanders Portal"},
+        {{0x1bad, 0x0004}, "Harmonix Guitar Controller for Nintendo Wii"},
+        {{0x1bad, 0x0005}, "Harmonix Drum Controller for Nintendo Wii"},
+        {{0x1bad, 0x3010}, "Harmonix Guitar Controller for Nintendo Wii"},
+        {{0x1bad, 0x3110}, "Harmonix Drum Controller for Nintendo Wii"},
+        {{0x1bad, 0x3138}, "Harmonix Drum Controller for Nintendo Wii"},
+        {{0x1bad, 0x3330}, "Harmonix RB3 Keyboard for Nintendo Wii"},
+        {{0x1bad, 0x3338}, "Harmonix RB3 MIDI Keyboard Interface for Nintendo Wii"},
+        {{0x1bad, 0x3430}, "Harmonix RB3 Mustang Guitar for Nintendo Wii"},
+        {{0x1bad, 0x3438}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
+        {{0x1bad, 0x3530}, "Harmonix RB3 Squier Guitar for Nintendo Wii"},
+        {{0x1bad, 0x3538}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
+        {{0x21a4, 0xac40}, "EA Active NFL"},
+    };
 
 namespace USBUtils
 {
@@ -118,7 +119,7 @@ static std::optional<std::string> GetDeviceNameUsingKnownDevices(u16 vid, u16 pi
 {
   const auto iter = s_known_devices.find(DeviceInfo{vid, pid});
   if (iter != s_known_devices.end())
-    return iter->second;
+    return std::string(iter->second);
   return std::nullopt;
 }
 

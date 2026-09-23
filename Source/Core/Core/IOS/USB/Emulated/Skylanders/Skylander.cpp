@@ -3,9 +3,10 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 
-#include <map>
 #include <mutex>
 #include <vector>
+
+#include <sfl/static_flat_map.hpp>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
@@ -15,7 +16,7 @@
 
 namespace IOS::HLE::USB
 {
-const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders = {
+constexpr sfl::static_flat_map<std::pair<u16, u16>, SkyData, 517> list_skylanders{
     {{0, 0x0000}, {"Whirlwind", Game::SpyrosAdv, Element::Air, Type::Skylander}},
     {{0, 0x1801}, {"Whirlwind (S2)", Game::Giants, Element::Air, Type::Skylander}},
     {{0, 0x1812}, {"Whirlwind (Stone)", Game::Giants, Element::Air, Type::Skylander}},

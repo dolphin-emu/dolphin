@@ -5,6 +5,8 @@
 
 #include <QuartzCore/QuartzCore.h>
 
+#include <string>
+
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 

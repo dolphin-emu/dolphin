@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include <sfl/static_unordered_linear_map.hpp>
+
 #include "Common/Projection.h"
 
 namespace Config
@@ -154,7 +156,7 @@ void ClearCurrentRunLayer()
   s_layers.insert_or_assign(LayerType::CurrentRun, std::make_shared<Layer>(LayerType::CurrentRun));
 }
 
-static const std::map<System, std::string> system_to_name = {
+constexpr sfl::static_unordered_linear_map<System, std::string_view, 12> system_to_name = {
     {System::Main, "Dolphin"},
     {System::GCPad, "GCPad"},
     {System::WiiPad, "Wiimote"},
@@ -168,7 +170,7 @@ static const std::map<System, std::string> system_to_name = {
     {System::GameSettingsOnly, "GameSettingsOnly"},
     {System::Achievements, "Achievements"}};
 
-const std::string& GetSystemName(System system)
+std::string_view GetSystemName(System system)
 {
   return system_to_name.at(system);
 }
@@ -182,17 +184,18 @@ std::optional<System> GetSystemFromName(const std::string& name)
   return {};
 }
 
-const std::string& GetLayerName(LayerType layer)
+constexpr sfl::static_unordered_linear_map<LayerType, std::string_view, 7> layer_to_name = {
+    {LayerType::Base, "Base"},
+    {LayerType::GlobalGame, "Global GameINI"},
+    {LayerType::LocalGame, "Local GameINI"},
+    {LayerType::Netplay, "Netplay"},
+    {LayerType::Movie, "Movie"},
+    {LayerType::CommandLine, "Command Line"},
+    {LayerType::CurrentRun, "Current Run"},
+};
+
+std::string_view GetLayerName(LayerType layer)
 {
-  static const std::map<LayerType, std::string> layer_to_name = {
-      {LayerType::Base, "Base"},
-      {LayerType::GlobalGame, "Global GameINI"},
-      {LayerType::LocalGame, "Local GameINI"},
-      {LayerType::Netplay, "Netplay"},
-      {LayerType::Movie, "Movie"},
-      {LayerType::CommandLine, "Command Line"},
-      {LayerType::CurrentRun, "Current Run"},
-  };
   return layer_to_name.at(layer);
 }
 

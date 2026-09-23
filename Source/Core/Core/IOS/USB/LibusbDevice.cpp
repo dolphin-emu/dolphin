@@ -7,13 +7,13 @@
 #include <cstddef>
 #include <cstring>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <utility>
 #include <vector>
 
 #include <libusb.h>
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
@@ -462,7 +462,7 @@ void LibusbDevice::TransferCallback(libusb_transfer* transfer)
   });
 }
 
-static const std::map<u8, const char*> s_transfer_types = {
+constexpr sfl::static_unordered_linear_map<u8, std::string_view, 4> s_transfer_types = {
     {LIBUSB_TRANSFER_TYPE_CONTROL, "Control"},
     {LIBUSB_TRANSFER_TYPE_ISOCHRONOUS, "Isochronous"},
     {LIBUSB_TRANSFER_TYPE_BULK, "Bulk"},

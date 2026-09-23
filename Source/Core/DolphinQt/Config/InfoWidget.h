@@ -4,7 +4,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <string_view>
 
 #include <QWidget>
 
@@ -36,7 +36,7 @@ private:
   QGroupBox* CreateGameDetails();
   QGroupBox* CreateBannerDetails();
   QLineEdit* CreateValueDisplay(const QString& value);
-  QLineEdit* CreateValueDisplay(const std::string& value = "");
+  QLineEdit* CreateValueDisplay(std::string_view value = "");
   void CreateLanguageSelector();
   QWidget* CreateBannerGraphic(const QPixmap& image);
 

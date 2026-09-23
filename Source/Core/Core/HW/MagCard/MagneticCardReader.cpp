@@ -10,11 +10,12 @@
 #include <algorithm>
 #include <numeric>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
-#include "Common/SmallVector.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 
@@ -60,7 +61,7 @@ enum class Track : u8
 
 static auto GetTrackIndicesForTrackType(Track track)
 {
-  Common::SmallVector<std::size_t, MagneticCardReader::NUM_TRACKS> result;
+  sfl::static_vector<std::size_t, MagneticCardReader::NUM_TRACKS> result;
 
   switch (track)
   {

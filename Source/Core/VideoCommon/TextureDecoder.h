@@ -186,7 +186,21 @@ int TexDecoder_GetBlockWidthInTexels(TextureFormat format);
 int TexDecoder_GetBlockHeightInTexels(TextureFormat format);
 int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format);
 int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format);
-int TexDecoder_GetPaletteSize(TextureFormat fmt);
+// returns bytes
+constexpr int TexDecoder_GetPaletteSize(TextureFormat format)
+{
+  switch (format)
+  {
+  case TextureFormat::C4:
+    return 16 * 2;
+  case TextureFormat::C8:
+    return 256 * 2;
+  case TextureFormat::C14X2:
+    return 16384 * 2;
+  default:
+    return 0;
+  }
+}
 TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format);
 
 void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFormat texformat,

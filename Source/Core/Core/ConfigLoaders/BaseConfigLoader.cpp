@@ -12,6 +12,8 @@
 #include <string>
 #include <variant>
 
+#include <sfl/static_unordered_linear_map.hpp>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
@@ -125,7 +127,7 @@ void SaveToSYSCONF(Config::LayerType layer, SkipIfControlledByGuest skip,
   sysconf.Save();
 }
 
-const std::map<Config::System, int> system_to_ini = {
+constexpr sfl::static_unordered_linear_map<Config::System, int, 9> system_to_ini = {
     {Config::System::Main, F_DOLPHINCONFIG_IDX},
     {Config::System::GCPad, F_GCPADCONFIG_IDX},
     {Config::System::WiiPad, F_WIIPADCONFIG_IDX},

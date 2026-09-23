@@ -7,11 +7,12 @@
 #include <bit>
 #include <limits>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/PowerPC/ConditionRegister.h"
@@ -56,7 +57,7 @@ void Jit64::GenerateOverflow(Gen::CCFlags cond)
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
-  static const std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
+  static constexpr std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
   LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
@@ -2531,7 +2532,7 @@ void Jit64::twX(UGeckoInstruction inst)
   }
 
   constexpr std::array<CCFlags, 5> conditions{{CC_A, CC_B, CC_E, CC_G, CC_L}};
-  Common::SmallVector<FixupBranch, conditions.size()> fixups;
+  sfl::static_vector<FixupBranch, conditions.size()> fixups;
 
   for (size_t i = 0; i < conditions.size(); i++)
   {

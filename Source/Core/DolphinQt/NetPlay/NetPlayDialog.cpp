@@ -28,6 +28,7 @@
 #ifdef HAS_LIBMGBA
 #include <fmt/ranges.h>
 #endif
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
@@ -623,7 +624,8 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(m_player_count);
 
-  static const std::map<NetPlay::SyncIdentifierComparison, std::pair<QString, QString>>
+  static const sfl::static_unordered_linear_map<NetPlay::SyncIdentifierComparison,
+                                                std::pair<QString, QString>, 6>
       player_status{
           {NetPlay::SyncIdentifierComparison::SameGame, {tr("OK"), tr("OK")}},
           {NetPlay::SyncIdentifierComparison::DifferentHash,

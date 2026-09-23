@@ -7,10 +7,11 @@
 #include <cmath>
 #include <string_view>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/SmallVector.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
@@ -76,7 +77,7 @@ bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) cons
 
 namespace
 {
-using RangeList = Common::SmallVector<ScissorRange, 9>;
+using RangeList = sfl::static_vector<ScissorRange, 9>;
 
 static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
 {

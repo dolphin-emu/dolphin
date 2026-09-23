@@ -134,3 +134,7 @@
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
 	shallow = true
+[submodule "Externals/sfl-library"]
+	path = Externals/sfl-library
+	url = https://github.com/slavenf/sfl-library/
+	shallow = true

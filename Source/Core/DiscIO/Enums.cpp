@@ -3,8 +3,9 @@
 
 #include "DiscIO/Enums.h"
 
-#include <map>
 #include <string>
+
+#include <sfl/static_flat_map.hpp>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -488,9 +489,9 @@ std::string GetSysMenuVersionString(u16 title_version, bool is_vwii)
   return version;
 }
 
-const std::string& GetCompanyFromID(const std::string& company_id)
+std::string_view GetCompanyFromID(std::string_view company_id)
 {
-  static const std::map<std::string, std::string> companies = {
+  static constexpr sfl::static_flat_map<std::string_view, std::string_view, 381> companies = {
       {"01", "Nintendo"},
       {"02", "Nintendo"},
       {"08", "Capcom"},
@@ -874,7 +875,7 @@ const std::string& GetCompanyFromID(const std::string& company_id)
       {"ZW", "Judo Baby"},
       {"ZX", "TopWare Interactive"}};
 
-  static const std::string EMPTY_STRING;
+  static constexpr std::string_view EMPTY_STRING;
   auto iterator = companies.find(company_id);
   if (iterator != companies.end())
     return iterator->second;

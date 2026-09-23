@@ -7,9 +7,9 @@
 #include <bit>
 #include <random>
 #include <string>
-#include <unordered_map>
 
 #include <fmt/format.h>
+#include "sfl/static_unordered_linear_map.hpp"
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -212,7 +212,7 @@ static std::span<u8> GetSpanForMediaboardAddress(u32 address)
   return {};
 }
 
-static const std::unordered_map<u16, GameType> s_game_map = {
+constexpr sfl::static_unordered_linear_map<u16, GameType, 23> s_game_map = {
     {0x4747, FZeroAX},
     {0x4841, FZeroAXMonster},
     {0x4B50, MarioKartGP},

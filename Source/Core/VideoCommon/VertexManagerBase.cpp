@@ -7,13 +7,14 @@
 #include <cmath>
 #include <memory>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Common/SmallVector.h"
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
@@ -560,7 +561,7 @@ void VertexManagerBase::Flush()
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
-  Common::SmallVector<u32, 8> texture_units;
+  sfl::static_vector<u32, 8> texture_units;
   std::array<SamplerState, 8> samplers;
   if (!m_cull_all)
   {

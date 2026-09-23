@@ -46,9 +46,9 @@ void Init();
 void Shutdown();
 void ClearCurrentRunLayer();
 
-const std::string& GetSystemName(System system);
+std::string_view GetSystemName(System system);
 std::optional<System> GetSystemFromName(const std::string& system);
-const std::string& GetLayerName(LayerType layer);
+std::string_view GetLayerName(LayerType layer);
 LayerType GetActiveLayerForConfig(const Location&);
 
 std::optional<std::string> GetAsString(const Location&);

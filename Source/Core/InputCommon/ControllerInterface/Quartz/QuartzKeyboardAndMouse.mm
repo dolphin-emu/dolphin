@@ -3,11 +3,13 @@
 
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
-#include <map>
 #include <mutex>
+#include <string>
+#include <string_view>
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
+#include <sfl/static_flat_map.hpp>
 
 #include "Core/Host.h"
 
@@ -78,7 +80,7 @@ namespace ciface::Quartz
 {
 std::string KeycodeToName(const CGKeyCode keycode)
 {
-  static const std::map<CGKeyCode, std::string> named_keys = {
+  constexpr sfl::static_flat_map<CGKeyCode, std::string_view, 98> named_keys = {
       {kVK_ANSI_A, "A"},
       {kVK_ANSI_B, "B"},
       {kVK_ANSI_C, "C"},
@@ -180,7 +182,7 @@ std::string KeycodeToName(const CGKeyCode keycode)
   };
 
   if (named_keys.contains(keycode))
-    return named_keys.at(keycode);
+    return std::string(named_keys.at(keycode));
   else
     return "Key " + std::to_string(keycode);
 }

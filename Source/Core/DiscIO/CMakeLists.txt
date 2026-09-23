@@ -79,6 +79,7 @@ PRIVATE
   fmt::fmt
   MINIZIP::minizip-ng
   pugixml
+  sfl
   ZLIB::ZLIB
 )
 

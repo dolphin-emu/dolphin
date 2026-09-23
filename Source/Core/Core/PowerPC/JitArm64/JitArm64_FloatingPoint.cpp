@@ -5,11 +5,12 @@
 
 #include <optional>
 
+#include <sfl/static_vector.hpp>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/SmallVector.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/SessionSettings.h"
@@ -206,7 +207,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       break;
     }
 
-    Common::SmallVector<FixupBranch, 4> nan_fixups;
+    sfl::static_vector<FixupBranch, 4> nan_fixups;
     std::optional<FixupBranch> nan_early_fixup;
     if (m_accurate_nans)
     {
@@ -219,7 +220,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       SwitchToFarCode();
       SetJumpTarget(nan);
 
-      Common::SmallVector<ARM64Reg, 3> inputs;
+      sfl::static_vector<ARM64Reg, 3> inputs;
       inputs.push_back(VA);
       if (use_b && VA != VB)
         inputs.push_back(VB);

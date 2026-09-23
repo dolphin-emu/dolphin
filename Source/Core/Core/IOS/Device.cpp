@@ -4,8 +4,9 @@
 #include "Core/IOS/Device.h"
 
 #include <algorithm>
-#include <map>
 #include <utility>
+
+#include "sfl/static_unordered_linear_map.hpp"
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -179,13 +180,10 @@ std::optional<IPCReply> Device::Close(u32 fd)
 
 std::optional<IPCReply> Device::Unsupported(const Request& request)
 {
-  static const std::map<IPCCommandType, std::string_view> names{{
-      {IPC_CMD_READ, "Read"},
-      {IPC_CMD_WRITE, "Write"},
-      {IPC_CMD_SEEK, "Seek"},
-      {IPC_CMD_IOCTL, "IOCtl"},
-      {IPC_CMD_IOCTLV, "IOCtlV"},
-  }};
+  static constexpr sfl::static_unordered_linear_map<IPCCommandType, std::string_view, 5> names{
+      {IPC_CMD_READ, "Read"},   {IPC_CMD_WRITE, "Write"},   {IPC_CMD_SEEK, "Seek"},
+      {IPC_CMD_IOCTL, "IOCtl"}, {IPC_CMD_IOCTLV, "IOCtlV"},
+  };
 
   WARN_LOG_FMT(IOS, "{} does not support {}()", m_name, names.at(request.command));
   return IPCReply{IPC_EINVAL};

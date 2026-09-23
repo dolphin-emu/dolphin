@@ -3,9 +3,10 @@
 
 #include "VideoCommon/TextureConversionShader.h"
 
-#include <map>
 #include <sstream>
 #include <string_view>
+
+#include <sfl/static_unordered_linear_map.hpp>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -660,10 +661,11 @@ float4 GetPaletteColorNormalized(uint index)
 
 )";
 
-static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
-    {TextureFormat::I4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+constexpr sfl::static_unordered_linear_map<TextureFormat, DecodingShaderInfo, 12>
+    s_decoding_shader_info{
+        {TextureFormat::I4,
+         {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -694,9 +696,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::IA4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::IA4,
+         {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -712,9 +714,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::I8,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::I8,
+         {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -728,9 +730,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::IA8,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::IA8,
+         {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -745,9 +747,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::RGB565,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::RGB565,
+         {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -767,9 +769,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::RGB5A3,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::RGB5A3,
+         {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -799,9 +801,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::RGBA8,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+        {TextureFormat::RGBA8,
+         {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -833,9 +835,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::CMPR,
-     {TEXEL_BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
-      R"(
+        {TextureFormat::CMPR,
+         {TEXEL_BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
+          R"(
       // In the compute version of this decoder, we flatten the blocks to a one-dimension array.
       // Each group is subdivided into 16, and the first thread in each group fetches the DXT data.
       // All threads then calculate the possible colors for the block and write to the output image.
@@ -948,10 +950,10 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(uint2(global_x, global_y)), 0), norm_color);
       }
       )"}},
-    {TextureFormat::C4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)),
-      8, 8, false,
-      R"(
+        {TextureFormat::C4,
+         {TEXEL_BUFFER_FORMAT_R8_UINT,
+          static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)), 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -975,10 +977,10 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::C8,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)),
-      8, 8, false,
-      R"(
+        {TextureFormat::C8,
+         {TEXEL_BUFFER_FORMAT_R8_UINT,
+          static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)), 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -990,10 +992,10 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::C14X2,
-     {TEXEL_BUFFER_FORMAT_R16_UINT,
-      static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8, 8, false,
-      R"(
+        {TextureFormat::C14X2,
+         {TEXEL_BUFFER_FORMAT_R16_UINT,
+          static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -1006,13 +1008,13 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
       )"}},
 
-    // We do the inverse BT.601 conversion for YCbCr to RGB
-    // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-    // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
-    // in a real texture format, so does this conversion actually ever happen?)
-    {TextureFormat::XFB,
-     {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
-      R"(
+        // We do the inverse BT.601 conversion for YCbCr to RGB
+        // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+        // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB
+        // isn't in a real texture format, so does this conversion actually ever happen?)
+        {TextureFormat::XFB,
+         {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+          R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 uv = gl_GlobalInvocationID.xy;

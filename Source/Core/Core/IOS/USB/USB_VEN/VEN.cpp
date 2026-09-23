@@ -8,6 +8,8 @@
 #include <memory>
 #include <mutex>
 
+#include <sfl/static_unordered_linear_map.hpp>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
@@ -52,7 +54,7 @@ std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
 
 std::optional<IPCReply> USB_VEN::IOCtlV(const IOCtlVRequest& request)
 {
-  static const std::map<u32, u32> s_num_vectors = {
+  static constexpr sfl::static_unordered_linear_map<u32, u32, 4> s_num_vectors = {
       {USB::IOCTLV_USBV5_CTRLMSG, 2},
       {USB::IOCTLV_USBV5_INTRMSG, 2},
       {USB::IOCTLV_USBV5_BULKMSG, 2},
