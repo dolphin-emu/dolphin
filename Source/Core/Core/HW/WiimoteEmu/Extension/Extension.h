@@ -80,7 +80,7 @@ public:
 
   struct DesiredState
   {
-    std::array<ControlState, 4> sensor_weight;
+    std::array<u8, 4> sensor_weight;
   };
 
   BalanceBoard();
