@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ccache
-          key: macos-ccache-${{ matrix.arch }}-${{ github.run_id }}
+          key: macos-ccache-${{ matrix.arch }}-v1
           restore-keys: |
             macos-ccache-${{ matrix.arch }}-
 

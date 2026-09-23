@@ -23,6 +23,7 @@
 #include <utility>
 
 #include <QDesktopServices>
+#include <QClipboard>
 #include <QGuiApplication>
 #include <QDir>
 #include <QErrorMessage>

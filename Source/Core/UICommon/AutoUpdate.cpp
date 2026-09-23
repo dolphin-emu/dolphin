@@ -209,7 +209,8 @@ bool ReleaseHasPlatformAsset(const picojson::object& release)
     if (name_it == asset.end() || !name_it->second.is<std::string>())
       continue;
 
-    const std::string name = ToLower(name_it->second.get<std::string>());
+    std::string name = name_it->second.get<std::string>();
+    Common::ToLower(&name);
     if (platform.starts_with("macos") && name.find("macos") != std::string::npos &&
         name.ends_with(".dmg"))
       return true;
