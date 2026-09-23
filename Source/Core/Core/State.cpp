@@ -1053,6 +1053,7 @@ void ClearHistory(Core::System& system, u32 slot)
     return;
 
   Core::RunOnCPUThread(system, [slot] {
+    s_compress_and_dump_thread.WaitForCompletion();
     ClearHistoryFiles(slot);
     Core::DisplayMessage(fmt::format("Cleared savestate history for Slot {}", slot), 2000);
   });
