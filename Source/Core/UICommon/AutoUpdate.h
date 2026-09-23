@@ -35,9 +35,13 @@ public:
     std::string changelog_html;
 
     // Internals, to be passed to the updater binary.
+    // For NVDEMU GitHub Releases, external_update_url is set and the release is opened in a browser.
     std::string this_manifest_url;
     std::string next_manifest_url;
     std::string content_store_url;
+
+    // Set for NVDEMU builds that use GitHub Releases instead of the Dolphin update server.
+    std::string external_update_url;
   };
 
   // Starts the updater process, which will wait in the background until the current process exits.

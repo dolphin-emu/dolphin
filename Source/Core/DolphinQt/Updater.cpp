@@ -7,12 +7,14 @@
 #include <utility>
 
 #include <QCheckBox>
+#include <QDesktopServices>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+#include <QUrl>
 
 #include "Common/Version.h"
 
@@ -42,6 +44,41 @@ void Updater::CheckForUpdate()
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
+
+  if (!info.external_update_url.empty())
+  {
+    std::optional<int> choice = RunOnObject(m_parent, [&] {
+      QDialog* dialog = new QDialog(m_parent);
+      dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+      dialog->setWindowTitle(tr("NVDEMU update available"));
+
+      auto* label = new QLabel(
+          tr("<h2>A new NVDEMU Dolphin release is available!</h2>Dolphin %1 is available for "
+             "download.<br>You are running %2.<br><br>The release will open on GitHub.")
+              .arg(QString::fromStdString(info.new_shortrev))
+              .arg(QString::fromStdString(Common::GetScmDescStr())));
+      label->setTextFormat(Qt::RichText);
+
+      auto* buttons = new QDialogButtonBox;
+      buttons->addButton(tr("Close"), QDialogButtonBox::RejectRole);
+      buttons->addButton(tr("Open GitHub Release"), QDialogButtonBox::AcceptRole);
+
+      auto* layout = new QVBoxLayout;
+      dialog->setLayout(layout);
+      layout->addWidget(label);
+      layout->addWidget(buttons);
+
+      connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
+      connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+
+      return dialog->exec();
+    });
+
+    if (choice && *choice == QDialog::Accepted)
+      QDesktopServices::openUrl(QUrl(QString::fromStdString(info.external_update_url)));
+    return;
+  }
+
   if (std::getenv("DOLPHIN_UPDATE_SERVER_URL"))
   {
     TriggerUpdate(info, AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);

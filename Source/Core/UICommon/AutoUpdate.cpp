@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <cstdlib>
+#include <optional>
 #include <string>
 
 #include <fmt/format.h>
@@ -179,6 +180,160 @@ static std::string GetUpdateServerUrl()
   return "https://dolphin-emu.org";
 }
 
+
+bool IsHexSha(std::string_view value)
+{
+  if (value.size() != 40)
+    return false;
+  for (const char c : value)
+  {
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+      return false;
+  }
+  return true;
+}
+
+bool ReleaseHasPlatformAsset(const picojson::object& release)
+{
+  const auto assets_it = release.find("assets");
+  if (assets_it == release.end() || !assets_it->second.is<picojson::array>())
+    return false;
+
+  const std::string platform = GetPlatformID();
+  for (const auto& value : assets_it->second.get<picojson::array>())
+  {
+    if (!value.is<picojson::object>())
+      continue;
+    const auto& asset = value.get<picojson::object>();
+    const auto name_it = asset.find("name");
+    if (name_it == asset.end() || !name_it->second.is<std::string>())
+      continue;
+
+    const std::string name = ToLower(name_it->second.get<std::string>());
+    if (platform.starts_with("macos") && name.find("macos") != std::string::npos &&
+        name.ends_with(".dmg"))
+      return true;
+    if (platform.starts_with("win") && name.find("win") != std::string::npos &&
+        (name.ends_with(".exe") || name.ends_with(".zip") || name.ends_with(".7z")))
+      return true;
+  }
+  return false;
+}
+
+std::optional<AutoUpdateChecker::NewVersionInformation> CheckNVDEMURelease(
+    std::string_view current_hash, bool is_manual_check)
+{
+  Common::HttpRequest req{std::chrono::seconds{10}};
+  auto resp = req.Get("https://api.github.com/repos/NVDEMU/dolphin/releases/latest");
+  if (!resp)
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Unable to contact NVDEMU GitHub update service.");
+    return {};
+  }
+
+  const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
+  picojson::value json;
+  if (!picojson::parse(json, contents).empty() || !json.is<picojson::object>())
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Invalid response received from the NVDEMU GitHub update service.");
+    return {};
+  }
+
+  const auto& release = json.get<picojson::object>();
+  if (!ReleaseHasPlatformAsset(release))
+  {
+    if (is_manual_check)
+      SuccessAlertFmtT("No NVDEMU release is currently available for this platform.");
+    return {};
+  }
+
+  const auto tag_it = release.find("tag_name");
+  const auto html_it = release.find("html_url");
+  if (tag_it == release.end() || html_it == release.end() ||
+      !tag_it->second.is<std::string>() || !html_it->second.is<std::string>())
+    return {};
+
+  const std::string tag_name = tag_it->second.get<std::string>();
+  const std::string html_url = html_it->second.get<std::string>();
+
+  auto tag_resp = req.Get(fmt::format("https://api.github.com/repos/NVDEMU/dolphin/commits/{}",
+                                      tag_name));
+  if (!tag_resp)
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Unable to resolve the NVDEMU release commit.");
+    return {};
+  }
+
+  const std::string tag_contents(reinterpret_cast<char*>(tag_resp->data()), tag_resp->size());
+  picojson::value tag_json;
+  if (!picojson::parse(tag_json, tag_contents).empty() || !tag_json.is<picojson::object>())
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Invalid NVDEMU release commit information.");
+    return {};
+  }
+
+  const auto& commit = tag_json.get<picojson::object>();
+  const auto sha_it = commit.find("sha");
+  if (sha_it == commit.end() || !sha_it->second.is<std::string>() ||
+      !IsHexSha(sha_it->second.get<std::string>()))
+    return {};
+
+  const std::string release_hash = sha_it->second.get<std::string>();
+  auto compare_resp = req.Get(fmt::format(
+      "https://api.github.com/repos/NVDEMU/dolphin/compare/{}...{}", current_hash, release_hash));
+  if (!compare_resp)
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Unable to compare this build with the NVDEMU release.");
+    return {};
+  }
+
+  const std::string compare_contents(reinterpret_cast<char*>(compare_resp->data()), compare_resp->size());
+  picojson::value compare_json;
+  if (!picojson::parse(compare_json, compare_contents).empty() ||
+      !compare_json.is<picojson::object>())
+  {
+    if (is_manual_check)
+      CriticalAlertFmtT("Invalid NVDEMU release comparison response.");
+    return {};
+  }
+
+  const auto& compare = compare_json.get<picojson::object>();
+  const auto ahead_it = compare.find("ahead_by");
+  if (ahead_it == compare.end() || !ahead_it->second.is<double>())
+    return {};
+
+  if (ahead_it->second.get<double>() <= 0.0)
+  {
+    if (is_manual_check)
+      SuccessAlertFmtT("You are running the latest NVDEMU release available for this platform.");
+    INFO_LOG_FMT(COMMON, "NVDEMU GitHub update check: we are up to date.");
+    return {};
+  }
+
+  AutoUpdateChecker::NewVersionInformation nvi;
+  const auto name_it = release.find("name");
+  nvi.new_shortrev = name_it != release.end() && name_it->second.is<std::string>()
+                         ? name_it->second.get<std::string>()
+                         : tag_name;
+  nvi.new_hash = release_hash;
+  nvi.external_update_url = html_url;
+
+  const auto body_it = release.find("body");
+  if (body_it != release.end() && body_it->second.is<std::string>())
+  {
+    nvi.changelog_html = Common::GetEscapedHtml(body_it->second.get<std::string>());
+    nvi.changelog_html = ReplaceAll(nvi.changelog_html, "\r\n", "<br>");
+    nvi.changelog_html = ReplaceAll(nvi.changelog_html, "\n", "<br>");
+  }
+
+  return nvi;
+}
+
 static u32 GetOwnProcessId()
 {
 #ifdef _WIN32
@@ -209,11 +364,24 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
 
+  const bool is_manual_check = check_type == CheckType::Manual;
+  const std::string_view version_hash =
+      hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
+
+  // NVDEMU builds use GitHub Releases directly. DOLPHIN_UPDATE_SERVER_URL remains available for
+  // updater tests and development builds that need the original Dolphin update service.
+  if (Common::GetScmDistributorStr() == "NVDEMU" &&
+      std::getenv("DOLPHIN_UPDATE_SERVER_URL") == nullptr)
+  {
+    if (auto update = CheckNVDEMURelease(version_hash, is_manual_check))
+      OnUpdateAvailable(*update);
+    return;
+  }
+
 #ifdef OS_SUPPORTS_UPDATER
   CleanupFromPreviousUpdate();
 #endif
 
-  std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,
                                 version_hash, GetPlatformID());
 

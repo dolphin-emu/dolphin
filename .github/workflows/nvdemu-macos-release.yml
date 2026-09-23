@@ -4,9 +4,12 @@ name: NVDEMU Dolphin macOS Release
 on:
   push:
     branches:
-      - nvdemu-macos-universal-2609
       - master
   workflow_dispatch:
+
+concurrency:
+  group: nvdemu-macos-release
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -31,8 +34,21 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          brew update
-          brew install qt cmake
+          brew install qt cmake ccache
+
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: macos-ccache-${{ matrix.arch }}
+          restore-keys: |
+            macos-ccache-${{ matrix.arch }}
+
+      - name: Configure compiler cache
+        run: |
+          ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
+          ccache --set-config=max_size=2G
+          ccache --set-config=compiler_check=content
 
       - name: Configure
         run: |
@@ -42,6 +58,8 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
             -DCMAKE_PREFIX_PATH="$QT_PREFIX" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DPOSTPROCESS_BUNDLE=ON \
             -DMACOS_CODE_SIGNING=ON \
             -DMACOS_CODE_SIGNING_IDENTITY=- \
@@ -71,8 +89,6 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Download arm64 app
         uses: actions/download-artifact@v4
@@ -154,6 +170,7 @@ jobs:
           - Added floor(), ceil(), round(), and trunc() controller-input expression functions.
           - Added 8-deep per-slot savestate history with restore and clear-history controls.
           - Updated macOS build tooling for current Xcode/macOS requirements.
+          - Added virtual Wii Balance Board emulation for Wii Fit and Wii Fit Plus.
           EOF
           gh release create "$TAG" \
             "release/Dolphin-NVDEMU-macOS-universal.dmg" \

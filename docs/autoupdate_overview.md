@@ -13,7 +13,8 @@ update flow.
   updater copy (if it exists).
 
 ## Class and file responsibilities:
-* AutoUpdateChecker (UICommon/AutoUpdate.h): Checks if an update is available.
+* AutoUpdateChecker (UICommon/AutoUpdate.h): Checks if an update is available. NVDEMU builds query the
+  NVDEMU GitHub Releases API and open the matching release page when a newer platform build exists.
     * Verifies the updater is supported on the user's platform and hasn't been disabled.
     * Retrieves new version information from the update server.
     * Copies the updater application and launches the copy.
