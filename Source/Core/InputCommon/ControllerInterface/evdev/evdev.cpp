@@ -540,7 +540,7 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
     // evdev resolution is specified in "g"s and deg/s.
     // Convert these to m/s/s and rad/s.
     constexpr ControlState accel_scale = MathUtil::GRAVITY_ACCELERATION;
-    constexpr ControlState gyro_scale = MathUtil::TAU / 360;
+    constexpr ControlState gyro_scale = MathUtil::DegreesToRadians(ControlState{1});
 
     add_motion_inputs(ABS_X, accel_scale);
     add_motion_inputs(ABS_RX, gyro_scale);
