@@ -3,80 +3,62 @@
 package org.dolphinemu.dolphinemu.features.sysupdate.ui
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dolphinemu.dolphinemu.ui.progressbardialog.ProgressViewModel
 import org.dolphinemu.dolphinemu.utils.WiiUpdateCallback
 import org.dolphinemu.dolphinemu.utils.WiiUtils
 
-class SystemUpdateViewModel : ViewModel() {
-    val progressData = MutableLiveData<Int>()
-    val totalData = MutableLiveData<Int>()
+class SystemUpdateViewModel : ProgressViewModel() {
     val titleIdData = MutableLiveData<Long>()
     val resultData = MutableLiveData<Int>()
 
-    private var isRunning = false
-    private var canceled = false
-    var region = -1
-    var discPath: String = ""
+    private var region = -1
+    private var discPath: String = ""
 
-    init {
-        clear()
+    fun prepareOnlineUpdate(region: Int) {
+        this.region = region
+        this.discPath = ""
     }
 
-    fun setCanceled() {
-        canceled = true
+    fun prepareDiscUpdate(discPath: String) {
+        this.region = -1
+        this.discPath = discPath
     }
 
-    fun startUpdate() {
-        if (isRunning) return
-        isRunning = true
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                if (discPath.isNotEmpty()) {
-                    startDiscUpdate(discPath)
-                } else {
-                    val region: String = when (region) {
-                        0 -> "EUR"
-                        1 -> "JPN"
-                        2 -> "KOR"
-                        3 -> "USA"
-                        else -> ""
-                    }
-                    startOnlineUpdate(region)
+    override suspend fun run() {
+        resultData.value = -1
+        withContext(Dispatchers.IO) {
+            if (discPath.isNotEmpty()) {
+                startDiscUpdate(discPath)
+            } else {
+                val region: String = when (region) {
+                    0 -> "EUR"
+                    1 -> "JPN"
+                    2 -> "KOR"
+                    3 -> "USA"
+                    else -> ""
                 }
-                isRunning = false
+                startOnlineUpdate(region)
             }
         }
     }
 
     private fun startOnlineUpdate(region: String) {
-        canceled = false
         val result = WiiUtils.doOnlineUpdate(region, constructCallback())
         resultData.postValue(result)
     }
 
     private fun startDiscUpdate(path: String) {
-        canceled = false
         val result = WiiUtils.doDiscUpdate(path, constructCallback())
         resultData.postValue(result)
     }
 
-    fun clear() {
-        progressData.value = 0
-        totalData.value = 0
-        titleIdData.value = 0L
-        resultData.value = -1
-    }
-
     private fun constructCallback(): WiiUpdateCallback {
         return WiiUpdateCallback { processed: Int, total: Int, titleId: Long ->
+            titleIdData.postValue(titleId)
             progressData.postValue(processed)
             totalData.postValue(total)
-            titleIdData.postValue(titleId)
             !canceled
         }
     }
