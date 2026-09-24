@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/HookableEvent.h"
 
 enum class FieldType;
 class PointerWrap;
@@ -364,6 +365,7 @@ public:
   void Preset(bool _bNTSC);
 
   void Init();
+  void Shutdown();
   void DoState(PointerWrap& p);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
@@ -384,6 +386,9 @@ public:
   double GetTargetRefreshRate() const;
   u32 GetTargetRefreshRateNumerator() const;
   u32 GetTargetRefreshRateDenominator() const;
+
+  [[nodiscard]] Common::EventHook
+  RegisterTargetRefreshRateChangedCallback(std::function<void(double)> callback);
 
   u32 GetTicksPerSample() const;
   u32 GetTicksPerHalfLine() const;
@@ -455,6 +460,8 @@ private:
   u32 m_odd_field_last_hl = 0;    // index last halfline of the odd field
 
   float m_config_vi_oc_factor = 1.0f;
+
+  Common::HookableEvent<double> m_target_refresh_rate_changed_event;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Core::System& m_system;
