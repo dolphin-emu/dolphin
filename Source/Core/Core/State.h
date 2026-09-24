@@ -95,6 +95,17 @@ u64 GetUnixTimeOfSlot(u32 slot);
 void Save(Core::System& system, u32 slot);
 void Load(Core::System& system, u32 slot);
 
+u32 GetSelectedSlot();
+void SetSelectedSlot(u32 slot);
+
+void SelectSlot(u32 slot);
+
+u32 GetNextSlot();
+u32 GetPreviousSlot();
+
+void SaveSelected(Core::System& system);
+void LoadSelected(Core::System& system);
+
 void SaveAs(Core::System& system, std::string filename);
 void LoadAs(Core::System& system, std::string filename);
 
