@@ -66,6 +66,7 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/HotkeyScheduler.h"
 
 namespace
 {
@@ -578,11 +579,15 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
   s_need_nonblocking_alert_msg = false;
   surface_guard.unlock();
 
+  HotkeyScheduler::Start();
+
   while (Core::IsRunning(Core::System::GetInstance()))
   {
     s_update_main_frame_event.Wait();
     Core::HostDispatchJobs(Core::System::GetInstance());
   }
+
+  HotkeyScheduler::Stop();
 
   s_game_metadata_is_valid = false;
   Core::Shutdown(Core::System::GetInstance());

@@ -78,6 +78,8 @@ static Common::UniqueBuffer<u8> s_undo_load_buffer;
 // Used to estimate buffer size for the next save.
 static u32 s_last_state_size = 0;
 
+static u32 s_selected_slot = 1;
+
 // Shared locks are acquired for each state save task.
 // Tasks generally transition from: Calling thread -> CPU thread -> Compress/Write thread.
 // Holding an "exclusive" lock will:
@@ -910,6 +912,45 @@ void Save(Core::System& system, u32 slot)
 void Load(Core::System& system, u32 slot)
 {
   LoadAs(system, MakeStateFilename(slot));
+}
+
+u32 GetSelectedSlot()
+{
+  return s_selected_slot;
+}
+
+void SetSelectedSlot(u32 slot)
+{
+  s_selected_slot = std::clamp<u32>(slot, 1, NUM_STATES);
+}
+
+void SelectSlot(u32 slot)
+{
+  SetSelectedSlot(slot);
+
+  Core::DisplayMessage(fmt::format("Selected slot {} - {}", s_selected_slot,
+                                   GetInfoStringOfSlot(s_selected_slot, false)),
+                       2500);
+}
+
+u32 GetNextSlot()
+{
+  return s_selected_slot >= NUM_STATES ? 1 : s_selected_slot + 1;
+}
+
+u32 GetPreviousSlot()
+{
+  return s_selected_slot <= 1 ? NUM_STATES : s_selected_slot - 1;
+}
+
+void SaveSelected(Core::System& system)
+{
+  Save(system, s_selected_slot);
+}
+
+void LoadSelected(Core::System& system)
+{
+  Load(system, s_selected_slot);
 }
 
 void LoadLastSaved(Core::System& system, int i)

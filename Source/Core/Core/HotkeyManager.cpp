@@ -396,6 +396,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifndef ANDROID
   auto set_key_expression = [this](int index, const std::string& expression) {
     m_keys[FindGroupByID(index)]
         ->controls[GetIndexForGroup(FindGroupByID(index), index)]
@@ -473,4 +474,5 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 
   set_key_expression(HK_SKYLANDERS_PORTAL, hotkey_string({"Ctrl", "P"}));
   set_key_expression(HK_INFINITY_BASE, hotkey_string({"Ctrl", "I"}));
+#endif
 }

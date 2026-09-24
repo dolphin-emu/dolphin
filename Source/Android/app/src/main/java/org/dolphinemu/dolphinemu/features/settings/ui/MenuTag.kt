@@ -26,6 +26,7 @@ enum class MenuTag {
     STATISTICS("statistics"),
     ADVANCED_GRAPHICS("advanced_graphics"),
     GCPAD_TYPE("gc_pad_type"),
+    HOTKEYS("hotkeys"),
     WIIMOTE("wiimote"),
     WIIMOTE_EXTENSION("wiimote_extension"),
     GCPAD_1("gcpad", 0),
@@ -77,7 +78,8 @@ enum class MenuTag {
     val correspondingEmulatedController: EmulatedController
         get() = if (isGCPadMenu) EmulatedController.getGcPad(subType) else if (isWiimoteMenu) EmulatedController.getWiimote(
             subType
-        ) else throw UnsupportedOperationException()
+        ) else if (this == HOTKEYS) EmulatedController.getHotkeys()
+        else throw UnsupportedOperationException()
 
     val isSerialPort1Menu: Boolean
         get() = this == CONFIG_SERIALPORT1
