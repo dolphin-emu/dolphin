@@ -10,11 +10,6 @@
 #include <string_view>
 #include <vector>
 
-#ifdef _WIN32
-// TODO: Horrible hack, remove ASAP!
-#include <windows.h>
-#endif
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 
