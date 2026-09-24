@@ -205,7 +205,7 @@ void SDSP::FreeMemoryPages()
 
 void SDSP::SetException(ExceptionType exception)
 {
-  exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
+  exceptions |= 1u << static_cast<std::underlying_type_t<ExceptionType>>(exception);
 }
 
 void SDSP::SetExternalInterrupt(bool val)
@@ -232,10 +232,12 @@ bool SDSP::CheckExceptions()
 
   for (int i = 7; i > 0; i--)
   {
-    // Seems exp int are not masked by sr_int_enable
+    // Seems some interrupts are not masked by SR_INT_ENABLE.
     if ((exceptions & (1U << i)) != 0)
     {
-      if (IsSRFlagSet(SR_INT_ENABLE) || i == static_cast<int>(ExceptionType::ExternalInterrupt))
+      const auto irq = static_cast<ExceptionType>(i);
+      if (IsSRFlagSet(SR_INT_ENABLE) || irq == ExceptionType::ExternalInterrupt ||
+          irq == ExceptionType::SoftwareInterrupt)
       {
         // store pc and sr until RTI
         StoreStack(StackRegister::Call, pc);
@@ -243,9 +245,10 @@ bool SDSP::CheckExceptions()
 
         pc = static_cast<u16>(i * 2);
         exceptions &= ~(1 << i);
-        if (i == 7)
+        // Not entirely sure about this.
+        if (irq == ExceptionType::ExternalInterrupt)
           r.sr &= ~SR_EXT_INT_ENABLE;
-        else
+        else if (irq != ExceptionType::SoftwareInterrupt)
           r.sr &= ~SR_INT_ENABLE;
         return true;
       }
