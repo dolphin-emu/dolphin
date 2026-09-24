@@ -188,7 +188,7 @@ class NetplayViewModel(
         val localIp = networkHelper.getLocalIpString()
             ?: return JoinAddress.Unknown { _joinAddresses.value += JoinInfoType.LOCAL to getLocalIp() }
         val port = netplaySession.getPort()
-        return JoinAddress.Loaded("$localIp:$port")
+        return JoinAddress.Loaded(formatHostPort(localIp, port))
     }
 
     private fun fetchExternalIp() {
@@ -196,10 +196,15 @@ class NetplayViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val ip = netplaySession.getExternalIpAddress()
             val port = netplaySession.getPort()
-            val address = if (ip != null) JoinAddress.Loaded("$ip:$port")
+            val address = if (ip != null) JoinAddress.Loaded(formatHostPort(ip, port))
             else JoinAddress.Unknown { fetchExternalIp() }
             _joinAddresses.value += JoinInfoType.EXTERNAL to address
         }
+    }
+
+    private fun formatHostPort(host: String, port: Int): String {
+        val shouldBracket = host.contains(':') && !(host.startsWith('[') && host.endsWith(']'))
+        return if (shouldBracket) "[$host]:$port" else "$host:$port"
     }
 
     private fun collectTraversalState() {
