@@ -43,8 +43,6 @@ Common::Flag s_foreground{true};
 Common::Flag s_any_hotkey_set;
 Common::Event s_wakeup;
 
-int s_state_slot = 1;
-
 bool IsHotkey(int id, bool held = false)
 {
   return HotkeyManagerEmu::IsPressed(id, held);
@@ -122,13 +120,6 @@ void ShowInternalResolutionOSD(int new_efb_scale)
     OSD::AddMessage(fmt::format("Internal Resolution: {}x", new_efb_scale));
     break;
   }
-}
-
-void SetStateSlot(int slot)
-{
-  s_state_slot = slot;
-  Core::DisplayMessage(
-      fmt::format("Selected slot {} - {}", slot, State::GetInfoStringOfSlot(slot, false)), 2500);
 }
 
 void HandleGeneralHotkeys()
@@ -217,20 +208,20 @@ void HandleStateHotkeys(Core::System& system)
       State::LoadLastSaved(system, i + 1);
 
     if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
-      SetStateSlot(i + 1);
+      State::SelectSlot(i + 1);
   }
 
   if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
-    State::Save(system, s_state_slot);
+    State::SaveSelected(system);
 
   if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
-    State::Load(system, s_state_slot);
+    State::LoadSelected(system);
 
   if (IsHotkey(HK_INCREMENT_SELECTED_STATE_SLOT))
-    SetStateSlot(s_state_slot + 1 > static_cast<int>(State::NUM_STATES) ? 1 : s_state_slot + 1);
+    State::SelectSlot(State::GetNextSlot());
 
   if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
-    SetStateSlot(s_state_slot - 1 < 1 ? static_cast<int>(State::NUM_STATES) : s_state_slot - 1);
+    State::SelectSlot(State::GetPreviousSlot());
 
   if (IsHotkey(HK_SAVE_FIRST_STATE))
     State::SaveFirstSaved(system);
@@ -296,7 +287,7 @@ void Start()
     return;
 
   HotkeyManagerEmu::Enable(true);
-  s_state_slot = 1;
+  State::SetSelectedSlot(1);
   s_any_hotkey_set.Set(IsAnyHotkeySet());
   s_stop_requested.Clear();
   s_wakeup.Reset();
