@@ -94,13 +94,13 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
     case XFMEM_SETCHAN1_COLOR:
     case XFMEM_SETCHAN0_ALPHA:  // Channel Alpha
     case XFMEM_SETCHAN1_ALPHA:
-      if (((u32*)&xfmem)[address] != (value & 0x7fff))
+      if (Common::BitCastPtr<u32>(&xfmem)[address] != (value & 0x7fff))
         g_vertex_manager->Flush();
       xf_state_manager.SetLightingConfigChanged();
       break;
 
     case XFMEM_DUALTEX:
-      if (xfmem.dualTexTrans.enabled != bool(value & 1))
+      if (xfmem.dualTexTrans.enabled != static_cast<bool>(value & 1))
         g_vertex_manager->Flush();
       xf_state_manager.SetTexMatrixInfoChanged(-1);
       break;
@@ -235,7 +235,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
     XFMemWritten(xf_state_manager, xf_mem_transfer_size, xf_mem_base);
     for (u32 i = 0; i < xf_mem_transfer_size; i++)
     {
-      ((u32*)&xfmem)[xf_mem_base + i] = Common::swap32(data);
+      Common::BitCastPtr<u32>(&xfmem)[xf_mem_base + i] = Common::swap32(data);
       data += 4;
     }
   }
@@ -248,7 +248,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
       const u32 value = Common::swap32(data);
 
       XFRegWritten(system, xf_state_manager, address, value);
-      ((u32*)&xfmem)[address] = value;
+      Common::BitCastPtr<u32>(&xfmem)[address] = value;
 
       data += 4;
     }
