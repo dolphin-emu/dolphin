@@ -40,6 +40,10 @@ struct PresentInfo
     VideoInterfaceDuplicate,  // VideoInterface has triggered a present with a duplicate frame
   };
 
+  // Frames frame generation drew and averaged together to make this presentation. Zero when it
+  // is off, in which case the presented frame is the only one that was drawn.
+  u32 generated_frames = 0;
+
   // The number of (unique) frames since the emulated console booted
   u64 frame_count = 0;
 

@@ -76,6 +76,16 @@ struct Statistics
     int num_efb_peeks = 0;
     int num_efb_pokes = 0;
 
+    // Frame generation: why each recorded draw did or did not find its counterpart in the previous
+    // recording. Only one of these is counted per draw, and they add up to the number of draws the
+    // replay considered, so the shape of the failure is readable straight off the overlay rather
+    // than inferred from what the picture looks like.
+    int num_framegen_matched = 0;
+    int num_framegen_no_pipeline = 0;   // pipeline, vertex format, primitive or counts differed
+    int num_framegen_no_texture = 0;    // a bound texture was a different texture
+    int num_framegen_too_far = 0;       // corresponded, but the transform moved too much
+    int num_framegen_no_candidate = 0;  // nothing in the search window at all
+
     int num_draw_done = 0;
     int num_token = 0;
     int num_token_int = 0;

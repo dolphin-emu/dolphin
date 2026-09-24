@@ -89,6 +89,15 @@ void Statistics::Display() const
   draw_statistic("dlists called", "%d", this_frame.num_dlists_called);
   draw_statistic("Primitive joins", "%d", this_frame.num_primitive_joins);
   draw_statistic("Draw calls", "%d", this_frame.num_draw_calls);
+
+  if (g_ActiveConfig.frame_generation.bEnabled)
+  {
+    draw_statistic("FrameGen matched", "%d", this_frame.num_framegen_matched);
+    draw_statistic("FrameGen unmatched: shape", "%d", this_frame.num_framegen_no_pipeline);
+    draw_statistic("FrameGen unmatched: texture", "%d", this_frame.num_framegen_no_texture);
+    draw_statistic("FrameGen unmatched: too far", "%d", this_frame.num_framegen_too_far);
+    draw_statistic("FrameGen unmatched: none", "%d", this_frame.num_framegen_no_candidate);
+  }
   draw_statistic("Primitives", "%d", this_frame.num_prims);
   draw_statistic("Primitives (DL)", "%d", this_frame.num_dl_prims);
   draw_statistic("XF loads", "%d", this_frame.num_xf_loads);

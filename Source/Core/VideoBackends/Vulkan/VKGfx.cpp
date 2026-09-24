@@ -28,8 +28,10 @@
 
 namespace Vulkan
 {
-VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
+VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale,
+             float backbuffer_refresh_rate)
+    : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale),
+      m_backbuffer_refresh_rate(backbuffer_refresh_rate)
 {
   UpdateActiveConfig();
   for (SamplerState& sampler_state : m_sampler_states)
@@ -619,7 +621,8 @@ SurfaceInfo VKGfx::GetSurfaceInfo() const
 {
   return {m_swap_chain ? m_swap_chain->GetWidth() : 1u,
           m_swap_chain ? m_swap_chain->GetHeight() : 0u, m_backbuffer_scale,
-          m_swap_chain ? m_swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined};
+          m_swap_chain ? m_swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined,
+          m_backbuffer_refresh_rate};
 }
 
 }  // namespace Vulkan

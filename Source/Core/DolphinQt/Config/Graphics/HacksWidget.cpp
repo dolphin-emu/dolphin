@@ -16,6 +16,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -153,6 +154,12 @@ void HacksWidget::ConnectWidgets()
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 #endif
+
+  // Frame generation is switched on from the enhancements tab, so the only way this hears about it
+  // is the config change itself.
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &HacksWidget::UpdateFrameGenerationConflictsEnabled);
+  UpdateFrameGenerationConflictsEnabled();
 }
 
 void HacksWidget::AddDescriptions()
@@ -309,6 +316,16 @@ void HacksWidget::UpdateDeferEFBCopiesEnabled()
   // enabled.
   const bool can_defer = m_store_efb_copies->isChecked() && m_store_xfb_copies->isChecked();
   m_defer_efb_copies->setEnabled(!can_defer);
+}
+
+void HacksWidget::UpdateFrameGenerationConflictsEnabled()
+{
+  // Frame generation needs one present per video interface field, which is what carries the
+  // generated motion. Immediate presentation hands each picture over when the game finishes drawing
+  // it instead, so a thirty frame per second game presents thirty times a second and there is
+  // nowhere for the generated frames to go. Switching frame generation on turns this off; greying
+  // it out afterwards is what says why it will not come back on.
+  m_immediate_xfb->setDisabled(Get(m_game_layer, Config::GFX_FRAME_GENERATION_ENABLED));
 }
 
 void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled()

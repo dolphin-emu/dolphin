@@ -329,6 +329,17 @@ bool ClearScreen(FramebufferManager* frame_buffer_manager, const MathUtil::Recta
       color = RGBA8ToRGB565ToRGBA8(color);
       z = Z24ToZ16ToZ24(z);
     }
+    // Kept in the frame generator's command list in the order it happened, because a frame is
+    // several passes and each one starts by clearing what the last left behind.
+    g_vertex_manager->GetFrameRecorder().RecordClear(
+        VideoCommon::RecordedClear{.rect = rc,
+                                   .color_enable = color_enable,
+                                   .alpha_enable = alpha_enable,
+                                   .z_enable = z_enable,
+                                   .color = color,
+                                   .z = z,
+                                   .pixel_format = pixel_format});
+
     frame_buffer_manager->ClearEFB(rc, color_enable, alpha_enable, z_enable, color, z,
                                    pixel_format);
     return true;

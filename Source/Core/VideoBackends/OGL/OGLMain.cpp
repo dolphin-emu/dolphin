@@ -203,7 +203,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!FillBackendInfo(main_gl_context.get()))
     return false;
 
-  auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
+  auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale,
+                                      wsi.render_surface_refresh_rate);
   ProgramShaderCache::Init();
   g_sampler_cache = std::make_unique<SamplerCache>();
 

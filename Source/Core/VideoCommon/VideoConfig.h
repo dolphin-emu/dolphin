@@ -228,6 +228,35 @@ struct VideoConfig final
   float fArbitraryMipmapDetectionThreshold = 0;
   bool bHDR = false;
 
+  // Frame Generation
+  struct
+  {
+    // Generated frames are interpolated between the previous and the current real frame, never
+    // predicted forwards: extrapolation would have to guess where the geometry is going, and gets
+    // corrected the moment the real frame lands, which reads as judder.
+    //
+    // Interpolating holds each real frame back by one frame interval. Because the generated frames
+    // already show part of the motion towards the next real frame, that delay is far less
+    // noticeable than its size suggests.
+    bool bEnabled = false;
+
+    // How many frames are generated for each one the game produces: the factor the frame rate is
+    // multiplied by, not a count of anything per image.
+    //
+    // What that buys is split between smoothness and shutter. The frames are shared out evenly
+    // across every image the real frame is shown as, so raising the display's refresh rate spends
+    // them on more distinct images rather than on more blur, and raising this spends them on a
+    // longer, smoother exposure of each. One generated frame per image is the floor, which is a
+    // clean unblurred picture at whatever rate the display can take.
+    //
+    // Asked for rather than worked out. What a generated frame costs is spent by the GPU, and
+    // there is no way to find out how much of it has been spent without stopping to ask, which
+    // costs a synchronisation between the processors every frame and stutters worse than the
+    // frames are worth.
+    u32 iMultiplier = 8;
+
+  } frame_generation;
+
   // Color Correction
   struct
   {

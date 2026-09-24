@@ -5,8 +5,12 @@
 
 #include <QWidget>
 
+#include "Common/CommonTypes.h"
+
 class ConfigBool;
 class ConfigChoice;
+template <typename T>
+class ConfigChoiceMap;
 class ConfigComplexChoice;
 class ConfigStringChoice;
 class ConfigFloatSlider;
@@ -41,6 +45,12 @@ private:
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
 
+  // Writes a setting this widget does not own a control for, into whichever layer is being edited.
+  // Used where switching one option on has to switch another off; defined in the .cpp so this
+  // header does not need the config templates.
+  template <typename T>
+  void SetInLayer(const Config::Info<T>& setting, const T& value);
+
   // Enhancements
   ConfigChoice* m_ir_combo;
   ConfigComplexChoice* m_antialiasing_combo;
@@ -57,6 +67,8 @@ private:
   ConfigBool* m_disable_copy_filter;
   ConfigBool* m_arbitrary_mipmap_detection;
   ConfigBool* m_hdr;
+  ConfigBool* m_frame_generation;
+  ConfigChoiceMap<u32>* m_frame_generation_multiplier;
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;

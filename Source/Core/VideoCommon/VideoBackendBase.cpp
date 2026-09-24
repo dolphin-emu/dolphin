@@ -385,6 +385,11 @@ void VideoBackendBase::ShutdownShared()
   g_bounding_box.reset();
   g_perf_query.reset();
   g_graphics_mod_manager.reset();
+  // The frame recorder holds references to texture cache entries, whose destructors reach back
+  // into the cache. Let them go while it is still there.
+  if (g_vertex_manager)
+    g_vertex_manager->GetFrameRecorder().Invalidate();
+
   g_texture_cache.reset();
   g_framebuffer_manager.reset();
   g_shader_cache.reset();

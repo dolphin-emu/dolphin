@@ -227,7 +227,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
   }
 
-  auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale,
+                                     wsi.render_surface_refresh_rate);
   auto vertex_manager = std::make_unique<VertexManager>();
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<VKBoundingBox>();

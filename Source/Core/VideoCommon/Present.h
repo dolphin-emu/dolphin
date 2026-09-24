@@ -22,6 +22,7 @@ enum class DolphinKey;
 
 namespace VideoCommon
 {
+class FrameGenerator;
 class OnScreenUI;
 class PostProcessing;
 
@@ -138,6 +139,8 @@ private:
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
   float m_backbuffer_scale = 1.0f;
+  // Hertz, or zero where the backend could not say what the display does.
+  float m_backbuffer_refresh_rate = 0.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
   void* m_new_surface_handle = nullptr;
@@ -165,6 +168,10 @@ private:
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
   std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
 
+  // Fills the time before a frame is due with interpolated frames, and hands over the average of
+  // them to be shown in place of the one the emulated GPU produced.
+  std::unique_ptr<VideoCommon::FrameGenerator> m_frame_generator;
+
   u64 m_frame_count = 0;
   u64 m_present_count = 0;
 
@@ -182,6 +189,10 @@ private:
 
   // Updates state for the SmoothEarlyPresentation setting if enabled.
   // Returns the desired presentation time regardless.
+  // How many images this field should hand to the display, worked out from how often the display
+  // refreshes against how long the field lasts. One unless the display is genuinely quicker.
+  u32 ComputePresentsPerField(DT field) const;
+
   TimePoint GetUpdatedPresentationTime(TimePoint intended_presentation_time);
 
   // Used by the SmoothEarlyPresentation setting.
@@ -191,6 +202,9 @@ private:
   // Can be used for presentation of ImmediateXFB swaps which don't have timing information.
   u64 m_next_swap_estimated_ticks = 0;
   TimePoint m_next_swap_estimated_time{Clock::now()};
+
+  // The previous field's due time, which is how the interval between fields is worked out.
+  TimePoint m_last_intended_present_time{};
 
   std::atomic_bool m_immediate_swap_happened_this_field{};
 };

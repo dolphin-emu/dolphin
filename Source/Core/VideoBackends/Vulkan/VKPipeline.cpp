@@ -9,6 +9,7 @@
 #include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
@@ -26,7 +27,14 @@ VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline
 
 VKPipeline::~VKPipeline()
 {
-  vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
+  // Deferred like every other resource here, rather than destroyed on the spot.
+  //
+  // A pipeline has to outlive every command buffer that has been submitted with it bound, and on
+  // this backend submission is handed to a worker thread, so "submitted" does not mean "finished
+  // with". Destroying it immediately raced that thread and took the process down inside the
+  // driver's own encoder. Buffers, images and framebuffers were already routed through the
+  // completion queue for exactly this reason; pipelines were the one kind that was not.
+  g_command_buffer_mgr->DeferPipelineDestruction(m_pipeline);
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)

@@ -854,7 +854,12 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
 void Callback_FramePresented(const PresentInfo& present_info)
 {
   auto& perf_metrics = Core::System::GetInstance().GetPerfMetrics();
-  perf_metrics.CountFrame();
+
+  // Frame generation draws several frames for one presentation and shows their average. Each was
+  // drawn at its own moment and counted then, so counting the presentation as well would report a
+  // rate for images handed to the window rather than for frames actually rendered.
+  if (present_info.generated_frames == 0)
+    perf_metrics.CountFrame();
 
   const auto presentation_offset =
       present_info.actual_present_time - present_info.intended_present_time;

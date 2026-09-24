@@ -18,7 +18,8 @@
 
 #include <fstream>
 
-Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer) : m_layer(std::move(layer))
+Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer, float backbuffer_refresh_rate)
+    : m_layer(std::move(layer)), m_backbuffer_refresh_rate(backbuffer_refresh_rate)
 {
   UpdateActiveConfig();
   [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
@@ -526,5 +527,5 @@ SurfaceInfo Metal::Gfx::GetSurfaceInfo() const
   const float scale = [m_layer contentsScale];
 
   return {static_cast<u32>(size.width * scale), static_cast<u32>(size.height * scale), scale,
-          Util::ToAbstract([m_layer pixelFormat])};
+          Util::ToAbstract([m_layer pixelFormat]), m_backbuffer_refresh_rate};
 }

@@ -25,6 +25,7 @@
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
@@ -32,6 +33,7 @@
 #include "VideoCommon/VideoEvents.h"
 
 class AbstractFramebuffer;
+class AbstractPipeline;
 class AbstractStagingTexture;
 class PointerWrap;
 struct SamplerState;
@@ -285,6 +287,15 @@ public:
                               MathUtil::Rectangle<int>* display_rect);
 
   virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
+
+  // The cache entries and sampler states bound by the most recent call to BindTextures.
+  const std::array<RcTcacheEntry, 8>& GetBoundTextures() const { return m_bound_textures; }
+
+  // Renders one EFB copy: the full screen triangle that reads `source` through `pipeline` into
+  // `destination`. The uniform block the pipeline wants must already have been uploaded. Shared
+  // with the frame generator, which reproduces the game's copies against its own copy of the EFB.
+  static void DrawEFBCopy(AbstractFramebuffer* destination, AbstractTexture* source,
+                          const AbstractPipeline* pipeline, bool linear_filter);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
