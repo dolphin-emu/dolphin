@@ -26,6 +26,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
@@ -809,6 +810,169 @@ void TCacheEntry::DoState(PointerWrap& p)
   p.Do(frameCount);
 }
 
+PartialTextureUpdateContext TextureCacheBase::BuildPartialUpdateContext(
+    const RcTcacheEntry& target, const RcTcacheEntry& source, const u8* palette, TLUTFormat tlutfmt,
+    bool is_palette_texture, u32 block_width, u32 block_height, u32 block_size, u32 numBlocksX)
+{
+  RcTcacheEntry source_entry = source;
+
+  PartialTextureUpdateContext context;
+  context.target_entry = target;
+  context.source_entry = source_entry;
+
+  u32 src_x, src_y, dst_x, dst_y;
+
+  // Note for understanding the math:
+  // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
+  if (source_entry->addr >= target->addr)
+  {
+    u32 block_offset = (source_entry->addr - target->addr) / block_size;
+    u32 block_x = block_offset % numBlocksX;
+    u32 block_y = block_offset / numBlocksX;
+    src_x = 0;
+    src_y = 0;
+    dst_x = block_x * block_width;
+    dst_y = block_y * block_height;
+  }
+  else
+  {
+    u32 block_offset = (target->addr - source_entry->addr) / block_size;
+    u32 block_x = (~block_offset + 1) % numBlocksX;
+    u32 block_y = (block_offset + block_x) / numBlocksX;
+    src_x = 0;
+    src_y = block_y * block_height;
+    dst_x = block_x * block_width;
+    dst_y = 0;
+  }
+
+  u32 copy_width = std::min(source->native_width - src_x, target->native_width - dst_x);
+  u32 copy_height = std::min(source->native_height - src_y, target->native_height - dst_y);
+
+  // If one of the textures is scaled, scale both with the current efb scaling factor
+  const bool needs_scale =
+      target->native_width != target->GetWidth() || target->native_height != target->GetHeight() ||
+      source->native_width != source->GetWidth() || source->native_height != source->GetHeight();
+
+  u32 src_width, src_height, dst_width, dst_height;
+  if (needs_scale)
+  {
+    src_x = g_framebuffer_manager->EFBToScaledX(src_x);
+    src_y = g_framebuffer_manager->EFBToScaledY(src_y);
+    dst_x = g_framebuffer_manager->EFBToScaledX(dst_x);
+    dst_y = g_framebuffer_manager->EFBToScaledY(dst_y);
+    copy_width = g_framebuffer_manager->EFBToScaledX(copy_width);
+    copy_height = g_framebuffer_manager->EFBToScaledY(copy_height);
+
+    src_width = g_framebuffer_manager->EFBToScaledX(source->native_width);
+    src_height = g_framebuffer_manager->EFBToScaledY(source->native_height);
+    dst_width = g_framebuffer_manager->EFBToScaledX(target->native_width);
+    dst_height = g_framebuffer_manager->EFBToScaledY(target->native_height);
+  }
+  else
+  {
+    src_width = source->GetWidth();
+    src_height = source->GetHeight();
+    dst_width = target->GetWidth();
+    dst_height = target->GetHeight();
+  }
+
+  context.src_rect = {static_cast<int>(src_x), static_cast<int>(src_y),
+                      static_cast<int>(src_x + copy_width), static_cast<int>(src_y + copy_height)};
+  context.dst_rect = {static_cast<int>(dst_x), static_cast<int>(dst_y),
+                      static_cast<int>(dst_x + copy_width), static_cast<int>(dst_y + copy_height)};
+
+  // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
+  // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
+  // to the graphics driver, which can cause GPU resets.
+  if (static_cast<u32>(context.src_rect.right) > src_width ||
+      static_cast<u32>(context.src_rect.bottom) > src_height ||
+      static_cast<u32>(context.dst_rect.right) > dst_width ||
+      static_cast<u32>(context.dst_rect.bottom) > dst_height)
+  {
+    return {};
+  }
+
+  // If the texture formats are not compatible or convertible, skip it.
+  if (!IsCompatibleTextureFormat(target->format.texfmt, source_entry->format.texfmt))
+  {
+    if (CanReinterpretTextureOnGPU(target->format.texfmt, source_entry->format.texfmt))
+    {
+      context.needs_reinterpret = true;
+      context.reinterpret_entry =
+          CreateReinterpretEntry(context.source_entry, target->format.texfmt);
+      if (!context.reinterpret_entry)
+        return {};
+
+      source_entry = context.reinterpret_entry;
+    }
+    else
+    {
+      return {};
+    }
+  }
+
+  if (is_palette_texture)
+  {
+    context.needs_palette = true;
+    context.tlutfmt = tlutfmt;
+    std::tie(context.palette_entry, context.texel_offset) =
+        CreatePaletteEntryWithOffset(source_entry, palette);
+    if (!context.palette_entry)
+      return {};
+
+    // Link the efb copy with the partially updated texture, so we won't apply this partial
+    // update again
+    source_entry->CreateReference(target.get());
+    // Mark the texture update as used, as if it was loaded directly
+    source_entry->frameCount = FRAMECOUNT_INVALID;
+
+    source_entry = context.palette_entry;
+  }
+
+  if (needs_scale)
+  {
+    context.needs_scale = true;
+
+    const TextureConfig config(src_width, src_height, 1, source_entry->GetNumLayers(), 1,
+                               AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                               AbstractTextureType::Texture_2DArray);
+    context.source_scale_entry = AllocateCacheEntry(config);
+    if (!context.source_scale_entry)
+      return {};
+
+    if (target->GetWidth() != dst_width || target->GetHeight() != dst_height)
+    {
+      const TextureConfig scaled_config(
+          dst_width, dst_height, 1, target->GetNumLayers(), 1, AbstractTextureFormat::RGBA8,
+          AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray);
+      auto scaled = AllocateCacheEntry(scaled_config);
+      if (!scaled)
+        return {};
+
+      // Store the unscaled contents in the allocated entry
+      // and the scaled contents in the target
+      scaled->texture.swap(target->texture);
+      scaled->framebuffer.swap(target->framebuffer);
+
+      // Keep the unscaled contents for the scale operation
+      context.target_prescaled_entry = scaled;
+    }
+  }
+
+  // If one copy is stereo, and the other isn't... not much we can do here :/
+  context.layers_to_copy = std::min(source->GetNumLayers(), target->GetNumLayers());
+
+  if (!is_palette_texture)
+  {
+    // Link the two textures together, so we won't apply this partial update again
+    source_entry->CreateReference(target.get());
+    // Mark the texture update as used, as if it was loaded directly
+    source_entry->frameCount = FRAMECOUNT_INVALID;
+  }
+
+  return context;
+}
+
 RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_update,
                                                         const u8* palette, TLUTFormat tlutfmt)
 {
@@ -841,6 +1005,9 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
   auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
+
+  // Save off overlapping entries first so that we can cleanly invalidate textures
+  // without causing iterator invalidation
   while (iter.first != iter.second)
   {
     auto& entry = iter.first->second;
@@ -849,150 +1016,100 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
     {
-      if (entry->hash == entry->CalculateHash())
-      {
-        // If the texture formats are not compatible or convertible, skip it.
-        if (!IsCompatibleTextureFormat(entry_to_update->format.texfmt, entry->format.texfmt))
-        {
-          if (!CanReinterpretTextureOnGPU(entry_to_update->format.texfmt, entry->format.texfmt))
-          {
-            ++iter.first;
-            continue;
-          }
-
-          auto reinterpreted_entry = CreateReinterpretEntry(entry, entry_to_update->format.texfmt);
-          RenderReinterpretEntry(reinterpreted_entry, entry->texture.get(), entry->format.texfmt,
-                                 reinterpreted_entry->format.texfmt);
-          if (reinterpreted_entry)
-            entry = reinterpreted_entry;
-        }
-
-        if (isPaletteTexture)
-        {
-          const auto [decoded_entry, texel_buffer_offset] =
-              CreatePaletteEntryWithOffset(entry, palette);
-          RenderPaletteEntry(texel_buffer_offset, decoded_entry, entry->texture.get(), tlutfmt);
-          if (decoded_entry)
-          {
-            // Link the efb copy with the partially updated texture, so we won't apply this partial
-            // update again
-            entry->CreateReference(entry_to_update.get());
-            // Mark the texture update as used, as if it was loaded directly
-            entry->frameCount = FRAMECOUNT_INVALID;
-            entry = decoded_entry;
-          }
-          else
-          {
-            ++iter.first;
-            continue;
-          }
-        }
-
-        u32 src_x, src_y, dst_x, dst_y;
-
-        // Note for understanding the math:
-        // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
-        if (entry->addr >= entry_to_update->addr)
-        {
-          u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
-          u32 block_x = block_offset % numBlocksX;
-          u32 block_y = block_offset / numBlocksX;
-          src_x = 0;
-          src_y = 0;
-          dst_x = block_x * block_width;
-          dst_y = block_y * block_height;
-        }
-        else
-        {
-          u32 block_offset = (entry_to_update->addr - entry->addr) / block_size;
-          u32 block_x = (~block_offset + 1) % numBlocksX;
-          u32 block_y = (block_offset + block_x) / numBlocksX;
-          src_x = 0;
-          src_y = block_y * block_height;
-          dst_x = block_x * block_width;
-          dst_y = 0;
-        }
-
-        u32 copy_width =
-            std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
-        u32 copy_height =
-            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
-
-        // If one of the textures is scaled, scale both with the current efb scaling factor
-        if (entry_to_update->native_width != entry_to_update->GetWidth() ||
-            entry_to_update->native_height != entry_to_update->GetHeight() ||
-            entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
-        {
-          ScaleTextureCacheEntryTo(
-              entry_to_update, g_framebuffer_manager->EFBToScaledX(entry_to_update->native_width),
-              g_framebuffer_manager->EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(entry, g_framebuffer_manager->EFBToScaledX(entry->native_width),
-                                   g_framebuffer_manager->EFBToScaledY(entry->native_height));
-
-          src_x = g_framebuffer_manager->EFBToScaledX(src_x);
-          src_y = g_framebuffer_manager->EFBToScaledY(src_y);
-          dst_x = g_framebuffer_manager->EFBToScaledX(dst_x);
-          dst_y = g_framebuffer_manager->EFBToScaledY(dst_y);
-          copy_width = g_framebuffer_manager->EFBToScaledX(copy_width);
-          copy_height = g_framebuffer_manager->EFBToScaledY(copy_height);
-        }
-
-        // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
-        // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
-        // to the graphics driver, which can cause GPU resets.
-        if (static_cast<u32>(src_x + copy_width) > entry->GetWidth() ||
-            static_cast<u32>(src_y + copy_height) > entry->GetHeight() ||
-            static_cast<u32>(dst_x + copy_width) > entry_to_update->GetWidth() ||
-            static_cast<u32>(dst_y + copy_height) > entry_to_update->GetHeight())
-        {
-          ++iter.first;
-          continue;
-        }
-
-        MathUtil::Rectangle<int> srcrect, dstrect;
-        srcrect.left = src_x;
-        srcrect.top = src_y;
-        srcrect.right = (src_x + copy_width);
-        srcrect.bottom = (src_y + copy_height);
-        dstrect.left = dst_x;
-        dstrect.top = dst_y;
-        dstrect.right = (dst_x + copy_width);
-        dstrect.bottom = (dst_y + copy_height);
-
-        // If one copy is stereo, and the other isn't... not much we can do here :/
-        const u32 layers_to_copy = std::min(entry->GetNumLayers(), entry_to_update->GetNumLayers());
-        for (u32 layer = 0; layer < layers_to_copy; layer++)
-        {
-          entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer,
-                                                             0, dstrect, layer, 0);
-        }
-
-        if (isPaletteTexture)
-        {
-          // Remove the temporary converted texture, it won't be used anywhere else
-          // TODO: It would be nice to convert and copy in one step, but this code path isn't common
-          iter.first = InvalidateTexture(iter.first);
-          continue;
-        }
-        else
-        {
-          // Link the two textures together, so we won't apply this partial update again
-          entry->CreateReference(entry_to_update.get());
-          // Mark the texture update as used, as if it was loaded directly
-          entry->frameCount = FRAMECOUNT_INVALID;
-        }
-      }
-      else
-      {
-        // If the hash does not match, this EFB copy will not be used for anything, so remove it
-        iter.first = InvalidateTexture(iter.first);
-        continue;
-      }
+      m_partial_texture_update_entries.push_back(entry);
     }
     ++iter.first;
   }
 
+  // Execute our partial texture updates
+  for (const auto& entry : m_partial_texture_update_entries)
+  {
+    auto context =
+        BuildPartialUpdateContext(entry_to_update, entry, palette, tlutfmt, isPaletteTexture,
+                                  block_width, block_height, block_size, numBlocksX);
+    if (context.target_entry)
+    {
+      ExecutePartialTextureUpdate(std::move(context));
+    }
+  }
+
+  // The partial texture updates are no longer needed
+  m_partial_texture_update_entries.clear();
+
   return entry_to_update;
+}
+
+void TextureCacheBase::ExecutePartialTextureUpdate(PartialTextureUpdateContext context)
+{
+  auto target = context.target_entry;
+  auto source = context.source_entry;
+
+  // Remove the temporary converted textures, they won't be used anywhere else
+  // TODO: It would be nice to convert and copy in one step, but this code path isn't common
+  Common::ScopeGuard cleanup{[this, &context] {
+    if (context.needs_reinterpret && context.reinterpret_entry)
+      InvalidateTexture(GetTexCacheIter(context.reinterpret_entry.get()));
+    if (context.needs_palette && context.palette_entry)
+      InvalidateTexture(GetTexCacheIter(context.palette_entry.get()));
+    if (context.needs_scale && context.source_scale_entry)
+      InvalidateTexture(GetTexCacheIter(context.source_scale_entry.get()));
+  }};
+
+  if (!source || source->invalidated)
+    return;
+
+  if (source->hash != source->CalculateHash())
+  {
+    InvalidateTexture(GetTexCacheIter(source.get()));
+    return;
+  }
+
+  if (context.needs_reinterpret)
+  {
+    if (!context.reinterpret_entry)
+      return;
+    RenderReinterpretEntry(context.reinterpret_entry, context.source_entry->texture.get(),
+                           context.source_entry->format.texfmt,
+                           context.target_entry->format.texfmt);
+    source = context.reinterpret_entry;
+  }
+
+  if (context.needs_palette)
+  {
+    if (!context.palette_entry)
+      return;
+    RenderPaletteEntry(context.texel_offset, context.palette_entry, source->texture.get(),
+                       context.tlutfmt);
+    source = context.palette_entry;
+  }
+
+  if (context.needs_scale)
+  {
+    if (context.target_prescaled_entry)
+    {
+      g_gfx->ScaleTexture(target->framebuffer.get(), target->texture->GetConfig().GetRect(),
+                          context.target_prescaled_entry->texture.get(),
+                          context.target_prescaled_entry->texture->GetConfig().GetRect());
+      target->texture->FinishedRendering();
+    }
+
+    if (context.source_scale_entry)
+    {
+      g_gfx->ScaleTexture(context.source_scale_entry->framebuffer.get(),
+                          context.source_scale_entry->texture->GetConfig().GetRect(),
+                          source->texture.get(), source->texture->GetConfig().GetRect());
+      context.source_scale_entry->texture->FinishedRendering();
+      source = context.source_scale_entry;
+    }
+  }
+
+  for (u32 layer = 0; layer < context.layers_to_copy; layer++)
+  {
+    target->texture->CopyRectangleFromTexture(source->texture.get(), context.src_rect, layer, 0,
+                                              context.dst_rect, layer, 0);
+  }
+
+  target->texture->FinishedRendering();
 }
 
 // Helper for checking if a BPMemory TexMode0 register is set to Point
