@@ -659,6 +659,7 @@ if(_M_X86_64)
   )
 elseif(_M_ARM_64)
   target_sources(core PRIVATE
+    PowerPC/JitArm64/FastmemArea.h
     PowerPC/JitArm64/Jit.cpp
     PowerPC/JitArm64/Jit.h
     PowerPC/JitArm64/JitAsm.cpp

@@ -6,7 +6,6 @@
 #include <array>
 #include <cstddef>
 #include <iosfwd>
-#include <map>
 #include <string_view>
 #include <unordered_set>
 #include <utility>
@@ -20,6 +19,12 @@
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#ifdef _M_X86_64
+#include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
+#endif
+#ifdef _M_ARM_64
+#include "Core/PowerPC/JitArm64/FastmemArea.h"
+#endif
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -99,8 +104,8 @@ protected:
     u32 downcountAmount;
     u32 numLoadStoreInst;
     u32 numFloatingPointInst;
-    // If this is set, we need to generate an exception handler for the fastmem load.
-    u8* fastmemLoadStore;
+    // If this is true, we need to generate an exception handler for the fastmem load.
+    bool fastmemLoadStore;
     // If this is set, a load or store already prepared a jump to the exception handler for us,
     // so just fixup that branch instead of testing for a DSI again.
     bool fixupExceptionHandler;
@@ -131,6 +136,14 @@ protected:
     std::unordered_set<u32> fifoWriteAddresses;
     std::unordered_set<u32> pairedQuantizeAddresses;
     std::unordered_set<u32> noSpeculativeConstantsAddresses;
+
+    // Insert as a batch when finalizing the block, minimizing map accesses.
+#ifdef _M_X86_64
+    std::vector<TrampolineInfo> back_patch_info_temp;
+#endif
+#ifdef _M_ARM_64
+    std::vector<FastmemArea> fault_to_handler_temp;
+#endif
   };
 
   PPCAnalyst::CodeBlock code_block;

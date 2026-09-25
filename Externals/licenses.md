@@ -68,6 +68,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv3 and other licenses](http://doc.qt.io/qt-5/licensing.html)
 - [SDL](https://www.libsdl.org/):
    [zlib license](http://hg.libsdl.org/SDL/file/tip/COPYING.txt)
+- [sfl-library](https://github.com/slavenf/sfl-library):
+   [zlib license](https://github.com/slavenf/sfl-library/blob/master/LICENSE.txt)
 - [SFML](http://www.sfml-dev.org/):
    [zlib license](http://www.sfml-dev.org/license.php)
 - [TAP-Windows](https://openvpn.net/):

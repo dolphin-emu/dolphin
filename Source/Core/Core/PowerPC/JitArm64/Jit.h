@@ -7,9 +7,12 @@
 #include <map>
 #include <optional>
 
+#include <sfl/compact_vector.hpp>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/RangeSizeSet.h"
 
+#include "Core/PowerPC/JitArm64/FastmemArea.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
@@ -191,12 +194,6 @@ public:
   void rlwinmx_internal(UGeckoInstruction inst, u32 sh);
 
 protected:
-  struct FastmemArea
-  {
-    const u8* fast_access_code;
-    const u8* slow_access_code;
-  };
-
   void SetBlockLinkingEnabled(bool enabled);
   void SetOptimizationEnabled(bool enabled);
 
@@ -389,8 +386,17 @@ protected:
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
-  // <Fast path fault location, slow path handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler{};
+  // The keys store the entry point of a block. Lookups find the block through lower_bound (which is
+  // why the comparison is std::greater), and then linearly search the vector for the specific
+  // address. The total number of entries is in the 100s of thousands, and maps are inefficient, so
+  // this improves performance by reducing the stress of balancing and by allowing to batch insert
+  // all the info for each block. (Even a better ordered structure like b-tree maps would probably
+  // benefit.)
+  //
+  // Also note that this would need to be an ordered structure anyway in order to erase the entries
+  // when a block is destroyed.
+  std::map<const u8*, sfl::compact_vector<FastmemArea>, std::greater<const u8*>>
+      m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 

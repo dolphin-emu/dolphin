@@ -336,27 +336,31 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MovInfo mov;
     bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
-    TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = js.compilerPC;
-    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
-    info.read = true;
-    info.op_reg = reg_value;
-    info.op_arg = opAddress;
-    info.offsetAddedToAddress = offsetAddedToAddress;
-    info.accessSize = accessSize >> 3;
-    info.offset = offset;
-    info.registersInUse = registersInUse;
-    info.flags = flags;
-    info.signExtend = signExtend;
+
     ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
     }
-    info.len = static_cast<u16>(GetCodePtr() - info.start);
 
-    js.fastmemLoadStore = mov.address;
+    TrampolineInfo& info = js.back_patch_info_temp.emplace_back();
+    info = {
+        .start = backpatchStart,
+        .len = static_cast<u16>(GetCodePtr() - backpatchStart),
+        .flags = static_cast<u8>(flags),
+        .accessSize = static_cast<u8>(accessSize >> 3),
+        .read = true,
+        .signExtend = signExtend,
+        .offsetAddedToAddress = offsetAddedToAddress,
+        .pc = js.compilerPC,
+        .registersInUse = registersInUse,
+        .nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG,
+        .offset = offset,
+        .op_reg = reg_value,
+        .op_arg = opAddress,
+    };
+
+    js.fastmemLoadStore = true;
     return;
   }
 
@@ -509,26 +513,30 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
-    TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = js.compilerPC;
-    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
-    info.read = false;
-    info.op_arg = reg_value;
-    info.op_reg = reg_addr;
-    info.offsetAddedToAddress = false;
-    info.accessSize = accessSize >> 3;
-    info.offset = offset;
-    info.registersInUse = registersInUse;
-    info.flags = flags;
-    ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+
+    const ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
     }
-    info.len = static_cast<u16>(GetCodePtr() - info.start);
 
-    js.fastmemLoadStore = mov.address;
+    TrampolineInfo& info = js.back_patch_info_temp.emplace_back();
+    info = {
+        .start = backpatchStart,
+        .len = static_cast<u16>(GetCodePtr() - backpatchStart),
+        .flags = static_cast<u8>(flags),
+        .accessSize = static_cast<u8>(accessSize >> 3),
+        .read = false,
+        .offsetAddedToAddress = false,
+        .pc = js.compilerPC,
+        .registersInUse = registersInUse,
+        .nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG,
+        .offset = offset,
+        .op_reg = reg_addr,
+        .op_arg = reg_value,
+    };
+
+    js.fastmemLoadStore = true;
 
     return;
   }
@@ -1061,5 +1069,4 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
 void EmuCodeBlock::Clear()
 {
   m_back_patch_info.clear();
-  m_exception_handler_at_loc.clear();
 }

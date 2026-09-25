@@ -184,6 +184,7 @@ PUBLIC
   fmt::fmt
   MbedTLS::mbedtls
   MINIZIP::minizip-ng
+  sfl
   sfml-network
 
 PRIVATE

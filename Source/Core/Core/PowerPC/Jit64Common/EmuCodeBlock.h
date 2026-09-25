@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <map>
+
+#include <sfl/compact_vector.hpp>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -140,6 +142,15 @@ protected:
   u8* m_near_code_end = nullptr;
   bool m_near_code_write_failed = false;
 
-  std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
-  std::unordered_map<u8*, u8*> m_exception_handler_at_loc;
+  // The keys store the entry point of a block. Lookups find the block through lower_bound (which is
+  // why the comparison is std::greater), and then linearly search the vector for the specific
+  // address. The total number of entries is in the 100s of thousands, and maps are inefficient, so
+  // this improves performance by reducing the stress of balancing and by allowing to batch insert
+  // all the info for each block. (Even a better ordered structure like b-tree maps would probably
+  // benefit.)
+  //
+  // Also note that this would need to be an ordered structure anyway in order to erase the entries
+  // when a block is destroyed.
+  std::map<const u8*, sfl::compact_vector<TrampolineInfo>, std::greater<const u8*>>
+      m_back_patch_info;
 };
