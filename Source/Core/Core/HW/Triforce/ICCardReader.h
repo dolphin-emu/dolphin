@@ -80,7 +80,7 @@ private:
 
     const std::string m_filename;
 
-    const UID m_uid;
+    UID m_uid;
 
     enum class State : u8
     {

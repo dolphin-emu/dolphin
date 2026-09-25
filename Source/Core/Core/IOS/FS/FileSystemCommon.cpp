@@ -300,7 +300,7 @@ void FileSystem::DoStateRead(PointerWrap& p, const std::string& directory_path)
 
 void FileSystem::DoStateWriteOrMeasure(PointerWrap& p, const std::string& directory_path)
 {
-  const Result<Metadata> metadata = GetMetadata(0, 0, directory_path);
+  Result<Metadata> metadata = GetMetadata(0, 0, directory_path);
   if (!metadata)
   {
     ERROR_LOG_FMT(IOS_FS, "DoStateWriteOrMeasure failed to call GetMetadata for {}: {}",
