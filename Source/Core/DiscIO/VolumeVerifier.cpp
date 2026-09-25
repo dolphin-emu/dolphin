@@ -1095,6 +1095,7 @@ void VolumeVerifier::SetUpHashing()
   {
     m_sha1_context = Common::SHA1::CreateContext();
   }
+
 }
 
 void VolumeVerifier::WaitForAsyncOperations() const
@@ -1241,6 +1242,7 @@ void VolumeVerifier::Process()
         m_sha1_context->Update(m_data.data(), byte_increment);
       });
     }
+
   }
 
   if (content_read)
@@ -1332,6 +1334,7 @@ void VolumeVerifier::Finish()
       const auto digest = m_sha1_context->Finish();
       m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
     }
+
   }
 
   if (m_read_errors_occurred)
