@@ -960,7 +960,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   // TODO: This is terribly slow.
   // TODO: Refactor.
   // Avatar: The Last Airbender (GC) uses this for videos.
-  if ((mem_address & 0x0F000000) == 0x08000000)
+  if ((mem_address & 0x1F000000) == 0x08000000)
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
@@ -972,7 +972,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
 
   // No known game uses this; here for completeness.
   // TODO: Refactor.
-  if ((mem_address & 0x0F000000) == 0x0C000000)
+  if ((mem_address & 0x1F000000) == 0x0C000000)
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
@@ -990,7 +990,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
 {
   // No known game uses this; here for completeness.
   // TODO: Refactor.
-  if ((mem_address & 0x0F000000) == 0x08000000)
+  if ((mem_address & 0x1F000000) == 0x08000000)
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
@@ -1002,7 +1002,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
 
   // No known game uses this.
   // TODO: Refactor.
-  if ((mem_address & 0x0F000000) == 0x0C000000)
+  if ((mem_address & 0x1F000000) == 0x0C000000)
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
