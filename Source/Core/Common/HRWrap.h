@@ -6,7 +6,11 @@
 #include <fmt/format.h>
 #include <string>
 #include <winerror.h>
+#ifdef _MSC_VER
 #include <winrt/base.h>
+#elif defined(__MINGW32__)
+#include "Common/WindowsRTShim.h"
+#endif
 
 #include "Common/CommonTypes.h"
 

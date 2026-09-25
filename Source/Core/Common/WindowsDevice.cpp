@@ -12,6 +12,12 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 
+#ifdef __MINGW32__
+#ifndef __callback
+#define __callback
+#endif
+#endif
+
 namespace Common
 {
 std::optional<std::wstring> GetPropertyHelper(auto function, auto dev,
