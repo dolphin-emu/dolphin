@@ -70,6 +70,12 @@ enum class IntSetting(
         "LastPlatformTab",
         0
     ),
+    MAIN_GBA_ACTIVE_SLOT(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "GbaActiveSlot",
+        0
+    ),
     MAIN_IR_MODE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
