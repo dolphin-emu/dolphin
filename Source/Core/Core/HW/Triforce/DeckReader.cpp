@@ -17,8 +17,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
 
-#include "Core/ConfigManager.h"
-
 namespace
 {
 
@@ -36,6 +34,24 @@ constexpr u32 FIRMWARE_UPDATE_TIMEOUT = 240;
 auto GetFirmwareDumpFilename()
 {
   return fmt::format("{}card_deck_reader_firmware.bin", File::GetUserPath(D_TRIUSER_IDX));
+}
+
+auto GetCardDatabaseFilename()
+{
+  // TODO: Better name ?
+  return fmt::format("{}avalon_card_database.json", File::GetSysDirectory());
+}
+
+auto GetCardDeckFilename()
+{
+  // TODO: Better name ?
+  return fmt::format("{}tricard_deck.json", File::GetUserPath(D_TRIUSER_IDX));
+}
+
+auto GetDefaultCardDeckFilename()
+{
+  // TODO: Better name ?
+  return fmt::format("{}avalon_default_deck.json", File::GetSysDirectory());
 }
 
 enum class CDReaderCommand : u8
@@ -58,26 +74,117 @@ enum class CDReaderCommand : u8
   ProgramVersion = 0x76,
 };
 
-#pragma pack(push, 1)
-struct CardIdentifier
+}  // namespace
+
+namespace Triforce
 {
-  // When the 0x01 bit is set, Avalon indexes a separate smaller table.
-  // Avalon specifically requires 0x80, 0x40, and 0x20 bits are not set.
-  // We don't know the relevance of this second table.
-  // There are even some duplicates between the two tables.
-  u8 table_index;
 
-  Common::BigEndianValue<u16> card_index;
-};
-#pragma pack(pop)
+CardDatabase LoadCardDatabase()
+{
+  CardDatabase result;
 
-std::optional<std::vector<CardIdentifier>> LoadCardDeckFromFile()
+  std::string file_contents;
+  File::ReadFileToString(GetCardDatabaseFilename(), file_contents);
+
+  picojson::value json_root;
+  const auto err = picojson::parse(json_root, file_contents);
+
+  if (!err.empty())
+  {
+    ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: {}", err);
+
+    return result;
+  }
+
+  if (!json_root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Invalid JSON root object.");
+    return result;
+  }
+
+  const auto cards_obj = json_root.get("cards");
+  if (!cards_obj.is<picojson::array>())
+  {
+    ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Invalid \"cards\" array.");
+    return result;
+  }
+
+  for (const auto& item : cards_obj.get<picojson::array>())
+  {
+    if (!item.is<picojson::object>())
+      continue;
+
+    const auto& item_obj = item.get<picojson::object>();
+
+    auto card_number = ReadStringFromJson(item_obj, "number");
+    if (!card_number)
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Invalid card number.");
+      continue;
+    }
+
+    CardDatabaseEntry card_db_entry;
+
+    card_db_entry.name_eng = ReadStringFromJson(item_obj, "name_eng").value_or("");
+    card_db_entry.name_jpn = ReadStringFromJson(item_obj, "name_jpn").value_or("");
+
+    card_db_entry.attribute = ReadStringFromJson(item_obj, "attrib").value_or("");
+
+    card_db_entry.movement = ReadStringFromJson(item_obj, "movement").value_or("");
+
+    card_db_entry.attack = ReadNumericFromJson<int>(item_obj, "atk");
+    card_db_entry.defense = ReadNumericFromJson<int>(item_obj, "def");
+
+    // TODO: Better name than "entries" ?
+    const auto table_indices = item.get("entries");
+    if (!table_indices.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Invalid \"entries\" array.");
+      continue;
+    }
+
+    for (const auto& table_index : table_indices.get<picojson::array>())
+    {
+      if (!table_index.is<picojson::object>())
+        continue;
+
+      const auto& table_index_obj = table_index.get<picojson::object>();
+
+      const auto card_index = ReadNumericFromJson<u16>(table_index_obj, "index");
+      if (!card_index)
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Invalid \"index\" field.");
+        continue;
+      }
+
+      card_db_entry.card_id.card_index = *card_index;
+      card_db_entry.card_id.table_index =
+          ReadNumericFromJson<u8>(table_index_obj, "table").value_or(0);
+
+      // We currently just use the first valid identifier.
+      result.emplace(*card_number, std::move(card_db_entry));
+      break;
+    }
+  }
+
+  INFO_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDatabaseFromFile: Loaded {} cards.", result.size());
+
+  return result;
+}
+
+static std::optional<CardDeck> LoadCardDeckFromFile(const CardDatabase& card_database,
+                                                    const std::string& filename)
 {
   // Example json format:
+  // index/table are used if number is unspecified.
   // table defaults to 0. quantity defaults to 1.
   //
   // {
   //   "cards": [
+  //     {
+  //       "number": "C23",
+  //       "quantity": 2
+  //     },
   //     {
   //       "index": 12
   //     },
@@ -91,10 +198,6 @@ std::optional<std::vector<CardIdentifier>> LoadCardDeckFromFile()
   //     }
   //   ]
   // }
-
-  const std::string filename =
-      fmt::format("{}tricard_{}_deck.json", File::GetUserPath(D_TRIUSER_IDX),
-                  SConfig::GetInstance().GetGameID());
 
   std::string file_contents;
   File::ReadFileToString(filename, file_contents);
@@ -131,16 +234,37 @@ std::optional<std::vector<CardIdentifier>> LoadCardDeckFromFile()
 
     const auto& item_obj = item.get<picojson::object>();
 
-    const auto card_index = ReadNumericFromJson<u16>(item_obj, "index");
-    if (!card_index)
-    {
-      ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDeckFromFile: Invalid \"index\" field.");
-      continue;
-    }
-
     CardIdentifier card_id{};
-    card_id.card_index = *card_index;
-    card_id.table_index = ReadNumericFromJson<u8>(item_obj, "table").value_or(0);
+
+    const auto card_number = ReadStringFromJson(item_obj, "number");
+    if (card_number)
+    {
+      auto card_db_entry = card_database.find(*card_number);
+      if (card_db_entry != card_database.end())
+      {
+        card_id = card_db_entry->second.card_id;
+      }
+      else
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                      "LoadCardDeckFromFile: Card number \"{}\" not found in database.",
+                      *card_number);
+      }
+    }
+    else
+    {
+      // Fall back to "table" and "index" if "number" isn't specified.
+
+      const auto card_index = ReadNumericFromJson<u16>(item_obj, "index");
+      if (!card_index)
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_CARD, "LoadCardDeckFromFile: Invalid \"index\" field.");
+        continue;
+      }
+
+      card_id.card_index = *card_index;
+      card_id.table_index = ReadNumericFromJson<u8>(item_obj, "table").value_or(0);
+    }
 
     const auto quantity = ReadNumericFromJson<u8>(item_obj, "quantity").value_or(1);
     result->resize(result->size() + quantity, card_id);
@@ -149,10 +273,43 @@ std::optional<std::vector<CardIdentifier>> LoadCardDeckFromFile()
   return result;
 }
 
-}  // namespace
-
-namespace Triforce
+std::optional<CardDeck> LoadCardDeck(const CardDatabase& card_database)
 {
+  auto result = LoadCardDeckFromFile(card_database, GetCardDeckFilename());
+
+  // Fall back to default deck.
+  if (!result)
+    result = LoadDefaultCardDeck(card_database);
+
+  return result;
+}
+
+std::optional<CardDeck> LoadDefaultCardDeck(const CardDatabase& card_database)
+{
+  return LoadCardDeckFromFile(card_database, GetDefaultCardDeckFilename());
+}
+
+bool SaveCardDeck(std::span<DeckEntry> deck)
+{
+  picojson::array cards;
+
+  for (const auto& entry : deck)
+  {
+    picojson::object card_obj;
+    card_obj["number"] = picojson::value(entry.number);
+    if (entry.quantity != 1)
+      card_obj["quantity"] = picojson::value(double(entry.quantity));
+
+    cards.emplace_back(std::move(card_obj));
+  }
+
+  picojson::object obj;
+  obj["cards"] = picojson::value(std::move(cards));
+
+  const std::string json = picojson::value(std::move(obj)).serialize(true);
+
+  return File::WriteStringToFile(GetCardDeckFilename(), json);
+}
 
 void DeckReader::Update()
 {
@@ -345,7 +502,9 @@ void DeckReader::Update()
       // We've had one, yes, but what about second header ?
       WriteTxBytes(std::array<u8, 2>{0xaa, u8(CDReaderCommand::ReadCard)});
 
-      if (const auto deck = LoadCardDeckFromFile())
+      const auto card_database = LoadCardDatabase();
+
+      if (const auto deck = LoadCardDeck(card_database))
       {
         // What happens with more than 30 cards ?
         WriteTxByte(u8(deck->size() * sizeof(CardIdentifier)));
