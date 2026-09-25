@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QStackedWidget>
 #include <QString>
 #include <QVBoxLayout>
 
@@ -26,6 +27,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -76,9 +78,19 @@ void InfinityBaseWindow::CreateMainWindow()
     vbox->addWidget(line);
   };
 
-  m_group_figures = new QGroupBox(tr("Active Infinity Figures:"));
-  auto* vbox_group = new QVBoxLayout();
-  auto* scroll_area = new QScrollArea();
+  m_stacked_groupboxes = new QStackedWidget;
+
+  auto* const active_figures_group = new QGroupBox(tr("Active Infinity Figures:"));
+  auto* const active_figures_layout = new QVBoxLayout{active_figures_group};
+  auto* const active_figures = new QWidget;
+  active_figures_layout->setContentsMargins(QMargins{});
+  active_figures_layout->addWidget(GetWrappedWidget(active_figures));
+
+  // Stack contains an empty QGroupBox for when hidden along with the proper QGroupBox.
+  m_stacked_groupboxes->addWidget(new QGroupBox);
+  m_stacked_groupboxes->addWidget(active_figures_group);
+
+  auto* const vbox_group = new QVBoxLayout{active_figures};
 
   AddFigureSlot(vbox_group, tr("Play Set/Power Disc"), FigureUIPosition::HexagonDiscOne);
   add_line(vbox_group);
@@ -98,11 +110,11 @@ void InfinityBaseWindow::CreateMainWindow()
   add_line(vbox_group);
   AddFigureSlot(vbox_group, tr("Player Two Ability Two"), FigureUIPosition::P2AbilityTwo);
 
-  m_group_figures->setLayout(vbox_group);
-  scroll_area->setWidget(m_group_figures);
-  scroll_area->setWidgetResizable(true);
-  m_group_figures->setVisible(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
-  main_layout->addWidget(scroll_area);
+  vbox_group->addStretch();
+
+  m_stacked_groupboxes->setCurrentIndex(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) ? 1 : 0);
+
+  main_layout->addWidget(m_stacked_groupboxes);
   setLayout(main_layout);
 }
 
@@ -253,6 +265,8 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
   hbox_idvar->addWidget(edit_num);
   layout->addLayout(hbox_idvar);
 
+  layout->addStretch();
+
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   buttons->button(QDialogButtonBox::Ok)->setText(tr("Create"));
   layout->addWidget(buttons);
@@ -329,7 +343,7 @@ QString CreateFigureDialog::GetFilePath() const
 void InfinityBaseWindow::EmulateBase(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
-  m_group_figures->setVisible(emulate);
+  m_stacked_groupboxes->setCurrentIndex(emulate ? 1 : 0);
 }
 
 void InfinityBaseWindow::OnEmulationStateChanged(Core::State state)
