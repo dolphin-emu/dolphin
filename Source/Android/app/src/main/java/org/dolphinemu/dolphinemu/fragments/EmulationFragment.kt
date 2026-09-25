@@ -132,7 +132,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     fun toggleInputOverlayVisibility(settings: Settings?) {
         BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.setBoolean(
-            settings!!, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.boolean
+            settings!!,
+            !InputOverlay.getBooleanSetting(BooleanSetting.MAIN_SHOW_INPUT_OVERLAY)
         )
 
         inputOverlay?.refreshControls()
@@ -167,6 +168,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     fun stopEmulation() {
         Log.debug("[EmulationFragment] Stopping emulation.")
+        (activity as? EmulationActivity)?.saveSettingsBeforeStoppingEmulation()
         NativeLibrary.StopEmulation()
     }
 
