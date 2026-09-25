@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -65,7 +66,7 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + w / 2, PADDING + h / 2, x, y);
 
   painter.setBrush(Qt::blue);
-  int wh_avg = (w + h) / 2;
+  int wh_avg = std::midpoint(w, h);
   int radius = wh_avg / 30;
   painter.drawEllipse(x - radius, y - radius, radius * 2, radius * 2);
 }

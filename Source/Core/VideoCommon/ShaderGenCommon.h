@@ -6,6 +6,7 @@
 #include <cstring>
 #include <functional>
 #include <iterator>
+#include <numeric>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -247,7 +248,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
     }
     else
     {
-      u32 mid = low + ((high - low) / 2);
+      u32 mid = std::midpoint(low, high);
       out.Write("{:{}}if ({} < {}u) {{\n", "", cur_indent, variable, mid);
       BuildTree(cur_indent + 2, low, mid);
       out.Write("{:{}}}} else {{\n", "", cur_indent);
