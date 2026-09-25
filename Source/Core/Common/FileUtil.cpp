@@ -910,6 +910,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GBABIOS_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_BIOS;
 
     s_user_paths[D_ASM_ROOT_IDX] = s_user_paths[D_USER_IDX] + ASSEMBLY_DIR DIR_SEP;
+    s_user_paths[D_SOUNDS_IDX] = s_user_paths[D_LOAD_IDX] + SOUNDS_DIR DIR_SEP;
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
@@ -970,6 +971,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
     s_user_paths[D_GRAPHICSMOD_IDX] = s_user_paths[D_LOAD_IDX] + GRAPHICSMOD_DIR DIR_SEP;
     s_user_paths[D_BANNERS_WIIROOT_IDX] = s_user_paths[D_LOAD_IDX] + WIIBANNERS_DIR DIR_SEP;
+    s_user_paths[D_SOUNDS_IDX] = s_user_paths[D_LOAD_IDX] + SOUNDS_DIR DIR_SEP;
     break;
   }
 }

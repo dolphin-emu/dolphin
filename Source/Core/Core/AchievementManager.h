@@ -7,13 +7,16 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <ctime>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -112,6 +115,15 @@ public:
   Common::HookableEvent<const UpdatedItems&> update_event;
   Common::HookableEvent<int> login_event;
 
+  enum class SoundType
+  {
+    Info = 0,
+    Unlock = 2,
+    Leaderboard = 3,
+    LeaderboardCancel = 4,
+    LeaderboardSubmit = 5
+  };
+
   static AchievementManager& GetInstance();
   void Init(void* hwnd);
   void Login(const std::string& password);
@@ -164,6 +176,8 @@ public:
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
+  void PlayAudioCue(SoundType type);
+
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   Common::HookableEvent<> dev_menu_update_event;
   const rc_client_raintegration_menu_t* GetDevelopmentMenu();
@@ -197,6 +211,7 @@ private:
   static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
+  void LoadSounds();
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
                             void* userdata);
 
@@ -264,6 +279,22 @@ private:
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;
   Badge m_default_locked_badge;
+
+  struct SoundFile
+  {
+    u32 sample_rate = 0;
+    u16 channels = 0;
+    std::vector<s16> data;
+  };
+  std::map<SoundType, SoundFile> m_loaded_sounds;
+
+  void AudioThreadLoop();
+  std::thread m_audio_thread;
+  std::mutex m_audio_mutex;
+  std::condition_variable m_audio_cv;
+  std::vector<SoundType> m_audio_queue;
+  std::atomic<bool> m_audio_thread_stop{false};
+
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
   Badge m_game_badge;
@@ -314,6 +345,15 @@ public:
     return s_instance;
   }
 
+  enum class SoundType
+  {
+    Info = 0,
+    Unlock = 2,
+    Leaderboard = 3,
+    LeaderboardCancel = 4,
+    LeaderboardSubmit = 5
+  };
+
   constexpr bool IsHardcoreModeActive() { return false; }
 
   constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code, std::string_view game_id,
@@ -335,6 +375,8 @@ public:
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 
   constexpr void DoFrame() {}
+
+  constexpr void PlayAudioCue(SoundType type) {}
 
   constexpr void CloseGame() {}
 };
