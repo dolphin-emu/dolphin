@@ -356,7 +356,7 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16
 
 s16 ClampS16(s64 sample)
 {
-  return std::clamp<s64>(sample, -0x8000, 0x7FFF);
+  return MathUtil::SaturatingCast<s16>(sample);
 }
 
 // Add samples to an output buffer, with optional volume ramping.
