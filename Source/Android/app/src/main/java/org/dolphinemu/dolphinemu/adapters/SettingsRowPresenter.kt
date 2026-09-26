@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.adapters
 
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
@@ -16,9 +17,16 @@ class SettingsRowPresenter : Presenter() {
         val settingsCard = ImageCardView(parent.context)
         settingsCard.apply {
             setMainImageAdjustViewBounds(true)
-            setMainImageDimensions(192, 160)
+            setMainImageDimensions(
+                resources.getDimensionPixelSize(R.dimen.tv_settings_card_width),
+                resources.getDimensionPixelSize(R.dimen.tv_settings_card_height)
+            )
             isFocusable = true
             isFocusableInTouchMode = true
+            findViewById<TextView>(R.id.title_text).apply {
+                minLines = 2
+                maxLines = 2
+            }
         }
 
         // Use that view to create a ViewHolder.
