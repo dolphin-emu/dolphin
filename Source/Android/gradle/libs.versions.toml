@@ -26,6 +26,7 @@ slidingpanelayout = "1.2.0"
 swiperefreshlayout = "1.2.0"
 tvprovider = "1.1.0"
 uiautomator = "2.4.0"
+accompanist = "0.37.3"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose" }
@@ -64,6 +65,7 @@ filepicker = { group = "com.nononsenseapps", name = "filepicker", version.ref = 
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+accompanist = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
