@@ -16,31 +16,6 @@ class System;
 
 struct PresentInfo
 {
-  enum class PresentReason
-  {
-    Immediate,                // FIFO is Presenting the XFB immediately, straight after the XFB copy
-    VideoInterface,           // VideoInterface has triggered a present with a new frame
-    VideoInterfaceDuplicate,  // VideoInterface has triggered a present with a duplicate frame
-  };
-
-  // The number of (unique) frames since the emulated console booted
-  u64 frame_count = 0;
-
-  // The number of presents since the video backend was initialized.
-  // never goes backwards.
-  u64 present_count = 0;
-
-  // The frame is identical to the previous frame
-  PresentReason reason = PresentReason::Immediate;
-
-  // The exact emulated time of the when real hardware would have presented this frame
-  u64 emulated_timestamp = 0;
-
-  TimePoint intended_present_time{};
-
-  // AfterPresent only: The actual time the frame was presented
-  TimePoint actual_present_time{};
-
   enum class PresentTimeAccuracy
   {
     // The Driver/OS has given us an exact timestamp of when the first line of the frame started
@@ -58,8 +33,36 @@ struct PresentInfo
     Unimplemented,
   };
 
+  enum class PresentReason
+  {
+    Immediate,                // FIFO is Presenting the XFB immediately, straight after the XFB copy
+    VideoInterface,           // VideoInterface has triggered a present with a new frame
+    VideoInterfaceDuplicate,  // VideoInterface has triggered a present with a duplicate frame
+  };
+
+  // The number of (unique) frames since the emulated console booted
+  u64 frame_count = 0;
+
+  // The number of presents since the video backend was initialized.
+  // never goes backwards.
+  u64 present_count = 0;
+
+  // The exact emulated time of the when real hardware would have presented this frame
+  u64 emulated_timestamp = 0;
+
+  TimePoint intended_present_time{};
+
+  // AfterPresent only: The actual time the frame was presented
+  TimePoint actual_present_time{};
+
   // Accuracy of actual_present_time
   PresentTimeAccuracy present_time_accuracy = PresentTimeAccuracy::Unimplemented;
+
+  // Where the presentation of the frame was triggered from
+  PresentReason reason = PresentReason::Immediate;
+
+  u32 frame_buffer_width;
+  u32 frame_buffer_height;
 
   std::vector<std::string_view> xfb_copy_hashes;
 };

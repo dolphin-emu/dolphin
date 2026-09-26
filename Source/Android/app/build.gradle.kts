@@ -7,8 +7,8 @@ plugins {
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdk = 36
-    ndkVersion = "29.0.14206865"
+    compileSdk = 37
+    ndkVersion = "30.0.15729638"
 
     buildFeatures {
         compose = true
@@ -38,7 +38,7 @@ android {
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
 
         versionCode = getBuildVersionCode()
 
@@ -91,7 +91,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("../../../CMakeLists.txt")
-            version = "3.22.1+"
+            version = "3.25.0+"
         }
     }
     namespace = "org.dolphinemu.dolphinemu"
@@ -115,12 +115,6 @@ android {
 
     packaging {
         jniLibs.useLegacyPackaging = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
 

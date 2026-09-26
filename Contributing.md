@@ -195,7 +195,7 @@ Summary:
 - [Classes and Structs](#cpp-code-classes-and-structs)
 
 ## <a name="cpp-code-general"></a>General
-- The codebase currently uses C++20, though not all compilers support all C++20 features.
+- The codebase currently uses C++23, though compiler support for newer language features varies.
   - See CMakeLists.txt "Enforce minimum compiler versions" for the currently supported compilers.
 - Use the [nullptr](https://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
 - If a [range-based for loop](https://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.

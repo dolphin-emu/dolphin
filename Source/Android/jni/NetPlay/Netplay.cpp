@@ -1,8 +1,11 @@
 // Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include <jni.h>
@@ -36,6 +39,30 @@ static NetPlay::NetPlayServer* GetServerPointer(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<NetPlay::NetPlayServer*>(
       env->GetLongField(obj, IDCache::GetNetPlayServerPointer()));
+}
+
+static jintArray PadMappingArrayToJIntArray(JNIEnv* env, const NetPlay::PadMappingArray& mapping)
+{
+  const jsize size = static_cast<jsize>(mapping.size());
+  jintArray jmapping = env->NewIntArray(size);
+  std::array<jint, std::tuple_size_v<std::decay_t<decltype(mapping)>>> values;
+  for (size_t i = 0; i < mapping.size(); i++)
+    values[i] = static_cast<jint>(mapping[i]);
+  env->SetIntArrayRegion(jmapping, 0, size, values.data());
+  return jmapping;
+}
+
+static bool JIntArrayToPadMappingArray(JNIEnv* env, jintArray jmapping,
+                                       NetPlay::PadMappingArray* mapping)
+{
+  if (env->GetArrayLength(jmapping) != static_cast<jsize>(mapping->size()))
+    return false;
+
+  std::array<jint, std::tuple_size_v<std::decay_t<decltype(*mapping)>>> values;
+  env->GetIntArrayRegion(jmapping, 0, static_cast<jsize>(values.size()), values.data());
+  for (size_t i = 0; i < mapping->size(); i++)
+    (*mapping)[i] = static_cast<NetPlay::PlayerId>(values[i]);
+  return true;
 }
 
 extern "C" {
@@ -222,6 +249,54 @@ Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeReconnectTr
 {
   if (Common::g_TraversalClient)
     Common::g_TraversalClient->ReconnectToServer();
+}
+
+JNIEXPORT jintArray JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeGetPadMapping(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return env->NewIntArray(0);
+
+  return PadMappingArrayToJIntArray(env, server->GetPadMapping());
+}
+
+JNIEXPORT jintArray JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeGetWiimoteMapping(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return env->NewIntArray(0);
+
+  return PadMappingArrayToJIntArray(env, server->GetWiimoteMapping());
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeSetPadMapping(
+    JNIEnv* env, jobject obj, jintArray jmapping)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return;
+
+  NetPlay::PadMappingArray mapping = server->GetPadMapping();
+  if (JIntArrayToPadMappingArray(env, jmapping, &mapping))
+    server->SetPadMapping(mapping);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_netplay_NetplaySession_nativeSetWiimoteMapping(
+    JNIEnv* env, jobject obj, jintArray jmapping)
+{
+  auto* server = GetServerPointer(env, obj);
+  if (!server)
+    return;
+
+  NetPlay::PadMappingArray mapping = server->GetWiimoteMapping();
+  if (JIntArrayToPadMappingArray(env, jmapping, &mapping))
+    server->SetWiimoteMapping(mapping);
 }
 
 JNIEXPORT void JNICALL

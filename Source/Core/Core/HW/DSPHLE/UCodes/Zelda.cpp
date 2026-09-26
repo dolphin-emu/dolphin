@@ -628,7 +628,11 @@ void ZeldaUCode::RenderAudio()
     if (m_rendering_curr_voice == 0)
       m_renderer.PrepareFrame();
 
-    while (m_rendering_curr_voice < m_rendering_voices_per_frame)
+    // TODO: Find out the actual hardware behavior for the case where
+    //       (m_rendering_voices_per_frame >> 4) >= m_sync_voice_skip_flags.size()
+    const u16 number_of_voices = std::min(m_rendering_voices_per_frame,
+                                          static_cast<u16>(m_sync_voice_skip_flags.size() << 4));
+    while (m_rendering_curr_voice < number_of_voices)
     {
       // If we are not meant to render this voice yet, go back to message
       // processing.
@@ -1468,9 +1472,16 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   // the end of processing, if needed.
   //
   // Maximum of 0x500 samples here - see NeededRawSamplesCount to understand
-  // this practical limit (resampling_ratio = 0xFFFF -> 0x500 samples). Add a
-  // margin of 4 that is needed for samples source that do resampling.
-  std::array<s16, 0x500 + 4> raw_input_samples;
+  // this practical limit (resampling_ratio = 0xFFFF -> 0x500 samples).
+  //
+  // If current_pos_frac contains an (invalid) non-fractional part, it can push
+  // this up by another 15 samples. Which DownloadAFCSamplesFromARAM then rounds
+  // up to the next multiple of 16. So add an extra 0x10 samples to be safe.
+  //
+  // Plus we need an extra four samples at the start to hold the last four
+  // samples from the previous frame.
+
+  std::array<s16, 4 + 0x500 + 0x10> raw_input_samples;
   for (size_t i = 0; i < 4; ++i)
     raw_input_samples[i] = vpb->resample_buffer[i];
 
@@ -1713,6 +1724,12 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     for (u16 i = 0; i < requested_samples_count; ++i)
       dst[i] = 0;
     return;
+  }
+
+  if (vpb->afc_remaining_decoded_samples > 0x10) [[unlikely]]
+  {
+    ERROR_LOG_FMT(DSPHLE, "afc_remaining_decoded_samples > 0x10");
+    vpb->afc_remaining_decoded_samples = 0x10;
   }
 
   // Try several things until we have output enough samples.

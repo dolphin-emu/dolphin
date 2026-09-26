@@ -137,7 +137,7 @@ public:
   // space), a PanicAlert will be shown to the user and zero (or an empty string for the string
   // case) will be returned.
   template <std::unsigned_integral T>
-  static T HostRead(const Core::CPUThreadGuard& guard, const u32 address);
+  static T HostRead(const Core::CPUThreadGuard& guard, u32 address);
   template <typename T>
   requires(!std::unsigned_integral<T>)
   static T HostRead(const Core::CPUThreadGuard& guard, const u32 address)
@@ -167,7 +167,7 @@ public:
       requires(!std::unsigned_integral<T>)
   {
     using U = Common::MakeUnsignedSameSize<T>;
-    std::optional<ReadResult<U>> result = HostTryRead<U>(guard, address);
+    std::optional<ReadResult<U>> result = HostTryRead<U>(guard, address, space);
     return std::bit_cast<std::optional<ReadResult<T>>>(result);
   }
   static std::optional<ReadResult<u32>>
@@ -198,8 +198,8 @@ public:
   // user-visible alert on failure.
   template <std::unsigned_integral T>
   static std::optional<WriteResult>
-  HostTryWrite(const Core::CPUThreadGuard& guard, const Common::MakeAtLeastU32<T> var,
-               const u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  HostTryWrite(const Core::CPUThreadGuard& guard, Common::MakeAtLeastU32<T> var, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
   template <typename T>
   static std::optional<WriteResult>
   HostTryWrite(const Core::CPUThreadGuard& guard, const T var, const u32 address,
@@ -228,10 +228,10 @@ public:
   TryReadInstResult TryReadInstruction(u32 address);
 
   template <std::unsigned_integral T>
-  T Read(const u32 address);
+  T Read(u32 address);
 
   template <std::unsigned_integral T>
-  void Write(const Common::MakeAtLeastU32<T> var, const u32 address);
+  void Write(Common::MakeAtLeastU32<T> var, u32 address);
 
   void Write_U16_Swap(u32 var, u32 address);
   void Write_U32_Swap(u32 var, u32 address);
@@ -328,7 +328,7 @@ private:
   TranslateAddressResult TranslateAddress(u32 address);
 
   template <const XCheckTLBFlag flag>
-  TranslateAddressResult TranslatePageAddress(const EffectiveAddress address, bool* wi);
+  TranslateAddressResult TranslatePageAddress(EffectiveAddress address, bool* wi);
 
   void GenerateDSIException(u32 effective_address, bool write);
   void GenerateISIException(u32 effective_address);
@@ -345,7 +345,7 @@ private:
   template <XCheckTLBFlag flag, std::unsigned_integral T, bool never_translate = false>
   T ReadFromHardware(u32 em_address);
   template <XCheckTLBFlag flag, bool never_translate = false>
-  void WriteToHardware(u32 em_address, const u32 data, const u32 size);
+  void WriteToHardware(u32 em_address, u32 data, u32 size);
   template <XCheckTLBFlag flag>
   bool IsEffectiveRAMAddress(u32 address);
   bool IsPhysicalRAMAddress(u32 address) const;

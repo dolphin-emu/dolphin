@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "Hidclass.h"
+#include "hidclass.h"
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"

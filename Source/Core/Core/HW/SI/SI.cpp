@@ -269,33 +269,7 @@ void SerialInterfaceManager::Init()
     m_channel[i].in_lo.hex = 0;
     m_channel[i].has_recent_device_unplug = false;
 
-    auto& movie = m_system.GetMovie();
-    if (movie.IsMovieActive())
-    {
-      m_desired_device_types[i] = SIDEVICE_NONE;
-
-      if (movie.IsUsingGBA(i))
-      {
-        m_desired_device_types[i] = SIDEVICE_GC_GBA_EMULATED;
-      }
-      else if (movie.IsUsingPad(i))
-      {
-        const SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
-        // GC pad-compatible devices can be used for both playing and recording
-        if (movie.IsUsingBongo(i))
-          m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
-        else if (SIDevice_IsGCController(current))
-          m_desired_device_types[i] = current;
-        else
-          m_desired_device_types[i] = SIDEVICE_GC_CONTROLLER;
-      }
-    }
-    else if (!NetPlay::IsNetPlayRunning())
-    {
-      m_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
-    }
-
-    AddDevice(m_desired_device_types[i], i);
+    AddDevice(Config::Get(Config::GetInfoForSIDevice(i)), i);
   }
 
   m_poll.hex = 0;
@@ -499,12 +473,6 @@ void SerialInterfaceManager::AddDevice(const SIDevices device, int device_number
   AddDevice(SIDevice_Create(m_system, device, device_number));
 }
 
-void SerialInterfaceManager::ChangeDevice(SIDevices device, int channel)
-{
-  // Actual device change will happen in UpdateDevices.
-  m_desired_device_types[channel] = device;
-}
-
 void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int channel)
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS)
@@ -540,7 +508,7 @@ void SerialInterfaceManager::UpdateDevices()
   for (int i = 0; i != MAX_SI_CHANNELS; ++i)
   {
     const SIDevices current_type = GetDeviceType(i);
-    const SIDevices desired_type = m_desired_device_types[i];
+    const SIDevices desired_type = Config::Get(Config::GetInfoForSIDevice(i));
 
     if (current_type != desired_type)
     {

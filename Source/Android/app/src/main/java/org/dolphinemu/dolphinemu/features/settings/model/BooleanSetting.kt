@@ -700,6 +700,18 @@ enum class BooleanSetting(
         false
     ),
     GFX_OVERLAY_STATS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "OverlayStats", false),
+    GFX_OVERLAY_PROJ_STATS(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "OverlayProjStats",
+        false
+    ),
+    GFX_SHOW_INTERNAL_RESOLUTION(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "ShowInternalResolution",
+        false
+    ),
     GFX_DUMP_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpTextures", false),
     GFX_DUMP_MIP_TEXTURES(
         Settings.FILE_GFX,
@@ -935,7 +947,8 @@ enum class BooleanSetting(
         "ProgressEnabled",
         false
     ),
-    NETPLAY_USE_UPNP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "UseUPNP", false);
+    NETPLAY_USE_UPNP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "UseUPNP", false),
+    NETPLAY_SKIP_DUAL_CORE_WARNING(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "SkipDualCoreWarning", false);
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)

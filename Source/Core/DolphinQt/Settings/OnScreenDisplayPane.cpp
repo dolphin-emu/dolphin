@@ -43,8 +43,6 @@ void OnScreenDisplayPane::CreateLayout()
   performance_box->setLayout(performance_layout);
 
   m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
-  m_show_internal_resolution =
-      new ConfigBool(tr("Show Internal Resolution"), Config::GFX_SHOW_INTERNAL_RESOLUTION);
   m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES);
   m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
   m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
@@ -103,6 +101,8 @@ void OnScreenDisplayPane::CreateLayout()
   m_show_statistics = new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
   m_show_proj_statistics =
       new ConfigBool(tr("Show Projection Statistics"), Config::GFX_OVERLAY_PROJ_STATS);
+  m_show_internal_resolution =
+      new ConfigBool(tr("Show XFB Resolution"), Config::GFX_SHOW_INTERNAL_RESOLUTION);
 
   debug_layout->addWidget(m_show_statistics, 0, 0);
   debug_layout->addWidget(m_show_proj_statistics, 0, 1);
@@ -152,11 +152,6 @@ void OnScreenDisplayPane::AddDescriptions()
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
                  "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-
-  static const char TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the internal resolution in pixels, as a product of "
-                 "width and height. <br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_FTIMES_DESCRIPTION[] =
       QT_TR_NOOP("Shows the average time in ms between each distinct rendered frame alongside "
@@ -225,12 +220,15 @@ void OnScreenDisplayPane::AddDescriptions()
   static const char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the size of the emulated external frame buffer (XFB) in pixels, as a "
+                 "product of width and height.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
 
   m_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
   m_font_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
 
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
-  m_show_internal_resolution->SetDescription(tr(TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION));
   m_show_ftimes->SetDescription(tr(TR_SHOW_FTIMES_DESCRIPTION));
   m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
   m_show_vtimes->SetDescription(tr(TR_SHOW_VTIMES_DESCRIPTION));
@@ -251,4 +249,5 @@ void OnScreenDisplayPane::AddDescriptions()
 
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
   m_show_proj_statistics->SetDescription(tr(TR_SHOW_PROJ_STATS_DESCRIPTION));
+  m_show_internal_resolution->SetDescription(tr(TR_SHOW_INTERNAL_RESOLUTION_DESCRIPTION));
 }

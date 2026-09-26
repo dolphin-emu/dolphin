@@ -5,5 +5,6 @@ set(UPNPC_BUILD_SAMPLE OFF)
 set(UPNPC_NO_INSTALL ON)
 
 add_subdirectory(miniupnp/miniupnpc)
+dolphin_disable_warnings(libminiupnpc-static)
 
 add_library(Miniupnpc::miniupnpc ALIAS libminiupnpc-static)

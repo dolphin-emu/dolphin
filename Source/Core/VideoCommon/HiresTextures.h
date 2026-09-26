@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <fmt/ranges.h>
 #include <memory>
 #include <set>
 #include <string>
@@ -19,6 +20,12 @@ enum class TextureFormat;
 
 std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
                                                       const std::string& game_id);
+
+// Tries each id in priority order, returning the directories for the first id that matches
+// anything. Returns an empty set if none of the ids match.
+std::set<std::string>
+GetTextureDirectoriesForFirstMatchingGameId(const std::string& root_directory,
+                                            const std::vector<std::string>& game_ids);
 
 class HiresTexture
 {

@@ -11,15 +11,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping.Companion.emptyControllerMapping
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -57,6 +59,9 @@ class NetplayViewModel(
 
     val players = netplaySession.players
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    val controllerMapping = netplaySession.controllerMapping
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyControllerMapping())
 
     val messages = netplaySession.messages
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -104,16 +109,35 @@ class NetplayViewModel(
     private val _notAllPlayersHaveGame = Channel<Unit>(Channel.CONFLATED)
     val notAllPlayersHaveGame = _notAllPlayersHaveGame.receiveAsFlow()
 
+    private val _dualCoreWarning = Channel<Unit>(Channel.CONFLATED)
+    val dualCoreWarning = _dualCoreWarning.receiveAsFlow()
+
     fun startGame() {
-        if (netplaySession.doAllPlayersHaveGame()) {
-            netplaySession.startGame()
-        } else {
+        if (!netplaySession.doAllPlayersHaveGame()) {
             _notAllPlayersHaveGame.trySend(Unit)
+            return
         }
+
+        if (BooleanSetting.MAIN_CPU_THREAD.boolean &&
+            !BooleanSetting.NETPLAY_SKIP_DUAL_CORE_WARNING.boolean
+        ) {
+            _dualCoreWarning.trySend(Unit)
+            return
+        }
+
+        confirmStartGame()
     }
 
     fun confirmStartGame() {
         netplaySession.startGame()
+    }
+
+    fun setDualCoreEnabled(enabled: Boolean) {
+        BooleanSetting.MAIN_CPU_THREAD.setBoolean(NativeConfig.LAYER_BASE, enabled)
+    }
+
+    fun skipDualCoreWarning() {
+        BooleanSetting.NETPLAY_SKIP_DUAL_CORE_WARNING.setBoolean(NativeConfig.LAYER_BASE, true)
     }
 
     fun sendMessage(message: String) {
@@ -148,6 +172,18 @@ class NetplayViewModel(
         netplaySession.changeGame(gameFile)
     }
 
+    fun setGamecubePort(portNumber: Int, player: Player?) {
+        netplaySession.setControllerMapping(
+            controllerMapping.value.withGamecubePort(portNumber, player)
+        )
+    }
+
+    fun setWiiRemote(remoteNumber: Int, player: Player?) {
+        netplaySession.setControllerMapping(
+            controllerMapping.value.withWiiRemote(remoteNumber, player)
+        )
+    }
+
     private fun getLocalIp(): JoinAddress {
         val localIp = networkHelper.getLocalIpString()
             ?: return JoinAddress.Unknown { _joinAddresses.value += JoinInfoType.LOCAL to getLocalIp() }
@@ -176,12 +212,14 @@ class NetplayViewModel(
                         JoinInfoType.EXTERNAL to JoinAddress.Loading,
                     )
                 }
+
                 is TraversalState.Connected -> {
                     _joinAddresses.value += mapOf(
                         JoinInfoType.ROOM_ID to JoinAddress.Loaded(state.hostCode),
                         JoinInfoType.EXTERNAL to JoinAddress.Loaded(state.externalAddress),
                     )
                 }
+
                 is TraversalState.Failure -> {
                     _joinAddresses.value += mapOf(
                         JoinInfoType.ROOM_ID to JoinAddress.Unknown(retry),

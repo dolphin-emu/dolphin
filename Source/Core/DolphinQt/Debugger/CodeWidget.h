@@ -64,6 +64,7 @@ private:
   void UpdateFunctionCallers(const Common::Symbol* symbol);
   void UpdateNotes();
 
+  void OnShowDemangledNamesChanged();
   void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();
@@ -76,8 +77,11 @@ private:
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;
 
+  const std::string& GetSymbolDisplayName(const Common::Symbol* symbol) const;
+
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;
+  bool m_show_demangled_names;
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;

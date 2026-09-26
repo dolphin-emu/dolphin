@@ -21,7 +21,7 @@ constexpr std::array<u8, 12> SAV_MAGIC = {0x44, 0x41, 0x54, 0x45, 0x4C, 0x47,
                                           0x43, 0x5F, 0x53, 0x41, 0x56, 0x45};  // "DATELGC_SAVE"
 constexpr u32 SAV_HEADER_SIZE = 0xC0;
 constexpr u32 SAV_DENTRY_OFFSET = 0x80;
-constexpr std::array<u8, 6> GCS_MAGIC = {0x47, 0x43, 0x53, 0x41, 0x56, 0x45};  // "GCSAVE"
+constexpr std::array<u8, 6> GCS_FILE_MAGIC = {0x47, 0x43, 0x53, 0x41, 0x56, 0x45};  // "GCSAVE"
 constexpr u32 GCS_HEADER_SIZE = 0x150;
 constexpr u32 GCS_DENTRY_OFFSET = 0x110;
 
@@ -153,7 +153,7 @@ static std::variant<ReadSavefileErrorCode, Savefile> ReadSavefileInternalGCS(Fil
   if (!file.ReadBytes(gcs_header.data(), gcs_header.size()))
     return ReadSavefileErrorCode::IOError;
 
-  if (std::memcmp(gcs_header.data(), GCS_MAGIC.data(), GCS_MAGIC.size()) != 0)
+  if (std::memcmp(gcs_header.data(), GCS_FILE_MAGIC.data(), GCS_FILE_MAGIC.size()) != 0)
     return ReadSavefileErrorCode::DataCorrupted;
 
   Savefile savefile;
@@ -245,7 +245,7 @@ static bool WriteSavefileInternalGCS(File::IOFile& file, const Savefile& savefil
 {
   std::array<u8, GCS_HEADER_SIZE> header;
   std::memset(header.data(), 0, header.size());
-  std::memcpy(header.data(), GCS_MAGIC.data(), GCS_MAGIC.size());
+  std::memcpy(header.data(), GCS_FILE_MAGIC.data(), GCS_FILE_MAGIC.size());
 
   DEntry gcs_entry = savefile.dir_entry;
   gcs_entry.m_block_count = 1;  // always stored as 1 in GCS files

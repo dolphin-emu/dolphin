@@ -4,8 +4,8 @@
 #pragma once
 
 #ifdef _WIN32
-#include <WinSock2.h>
 #include <iphlpapi.h>
+#include <winsock2.h>
 #include <ws2tcpip.h>
 
 typedef pollfd pollfd_t;
@@ -17,23 +17,19 @@ typedef pollfd pollfd_t;
 #elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or   \
     defined(__OpenBSD__) or defined(__HAIKU__)
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <net/if.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#if defined(ANDROID) || defined(__HAIKU__)
-#include <fcntl.h>
-#else
-#include <sys/fcntl.h>
-#endif
-#include <net/if.h>
-#include <netinet/in.h>
-#include <poll.h>
 
 typedef struct pollfd pollfd_t;
 #else
+#include <fcntl.h>
 #include <netinet/in.h>
-#include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif

@@ -119,6 +119,7 @@ void System::Initialize()
   m_separate_cpu_and_gpu_threads = Config::Get(Config::MAIN_CPU_THREAD);
   m_mmu_enabled = Config::Get(Config::MAIN_MMU);
   m_pause_on_panic_enabled = Config::Get(Config::MAIN_PAUSE_ON_PANIC);
+  m_simulated_memory_size = SConfig::GetInstance().GetSimulatedMemorySize();
 }
 
 SoundStream* System::GetSoundStream() const

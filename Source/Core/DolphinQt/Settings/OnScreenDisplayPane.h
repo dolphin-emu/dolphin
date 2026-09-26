@@ -25,7 +25,6 @@ private:
 
   // Performance
   ConfigBool* m_show_fps;
-  ConfigBool* m_show_internal_resolution;
   ConfigBool* m_show_ftimes;
   ConfigBool* m_show_vps;
   ConfigBool* m_show_vtimes;
@@ -49,4 +48,5 @@ private:
   // Debug
   ConfigBool* m_show_statistics;
   ConfigBool* m_show_proj_statistics;
+  ConfigBool* m_show_internal_resolution;
 };

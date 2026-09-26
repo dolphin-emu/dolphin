@@ -261,12 +261,7 @@ std::vector<std::shared_ptr<Device>> DeviceContainer::GetAllDevices() const
 {
   std::lock_guard lk(m_devices_mutex);
 
-  std::vector<std::shared_ptr<Device>> devices;
-
-  for (const auto& d : m_devices)
-    devices.emplace_back(d);
-
-  return devices;
+  return m_devices;
 }
 
 std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const

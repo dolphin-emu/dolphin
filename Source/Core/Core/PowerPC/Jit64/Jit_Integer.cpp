@@ -182,23 +182,14 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
   if (CheckMergedBranch(0))
   {
+    // If the output operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd
+    // be better to flush it here so that we don't have to flush it on both sides of the branch.
+    // The flush is before the TEST so that it can macro-op fusion with the conditional branch.
+    gpr.Flush(~js.op->gprWillBeWritten & js.op->regsOut, RegCache::FlushMode::Undirty);
     if (needs_test)
-    {
       TEST(32, arg, arg);
-      arg.Unlock();
-    }
-    else
-    {
-      // If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
-      // better to flush it here so that we don't have to flush it on both sides of the branch.
-      // We don't want to do this if a test is needed though, because it would interrupt macro-op
-      // fusion.
-      arg.Unlock();
-      gpr.Flush(~(js.op->gprWillBeRead | js.op->gprWillBeWritten) &
-                    (js.op->regsIn | js.op->regsOut),
-                RegCache::FlushMode::Full);
-      gpr.Flush(~js.op->gprWillBeWritten & js.op->regsOut, RegCache::FlushMode::Undirty);
-    }
+
+    arg.Unlock();
     DoMergedBranchCondition();
   }
 }

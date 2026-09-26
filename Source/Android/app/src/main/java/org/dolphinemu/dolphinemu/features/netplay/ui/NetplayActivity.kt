@@ -58,6 +58,9 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     onGameSelected = viewModel::changeGame,
                     gameFiles = viewModel.gameFiles.collectAsState().value,
                     notAllPlayersHaveGame = viewModel.notAllPlayersHaveGame,
+                    dualCoreWarning = viewModel.dualCoreWarning,
+                    onSetDualCoreEnabled = viewModel::setDualCoreEnabled,
+                    onSkipDualCoreWarning = viewModel::skipDualCoreWarning,
                     onConfirmStartGame = viewModel::confirmStartGame,
                     players = viewModel.players.collectAsState().value,
                     hostInputAuthorityEnabled = viewModel.hostInputAuthority.collectAsState().value,
@@ -70,6 +73,9 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     saveTransferProgress = viewModel.saveTransferProgress.collectAsState().value,
                     gameDigestProgress = viewModel.gameDigestProgress.collectAsState().value,
                     joinAddresses = viewModel.joinAddresses.collectAsState().value,
+                    controllerMapping = viewModel.controllerMapping.collectAsState().value,
+                    onGamecubePortChanged = viewModel::setGamecubePort,
+                    onWiiRemoteChanged = viewModel::setWiiRemote,
                 )
             }
         }

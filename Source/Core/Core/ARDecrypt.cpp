@@ -152,8 +152,8 @@ constexpr Seeds genseeds = [] {
 
   for (size_t i = 0; i < array0.size(); ++i)
   {
-    const auto tmp = u8(gentable0[i] - 1);
-    array0[i] = (u32(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
+    const auto tmp = static_cast<u8>(gentable0[i] - 1);
+    array0[i] = (static_cast<u32>(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
   }
 
   for (int i = 0; i < 0x10; ++i)
@@ -165,7 +165,7 @@ constexpr Seeds genseeds = [] {
 
     for (u32 j = 0; j < 0x38; j++)
     {
-      auto tmp = u8(tmp2 + j);
+      auto tmp = static_cast<u8>(tmp2 + j);
 
       if (j > 0x1B)
       {
@@ -347,7 +347,7 @@ static bool GetBitString(u32* ctrl, u32* out, u8 len)
 
 static std::optional<GameIDAndRegion> BatchDecrypt(std::span<u32> codes)
 {
-  const auto size = u32(codes.size());
+  const auto size = static_cast<u32>(codes.size());
 
   assert((size & 1) == 0);
   assert(size != 0);
@@ -383,7 +383,7 @@ static std::optional<GameIDAndRegion> BatchDecrypt(std::span<u32> codes)
 
 static u32 GetVal(char chr)
 {
-  const auto ret = u32(strchr(filter, Common::ToUpper(chr)) - filter);
+  const auto ret = static_cast<u32>(strchr(filter, Common::ToUpper(chr)) - filter);
   switch (ret)
   {
   case 32:  // 'I'

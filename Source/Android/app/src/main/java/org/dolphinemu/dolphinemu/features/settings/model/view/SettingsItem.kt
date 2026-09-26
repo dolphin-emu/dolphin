@@ -86,5 +86,6 @@ abstract class SettingsItem {
         const val TYPE_STRING = 12
         const val TYPE_HYPERLINK_HEADER = 13
         const val TYPE_DATETIME_CHOICE = 14
+        const val TYPE_SEARCH_RESULT = 15
     }
 }

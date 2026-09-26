@@ -34,8 +34,10 @@ constexpr u32 MEM1_BASE_ADDR = 0x80000000U;
 constexpr u32 MEM2_BASE_ADDR = 0x90000000U;
 constexpr u32 MEM1_SIZE_RETAIL = 0x01800000U;
 constexpr u32 MEM1_SIZE_GDEV = 0x04000000U;
+constexpr u32 MEM1_SIZE_MAX = 0x04000000U;
 constexpr u32 MEM2_SIZE_RETAIL = 0x04000000U;
 constexpr u32 MEM2_SIZE_NDEV = 0x08000000U;
+constexpr u32 MEM2_SIZE_MAX = 0x08000000U;
 
 struct PhysicalMemoryRegion
 {

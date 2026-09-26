@@ -194,7 +194,7 @@ void SignedBlobReader::DoState(PointerWrap& p)
 
 bool IsValidTMDSize(size_t size)
 {
-  return size <= 0x49e4;
+  return size >= sizeof(TMDHeader) && size <= 0x49e4;
 }
 
 TMDReader::TMDReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))

@@ -84,16 +84,16 @@ void Shutdown();
 
 // Returns a string containing information of the savestate in the given slot
 // which can be presented to the user for identification purposes
-std::string GetInfoStringOfSlot(int slot, bool translate = true);
+std::string GetInfoStringOfSlot(u32 slot, bool translate = true);
 
 // Returns when the savestate in the given slot was created, or 0 if the slot is empty.
-u64 GetUnixTimeOfSlot(int slot);
+u64 GetUnixTimeOfSlot(u32 slot);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main CPU thread.
 //    If we're in the main CPU thread then they run immediately instead.
-void Save(Core::System& system, int slot);
-void Load(Core::System& system, int slot);
+void Save(Core::System& system, u32 slot);
+void Load(Core::System& system, u32 slot);
 
 void SaveAs(Core::System& system, std::string filename);
 void LoadAs(Core::System& system, std::string filename);

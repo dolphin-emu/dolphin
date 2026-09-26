@@ -10,6 +10,7 @@
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/BreakPoints.h"
@@ -131,6 +132,8 @@ public:
     if (!EMM::IsExceptionHandlerSupported())
       GTEST_SKIP() << "Skipping PageTableHostMappingTest because exception handler is unsupported.";
 
+    SConfig::Init();
+
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
     const u32 host_page_size = memory.GetHostPageSize();
@@ -177,6 +180,8 @@ public:
     EMM::UninstallExceptionHandler();
     Core::UndeclareAsCPUThread();
     system.GetMemory().Shutdown();
+
+    SConfig::Shutdown();
   }
 
   static void SetSR(size_t index, u32 vsid)

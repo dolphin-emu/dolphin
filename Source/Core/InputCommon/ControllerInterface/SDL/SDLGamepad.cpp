@@ -104,15 +104,21 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
     }
 
     // Touchpad
-    if (SDL_GetNumGamepadTouchpads(m_gamepad) > 0)
+    const int num_touchpads = SDL_GetNumGamepadTouchpads(m_gamepad);
+    if (num_touchpads > 0)
     {
-      const char* const name_x = "Touchpad X";
-      AddInput(new NonDetectableDirectionalInput<-1>(name_x, &m_touchpad_x));
-      AddInput(new NonDetectableDirectionalInput<+1>(name_x, &m_touchpad_x));
-      const char* const name_y = "Touchpad Y";
-      AddInput(new NonDetectableDirectionalInput<-1>(name_y, &m_touchpad_y));
-      AddInput(new NonDetectableDirectionalInput<+1>(name_y, &m_touchpad_y));
-      AddInput(new NormalizedInput("Touchpad Pressure", &m_touchpad_pressure));
+      m_touchpads.resize(num_touchpads);
+      for (int t = 0; t < num_touchpads; ++t)
+      {
+        // We do not number the first touchpad to keep backwards compatibility with existing configs
+        // that use "Touchpad X" and "Touchpad Y" as input names.
+        const std::string prefix = t > 0 ? fmt::format("Touchpad {} ", t) : "Touchpad ";
+        AddInput(new NonDetectableDirectionalInput<-1>(prefix + "X", &m_touchpads[t].x));
+        AddInput(new NonDetectableDirectionalInput<+1>(prefix + "X", &m_touchpads[t].x));
+        AddInput(new NonDetectableDirectionalInput<-1>(prefix + "Y", &m_touchpads[t].y));
+        AddInput(new NonDetectableDirectionalInput<+1>(prefix + "Y", &m_touchpads[t].y));
+        AddInput(new NormalizedInput(prefix + "Pressure", &m_touchpads[t].pressure));
+      }
     }
 
     // Motion
@@ -327,6 +333,9 @@ bool Gamepad::Button::IsMatchingName(std::string_view name) const
     return true;
 
   // Match the old "Button 0"-like names.
+  if (m_binding.output_type == SDL_GAMEPAD_BINDTYPE_BUTTON)
+    return name == GetLegacyButtonName(m_binding.output.button);
+
   switch (m_binding.input_type)
   {
   case SDL_GAMEPAD_BINDTYPE_BUTTON:

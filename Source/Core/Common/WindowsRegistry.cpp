@@ -1,6 +1,6 @@
 #include "Common/WindowsRegistry.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 #include <type_traits>
 #include "Common/StringUtil.h"

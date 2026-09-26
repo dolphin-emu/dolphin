@@ -7,6 +7,7 @@
 
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_haptic.h>
+#include <fmt/format.h>
 
 #include "Common/MathUtil.h"
 
@@ -16,17 +17,17 @@ namespace
 {
 std::string GetLegacyButtonName(int index)
 {
-  return "Button " + std::to_string(index);
+  return fmt::format("Button {}", index);
 }
 
 std::string GetLegacyAxisName(int index, int range)
 {
-  return "Axis " + std::to_string(index) + (range < 0 ? '-' : '+');
+  return fmt::format("Axis {}{}", index, range < 0 ? '-' : '+');
 }
 
 std::string GetLegacyHatName(int index, int direction)
 {
-  return "Hat " + std::to_string(index) + ' ' + "NESW"[direction];
+  return fmt::format("Hat {} {}", index, "NESW"[direction]);
 }
 
 constexpr int GetDirectionFromHatMask(int mask)
@@ -41,6 +42,13 @@ static_assert(GetDirectionFromHatMask(SDL_HAT_LEFT) == 3);
 
 namespace ciface::SDL
 {
+
+struct TouchpadState
+{
+  float x = 0.f;
+  float y = 0.f;
+  float pressure = 0.f;
+};
 
 class Gamepad : public Core::Device
 {
@@ -262,15 +270,15 @@ private:
   class NormalizedInput : public Input
   {
   public:
-    NormalizedInput(const char* name, const float* state) : m_name{std::move(name)}, m_state{*state}
+    NormalizedInput(std::string name, const float* state) : m_name{std::move(name)}, m_state{*state}
     {
     }
 
-    std::string GetName() const override { return std::string{m_name}; }
+    std::string GetName() const override { return m_name; }
     ControlState GetState() const override { return m_state; }
 
   private:
-    const char* const m_name;
+    const std::string m_name;
     const float& m_state;
   };
 
@@ -278,17 +286,17 @@ private:
   class NonDetectableDirectionalInput : public Input
   {
   public:
-    NonDetectableDirectionalInput(const char* name, const float* state)
+    NonDetectableDirectionalInput(std::string name, const float* state)
         : m_name{std::move(name)}, m_state{*state}
     {
     }
 
-    std::string GetName() const override { return std::string{m_name} + (Scale > 0 ? '+' : '-'); }
+    std::string GetName() const override { return m_name + (Scale > 0 ? '+' : '-'); }
     bool IsDetectable() const override { return false; }
     ControlState GetState() const override { return m_state * Scale; }
 
   private:
-    const char* const m_name;
+    const std::string m_name;
     const float& m_state;
   };
 
@@ -326,17 +334,17 @@ public:
   {
     UpdateBatteryLevel();
 
-    // We only support one touchpad and one finger.
-    const int touchpad_index = 0;
-    const int finger_index = 0;
-
-    if (SDL_GetNumGamepadTouchpads(m_gamepad) > touchpad_index &&
-        SDL_GetNumGamepadTouchpadFingers(m_gamepad, touchpad_index) > finger_index)
+    // We only support one finger per touchpad
+    static constexpr int finger_index = 0;
+    for (int t = 0; t < static_cast<int>(m_touchpads.size()); ++t)
     {
-      SDL_GetGamepadTouchpadFinger(m_gamepad, touchpad_index, finger_index, nullptr, &m_touchpad_x,
-                                   &m_touchpad_y, &m_touchpad_pressure);
-      m_touchpad_x = m_touchpad_x * 2 - 1;
-      m_touchpad_y = m_touchpad_y * 2 - 1;
+      if (SDL_GetNumGamepadTouchpadFingers(m_gamepad, t) <= finger_index)
+        continue;
+
+      SDL_GetGamepadTouchpadFinger(m_gamepad, t, finger_index, nullptr, &m_touchpads[t].x,
+                                   &m_touchpads[t].y, &m_touchpads[t].pressure);
+      m_touchpads[t].x = m_touchpads[t].x * 2 - 1;
+      m_touchpads[t].y = m_touchpads[t].y * 2 - 1;
     }
 
     return Core::DeviceRemoval::Keep;
@@ -366,9 +374,7 @@ private:
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
   ControlState m_battery_value;
-  float m_touchpad_x = 0.f;
-  float m_touchpad_y = 0.f;
-  float m_touchpad_pressure = 0.f;
+  std::vector<TouchpadState> m_touchpads;
 };
 
 struct SDLMotionAxis
@@ -379,7 +385,7 @@ struct SDLMotionAxis
 };
 using SDLMotionAxisList = std::array<SDLMotionAxis, 6>;
 
-static constexpr std::array<const char*, 21> s_sdl_button_names = {
+static constexpr std::array<const char*, 26> s_sdl_button_names = {
     "Button S",    // SDL_GAMEPAD_BUTTON_SOUTH
     "Button E",    // SDL_GAMEPAD_BUTTON_EAST
     "Button W",    // SDL_GAMEPAD_BUTTON_WEST
@@ -401,6 +407,11 @@ static constexpr std::array<const char*, 21> s_sdl_button_names = {
     "Paddle 3",    // SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2
     "Paddle 4",    // SDL_GAMEPAD_BUTTON_LEFT_PADDLE2
     "Touchpad",    // SDL_GAMEPAD_BUTTON_TOUCHPAD
+    "Misc 2",      // SDL_GAMEPAD_BUTTON_MISC2
+    "Misc 3",      // SDL_GAMEPAD_BUTTON_MISC3
+    "Misc 4",      // SDL_GAMEPAD_BUTTON_MISC4
+    "Misc 5",      // SDL_GAMEPAD_BUTTON_MISC5
+    "Misc 6"       // SDL_GAMEPAD_BUTTON_MISC6
 };
 static constexpr std::array<const char*, 6> s_sdl_axis_names = {
     "Left X",     // SDL_GAMEPAD_AXIS_LEFTX

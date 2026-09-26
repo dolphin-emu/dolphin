@@ -12,6 +12,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include <fmt/format.h>
+
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -338,13 +340,13 @@ void RegisterWidget::PopulateTable()
   {
     // General purpose registers (int)
     AddRegister(
-        i, 0, RegisterType::gpr, "r" + std::to_string(i),
+        i, 0, RegisterType::gpr, fmt::format("r{}", i),
         [this, i] { return m_system.GetPPCState().gpr[i]; },
         [this, i](u64 value) { m_system.GetPPCState().gpr[i] = value; });
 
     // Floating point registers (double)
     AddRegister(
-        i, 2, RegisterType::fpr, "f" + std::to_string(i),
+        i, 2, RegisterType::fpr, fmt::format("f{}", i),
         [this, i] { return m_system.GetPPCState().ps[i].PS0AsU64(); },
         [this, i](u64 value) { m_system.GetPPCState().ps[i].SetPS0(value); });
 
@@ -360,7 +362,7 @@ void RegisterWidget::PopulateTable()
   {
     // IBAT registers
     AddRegister(
-        i, 5, RegisterType::ibat, "IBAT" + std::to_string(i),
+        i, 5, RegisterType::ibat, fmt::format("IBAT{}", i),
         [this, i] {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_IBAT0U + i * 2]) << 32) +
@@ -368,7 +370,7 @@ void RegisterWidget::PopulateTable()
         },
         nullptr);
     AddRegister(
-        i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
+        i + 4, 5, RegisterType::ibat, fmt::format("IBAT{}", 4 + i),
         [this, i] {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_IBAT4U + i * 2]) << 32) +
@@ -378,7 +380,7 @@ void RegisterWidget::PopulateTable()
 
     // DBAT registers
     AddRegister(
-        i + 8, 5, RegisterType::dbat, "DBAT" + std::to_string(i),
+        i + 8, 5, RegisterType::dbat, fmt::format("DBAT{}", i),
         [this, i] {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_DBAT0U + i * 2]) << 32) +
@@ -386,7 +388,7 @@ void RegisterWidget::PopulateTable()
         },
         nullptr);
     AddRegister(
-        i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
+        i + 12, 5, RegisterType::dbat, fmt::format("DBAT{}", 4 + i),
         [this, i] {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_DBAT4U + i * 2]) << 32) +
@@ -399,7 +401,7 @@ void RegisterWidget::PopulateTable()
   {
     // Graphics quantization registers
     AddRegister(
-        i + 16, 7, RegisterType::gqr, "GQR" + std::to_string(i),
+        i + 16, 7, RegisterType::gqr, fmt::format("GQR{}", i),
         [this, i] { return m_system.GetPPCState().spr[SPR_GQR0 + i]; }, nullptr);
   }
 
@@ -421,7 +423,7 @@ void RegisterWidget::PopulateTable()
   {
     // SR registers
     AddRegister(
-        i, 7, RegisterType::sr, "SR" + std::to_string(i),
+        i, 7, RegisterType::sr, fmt::format("SR{}", i),
         [this, i] { return m_system.GetPPCState().sr[i]; },
         [this, i](u64 value) {
           m_system.GetPPCState().sr[i] = value;
