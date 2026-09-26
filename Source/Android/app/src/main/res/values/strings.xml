@@ -1062,4 +1062,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_address_share">Share address</string>
     <string name="netplay_address_retry">Retry</string>
     <string name="netplay_transfer_progress">%1$s/%2$s MiB</string>
+    <string name="netplay_local_network_permission_info">Dolphin needs permission to connect to devices on a local network. If you only want to use netplay over the internet, the permission is not required.</string>
+    <string name="netplay_give_permission">Give permission</string>
 </resources>
