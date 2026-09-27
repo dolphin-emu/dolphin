@@ -199,14 +199,37 @@ static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
   func->flags = flags;
 }
 
+static bool IsFrsp(UGeckoInstruction inst)
+{
+  return inst.OPCD == 63 && inst.SUBOP10 == 12;
+}
+
+static bool IsLfs(UGeckoInstruction inst)
+{
+  return inst.OPCD == 48 || inst.OPCD == 49 ||
+         (inst.OPCD == 31 && (inst.SUBOP10 == 535 || inst.SUBOP10 == 567));
+}
+
 static bool IsMfspr(UGeckoInstruction inst)
 {
   return inst.OPCD == 31 && inst.SUBOP10 == 339;
 }
 
+static bool IsMtfs(UGeckoInstruction inst)
+{
+  return inst.OPCD == 63 &&
+         (inst.SUBOP10 == 70 || inst.SUBOP10 == 38 || inst.SUBOP10 == 134 || inst.SUBOP10 == 711);
+}
+
 static bool IsMtspr(UGeckoInstruction inst)
 {
   return inst.OPCD == 31 && inst.SUBOP10 == 467;
+}
+
+static bool IsStfd(UGeckoInstruction inst)
+{
+  return inst.OPCD == 54 || inst.OPCD == 55 ||
+         (inst.OPCD == 31 && (inst.SUBOP10 == 727 || inst.SUBOP10 == 759));
 }
 
 static u32 GetSPRIndex(UGeckoInstruction inst)
@@ -1039,7 +1062,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     crWillBeRead |= op.crIn;
     crWillBeWritten |= op.crOut;
 
-    if (strncmp(op.opinfo->opname, "stfd", 4))
+    if (!IsStfd(op.inst))
       fprInXmm |= op.fregsIn;
 
     if (hle || breakpoint)
@@ -1096,12 +1119,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           bitexact_inputs[op.inst.FC] = true;
       }
 
-      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
+      if (op.opinfo->type == OpType::SingleFP || IsFrsp(op.inst))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
-      else if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (IsLfs(op.inst))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
@@ -1122,7 +1145,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         fprIsDuplicated[op.fregOut] = false;
       }
 
-      if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      if (IsMtfs(op.inst))
       {
         // Careful: changing the float mode in a block breaks the store-safe optimization,
         // since a previous float op might have had FTZ off while the later store has FTZ on.
@@ -1144,9 +1167,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         // TODO: if we go directly from a load to a float instruction, and the value isn't used
         // for anything else, we can use fast single -> double conversion after the load.
 
-        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
-                                     op.opinfo->type == OpType::PS ||
-                                     !strncmp(op.opinfo->opname, "frsp", 4);
+        fprIsStoreSafe[op.fregOut] =
+            op.opinfo->type == OpType::SingleFP || op.opinfo->type == OpType::PS || IsFrsp(op.inst);
       }
     }
     op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
