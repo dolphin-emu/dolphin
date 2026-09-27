@@ -140,10 +140,11 @@
 
             </com.google.android.material.appbar.MaterialToolbar>
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/settings_search_outline" />
+                android:layout_height="wrap_content"
+                app:dividerColor="@color/settings_search_outline"
+                app:dividerThickness="1dp" />
 
         </LinearLayout>
 
