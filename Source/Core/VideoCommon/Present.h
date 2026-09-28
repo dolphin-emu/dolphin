@@ -36,7 +36,7 @@ public:
   virtual ~Presenter();
 
   void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
-              TimePoint presentation_time);
+              TimePoint presentation_time, bool interlaced = false, int field_parity = 0);
   void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height);
 
   void SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time);
@@ -176,6 +176,8 @@ private:
   u32 m_last_xfb_stride = 0;
   // Native XFB height
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
+  bool m_last_xfb_interlaced = false;
+  int m_last_xfb_field_parity = 0;
 
   Common::EventHook m_config_changed;
   Common::EventHook m_end_field_hook;

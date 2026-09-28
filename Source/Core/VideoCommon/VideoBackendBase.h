@@ -48,7 +48,8 @@ public:
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
-  void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
+                       bool interlaced, int field_parity);
 
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);

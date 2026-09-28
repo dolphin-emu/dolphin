@@ -166,9 +166,11 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
 }
 
 void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
-                       TimePoint presentation_time)
+                       TimePoint presentation_time, bool interlaced, int field_parity)
 {
   bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
+  m_last_xfb_interlaced = interlaced;
+  m_last_xfb_field_parity = field_parity;
 
   PresentInfo present_info{
       .present_count = m_present_count++,
@@ -232,6 +234,8 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   const u64 ticks = m_next_swap_estimated_ticks;
 
   FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
+  m_last_xfb_interlaced = false;
+  m_last_xfb_field_parity = 0;
 
   PresentInfo present_info{
       .frame_count = m_frame_count++,
@@ -519,8 +523,10 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
     }
     else if (aspect_mode == AspectMode::Raw)
     {
-      resulting_aspect_ratio =
-          m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
+      resulting_aspect_ratio = m_xfb_entry ?
+                                   (static_cast<float>(m_last_xfb_width) /
+                                    (m_last_xfb_height * (m_last_xfb_interlaced ? 2 : 1))) :
+                                   1.f;
     }
     else
     {
@@ -875,15 +881,17 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                   const AbstractTexture* source_texture,
                                   const MathUtil::Rectangle<int>& source_rc)
 {
+  const int field_parity = m_last_xfb_interlaced ? m_last_xfb_field_parity : -1;
+
   if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
       g_backend_info.bUsesExplictQuadBuffering)
   {
     // Quad-buffered stereo is annoying on GL.
     g_gfx->SelectLeftBuffer();
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0, field_parity);
 
     g_gfx->SelectRightBuffer();
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1, field_parity);
 
     g_gfx->SelectMainBuffer();
   }
@@ -892,14 +900,14 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 
-    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
+    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0, field_parity);
+    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1, field_parity);
   }
   // Every other case will be treated the same (stereo or not).
   // If there's multiple source layers, they should all be copied.
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, -1, field_parity);
   }
 }
 
@@ -1046,6 +1054,8 @@ void Presenter::DoState(PointerWrap& p)
   p.Do(m_last_xfb_width);
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
+  p.Do(m_last_xfb_interlaced);
+  p.Do(m_last_xfb_field_parity);
 
   // If we're loading and there is a last XFB, re-display it.
   if (p.IsReadMode() && m_last_xfb_stride != 0)

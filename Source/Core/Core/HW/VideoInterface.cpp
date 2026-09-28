@@ -829,8 +829,9 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // Multiply the stride by 2 to get the byte offset for each subsequent line.
   fbStride *= 2;
 
-  if (potentially_interlaced_xfb && interlaced_video_mode &&
-      Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE))
+  const bool interlaced_xfb = potentially_interlaced_xfb && interlaced_video_mode;
+
+  if (interlaced_xfb && Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE))
   {
     // Strictly speaking, in interlaced mode, we're only supposed to read
     // half of the lines of the XFB, and use that to display a field; the
@@ -866,7 +867,16 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // can change the register values during scanout. To correctly emulate the scanout process, we
   // would need to collate all changes to the VI registers during scanout.
   if (xfbAddr)
-    g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
+  {
+    int field_parity = field == FieldType::Odd ? 1 : 0;
+    if (m_vblank_timing_odd.PRB == m_vblank_timing_even.PRB - 1)
+      field_parity = field == FieldType::Even ? 1 : 0;
+
+    const bool use_interlaced_output =
+        interlaced_xfb && !Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+    g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks,
+                                     use_interlaced_output, field_parity);
+  }
 }
 
 void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)

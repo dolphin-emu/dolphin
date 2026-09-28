@@ -93,7 +93,7 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+                                       u64 ticks, bool interlaced, int field_parity)
 {
   if (!m_initialized || !g_presenter)
     return;
@@ -107,7 +107,8 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
 
     const TimePoint presentation_time = core_timing.GetTargetHostTime(ticks);
     AsyncRequests::GetInstance()->PushEvent([=] {
-      g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
+      g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time,
+                          interlaced, field_parity);
     });
   }
 

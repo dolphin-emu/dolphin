@@ -472,7 +472,8 @@ bool PostProcessing::NeedsIntermediaryBuffer() const
 
 void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
                                      const MathUtil::Rectangle<int>& src,
-                                     const AbstractTexture* src_tex, int src_layer)
+                                     const AbstractTexture* src_tex, int src_layer,
+                                     int field_parity)
 {
   if (g_gfx->GetCurrentFramebuffer()->GetColorFormat() != m_framebuffer_format)
   {
@@ -501,6 +502,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   std::vector<u8>* uniform_staging_buffer = &m_default_uniform_staging_buffer;
   bool default_uniform_staging_buffer = true;
   const MathUtil::Rectangle<int> present_rect = g_presenter->GetTargetRectangle();
+  int final_field_parity = field_parity;
 
   // Intermediary pass.
   // We draw to a high quality intermediary texture for a couple reasons:
@@ -522,6 +524,12 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
         needs_resampling ? present_rect.GetWidth() : static_cast<u32>(src_rect.GetWidth());
     const u32 target_height =
         needs_resampling ? present_rect.GetHeight() : static_cast<u32>(src_rect.GetHeight());
+    int intermediary_field_parity = -1;
+    if (field_parity >= 0 && target_height >= static_cast<u32>(src_rect.GetHeight() * 2))
+    {
+      intermediary_field_parity = field_parity;
+      final_field_parity = -1;
+    }
 
     if (!m_intermediary_frame_buffer || !m_intermediary_color_texture ||
         m_intermediary_color_texture->GetWidth() != target_width ||
@@ -543,7 +551,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
 
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
                       present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
-                      true);
+                      true, intermediary_field_parity);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
 
@@ -594,7 +602,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   {
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
                       present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
-                      false);
+                      false, final_field_parity);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
 
@@ -625,6 +633,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   ss << "  int graphics_api;\n";
   // If true, it's an intermediary buffer (including the first), if false, it's the final one
   ss << "  int intermediary_buffer;\n";
+  ss << "  int field_parity;\n";
 
   ss << "  int resampling_method;\n";
   ss << "  int correct_color_space;\n";
@@ -702,10 +711,32 @@ std::string PostProcessing::GetHeader(bool user_post_process) const
   ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
 
   ss << R"(
-float4 Sample() { return texture(samp0, v_tex0); }
-float4 SampleLocation(float2 location) { return texture(samp0, float3(location, float(v_tex0.z))); }
-float4 SampleLayer(int layer) { return texture(samp0, float3(v_tex0.xy, float(layer))); }
-#define SampleOffset(offset) textureOffset(samp0, v_tex0, offset)
+float2 FieldCoordinates(float2 coordinates)
+{
+  if (field_parity >= 0 && target_resolution.y >= resolution.y * 2.0)
+  {
+    // Align alternating VI fields to the same progressive output grid.
+    float field_offset = field_parity == 0 ? 0.25 : -0.25;
+    coordinates.y += field_offset * resolution.w;
+  }
+  return coordinates;
+}
+
+float3 PresentationCoordinates()
+{
+  return float3(FieldCoordinates(v_tex0.xy), v_tex0.z);
+}
+
+float4 Sample() { return texture(samp0, PresentationCoordinates()); }
+float4 SampleLocation(float2 location)
+{
+  return texture(samp0, float3(FieldCoordinates(location), float(v_tex0.z)));
+}
+float4 SampleLayer(int layer)
+{
+  return texture(samp0, float3(FieldCoordinates(v_tex0.xy), float(layer)));
+}
+#define SampleOffset(offset) textureOffset(samp0, PresentationCoordinates(), offset)
 
 float2 GetTargetResolution()
 {
@@ -845,6 +876,7 @@ struct BuiltinUniforms
   u32 time;
   s32 graphics_api;
   s32 intermediary_buffer;
+  s32 field_parity;
   s32 resampling_method;
   s32 correct_color_space;
   s32 game_color_space;
@@ -869,7 +901,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                        const AbstractTexture* src_tex, int src_layer,
                                        const MathUtil::Rectangle<int>& dst,
                                        const MathUtil::Rectangle<int>& wnd, u8* buffer,
-                                       bool user_post_process, bool intermediary_buffer)
+                                       bool user_post_process, bool intermediary_buffer,
+                                       int field_parity)
 {
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
@@ -892,6 +925,9 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
   builtin_uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
   builtin_uniforms.intermediary_buffer = static_cast<s32>(intermediary_buffer);
+  builtin_uniforms.field_parity = field_parity >= 0 && g_backend_info.api_type == APIType::Vulkan ?
+                                      1 - field_parity :
+                                      field_parity;
 
   builtin_uniforms.resampling_method = static_cast<s32>(g_ActiveConfig.output_resampling_mode);
   // Color correction related uniforms.
