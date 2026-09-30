@@ -15612,11 +15612,11 @@ msgstr "Dossier de dump :"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:193
 msgid "Load Path:"
-msgstr "Charger le dossier :"
+msgstr "Dossier de chargement :"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:200
 msgid "Resource Pack Path:"
-msgstr "Dossier du Pack de Ressources :"
+msgstr "Dossier de Pack de Ressources :"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:207
 msgid "WFS Path:"
