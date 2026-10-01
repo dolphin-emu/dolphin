@@ -9,10 +9,18 @@ enum class JoinInfoType(@StringRes val labelId: Int) {
     ROOM_ID(R.string.netplay_address_type_room_id),
     EXTERNAL(R.string.netplay_address_type_external),
     LOCAL(R.string.netplay_address_type_local),
+    WIFI_DIRECT(R.string.netplay_connection_type_wifi_direct)
 }
 
 sealed class JoinAddress {
     data object Loading : JoinAddress()
     data class Loaded(val address: String) : JoinAddress()
+
+    data class LoadedWifiDirect(
+        val address: String,
+        val network: String,
+        val passphrase: String,
+    ) : JoinAddress()
+
     data class Unknown(val retry: () -> Unit) : JoinAddress()
 }
