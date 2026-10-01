@@ -682,6 +682,22 @@ public:
 private:
   void AddKeys(JNIEnv* env, jobject input_device)
   {
+    // InputDevice.hasKeys() is unreliable for ChromeOS keyboards and can report a
+    // random subset of keys, so keyboard-class devices need to expose all keycodes.
+    if ((m_source & AINPUT_SOURCE_KEYBOARD) != 0)
+    {
+      for (int i = 0; i <= MAX_KEYCODE; ++i)
+      {
+        // These specific keys never get delivered to applications,
+        // so there's no point in letting users try to map them
+        if (i == AKEYCODE_HOME || i == AKEYCODE_ASSIST || i == AKEYCODE_VOICE_ASSIST)
+          continue;
+
+        AddInput(new AndroidKey(i));
+      }
+      return;
+    }
+
     jbooleanArray keys_array = reinterpret_cast<jbooleanArray>(
         env->CallObjectMethod(input_device, s_input_device_has_keys, s_keycodes_array));
     jboolean* keys = env->GetBooleanArrayElements(keys_array, nullptr);
