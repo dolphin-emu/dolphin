@@ -42,6 +42,8 @@ abstract class WifiDirectSession(
     data class Host(
         val deviceAddress: String,
         val name: String,
+        val playerCount: String,
+        val game: String,
     )
 
     protected val channel: WifiP2pManager.Channel =
@@ -83,7 +85,7 @@ abstract class WifiDirectSession(
     var isClosed = false
         private set
 
-    protected abstract fun onClose()
+    protected abstract suspend fun onClose()
 
     @SuppressLint("NewApi")
     suspend fun close() = withContext(NonCancellable) {
@@ -160,5 +162,9 @@ abstract class WifiDirectSession(
         protected const val SERVICE_TYPE = "_dolphinnetplay._tcp"
 
         protected const val TXT_MAP_NAME = "name"
+
+        protected const val TXT_MAP_PLAYER_COUNT = "player_count"
+
+        protected const val TXT_MAP_GAME = "game"
     }
 }

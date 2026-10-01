@@ -59,6 +59,8 @@ class WifiDirectClientSession(
                             host = Host(
                                 deviceAddress = device.deviceAddress,
                                 name = record[TXT_MAP_NAME]!!,
+                                playerCount = record[TXT_MAP_PLAYER_COUNT]!!,
+                                game = record[TXT_MAP_GAME]!!,
                             ),
                             timestamp = SystemClock.elapsedRealtime(),
                         )
@@ -70,7 +72,7 @@ class WifiDirectClientSession(
         manager.setDnsSdResponseListeners(channel, null, txtListener)
     }
 
-    override fun onClose() {
+    override suspend fun onClose() {
         _hosts.value = emptyMap()
     }
 

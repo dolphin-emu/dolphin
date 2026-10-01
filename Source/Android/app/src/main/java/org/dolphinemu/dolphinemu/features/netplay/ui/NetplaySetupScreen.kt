@@ -9,23 +9,27 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -37,6 +41,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
@@ -57,6 +62,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -78,6 +85,7 @@ import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
+import org.dolphinemu.dolphinemu.ui.theme.defaultOutlinedBoxContentPadding
 
 private data class ErrorDialogState(val message: String) {
     val onDismissed = CompletableDeferred<Unit>()
@@ -472,26 +480,48 @@ fun ConnectMenu(
 
         ConnectionType.WifiDirect -> {
             OutlinedBox(
-                label = { Text(stringResource(R.string.netplay_wifi_direct_hosts_label)) },
+                label = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(12.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.netplay_wifi_direct_hosts_label))
+                    }
+                },
+                contentPadding = PaddingValues(0.dp),
                 modifier = Modifier
-                    .sizeIn(minHeight = 160.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    wifiDirectHosts.forEach { host ->
-                        Row(
-                            modifier = Modifier
-                                .padding(vertical = 12.dp)
-                                .fillMaxWidth()
-                                .clickable(
-                                    onClick = { onWifiDirectHostClicked(host) },
-                                )
-                        ) {
-                            Text(
-                                text = host.name
+                if (wifiDirectHosts.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(144.dp)
+                    ) {
+                        wifiDirectHosts.forEach { host ->
+                            WifiDirectHost(
+                                hostName = host.name,
+                                gameName = host.game,
+                                playerCount = host.playerCount,
+                                onClick = { onWifiDirectHostClicked(host) }
                             )
                         }
+                    }
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(144.dp)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.netplay_wifi_direct_hosts_searching),
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
                     }
                 }
             }
@@ -628,6 +658,56 @@ private fun LocalNetworkPermissionInfo(
     }
 }
 
+@Composable
+private fun WifiDirectHost(
+    hostName: String,
+    gameName: String,
+    playerCount: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(defaultOutlinedBoxContentPadding)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            Text(
+                text = hostName,
+                maxLines = 1,
+                style = LocalTextStyle.current.copy(
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim = LineHeightStyle.Trim.LastLineBottom
+                    )
+                ),
+            )
+            Text(
+                text = gameName,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.secondary,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Row {
+            Icon(
+                imageVector = Icons.Default.Group,
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = playerCount,
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun NetplaySetupScreenPreview() {
@@ -662,5 +742,28 @@ private fun NetplaySetupScreenPreview() {
             onHostClicked = {},
             onConnectClicked = {},
         )
+    }
+}
+
+@Preview
+@Composable
+private fun WifiDirectHostsPreview() {
+    MaterialTheme {
+        Column(
+            modifier = Modifier.background(color = MaterialTheme.colorScheme.background)
+        ) {
+            WifiDirectHost(
+                hostName = "Host name",
+                gameName = "The game to be played 2",
+                playerCount = "2",
+                onClick = {},
+            )
+            WifiDirectHost(
+                hostName = "Ace",
+                gameName = "The legend of netplay",
+                playerCount = "1",
+                onClick = {},
+            )
+        }
     }
 }
