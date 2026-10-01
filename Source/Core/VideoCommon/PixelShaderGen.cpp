@@ -3,6 +3,8 @@
 
 #include "VideoCommon/PixelShaderGen.h"
 
+#include <string>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
@@ -1434,20 +1436,40 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
+  std::string color_a = tev_c_input_table[cc.a];
+  std::string color_b = tev_c_input_table[cc.b];
+  if ((cc.a == TevColorArg::Zero || cc.b == TevColorArg::Zero) &&
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_TEV_COLOR_ZERO))
+  {
+    const std::string combiner = fmt::format("bpmem_pack1[{}].x", n);
+    // The shader UID includes the color combiner, so these runtime selectors are Zero here.
+    // Keep zero dependent on those selectors to avoid folding it into the broken Adreno shader.
+    if (cc.a == TevColorArg::Zero)
+    {
+      color_a = fmt::format("int3(int({} ^ {}u))",
+                            BitfieldExtract<&TevStageCombiner::ColorCombiner::a>(combiner),
+                            u32(TevColorArg::Zero));
+    }
+    if (cc.b == TevColorArg::Zero)
+    {
+      color_b = fmt::format("int3(int({} ^ {}u))",
+                            BitfieldExtract<&TevStageCombiner::ColorCombiner::b>(combiner),
+                            u32(TevColorArg::Zero));
+    }
+  }
+
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
-    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.a],
-              tev_a_input_table[ac.a]);
-    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.b],
-              tev_a_input_table[ac.b]);
+    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", color_a, tev_a_input_table[ac.a]);
+    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", color_b, tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.c],
               tev_a_input_table[ac.c]);
   }
   else
   {
-    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
+    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", color_a,
               tev_a_input_table[ac.a]);
-    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", color_b,
               tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
               tev_a_input_table[ac.c]);
