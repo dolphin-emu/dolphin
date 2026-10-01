@@ -58,6 +58,7 @@ class WifiDirectClientSession(
                         value = LastSeenHost(
                             host = Host(
                                 deviceAddress = device.deviceAddress,
+                                network = record[TXT_MAP_NETWORK]!!,
                                 name = record[TXT_MAP_NAME]!!,
                                 playerCount = record[TXT_MAP_PLAYER_COUNT]!!,
                                 game = record[TXT_MAP_GAME]!!,
@@ -126,7 +127,7 @@ class WifiDirectClientSession(
         Log.d("TAG", "connect()")
 
         val config = WifiP2pConfig.Builder()
-            .setNetworkName(NETWORK_NAME)
+            .setNetworkName(wifiDirectHost.network)
             .setPassphrase(PASSPHRASE)
             .build()
 

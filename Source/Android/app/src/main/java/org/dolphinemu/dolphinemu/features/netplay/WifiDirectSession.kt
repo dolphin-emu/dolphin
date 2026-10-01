@@ -41,6 +41,7 @@ abstract class WifiDirectSession(
 
     data class Host(
         val deviceAddress: String,
+        val network: String,
         val name: String,
         val playerCount: String,
         val game: String,
@@ -155,11 +156,13 @@ abstract class WifiDirectSession(
         }
 
     companion object {
-        protected const val NETWORK_NAME = "DIRECT-aa-dolphin-netplay"
+        protected const val NETWORK_NAME = "DIRECT-%s-dolphin-netplay"
 
         protected const val PASSPHRASE = "dolphinnetplay"
 
         protected const val SERVICE_TYPE = "_dolphinnetplay._tcp"
+
+        protected const val TXT_MAP_NETWORK = "network"
 
         protected const val TXT_MAP_NAME = "name"
 

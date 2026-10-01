@@ -18,6 +18,10 @@ class WifiDirectHostSession(
 
     override val TAG: String = "WifiDirectHostSession"
 
+    private val networkName = NETWORK_NAME.format(
+        (('a'..'z') + ('A'..'Z') + ('0'..'9')).run { "${random()}${random()}" }
+    )
+
     override suspend fun onClose() {
         awaitActionListener { manager.clearLocalServices(channel, it) }
     }
@@ -37,6 +41,7 @@ class WifiDirectHostSession(
             "DolphinNetplay",
             SERVICE_TYPE,
             mapOf(
+                TXT_MAP_NETWORK to networkName,
                 TXT_MAP_NAME to hostName,
                 TXT_MAP_PLAYER_COUNT to playerCount.toString(),
                 TXT_MAP_GAME to game,
@@ -54,7 +59,7 @@ class WifiDirectHostSession(
     @SuppressLint("NewApi", "MissingPermission")
     suspend fun createGroup(): Result {
         val configBuilder = WifiP2pConfig.Builder()
-            .setNetworkName(NETWORK_NAME)
+            .setNetworkName(networkName)
             .setPassphrase(PASSPHRASE)
 
         val config = configBuilder.build()
@@ -66,7 +71,7 @@ class WifiDirectHostSession(
         }
 
         val expectedGroup = withTimeoutOrNull(GROUP_FORMATION_TIMEOUT) {
-            currentGroupNetworkName.first { it == NETWORK_NAME }
+            currentGroupNetworkName.first { it == networkName }
         }
         if (expectedGroup == null) {
             return Result.Failure("Group did not form within $GROUP_FORMATION_TIMEOUT")
