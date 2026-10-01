@@ -13,6 +13,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -128,11 +131,18 @@ class NetplayViewModel(
 
         if (wifiDirectHostSession != null) {
             val nickName = StringSetting.NETPLAY_NICKNAME.string
-            viewModelScope.launch {
+
+            combine(
+                game.filter { it.isNotEmpty() },
+                players.map { it.size }.distinctUntilChanged(),
+            ) { game, players ->
                 wifiDirectHostSession.setServiceInfo(
                     hostName = nickName,
+                    playerCount = players,
+                    game = game,
                 )
             }
+                .launchIn(viewModelScope)
         }
     }
 

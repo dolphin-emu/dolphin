@@ -18,10 +18,16 @@ class WifiDirectHostSession(
 
     override val TAG: String = "WifiDirectHostSession"
 
-    override fun onClose() = Unit
+    override suspend fun onClose() {
+        awaitActionListener { manager.clearLocalServices(channel, it) }
+    }
 
     @SuppressLint("MissingPermission")
-    suspend fun setServiceInfo(hostName: String): Result {
+    suspend fun setServiceInfo(
+        hostName: String,
+        playerCount: Int,
+        game: String,
+    ): Result {
         val clearLocalServicesResult = awaitActionListener { manager.clearLocalServices(channel, it) }
         if (clearLocalServicesResult is ActionListenerResult.Failure) {
             return Result.Failure("clearLocalServices failed with reason=${clearLocalServicesResult.reason}")
@@ -32,6 +38,8 @@ class WifiDirectHostSession(
             SERVICE_TYPE,
             mapOf(
                 TXT_MAP_NAME to hostName,
+                TXT_MAP_PLAYER_COUNT to playerCount.toString(),
+                TXT_MAP_GAME to game,
             ),
         )
         val addLocalServiceResult =

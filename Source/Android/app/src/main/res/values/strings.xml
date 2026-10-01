@@ -1003,7 +1003,7 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <!-- Netplay -->
     <string name="netplay_setup_title">Netplay Setup</string>
-    <string name="netplay_connection_type">Connection type</string>
+    <string name="netplay_connection_type">Connection</string>
     <string name="netplay_connection_type_direct_connection">Direct connection</string>
     <string name="netplay_connection_type_traversal_server">Traversal server</string>
     <string name="netplay_connection_type_wifi_direct">Wi-Fi Direct</string>
@@ -1016,6 +1016,10 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_host_code_label">Host code</string>
     <string name="netplay_port_label">Port</string>
     <string name="netplay_wifi_direct_hosts_label">Hosts</string>
+    <string name="netplay_wifi_direct_hosts_name">Name</string>
+    <string name="netplay_wifi_direct_hosts_game">Game</string>
+    <string name="netplay_wifi_direct_hosts_player_count">Players</string>
+    <string name="netplay_wifi_direct_hosts_searching">Searching</string>
     <string name="netplay_title">Netplay</string>
     <string name="netplay_start">Start</string>
     <string name="netplay_start_warning_title">Warning</string>
