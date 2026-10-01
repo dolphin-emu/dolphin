@@ -6,6 +6,7 @@ import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pManager
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
 import android.util.Log
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
@@ -18,9 +19,13 @@ class WifiDirectHostSession(
 
     override val TAG: String = "WifiDirectHostSession"
 
-    private val networkName = NETWORK_NAME.format(
+    val networkName = NETWORK_NAME.format(
         (('a'..'z') + ('A'..'Z') + ('0'..'9')).run { "${random()}${random()}" }
     )
+
+    val passphrase = PASSPHRASE
+
+    suspend fun ipAddress(): String = currentHostAddress.filterNotNull().first()
 
     override suspend fun onClose() {
         awaitActionListener { manager.clearLocalServices(channel, it) }

@@ -60,8 +60,13 @@ class NetplayViewModel(
                 if (isTraversal) {
                     put(JoinInfoType.ROOM_ID, JoinAddress.Loading)
                 }
+
                 put(JoinInfoType.EXTERNAL, JoinAddress.Loading)
                 put(JoinInfoType.LOCAL, getLocalIp())
+
+                if (wifiDirectHostSession != null) {
+                    put(JoinInfoType.WIFI_DIRECT, JoinAddress.Loading)
+                }
             }
         }
     )
@@ -131,6 +136,14 @@ class NetplayViewModel(
 
         if (wifiDirectHostSession != null) {
             val nickName = StringSetting.NETPLAY_NICKNAME.string
+
+            viewModelScope.launch {
+                _joinAddresses.value += JoinInfoType.WIFI_DIRECT to JoinAddress.LoadedWifiDirect(
+                    address = wifiDirectHostSession.ipAddress(),
+                    network = wifiDirectHostSession.networkName,
+                    passphrase = wifiDirectHostSession.passphrase,
+                )
+            }
 
             combine(
                 game.filter { it.isNotEmpty() },

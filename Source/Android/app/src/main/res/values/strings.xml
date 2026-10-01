@@ -1059,6 +1059,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_host_address_label">Join info</string>
     <string name="netplay_address_label">Address</string>
     <string name="netplay_code_label">Code</string>
+    <string name="netplay_network_label">Network</string>
     <string name="netplay_address_type_room_id">Room</string>
     <string name="netplay_address_type_external">External</string>
     <string name="netplay_address_type_local">Local</string>
@@ -1077,4 +1078,5 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_wifi_direct_nearby_devices_permission_denied">Wi-Fi Direct needs the nearby devices permission to connect to devices near to you.</string>
     <string name="netplay_wifi_direct_location_permission_denied">Wi-Fi Direct needs the location permission to connect to devices near to you.</string>
     <string name="netplay_wifi_direct_group_lost">Wi-Fi Direct connection lost</string>
+    <string name="netplay_wifi_direct_passphrase">Password</string>
 </resources>

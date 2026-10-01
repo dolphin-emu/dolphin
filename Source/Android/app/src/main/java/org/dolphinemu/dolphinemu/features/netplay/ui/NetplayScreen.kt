@@ -885,7 +885,8 @@ private fun JoinAddressSection(
 
     @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        if (maxWidth > 392.dp) {
+        // Wifi direct text is too long to fit in the compact layout
+        if (maxWidth > 392.dp && selectedType != JoinInfoType.WIFI_DIRECT) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -977,6 +978,7 @@ private fun AddressRow(
         value = when (address) {
             is JoinAddress.Loading -> stringResource(R.string.netplay_address_loading)
             is JoinAddress.Loaded -> address.address
+            is JoinAddress.LoadedWifiDirect -> address.address
             is JoinAddress.Unknown -> stringResource(R.string.netplay_address_unknown)
         },
         label = stringResource(
@@ -996,6 +998,7 @@ private fun AddressRow(
 
             is JoinAddress.Unknown -> address.retry
             is JoinAddress.Loading -> null
+            is JoinAddress.LoadedWifiDirect -> null
         },
         textStyle = if (address is JoinAddress.Loading) {
             LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1018,10 +1021,28 @@ private fun AddressRow(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
                 )
+
+                is JoinAddress.LoadedWifiDirect -> Unit
             }
         },
         modifier = modifier,
     )
+
+    if (address is JoinAddress.LoadedWifiDirect) {
+        MenuSpacer()
+
+        ReadOnlyTextField(
+            value = address.network,
+            label = stringResource(R.string.netplay_network_label),
+        )
+
+        MenuSpacer()
+
+        ReadOnlyTextField(
+            value = address.passphrase,
+            label = stringResource(R.string.netplay_wifi_direct_passphrase),
+        )
+    }
 }
 
 @Composable
