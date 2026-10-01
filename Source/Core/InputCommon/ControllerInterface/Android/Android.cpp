@@ -92,6 +92,46 @@ std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qu
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
+std::string GetAndroidBuildString(JNIEnv* env, const char* field_name)
+{
+  jclass build_class = env->FindClass("android/os/Build");
+  if (!build_class)
+    return {};
+
+  const jfieldID field = env->GetStaticFieldID(build_class, field_name, "Ljava/lang/String;");
+  if (!field)
+  {
+    env->DeleteLocalRef(build_class);
+    return {};
+  }
+
+  const jstring j_value = reinterpret_cast<jstring>(env->GetStaticObjectField(build_class, field));
+  env->DeleteLocalRef(build_class);
+
+  if (!j_value)
+    return {};
+
+  std::string value = GetJString(env, j_value);
+  env->DeleteLocalRef(j_value);
+  return value;
+}
+
+bool IsRunningOnChromeOS(JNIEnv* env)
+{
+  static const bool s_is_chrome_os = [env] {
+    std::string device = GetAndroidBuildString(env, "DEVICE");
+    std::string product = GetAndroidBuildString(env, "PRODUCT");
+    std::string model = GetAndroidBuildString(env, "MODEL");
+    Common::ToLower(&device);
+    Common::ToLower(&product);
+    Common::ToLower(&model);
+    return device.find("cheets") != std::string::npos ||
+           product.find("cheets") != std::string::npos ||
+           model.find("chromebook") != std::string::npos;
+  }();
+  return s_is_chrome_os;
+}
+
 const std::array<std::string_view, MAX_KEYCODE + 1> KEYCODE_NAMES = {
     "Unknown",
     "Soft Left",
@@ -682,9 +722,9 @@ public:
 private:
   void AddKeys(JNIEnv* env, jobject input_device)
   {
-    // InputDevice.hasKeys() is unreliable for ChromeOS keyboards and can report a
-    // random subset of keys, so keyboard-class devices need to expose all keycodes.
-    if ((m_source & AINPUT_SOURCE_KEYBOARD) != 0)
+    // InputDevice.hasKeys() is unreliable on ChromeOS and can report a random subset of keys,
+    // so ChromeOS devices need to expose all keycodes directly.
+    if (IsRunningOnChromeOS(env))
     {
       for (int i = 0; i <= MAX_KEYCODE; ++i)
       {
