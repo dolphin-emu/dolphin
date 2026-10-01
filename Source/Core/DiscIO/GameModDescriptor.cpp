@@ -90,6 +90,11 @@ static GameModDescriptorRiivolution ParseRiivolutionObject(const std::string& js
         }
       }
     }
+    else if (element_key == "force-console-ng-id" && element_value.is<double>())
+    {
+      // JSON contains hardcoded console ID, use that instead of the one from the NAND
+      r.console_ng_id = MathUtil::SaturatingCast<u32>(element_value.get<double>());
+    }
   }
   return r;
 }
