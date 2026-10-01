@@ -344,6 +344,14 @@ enum Bug
   // Ended Version: -1
   BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY,
 
+  // BUG: Some Qualcomm Android drivers miscompile specialized TEV pixel shaders when
+  // color input A or B is Zero.
+  // Use the konst lookup table to provide 0 at runtime and avoid the miscompile.
+  // Affected devices: Qualcomm drivers on Android.
+  // Started Version: 700 (0x802bc000 for Vulkan)
+  // Ended Version: -1
+  BUG_BROKEN_TEV_COLOR_ZERO,
+
   // BUG: Incorrect implementation of VK_EXT_depth_clamp_control causes incorrect depth values to
   // be written to the depth buffer.
   // Affected devices: Official AMD (RADV is unaffected)

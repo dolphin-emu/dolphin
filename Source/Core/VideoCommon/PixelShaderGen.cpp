@@ -1434,20 +1434,34 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
+  const char* color_a = tev_c_input_table[cc.a];
+  const char* color_b = tev_c_input_table[cc.b];
+  if ((cc.a == TevColorArg::Zero || cc.b == TevColorArg::Zero) &&
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_TEV_COLOR_ZERO))
+  {
+    // The Adreno shader compiler incorrectly optimizes the int3(0,0,0) constant, causing incorrect
+    // colors. To work around this, we trick the compiler by using konstLookup[8], which
+    // PixelShaderManager initializes to zero, to keep these inputs dependent on a uniform value.
+    // Slot 8 is safe because it is part of the invalid konst range (reads as zero on hardware).
+    // It is never written at runtime and therefore stays zero.
+    if (cc.a == TevColorArg::Zero)
+      color_a = "konstLookup[8].rgb";
+    if (cc.b == TevColorArg::Zero)
+      color_b = "konstLookup[8].rgb";
+  }
+
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
-    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.a],
-              tev_a_input_table[ac.a]);
-    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.b],
-              tev_a_input_table[ac.b]);
+    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", color_a, tev_a_input_table[ac.a]);
+    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", color_b, tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.c],
               tev_a_input_table[ac.c]);
   }
   else
   {
-    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
+    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", color_a,
               tev_a_input_table[ac.a]);
-    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", color_b,
               tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
               tev_a_input_table[ac.c]);
