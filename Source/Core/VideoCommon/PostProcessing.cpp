@@ -295,9 +295,31 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
           it.second.m_float_values = float_values;
         }
       }
+      else if (it.second.m_option_name == "HDR_DISPLAY_MAX_NITS" &&
+               g_backend_info.hdr_max_luminance_nits > 0.f)
+      {
+        it.second.m_float_values[0] = g_backend_info.hdr_max_luminance_nits;
+        it.second.m_dirty = true;
+        std::ostringstream queried_value;
+        queried_value.imbue(std::locale("C"));
+        queried_value << g_backend_info.hdr_max_luminance_nits;
+        ini.GetOrCreateSection(section)->Set(it.second.m_option_name, queried_value.str());
+        ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+      }
     }
     break;
     }
+  }
+
+  // If USE_DISPLAY_PEAK_LUMINANCE is checked and we have queried data, sync the slider to the
+  // queried value so it reflects what the shader is actually using.
+  const auto use_display_peak = m_options.find("USE_DISPLAY_PEAK_LUMINANCE");
+  const auto max_nits_option = m_options.find("HDR_DISPLAY_MAX_NITS");
+  if (use_display_peak != m_options.end() && max_nits_option != m_options.end() &&
+      use_display_peak->second.m_bool_value && g_backend_info.hdr_max_luminance_nits > 0.f)
+  {
+    max_nits_option->second.m_float_values[0] = g_backend_info.hdr_max_luminance_nits;
+    max_nits_option->second.m_dirty = true;
   }
 }
 
@@ -637,6 +659,8 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   ss << "  int hdr_output;\n";
   ss << "  float hdr_paper_white_nits;\n";
   ss << "  float hdr_sdr_white_nits;\n";
+  ss << "  float hdr_max_luminance_nits;\n";
+  ss << "  float hdr_min_luminance_nits;\n";
 
   if (user_post_process)
   {
@@ -856,6 +880,8 @@ struct BuiltinUniforms
   s32 hdr_output;
   float hdr_paper_white_nits;
   float hdr_sdr_white_nits;
+  float hdr_max_luminance_nits;
+  float hdr_min_luminance_nits;
 };
 
 size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
@@ -910,8 +936,10 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   // Implies output values can be beyond the 0-1 range
   builtin_uniforms.hdr_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
   builtin_uniforms.hdr_paper_white_nits = g_ActiveConfig.color_correction.fHDRPaperWhiteNits;
-  // A value of 1 1 1 usually matches 80 nits in HDR
-  builtin_uniforms.hdr_sdr_white_nits = 80.f;
+  // Queried from the display on DX backends; falls back to 80 (scRGB spec value)
+  builtin_uniforms.hdr_sdr_white_nits = g_backend_info.hdr_sdr_white_nits;
+  builtin_uniforms.hdr_max_luminance_nits = g_backend_info.hdr_max_luminance_nits;
+  builtin_uniforms.hdr_min_luminance_nits = g_backend_info.hdr_min_luminance_nits;
 
   std::memcpy(buffer, &builtin_uniforms, sizeof(builtin_uniforms));
   buffer += sizeof(builtin_uniforms);

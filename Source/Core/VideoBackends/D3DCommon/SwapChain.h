@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <dxgi1_5.h>
+#include <dxgi1_6.h>
 #include <wrl/client.h>
 
 #include "Common/CommonTypes.h"
@@ -54,6 +54,7 @@ protected:
   u32 GetSwapChainFlags() const;
   bool CreateSwapChain(bool stereo = false, bool hdr = false);
   void DestroySwapChain();
+  void QueryDisplayHDRCapabilities();
 
   virtual bool CreateSwapChainBuffers() = 0;
   virtual void DestroySwapChainBuffers() = 0;
