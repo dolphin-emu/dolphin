@@ -64,3 +64,8 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(uicommon PRIVATE use_pch)
 endif()
+
+if(ENABLE_WEB_INTERFACE)
+    add_subdirectory(WebUI)
+    target_link_libraries(uicommon PRIVATE webinterface)
+endif()
