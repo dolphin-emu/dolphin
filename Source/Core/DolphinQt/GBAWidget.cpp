@@ -35,6 +35,10 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/GameCubePane.h"
 
+#if defined(HAVE_WEB_INTERFACE)
+#include "UICommon/WebUI/WebServer.h"
+#endif
+
 static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_view rom_path = {})
 {
   Core::RunOnCPUThread(Core::System::GetInstance(), [core, rom_path = std::string(rom_path)] {
@@ -80,14 +84,36 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo&
   setWindowIcon(Resources::GetAppIcon());
   setAcceptDrops(true);
   resize(m_core_info.width, m_core_info.height);
-  setVisible(visible);
 
   SetVolume(100);
-  if (!visible)
-    ToggleMute();
 
   LoadSettings();
   UpdateTitle();
+
+  if (visible)
+  {
+#if defined(HAVE_WEB_INTERFACE)
+    const auto update_visibility = [this] {
+      // FYI: The event is triggered from WebSocket threads.
+      QMetaObject::invokeMethod(this, [this] {
+        const bool peers_connected =
+            WebUI::GetGBAStream(m_core_info.device_number).lock() != nullptr;
+        setVisible(!peers_connected);
+      });
+    };
+
+    auto& gba_events = WebUI::GetServerEvents().gba_events[m_core_info.device_number];
+    m_event_hooks << gba_events.peer_connected.Register(update_visibility);
+    m_event_hooks << gba_events.peer_disconnected.Register(update_visibility);
+
+    update_visibility();
+#endif
+  }
+  else
+  {
+    setVisible(false);
+    ToggleMute();
+  }
 }
 
 GBAWidget::~GBAWidget()
