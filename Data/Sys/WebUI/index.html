@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>Dolphin Web Interface</title>
+    <link rel="stylesheet" href="index.css" />
+    <link rel="icon" href="data:," />
+</head>
+
+<body>
+    <noscript>
+        <h1>JavaScript is required.</h1>
+    </noscript>
+
+    <button id="gba1" class="bigbutton">GBA1</button>
+    <button id="gba2" class="bigbutton">GBA2</button>
+    <button id="gba3" class="bigbutton">GBA3</button>
+    <button id="gba4" class="bigbutton">GBA4</button>
+    <button id="fullscreen" class="bigbutton" hidden>Go Fullscreen!</button>
+    <video id="video" playsinline></video>
+    <div id="controls"></div>
+
+    <!-- OmniPad for on screen buttons -->
+    <link rel="stylesheet" href="deps/omnipad.css" />
+    <script src="deps/omnipad.js"></script>
+
+    <!-- Notyf for toast notifications -->
+    <link rel="stylesheet" href="deps/notyf.css" />
+    <script src="deps/notyf.js"></script>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
