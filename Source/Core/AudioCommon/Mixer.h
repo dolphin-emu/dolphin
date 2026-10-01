@@ -123,7 +123,8 @@ private:
         Enqueue();
     }
 
-    void Mix(s16* samples, std::size_t num_samples);
+    void Mix(s16* samples, std::size_t num_frames);
+    void FillFloatBuffer(std::span<u8> buffer);
 
     void SetInputSampleRateDividend(u32 rate_dividend);
     u32 GetInputSampleRateDividend() const;
@@ -135,6 +136,8 @@ private:
     std::pair<s32, s32> GetVolume() const;
 
   private:
+    void DequeueFrames(std::size_t num_frames, std::invocable<StereoPair> auto&& buffer_writer);
+
     Mixer* m_mixer;
 
     // All non-GBA MixerFifo instances use FIXED_SAMPLE_RATE_DIVIDEND.
