@@ -5,12 +5,14 @@
 
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDateTimeEdit>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QStringConverter>
 #include <QValidator>
 
@@ -141,6 +143,48 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   auto* edit_playtime =
       new QLineEdit(QStringLiteral("%1").arg(m_figure_data.skylander_data.playtime));
 
+  auto* hbox_experience = new QHBoxLayout();
+  auto* label_experience = new QLabel(tr("Experience:"));
+  auto* edit_experience =
+      new QLineEdit(QStringLiteral("%1").arg(m_figure_data.skylander_data.experience));
+
+  auto* hbox_skills = new QHBoxLayout();
+  auto* label_skills = new QLabel(tr("Skills:"));
+
+  auto* hbox_hat = new QHBoxLayout();
+  auto* label_hat = new QLabel(tr("Hat:"));
+
+  QVector<QString> hats = {
+      {tr("(No Hat)")},        {tr("Combat Hat")},     {tr("Napoleon Hat")}, {tr("Spy Gear")},
+      {tr("Miner Hat")},       {tr("General's Hat")},  {tr("Pirate Hat")},   {tr("Propeller Cap")},
+      {tr("Coonskin Cap")},    {tr("Straw Hat")},      {tr("Fancy Hat")},    {tr("Top Hat")},
+      {tr("Viking Hat")},      {tr("Spiked Hat")},     {tr("Anvil Hat")},    {tr("Beret")},
+      {tr("Birthday Hat")},    {tr("Bone Head")},      {tr("Bowler Hat")},   {tr("Wabbit Ears")},
+      {tr("Tropical Turban")}, {tr("Chef Hat")},       {tr("Cowboy Hat")},   {tr("Rocker Hair")},
+      {tr("Royal Crown")},     {tr("Lil Devil")},      {tr("Eye Hat")},      {tr("Fez")},
+      {tr("Crown of Light")},  {tr("Jester Hat")},     {tr("Winged Hat")},   {tr("Moose Hat")},
+      {tr("Plunger Head")},    {tr("Pan Hat")},        {tr("Rocket Hat")},   {tr("Santa Hat")},
+      {tr("Tiki Hat")},        {tr("Trojan Helmet")},  {tr("Unicorn Hat")},  {tr("Wizard Hat")},
+      {tr("Pumpkin Hat")},     {tr("Pirate Doo Rag")}, {tr("Cossack Hat")},  {tr("Flower Hat")},
+      {tr("Balloon Hat")},     {tr("Happy Birthday!")}};
+
+  auto* edit_hat = new QComboBox();
+  for (int i = 0; i < hats.size(); ++i)
+    edit_hat->addItem(hats[i], i);
+  edit_hat->setCurrentIndex(m_figure_data.skylander_data.hat);
+  edit_hat->model()->sort(0, Qt::AscendingOrder);
+
+  auto* hbox_ssa_heroics_checkboxes = new QHBoxLayout();
+  auto* label_ssa_heroics_checkboxes = new QLabel(tr("SSA Heroics:"));
+
+  auto* hbox_ssa_heroics_buttons = new QHBoxLayout();
+  auto* label_ssa_heroics_buttons = new QLabel(tr("SSA Heroics Bulk Editing:"));
+  auto* button_ssa_heroics_all = new QPushButton(tr("All"));
+  auto* button_ssa_heroics_speed = new QPushButton(tr("Speed"));
+  auto* button_ssa_heroics_armor = new QPushButton(tr("Armor"));
+  auto* button_ssa_heroics_critical_hit = new QPushButton(tr("Critical Hit"));
+  auto* button_ssa_heroics_elemental_power = new QPushButton(tr("Elemental Power"));
+
   auto* hbox_last_reset = new QHBoxLayout();
   // i18n: A timestamp for when the Skylander was most recently reset
   auto* label_last_reset = new QLabel(tr("Last reset:"));
@@ -166,6 +210,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   edit_nick->setValidator(
       new QRegularExpressionValidator(QRegularExpression(QStringLiteral("^\\p{L}{0,15}$")), this));
   edit_playtime->setValidator(new QIntValidator(0, INT_MAX, this));
+  edit_experience->setValidator(new QIntValidator(0, 33000, this));
 
   QtUtils::ShowFourDigitYear(edit_last_reset);
   QtUtils::ShowFourDigitYear(edit_last_placed);
@@ -177,6 +222,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   edit_nick->setToolTip(tr("The nickname for this Skylander. Limited to 15 characters"));
   edit_playtime->setToolTip(
       tr("The total time this figure has been used inside a game in seconds"));
+  edit_experience->setToolTip(tr("The experience points this Skylander has. Between 0 and 33000"));
   edit_last_reset->setToolTip(tr("The last time the figure has been reset. If the figure has never "
                                  "been reset, the first time the figure was placed on a portal"));
   edit_last_placed->setToolTip(tr("The last time the figure has been placed on a portal"));
@@ -196,6 +242,88 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   hbox_playtime->addWidget(label_playtime);
   hbox_playtime->addWidget(edit_playtime);
 
+  hbox_experience->addWidget(label_experience);
+  hbox_experience->addWidget(edit_experience);
+
+  hbox_skills->addWidget(label_skills);
+  QVector<QCheckBox*> skills_checkboxes;
+  QVector<QString> skills_names = {{tr("Path Locked")}, {tr("Path Direction")}, {tr("Basic 1")},
+                                   {tr("Basic 2")},     {tr("Basic 3")},        {tr("Basic 4")},
+                                   {tr("Path 1")},      {tr("Path 2")},         {tr("Path 3")},
+                                   {tr("Soul Gem")}};
+
+  for (int i = 0; i < skills_names.size(); ++i)
+  {
+    QCheckBox* box = new QCheckBox();
+    u16 skills = m_figure_data.skylander_data.skills;
+    skills = skills >> i;
+    box->setChecked((skills & 1) != 0);
+    box->setText(skills_names.at(i));
+    hbox_skills->addWidget(box);
+    skills_checkboxes.append(box);
+  }
+
+  skills_checkboxes.at(1)->setToolTip(
+      tr("The direction of the upgrade path. Left is unchecked, right is checked."));
+
+  hbox_hat->addWidget(label_hat);
+  hbox_hat->addWidget(edit_hat);
+
+  hbox_ssa_heroics_checkboxes->addWidget(label_ssa_heroics_checkboxes);
+  QVector<QCheckBox*> ssa_heroic_checkboxes;
+
+  QVector<QString> ssa_heroics_names = {
+      {tr("Warnado: Chompy Chomp-Down (Elemental Power)")},
+      {tr("Ghost Roaster: This Bomb's For You (Armor)")},
+      {tr("Wrecking Ball: Jump For It! (Speed)")},
+      {tr("Spyro: Where Art Thou, Paintings (Critical Hit)")},
+      {tr("Prism Break: Lair of the Giant Spiders (Critical Hit)")},
+      {tr("Lightning Rod: Fight, Teleport, Fight! (Armor)")},
+      {tr("Hex: The Three Teleporters (Armor)")},
+      {tr("Dino-Rang: Stop, Sheep Thieves! (Armor)")},
+      {tr("Bash: Mining for Charms (Critical Hit)")},
+      {tr("Cynder: Dungeoness Creeps (Critical Hit)")},
+      {tr("Ignitor: Mining is the Key (Speed)")},
+      {tr("Stump Smash: Mission Achomplished (Armor)")},
+      {tr("Chop Chop: Pod Gauntlet (Elemental Power)")},
+      {tr("Sonic Boom: Time's A-Wastin' (Critical Hit)")},
+      {tr("Drobot: Save the Purple Chompies! (Speed)")},
+      {tr("Terrafin: Spawner Cave (Critical Hit)")},
+      {tr("Sunburn: Arachnid Antechamber (Armor)")},
+      {tr("Trigger Happy: Hobson's Choice (Speed)")},
+      {tr("Eruptor: Isle of the Automatons (Elemental Power)")},
+      {tr("Double Trouble: You Break It, You Buy It! (Speed)")},
+      {tr("Stealth Elf: Minefield Mishap (Speed)")},
+      {tr("Whirlwind: Lobs O' Fun (Critical Hit)")},
+      {tr("Voodood: Spell Punked! (Armor)")},
+      {tr("Wham-Shell: Charm Hunt (Critical Hit)")},
+      {tr("Camo: Flip the Script (Armor)")},
+      {tr("Zook: You've Stolen My Hearts! (Critical Hit)")},
+      {tr("Flameslinger: Bombs to the Walls (Elemental Power)")},
+      {tr("Boomer: Operation: Sheep Freedom (Critical Hit)")},
+      {tr("Gill Grunt: Jailbreak! (Armor)")},
+      {tr("Drill Sergeant: Environmentally Unfriendly (Elemental Power)")},
+      {tr("Slam Bam: Chemical Cleanup (Elemental Power)")},
+      {tr("Zap: Break the Cats (Armor)")}};
+
+  for (int i = 0; i < ssa_heroics_names.size(); ++i)
+  {
+    QCheckBox* box = new QCheckBox();
+    u32 ssa_heroics = m_figure_data.skylander_data.ssa_heroics;
+    ssa_heroics = ssa_heroics >> i;
+    box->setChecked((ssa_heroics & 1) != 0);
+    box->setToolTip(ssa_heroics_names.at(i));
+    hbox_ssa_heroics_checkboxes->addWidget(box);
+    ssa_heroic_checkboxes.append(box);
+  }
+
+  hbox_ssa_heroics_buttons->addWidget(label_ssa_heroics_buttons);
+  hbox_ssa_heroics_buttons->addWidget(button_ssa_heroics_all);
+  hbox_ssa_heroics_buttons->addWidget(button_ssa_heroics_speed);
+  hbox_ssa_heroics_buttons->addWidget(button_ssa_heroics_armor);
+  hbox_ssa_heroics_buttons->addWidget(button_ssa_heroics_critical_hit);
+  hbox_ssa_heroics_buttons->addWidget(button_ssa_heroics_elemental_power);
+
   hbox_last_reset->addWidget(label_last_reset);
   hbox_last_reset->addWidget(edit_last_reset);
 
@@ -207,8 +335,36 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   layout->addLayout(hbox_hero);
   layout->addLayout(hbox_nick);
   layout->addLayout(hbox_playtime);
+  layout->addLayout(hbox_experience);
+  layout->addLayout(hbox_skills);
+  layout->addLayout(hbox_hat);
+  layout->addLayout(hbox_ssa_heroics_checkboxes);
+  layout->addLayout(hbox_ssa_heroics_buttons);
   layout->addLayout(hbox_last_reset);
   layout->addLayout(hbox_last_placed);
+
+  connect(button_ssa_heroics_all, &QPushButton::clicked, this,
+          [=, this] { ToggleAllSSAHeroics(ssa_heroic_checkboxes); });
+
+  connect(button_ssa_heroics_speed, &QPushButton::clicked, this, [=, this] {
+    const std::vector<u8> speed_heroics = {2, 10, 14, 17, 19, 20};
+    ToggleSSAHeroicsGroup(ssa_heroic_checkboxes, speed_heroics);
+  });
+
+  connect(button_ssa_heroics_armor, &QPushButton::clicked, this, [=, this] {
+    const std::vector<u8> armor_heroics = {1, 5, 6, 7, 11, 16, 22, 24, 28, 31};
+    ToggleSSAHeroicsGroup(ssa_heroic_checkboxes, armor_heroics);
+  });
+
+  connect(button_ssa_heroics_critical_hit, &QPushButton::clicked, this, [=, this] {
+    const std::vector<u8> critical_hit_heroics = {3, 4, 8, 9, 13, 15, 21, 23, 25, 27};
+    ToggleSSAHeroicsGroup(ssa_heroic_checkboxes, critical_hit_heroics);
+  });
+
+  connect(button_ssa_heroics_elemental_power, &QPushButton::clicked, this, [=, this] {
+    const std::vector<u8> elemental_power_heroics = {0, 12, 18, 26, 29, 30};
+    ToggleSSAHeroicsGroup(ssa_heroic_checkboxes, elemental_power_heroics);
+  });
 
   connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this] {
     if (!edit_money->hasAcceptableInput())
@@ -234,6 +390,11 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
       QMessageBox::warning(this, tr("Incorrect playtime value!"),
                            tr("Make sure that the playtime value is valid!"), QMessageBox::Ok);
     }
+    else if (!edit_experience->hasAcceptableInput())
+    {
+      QMessageBox::warning(this, tr("Incorrect experience value!"),
+                           tr("Make sure that the experience value is valid!"), QMessageBox::Ok);
+    }
     else if (!edit_last_reset->hasAcceptableInput())
     {
       QMessageBox::warning(this, tr("Incorrect last reset time!"),
@@ -253,6 +414,10 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
           .money = edit_money->text().toUShort(),
           .hero_level = edit_hero->text().toUShort(),
           .playtime = edit_playtime->text().toUInt(),
+          .experience = edit_experience->text().toUShort(),
+          .skills = ConvertSkillsToU16(skills_checkboxes),
+          .hat = static_cast<u8>(edit_hat->currentData().toUInt()),
+          .ssa_heroics = ConvertSSAHeroicsToU32(ssa_heroic_checkboxes),
           .last_reset = {.minute = static_cast<u8>(edit_last_reset->time().minute()),
                          .hour = static_cast<u8>(edit_last_reset->time().hour()),
                          .day = static_cast<u8>(edit_last_reset->date().day()),
@@ -347,4 +512,59 @@ void SkylanderModifyDialog::accept()
     skylander->queued_status.push(IOS::HLE::USB::Skylander::READY);
     QDialog::accept();
   }
+}
+
+u32 SkylanderModifyDialog::ConvertSSAHeroicsToU32(std::span<QCheckBox* const> checkboxes)
+{
+  u32 ssa_heroics = 0;
+
+  for (int i = 0; i < checkboxes.size(); ++i)
+    ssa_heroics += checkboxes[i]->isChecked() << i;
+
+  return ssa_heroics;
+}
+
+u16 SkylanderModifyDialog::ConvertSkillsToU16(std::span<QCheckBox* const> checkboxes)
+{
+  u16 skills = 3072;  // bits 11 and 12 are always set, rest clear
+
+  for (int i = 0; i < checkboxes.size(); ++i)
+    skills += checkboxes[i]->isChecked() << i;
+
+  return skills;
+}
+
+void SkylanderModifyDialog::ToggleAllSSAHeroics(std::span<QCheckBox* const> checkboxes)
+{
+  bool all_checked = true;
+
+  for (int i = 0; i < checkboxes.size(); ++i)
+  {
+    if (!checkboxes[i]->isChecked())
+    {
+      all_checked = false;
+      break;
+    }
+  }
+
+  for (int i = 0; i < checkboxes.size(); ++i)
+    checkboxes[i]->setChecked(!all_checked);
+}
+
+void SkylanderModifyDialog::ToggleSSAHeroicsGroup(std::span<QCheckBox* const> checkboxes,
+                                                  const std::vector<u8>& indices)
+{
+  bool all_checked = true;
+
+  for (int i = 0; i < indices.size(); ++i)
+  {
+    if (!checkboxes[indices[i]]->isChecked())
+    {
+      all_checked = false;
+      break;
+    }
+  }
+
+  for (int i = 0; i < indices.size(); ++i)
+    checkboxes[indices[i]]->setChecked(!all_checked);
 }

@@ -30,6 +30,10 @@ struct SkylanderData final
   u16 money;
   u16 hero_level;
   u32 playtime;
+  u16 experience;
+  u16 skills;
+  u8 hat;
+  u32 ssa_heroics;
   // Null-terminated UTF-16 string
   std::array<u16, 0x10> nickname;
   SkylanderDateTime last_reset;
