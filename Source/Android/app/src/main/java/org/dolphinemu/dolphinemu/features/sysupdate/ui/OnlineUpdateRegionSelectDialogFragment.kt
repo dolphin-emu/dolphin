@@ -24,7 +24,7 @@ class OnlineUpdateRegionSelectDialogFragment : DialogFragment() {
             .setSingleChoiceItems(items, checkedItem) { _: DialogInterface?, which: Int ->
                 val viewModel =
                     ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
-                viewModel.region = which
+                viewModel.prepareOnlineUpdate(which)
                 SystemUpdateProgressBarDialogFragment().show(
                     parentFragmentManager,
                     SystemUpdateProgressBarDialogFragment.TAG
