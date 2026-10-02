@@ -20,7 +20,7 @@
 namespace DSP
 {
 // clang-format off
-const std::array<DSPOPCTemplate, 230> s_opcodes =
+const std::array<DSPOPCTemplate, 231> s_opcodes =
 {{
   //              # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask  size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
@@ -31,6 +31,7 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"SUBARN",   0x000c, 0xfffc,    1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false}, // $arD -= $ixS
   {"ADDARN",   0x0010, 0xfff0,    1, 2, {{P_REG, 1, 0, 0, 0x0003},     {P_REG04, 1, 0, 2, 0x000c}},                             false, false, false, false, false}, // $arD += $ixS
 
+  {"SWI",      0x0020, 0xffff,    1, 0, {},                                                                                     false, true, true, true, false}, // call 0x0004
   {"HALT",     0x0021, 0xffff,    1, 0, {},                                                                                     false, true, true, false, false}, // halt until reset
 
   {"RETGE",    0x02d0, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if greater or equal
