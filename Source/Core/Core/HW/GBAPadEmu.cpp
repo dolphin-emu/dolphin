@@ -16,7 +16,8 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
 static const u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_L,
                                       PAD_TRIGGER_R, PAD_TRIGGER_Z, PAD_BUTTON_START};
 
-GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
+GBAPad::GBAPad(const unsigned int index)
+    : m_reset_pending(false), m_multiboot_reset_pending(false), m_index(index)
 {
   using Translatability = ControllerEmu::Translatability;
 
@@ -78,6 +79,11 @@ GCPadStatus GBAPad::GetInput()
     pad.button |= PAD_BUTTON_X;
   m_reset_pending = false;
 
+  // Use Y button as a multiboot reset signal
+  if (m_multiboot_reset_pending)
+    pad.button |= PAD_BUTTON_Y;
+  m_multiboot_reset_pending = false;
+
   return pad;
 }
 
@@ -85,6 +91,12 @@ void GBAPad::SetReset(bool reset)
 {
   const auto lock = GetStateLock();
   m_reset_pending = reset;
+}
+
+void GBAPad::SetMultibootReset(bool reset)
+{
+  const auto lock = GetStateLock();
+  m_multiboot_reset_pending = reset;
 }
 
 void GBAPad::LoadDefaults(const ControllerInterface& ciface)
