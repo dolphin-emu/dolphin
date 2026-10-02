@@ -80,6 +80,11 @@ if(HAVE_ELF_AUX_INFO)
   add_definitions(-DHAVE_ELF_AUX_INFO)
 endif()
 
+check_symbol_exists(getexecpath unistd.h HAVE_GETEXECPATH)
+if(HAVE_GETEXECPATH)
+  add_definitions(-DHAVE_GETEXECPATH)
+endif()
+
 add_subdirectory(Core)
 if (ANDROID)
   add_subdirectory(Android/jni)
