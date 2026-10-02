@@ -60,8 +60,30 @@ void Mixer::DoState(PointerWrap& p)
     mixer.DoState(p);
 }
 
+void Mixer::MixerFifo::MixOverwriteExisting(FloatOrS16 auto* samples, std::size_t num_frames)
+{
+  MixImpl<true, false>(samples, num_frames);
+}
+
+void Mixer::MixerFifo::Mix(FloatOrS16 auto* samples, std::size_t num_frames)
+{
+  MixImpl<false, false>(samples, num_frames);
+}
+
+void Mixer::MixerFifo::MixClampResult(FloatOrS16 auto* samples, std::size_t num_frames)
+{
+  MixImpl<false, true>(samples, num_frames);
+}
+
+void Mixer::MixerFifo::MixOverwriteExistingAndClampResult(FloatOrS16 auto* samples,
+                                                          std::size_t num_frames)
+{
+  MixImpl<true, true>(samples, num_frames);
+}
+
 // Executed from sound stream thread
-void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
+template <bool OverwriteExisting, bool ClampResult, FloatOrS16 SampleType>
+void Mixer::MixerFifo::MixImpl(SampleType* samples, std::size_t num_frames)
 {
   constexpr u32 INDEX_HALF = 0x80000000;
   constexpr DT_s FADE_IN_RC = DT_s(0.008);
@@ -98,7 +120,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   m_granule_queue_size.store(buffer_size_granules, std::memory_order_relaxed);
 
-  while (num_samples-- > 0)
+  while (num_frames-- > 0)
   {
     // The indexes for the front and back buffers are offset by 50% of the granule size.
     // We use the modular nature of 32-bit integers to wrap around the granule size.
@@ -148,41 +170,69 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     // Apply the fade volume and the regular volume to the sample
     sample = sample * volume * StereoPair{m_fade_volume};
 
-    // This quantization method prevents accumulated error but does not do noise shaping.
-    sample.l += samples[0] - m_quantization_error.l;
-    samples[0] = MathUtil::SaturatingCast<s16>(std::lround(sample.l));
-    m_quantization_error.l = std::clamp(samples[0] - sample.l, -1.0f, 1.0f);
+    const SampleType src_l = OverwriteExisting ? 0 : samples[0];
+    const SampleType src_r = OverwriteExisting ? 0 : samples[1];
 
-    sample.r += samples[1] - m_quantization_error.r;
-    samples[1] = MathUtil::SaturatingCast<s16>(std::lround(sample.r));
-    m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
+    if constexpr (std::same_as<SampleType, float>)
+    {
+      float result_l = src_l + (sample.l / std::numeric_limits<s16>::max());
+      float result_r = src_r + (sample.r / std::numeric_limits<s16>::max());
+
+      if constexpr (ClampResult)
+      {
+        result_l = std::clamp(result_l, -1.f, 1.f);
+        result_r = std::clamp(result_r, -1.f, 1.f);
+      }
+
+      samples[0] = result_l;
+      samples[1] = result_r;
+    }
+    else  // s16
+    {
+      // This quantization method prevents accumulated error but does not do noise shaping.
+      sample.l += src_l - m_quantization_error.l;
+      samples[0] = MathUtil::SaturatingCast<s16>(std::lround(sample.l));
+      m_quantization_error.l = std::clamp(samples[0] - sample.l, -1.0f, 1.0f);
+
+      sample.r += src_r - m_quantization_error.r;
+      samples[1] = MathUtil::SaturatingCast<s16>(std::lround(sample.r));
+      m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
+    }
 
     samples += 2;
   }
 }
 
-std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
+// Explicit instantiations:
+template std::size_t Mixer::Mix<float>(float*, std::size_t);
+template std::size_t Mixer::Mix<s16>(s16*, std::size_t);
+
+std::size_t Mixer::Mix(FloatOrS16 auto* samples, std::size_t num_frames)
 {
   if (!samples)
     return 0;
 
-  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_dma_mixer.MixOverwriteExisting(samples, num_frames);
 
-  m_dma_mixer.Mix(samples, num_samples);
-  m_streaming_mixer.Mix(samples, num_samples);
+  m_streaming_mixer.Mix(samples, num_frames);
+
+  // Wii Remotes
   for (std::size_t i = 0; i < m_wiimote_speaker_mixers.size(); ++i)
   {
     if (!m_config_wiimote_routing_enabled || !m_config_wiimote_output_enabled[i])
-      m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
+      m_wiimote_speaker_mixers[i].Mix(samples, num_frames);
   }
-  m_skylander_portal_mixer.Mix(samples, num_samples);
+
+  // GBAs
   for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
   {
     if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
-      m_gba_mixers[i].Mix(samples, num_samples);
+      m_gba_mixers[i].Mix(samples, num_frames);
   }
 
-  return num_samples;
+  m_skylander_portal_mixer.MixClampResult(samples, num_frames);
+
+  return num_frames;
 }
 
 std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)

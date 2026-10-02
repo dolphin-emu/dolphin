@@ -16,6 +16,9 @@
 
 class PointerWrap;
 
+template <typename T>
+concept FloatOrS16 = std::is_same_v<T, float> || std::is_same_v<T, s16>;
+
 class Mixer final
 {
 public:
@@ -25,7 +28,7 @@ public:
   void DoState(PointerWrap& p);
 
   // Called from audio threads
-  std::size_t Mix(s16* samples, std::size_t numSamples);
+  std::size_t Mix(FloatOrS16 auto* samples, std::size_t num_frames);
   std::size_t MixSurround(float* samples, std::size_t num_samples);
 
   // Called from main thread
@@ -47,6 +50,7 @@ public:
   void SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
+
   void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
   std::size_t MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples, std::size_t num_samples);
   void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
@@ -123,7 +127,10 @@ private:
         Enqueue();
     }
 
-    void Mix(s16* samples, std::size_t num_samples);
+    void MixOverwriteExisting(FloatOrS16 auto* samples, std::size_t num_frames);
+    void Mix(FloatOrS16 auto* samples, std::size_t num_frames);
+    void MixClampResult(FloatOrS16 auto* samples, std::size_t num_frames);
+    void MixOverwriteExistingAndClampResult(FloatOrS16 auto* samples, std::size_t num_frames);
 
     void SetInputSampleRateDividend(u32 rate_dividend);
     u32 GetInputSampleRateDividend() const;
@@ -135,6 +142,9 @@ private:
     std::pair<s32, s32> GetVolume() const;
 
   private:
+    template <bool OverwriteExisting, bool ClampResult, FloatOrS16 SampleType>
+    void MixImpl(SampleType* samples, std::size_t num_frames);
+
     Mixer* m_mixer;
 
     // All non-GBA MixerFifo instances use FIXED_SAMPLE_RATE_DIVIDEND.
