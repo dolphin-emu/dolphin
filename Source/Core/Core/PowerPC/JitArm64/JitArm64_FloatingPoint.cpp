@@ -386,7 +386,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
       m_float_emit.FNEG(reg_encoder(VD), reg_encoder(VB));
       break;
     case 72:
-      m_float_emit.INS(size, VD, 0, VB, 0);
+      m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VB), EncodeRegToDouble(VB));
       break;
     case 136:
       m_float_emit.FABS(reg_encoder(VD), reg_encoder(VB));
