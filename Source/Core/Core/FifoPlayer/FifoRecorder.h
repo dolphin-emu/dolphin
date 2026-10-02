@@ -38,7 +38,7 @@ public:
   // Called from video thread
 
   // Must write one full GP command at a time
-  void WriteGPCommand(const u8* data, u32 size);
+  void WriteGPCommand(const u8* data, u32 size, bool in_display_list);
 
   // Track memory that has been used and write it to the fifolog if it has changed.
   // If memory is updated by the video backend (dynamicUpdate == true) take special care to make
