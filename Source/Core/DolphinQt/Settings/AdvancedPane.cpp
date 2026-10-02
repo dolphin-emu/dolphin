@@ -263,7 +263,7 @@ void AdvancedPane::CreateLayout()
   mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem2_override_slider_layout);
 
-  m_mem2_override_slider = new ConfigSliderU32(64, 128, Config::MAIN_MEM2_SIZE, 0x100000);
+  m_mem2_override_slider = new ConfigSliderU32(64, 256, Config::MAIN_MEM2_SIZE, 0x100000);
   mem2_override_slider_layout->addWidget(m_mem2_override_slider);
 
   m_mem2_label =
