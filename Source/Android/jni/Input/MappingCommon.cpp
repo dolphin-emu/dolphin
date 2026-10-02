@@ -17,6 +17,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AutomaticControllers.h"
 
 extern "C" {
 
@@ -36,7 +37,10 @@ Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_getExpressionF
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_save(JNIEnv* env, jclass)
 {
-  Pad::GetConfig()->SaveConfig();
+  // While controllers are being set up automatically the GameCube pads hold generated
+  // mappings rather than the user's, and saving would write those over the user's own.
+  if (!AutomaticControllers::IsActive())
+    Pad::GetConfig()->SaveConfig();
   Pad::GetGBAConfig()->SaveConfig();
   Keyboard::GetConfig()->SaveConfig();
   Wiimote::GetConfig()->SaveConfig();
