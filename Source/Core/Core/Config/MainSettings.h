@@ -396,6 +396,8 @@ extern const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_M
 extern const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_VOLUME_MODIFIER;
 
 extern const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS;
+// Region reported by the emulated AM-Baseboard: 0 = Japan, 1 = USA, 2 = Export
+extern const Info<int> MAIN_TRIFORCE_REGION;
 
 // Main.WiimoteAudioRouting
 
