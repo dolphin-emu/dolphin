@@ -250,7 +250,7 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
              "needed_frames would overflow m_scratch_buffer: {} -> {} > {}", num_samples,
              needed_frames, max_samples);
 
-  std::array<s16, max_samples> buffer;
+  std::array<float, max_samples> buffer;
   const std::size_t available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
   if (available_frames != needed_frames)
   {
