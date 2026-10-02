@@ -707,3 +707,30 @@ void Jit64::eieio(UGeckoInstruction inst)
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
     js.mustCheckFifo = true;
 }
+
+void Jit64::tlbie(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
+  RegCache::Realize(Rb);
+
+  constexpr decltype(PowerPC::PowerPCState::tlb) tlb;
+  constexpr size_t tlb_size = sizeof(tlb) / tlb.size();
+  constexpr size_t tlb_way_size = sizeof(tlb[0]) / tlb[0].size();
+  static_assert(tlb_way_size == (8 + 1) * 4);
+
+  MOV(32, R(RSCRATCH), Rb);
+  SHR(32, R(RSCRATCH), Imm8(PowerPC::HW_PAGE_INDEX_SHIFT));
+  AND(32, R(RSCRATCH), Imm8(PowerPC::HW_PAGE_INDEX_MASK));
+  LEA(32, RSCRATCH, MComplex(RSCRATCH, RSCRATCH, SCALE_8, 0));
+
+  MOV(8, PPCSTATE(pagetable_update_pending), Imm8(1));
+  if (m_ppc_state.msr.DR && jo.fastmem_arena)
+    MOV(64, R(RMEM), ImmPtr(m_system.GetMemory().GetLogicalBaseWithoutPageTable()));
+
+  MOV(64, R(RSCRATCH2), Imm64(-1));
+  MOV(64, MComplex(RPPCSTATE, RSCRATCH, SCALE_4, PPCSTATE_OFF(tlb)), R(RSCRATCH2));
+  MOV(64, MComplex(RPPCSTATE, RSCRATCH, SCALE_4, PPCSTATE_OFF(tlb) + tlb_size), R(RSCRATCH2));
+}
