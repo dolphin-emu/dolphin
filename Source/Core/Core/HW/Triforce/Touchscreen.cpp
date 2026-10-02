@@ -3,11 +3,16 @@
 
 #include "Core/HW/Triforce/Touchscreen.h"
 
+#include <algorithm>
+#include <cmath>
 #include <numeric>
 
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCPad.h"
+#include "Core/HW/GCPadEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/GCPadStatus.h"
 
 namespace
@@ -27,6 +32,25 @@ struct SmartSetDataPacket
 };
 #pragma pack(pop)
 static_assert(sizeof(SmartSetDataPacket) == 10);
+
+u16 GetTouchAxisValue(ControlState axis_state, u8 center_value)
+{
+  const u8 axis = ControllerEmu::MapFloat<u8>(std::clamp(axis_state, -1.0, 1.0), center_value);
+  return Common::ExpandValue(u16(axis), 4);
+}
+
+// The physical stick still moves in a circle. Expand that circular range before
+// encoding the touchscreen packet so the whole touch surface is reachable.
+Common::DVec2 ExpandCircleToSquare(ControlState x, ControlState y)
+{
+  const ControlState max_axis = std::max(std::abs(x), std::abs(y));
+  if (max_axis == 0.0)
+    return {x, y};
+
+  const ControlState radius = std::hypot(x, y);
+  const ControlState scale = radius / max_axis;
+  return {std::clamp(x * scale, -1.0, 1.0), std::clamp(y * scale, -1.0, 1.0)};
+}
 }  // namespace
 
 namespace Triforce
@@ -46,10 +70,14 @@ void Touchscreen::Update()
   // I'm guessing the real hardware doesn't produce ~60hz input perfectly in-sync with SI updates,
   //  but Avalon doesn't seem to mind.
 
-  // We currently feed the touch screen from c-stick and right-trigger just to make it usable.
-  // TODO: Expose it in a better way.
-
   const auto pad_status = Pad::GetStatus(0);
+  const auto* const c_stick =
+      static_cast<ControllerEmu::AnalogStick*>(Pad::GetGroup(0, PadGroup::CStick));
+  const auto c_stick_state = c_stick->GetReshapableState(false);
+  const auto touch_state = ExpandCircleToSquare(c_stick_state.x, c_stick_state.y);
+
+  const u16 x = GetTouchAxisValue(touch_state.x, GCPadStatus::C_STICK_CENTER_X);
+  const u16 y = GetTouchAxisValue(touch_state.y, GCPadStatus::C_STICK_CENTER_Y);
 
   // For reference, the game does something like this to scale the values from 0-4095.
   // Note the offsets of 4.
@@ -59,8 +87,8 @@ void Touchscreen::Update()
   // y = s32(480.f - (0.1171875f * y)) + 4;
 
   SmartSetDataPacket packet{
-      .x = Common::ExpandValue(u16(pad_status.substickX), 4),
-      .y = Common::ExpandValue(u16(pad_status.substickY), 4),
+      .x = x,
+      .y = y,
       .pressure = pad_status.triggerRight,
   };
 
