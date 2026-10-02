@@ -247,11 +247,9 @@ static constexpr u8 VerifyCode(std::span<const u32> codes)
 
 static void Unscramble1(u32* addr, u32* val)
 {
-  u32 tmp = 0;
-
   *val = std::rotl(*val, 4);
 
-  tmp = ((*addr ^ *val) & 0xF0F0F0F0);
+  u32 tmp = ((*addr ^ *val) & 0xF0F0F0F0);
   *addr ^= tmp;
   *val = std::rotr((*val ^ tmp), 0x14);
 
@@ -274,11 +272,9 @@ static void Unscramble1(u32* addr, u32* val)
 
 static void Unscramble2(u32* addr, u32* val)
 {
-  u32 tmp = 0;
-
   *val = std::rotr(*val, 1);
 
-  tmp = ((*addr ^ *val) & 0xAAAAAAAA);
+  u32 tmp = ((*addr ^ *val) & 0xAAAAAAAA);
   *val ^= tmp;
   *addr = std::rotr((*addr ^ tmp), 9);
 
