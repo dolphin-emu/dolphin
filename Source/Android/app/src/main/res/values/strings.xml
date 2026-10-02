@@ -630,6 +630,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_screenshot">Take Screenshot</string>
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
+    <string name="emulation_reset">Reset Emulation</string>
     <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_state_slot">Slot %1$d\n\n%2$s</string>
     <string name="emulation_state_slot_empty">Slot %1$d\n\nEmpty</string>
