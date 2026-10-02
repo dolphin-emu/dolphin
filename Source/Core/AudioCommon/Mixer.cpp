@@ -328,15 +328,10 @@ void Mixer::PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samp
   }
 }
 
-std::size_t Mixer::MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples,
-                                     std::size_t num_samples)
+void Mixer::MixWiimoteSpeaker(std::size_t wiimote_index, float* samples, std::size_t num_frames)
 {
-  if (!samples || wiimote_index >= m_wiimote_speaker_mixers.size())
-    return 0;
-
-  memset(samples, 0, num_samples * 2 * sizeof(s16));
-  m_wiimote_speaker_mixers[wiimote_index].Mix(samples, num_samples);
-  return num_samples;
+  DEBUG_ASSERT(wiimote_index < m_wiimote_speaker_mixers.size());
+  m_wiimote_speaker_mixers[wiimote_index].MixOverwriteExistingAndClampResult(samples, num_frames);
 }
 
 void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples)
@@ -370,13 +365,10 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   }
 }
 
-std::size_t Mixer::MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples)
+void Mixer::MixGBA(std::size_t device_number, float* samples, std::size_t num_frames)
 {
-  if (!samples || device_number >= m_gba_mixers.size())
-    return 0;
-  memset(samples, 0, num_samples * 2 * sizeof(s16));
-  m_gba_mixers[device_number].Mix(samples, num_samples);
-  return num_samples;
+  DEBUG_ASSERT(device_number < m_gba_mixers.size());
+  m_gba_mixers[device_number].MixOverwriteExistingAndClampResult(samples, num_frames);
 }
 
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)

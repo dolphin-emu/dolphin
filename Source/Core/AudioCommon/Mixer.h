@@ -52,9 +52,10 @@ public:
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
 
   void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
-  std::size_t MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples, std::size_t num_samples);
+  void MixWiimoteSpeaker(std::size_t wiimote_index, float* samples, std::size_t num_frames);
+
   void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
-  std::size_t MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples);
+  void MixGBA(std::size_t device_number, float* samples, std::size_t num_frames);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
