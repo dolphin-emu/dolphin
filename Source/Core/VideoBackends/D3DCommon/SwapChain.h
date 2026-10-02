@@ -62,7 +62,7 @@ protected:
   Microsoft::WRL::ComPtr<IDXGIFactory> m_dxgi_factory;
   Microsoft::WRL::ComPtr<IDXGISwapChain> m_swap_chain;
   Microsoft::WRL::ComPtr<IUnknown> m_d3d_device;
-  const AbstractTextureFormat m_texture_format = AbstractTextureFormat::RGB10_A2;
+  const AbstractTextureFormat m_texture_format = AbstractTextureFormat::BGRA8;
   const AbstractTextureFormat m_texture_format_hdr = AbstractTextureFormat::RGBA16F;
 
   u32 m_width = 1;
