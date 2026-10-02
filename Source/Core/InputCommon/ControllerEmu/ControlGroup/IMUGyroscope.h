@@ -23,7 +23,7 @@ public:
 
   StateData GetRawState() const;
   // Also updates the state by default
-  std::optional<StateData> GetState(bool update = true);
+  std::optional<StateData> GetState();
 
   // Value is in rad/s.
   ControlState GetDeadzone() const;
@@ -35,6 +35,8 @@ private:
 
   bool AreInputsBound() const;
   bool CanCalibrate() const;
+  std::nullopt_t Reset();
+  std::optional<StateData> GetStateInternal();
   void RestartCalibration();
   void UpdateCalibration(const StateData&);
 
