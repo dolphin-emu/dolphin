@@ -405,6 +405,14 @@ extern const Info<bool> MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED;
 extern const std::array<Info<bool>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED;
 extern const std::array<Info<std::string>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE;
 
+// Main.GBAAudioRouting
+
+static constexpr std::size_t GBA_SPEAKER_COUNT = 4;
+
+extern const Info<bool> MAIN_GBA_AUDIO_ROUTING_ENABLED;
+extern const std::array<Info<bool>, GBA_SPEAKER_COUNT> MAIN_GBA_AUDIO_OUTPUT_ENABLED;
+extern const std::array<Info<std::string>, GBA_SPEAKER_COUNT> MAIN_GBA_AUDIO_OUTPUT_DEVICE;
+
 // GameCube path utility functions
 
 // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
