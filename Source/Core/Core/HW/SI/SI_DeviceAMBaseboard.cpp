@@ -4,6 +4,7 @@
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
 #include <algorithm>
+#include <array>
 #include <numeric>
 #include <string>
 
@@ -14,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -70,11 +72,29 @@ constexpr u32 SERIAL_PORT_MAX_READ_SIZE = 0x1f;
 namespace SerialInterface
 {
 
-const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
-                                      //   "\x01\xfe\x00\x00"  // JAPAN
-                                      "\x02\xfd\x00\x00"  // USA
-                                      //"\x03\xfc\x00\x00"  // export
-                                      "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+// Region settings reported to the game (GCAMCommand::RegionSettings).
+// The region ID is followed by its bitwise complement (0xFF - ID).
+static std::array<u8, 0x14> GetRegionFlags()
+{
+  u8 region_id;
+  switch (Config::Get(Config::MAIN_TRIFORCE_REGION))
+  {
+  case 0:
+    region_id = 0x01;  // Japan
+    break;
+  case 2:
+    region_id = 0x03;  // Export
+    break;
+  case 1:
+  default:
+    region_id = 0x02;  // USA
+    break;
+  }
+
+  return {0x00, 0x00, 0x30, 0x00, region_id, static_cast<u8>(0xFF - region_id), 0x00, 0x00,
+          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+}
+
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
                                              int device_number)
@@ -344,8 +364,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         data_out[data_offset++] = gcam_command;
         data_out[data_offset++] = 0x14;
 
-        for (int i = 0; i < 0x14; ++i)
-          data_out[data_offset++] = s_region_flags[i];
+        const auto region_flags = GetRegionFlags();
+        for (const u8 byte : region_flags)
+          data_out[data_offset++] = byte;
 
         data_in += 5;
       }
