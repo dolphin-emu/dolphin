@@ -234,7 +234,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     DirectFIFOWrite(memory.GetPointerForRange(addr, size), size);
   }
   else
@@ -487,7 +487,7 @@ inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
     u8 cur_byte = dest_eth_addr[byte_num];
     for (size_t bit = 0; bit < 8; ++bit)
     {
-      u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
+      const u8 carry = ((crc >> 31) & 1) ^ (cur_byte & 1);
       crc <<= 1;
       cur_byte >>= 1;
       if (carry)
@@ -525,7 +525,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
   else
   {
     // Lookup the dest eth address in the hashmap
-    u16 index = HashIndex(mRecvBuffer.get());
+    const u16 index = HashIndex(mRecvBuffer.get());
     return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
   }
 }
@@ -553,7 +553,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   u8* write_ptr;
   Descriptor* descriptor;
   u32 status = 0;
-  u16 rwp_initial = page_ptr(BBA_RWP);
+  const u16 rwp_initial = page_ptr(BBA_RWP);
   u16 current_rwp = 0;
   u32 off = 4;
   if (!RecvMACFilter())
