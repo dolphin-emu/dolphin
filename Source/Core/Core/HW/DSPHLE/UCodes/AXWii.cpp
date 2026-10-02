@@ -459,9 +459,9 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
         ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
-        ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
-                     ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
+        ProcessVoice<spms>(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers,
+                           ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+                           m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
 
         // Forward the buffers
         for (auto& ptr : buffers.regular_ptrs)
@@ -472,9 +472,9 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     }
     else
     {
-      ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, 96,
-                   ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
+      ProcessVoice<96>(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers,
+                       ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+                       m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
     }
 
     WritePB(memory, pb_addr, pb);
