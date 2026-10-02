@@ -191,6 +191,7 @@ bool ShouldUseDPL2Decoder();
 
 extern const Info<std::string> MAIN_FULLSCREEN_DISPLAY_RES;
 extern const Info<bool> MAIN_FULLSCREEN;
+extern const Info<int> MAIN_DISPLAY_MONITOR;
 extern const Info<bool> MAIN_RENDER_TO_MAIN;
 extern const Info<int> MAIN_RENDER_WINDOW_XPOS;
 extern const Info<int> MAIN_RENDER_WINDOW_YPOS;
