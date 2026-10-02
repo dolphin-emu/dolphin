@@ -7,6 +7,11 @@
         android:title="@string/emulation_edit_layout"/>
 
     <item
+        android:id="@+id/menu_emulation_game_specific_layout"
+        android:checkable="true"
+        android:title="@string/emulation_game_specific_layout"/>
+
+    <item
         android:id="@+id/menu_emulation_toggle_controls"
         android:title="@string/emulation_toggle_controls"/>
 

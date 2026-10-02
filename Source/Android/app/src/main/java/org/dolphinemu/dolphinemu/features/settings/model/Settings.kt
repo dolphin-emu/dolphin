@@ -20,12 +20,15 @@ class Settings : Closeable {
         private set
 
     private var settingsLoaded = false
+    private var shouldUnloadGameInis = false
+    private var runningWriteLayer: Int? = null
 
     private val isGameSpecific: Boolean
         get() = !TextUtils.isEmpty(gameId)
 
     val writeLayer: Int
-        get() = if (isGameSpecific) NativeConfig.LAYER_LOCAL_GAME else NativeConfig.LAYER_BASE_OR_CURRENT
+        get() = runningWriteLayer
+            ?: if (isGameSpecific) NativeConfig.LAYER_LOCAL_GAME else NativeConfig.LAYER_BASE_OR_CURRENT
 
     fun areSettingsLoaded(): Boolean {
         return settingsLoaded
@@ -40,6 +43,7 @@ class Settings : Closeable {
             // Loading game INIs while the core is running will mess with the game INIs loaded by the core
             check(NativeLibrary.IsUninitialized()) { "Attempted to load game INI while emulating" }
             NativeConfig.loadGameInis(gameId, revision)
+            shouldUnloadGameInis = true
         }
     }
 
@@ -47,6 +51,25 @@ class Settings : Closeable {
         this.gameId = gameId
         this.revision = revision
         loadSettings(isWii)
+    }
+
+    /**
+     * Makes this object write to either the base layer or the game INI already loaded by the core.
+     *
+     * Unlike [loadSettings], this must only be used while emulation is running. It neither loads nor
+     * unloads the game INIs, since the core owns them in this case.
+     */
+    fun useRunningGameSettings(gameId: String, isWii: Boolean, gameSpecific: Boolean) {
+        check(!NativeLibrary.IsUninitialized()) {
+            "Attempted to use running game settings while not emulating"
+        }
+
+        this.gameId = if (gameSpecific) gameId else ""
+        this.isWii = isWii
+        settingsLoaded = true
+        shouldUnloadGameInis = false
+        runningWriteLayer =
+            if (gameSpecific) NativeConfig.LAYER_LOCAL_GAME else NativeConfig.LAYER_BASE
     }
 
     fun saveSettings() {
@@ -57,6 +80,7 @@ class Settings : Closeable {
 
             NativeLibrary.ReloadLoggerConfig()
         } else {
+            if (runningWriteLayer != null && NativeLibrary.IsUninitialized()) return
             NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME)
         }
     }
@@ -92,7 +116,7 @@ class Settings : Closeable {
     }
 
     override fun close() {
-        if (isGameSpecific) {
+        if (shouldUnloadGameInis) {
             NativeConfig.unloadGameInis()
         }
     }

@@ -30,6 +30,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForSIDevice
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForWiimoteSource
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import java.util.Arrays
 
 /**
@@ -91,7 +92,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         if (!NativeLibrary.IsEmulatingWii())
             return
 
-        var doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.int
+        var doubleTapButton = getIntSetting(IntSetting.MAIN_DOUBLE_TAP_BUTTON)
 
         if (configuredControllerType != OVERLAY_WIIMOTE_CLASSIC &&
             doubleTapButton == ButtonType.CLASSIC_BUTTON_A
@@ -109,8 +110,8 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         overlayPointer = InputOverlayPointer(
             surfacePosition!!,
             doubleTapControl,
-            IntSetting.MAIN_IR_MODE.int,
-            BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean,
+            getIntSetting(IntSetting.MAIN_IR_MODE),
+            getBooleanSetting(BooleanSetting.MAIN_IR_ALWAYS_RECENTER),
             controllerIndex
         )
     }
@@ -490,7 +491,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     }
 
     private fun addGameCubeOverlayControls(orientation: String) {
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_0.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_0)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -499,11 +500,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_A,
                     ControlId.GCPAD_A_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_0.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_0)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_1.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_1)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -512,11 +513,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_B,
                     ControlId.GCPAD_B_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_1.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_1)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_2.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_2)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -525,11 +526,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_X,
                     ControlId.GCPAD_X_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_2.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_2)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_3.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_3)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -538,11 +539,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_Y,
                     ControlId.GCPAD_Y_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_3.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_3)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_4.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_4)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -551,11 +552,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_Z,
                     ControlId.GCPAD_Z_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_4.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_4)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_5.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_5)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -564,11 +565,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.BUTTON_START,
                     ControlId.GCPAD_START_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_5.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_5)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_6.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_6)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -577,11 +578,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.TRIGGER_L,
                     ControlId.GCPAD_L_DIGITAL,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_6.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_6)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_7.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_7)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -590,11 +591,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.TRIGGER_R,
                     ControlId.GCPAD_R_DIGITAL,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_GC_7.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_GC_7)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_8.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_8)) {
             overlayDpads.add(
                 initializeOverlayDpad(
                     context,
@@ -610,7 +611,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_9.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_9)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -624,7 +625,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_10.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_GC_10)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -641,7 +642,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     }
 
     private fun addWiimoteOverlayControls(orientation: String) {
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_0.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_0)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -650,11 +651,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_A,
                     ControlId.WIIMOTE_A_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_0.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_0)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_1.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_1)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -663,11 +664,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_B,
                     ControlId.WIIMOTE_B_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_1.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_1)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_2.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_2)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -676,11 +677,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_1,
                     ControlId.WIIMOTE_ONE_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_2.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_2)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_3.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_3)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -689,11 +690,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_2,
                     ControlId.WIIMOTE_TWO_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_3.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_3)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_4.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_4)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -702,11 +703,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_PLUS,
                     ControlId.WIIMOTE_PLUS_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_4.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_4)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_5.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_5)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -715,11 +716,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_MINUS,
                     ControlId.WIIMOTE_MINUS_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_5.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_5)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_6.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_6)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -728,11 +729,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.WIIMOTE_BUTTON_HOME,
                     ControlId.WIIMOTE_HOME_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_6.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_6)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_7.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_7)) {
             overlayDpads.add(
                 initializeOverlayDpad(
                     context,
@@ -751,7 +752,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     }
 
     private fun addNunchukOverlayControls(orientation: String) {
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_8.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_8)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -760,11 +761,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.NUNCHUK_BUTTON_C,
                     ControlId.NUNCHUK_C_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_8.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_8)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_9.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_9)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -773,11 +774,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.NUNCHUK_BUTTON_Z,
                     ControlId.NUNCHUK_Z_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_WII_9.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_WII_9)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_WII_10.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_WII_10)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -794,7 +795,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     }
 
     private fun addClassicOverlayControls(orientation: String) {
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_0.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_0)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -803,11 +804,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_A,
                     ControlId.CLASSIC_A_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_0.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_0)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_1.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_1)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -816,11 +817,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_B,
                     ControlId.CLASSIC_B_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_1.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_1)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_2.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_2)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -829,11 +830,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_X,
                     ControlId.CLASSIC_X_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_2.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_2)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_3.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_3)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -842,11 +843,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_Y,
                     ControlId.CLASSIC_Y_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_3.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_3)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_4.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_4)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -855,11 +856,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_PLUS,
                     ControlId.CLASSIC_PLUS_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_4.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_4)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_5.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_5)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -868,11 +869,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_MINUS,
                     ControlId.CLASSIC_MINUS_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_5.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_5)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_6.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_6)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -881,11 +882,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_HOME,
                     ControlId.CLASSIC_HOME_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_6.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_6)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_7.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_7)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -894,11 +895,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_TRIGGER_L,
                     ControlId.CLASSIC_L_DIGITAL,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_7.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_7)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_8.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_8)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -907,11 +908,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_TRIGGER_R,
                     ControlId.CLASSIC_R_DIGITAL,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_8.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_8)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_9.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_9)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -920,11 +921,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_ZL,
                     ControlId.CLASSIC_ZL_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_9.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_9)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_10.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_10)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -933,11 +934,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ButtonType.CLASSIC_BUTTON_ZR,
                     ControlId.CLASSIC_ZR_BUTTON,
                     orientation,
-                    BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_10.boolean
+                    getBooleanSetting(BooleanSetting.MAIN_BUTTON_LATCHING_CLASSIC_10)
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_11.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_11)) {
             overlayDpads.add(
                 initializeOverlayDpad(
                     context,
@@ -953,7 +954,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_12.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_12)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -967,7 +968,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 )
             )
         }
-        if (BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_13.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_BUTTON_TOGGLE_CLASSIC_13)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -998,9 +999,9 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         val controllerSetting =
             if (NativeLibrary.IsEmulatingWii()) IntSetting.MAIN_OVERLAY_WII_CONTROLLER else IntSetting.MAIN_OVERLAY_GC_CONTROLLER
-        val controllerIndex = controllerSetting.int
+        val controllerIndex = getIntSetting(controllerSetting)
 
-        if (BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.boolean) {
+        if (getBooleanSetting(BooleanSetting.MAIN_SHOW_INPUT_OVERLAY)) {
             // Add all the enabled overlay items back to the HashSet.
             when (controllerType) {
                 OVERLAY_GAMECUBE -> {
@@ -1055,8 +1056,8 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
     fun refreshOverlayPointer() {
         if (overlayPointer != null) {
-            overlayPointer?.setMode(IntSetting.MAIN_IR_MODE.int)
-            overlayPointer?.setRecenter(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean)
+            overlayPointer?.setMode(getIntSetting(IntSetting.MAIN_IR_MODE))
+            overlayPointer?.setRecenter(getBooleanSetting(BooleanSetting.MAIN_IR_ALWAYS_RECENTER))
         }
     }
 
@@ -1064,6 +1065,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
         val controller = configuredControllerType
+        if (resetGameButtonPlacement(controller, isLandscape)) {
+            refreshControls()
+            return
+        }
+
         if (controller == OVERLAY_GAMECUBE) {
             if (isLandscape) {
                 gcDefaultOverlay()
@@ -1089,10 +1095,49 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     }
 
     private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int, orientation: String) {
+        val xKey = getPositionPreferenceKey(
+            getXKey(sharedPrefsId, controllerType, orientation), controllerType
+        )
+        val yKey = getPositionPreferenceKey(
+            getYKey(sharedPrefsId, controllerType, orientation), controllerType
+        )
         preferences.edit()
-            .putFloat(getXKey(sharedPrefsId, controllerType, orientation), x.toFloat())
-            .putFloat(getYKey(sharedPrefsId, controllerType, orientation), y.toFloat())
+            .putFloat(xKey, x.toFloat())
+            .putFloat(yKey, y.toFloat())
             .apply()
+    }
+
+    private fun getControlPosition(key: String, controller: Int): Int {
+        val globalValue = preferences.getFloat(key, 0f)
+        return preferences.getFloat(getPositionPreferenceKey(key, controller), globalValue).toInt()
+    }
+
+    private fun getPositionPreferenceKey(key: String, controller: Int): String {
+        val prefix = getGamePreferencePrefix(controller) ?: return key
+        return prefix + key
+    }
+
+    private fun getGamePreferencePrefix(controller: Int): String? {
+        if (!isGameSpecificLayoutEnabled) return null
+        val gameId = getCurrentGameId() ?: return null
+        return GAME_PREFERENCE_PREFIX + gameId + "-" + controller + "-"
+    }
+
+    private fun resetGameButtonPlacement(controller: Int, isLandscape: Boolean): Boolean {
+        val prefix = getGamePreferencePrefix(controller) ?: return false
+        val editor = preferences.edit()
+
+        for (key in preferences.all.keys) {
+            if (!key.startsWith(prefix) || !(key.endsWith("-X") || key.endsWith("-Y"))) continue
+
+            val isPortraitKey = key.substring(prefix.length).contains("-Portrait-")
+            val belongsToCurrentOrientation =
+                if (isLandscape) !isPortraitKey else isPortraitKey
+            if (belongsToCurrentOrientation) editor.remove(key)
+        }
+
+        editor.apply()
+        return true
     }
 
     /**
@@ -1167,7 +1212,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             else -> 0.125f
         }
 
-        scale *= (IntSetting.MAIN_CONTROL_SCALE.int + 50).toFloat()
+        scale *= (getIntSetting(IntSetting.MAIN_CONTROL_SCALE) + 50).toFloat()
         scale /= 100f
 
         // Initialize the InputOverlayDrawableButton.
@@ -1187,10 +1232,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
         // These were set in the input overlay configuration menu.
-        val drawableX =
-            preferences.getFloat(getXKey(legacyId, controllerType, orientation), 0f).toInt()
-        val drawableY =
-            preferences.getFloat(getYKey(legacyId, controllerType, orientation), 0f).toInt()
+        val drawableX = getControlPosition(
+            getXKey(legacyId, controllerType, orientation), controllerType
+        )
+        val drawableY = getControlPosition(
+            getYKey(legacyId, controllerType, orientation), controllerType
+        )
 
         val width = overlayDrawable.width
         val height = overlayDrawable.height
@@ -1201,7 +1248,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // Need to set the image's position
         overlayDrawable.setPosition(drawableX, drawableY)
-        overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.int * 255 / 100)
+        overlayDrawable.setOpacity(getIntSetting(IntSetting.MAIN_CONTROL_OPACITY) * 255 / 100)
 
         return overlayDrawable
     }
@@ -1239,7 +1286,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             else -> if (controllerType == OVERLAY_WIIMOTE_SIDEWAYS || controllerType == OVERLAY_WIIMOTE) 0.275f else 0.2125f
         }
 
-        scale *= (IntSetting.MAIN_CONTROL_SCALE.int + 50).toFloat()
+        scale *= (getIntSetting(IntSetting.MAIN_CONTROL_SCALE) + 50).toFloat()
         scale /= 100f
 
         // Initialize the InputOverlayDrawableDpad.
@@ -1269,10 +1316,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
         // These were set in the input overlay configuration menu.
-        val drawableX =
-            preferences.getFloat(getXKey(legacyId, controllerType, orientation), 0f).toInt()
-        val drawableY =
-            preferences.getFloat(getYKey(legacyId, controllerType, orientation), 0f).toInt()
+        val drawableX = getControlPosition(
+            getXKey(legacyId, controllerType, orientation), controllerType
+        )
+        val drawableY = getControlPosition(
+            getYKey(legacyId, controllerType, orientation), controllerType
+        )
 
         val width = overlayDrawable.width
         val height = overlayDrawable.height
@@ -1283,7 +1332,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // Need to set the image's position
         overlayDrawable.setPosition(drawableX, drawableY)
-        overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.int * 255 / 100)
+        overlayDrawable.setOpacity(getIntSetting(IntSetting.MAIN_CONTROL_OPACITY) * 255 / 100)
 
         return overlayDrawable
     }
@@ -1312,7 +1361,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     ): InputOverlayDrawableJoystick {
         // Decide scale based on user preference
         var scale = 0.275f
-        scale *= (IntSetting.MAIN_CONTROL_SCALE.int + 50).toFloat()
+        scale *= (getIntSetting(IntSetting.MAIN_CONTROL_SCALE) + 50).toFloat()
         scale /= 100f
 
         // Initialize the InputOverlayDrawableJoystick.
@@ -1323,10 +1372,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
         // These were set in the input overlay configuration menu.
-        val drawableX =
-            preferences.getFloat(getXKey(legacyId, controllerType, orientation), 0f).toInt()
-        val drawableY =
-            preferences.getFloat(getYKey(legacyId, controllerType, orientation), 0f).toInt()
+        val drawableX = getControlPosition(
+            getXKey(legacyId, controllerType, orientation), controllerType
+        )
+        val drawableY = getControlPosition(
+            getYKey(legacyId, controllerType, orientation), controllerType
+        )
 
         // Decide inner scale based on joystick ID
         val innerScale: Float = if (legacyId == ButtonType.STICK_C) 1.833f else 1.375f
@@ -1354,7 +1405,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
         // Need to set the image's position
         overlayDrawable.setPosition(drawableX, drawableY)
-        overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.int * 255 / 100)
+        overlayDrawable.setOpacity(getIntSetting(IntSetting.MAIN_CONTROL_OPACITY) * 255 / 100)
         return overlayDrawable
     }
 
@@ -2283,10 +2334,51 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         const val OVERLAY_WIIMOTE_NUNCHUK = 3
         const val OVERLAY_WIIMOTE_CLASSIC = 4
         const val OVERLAY_NONE = 5
+        private const val GAME_PREFERENCE_PREFIX = "GameOverlayV1-"
         private const val DISABLED_GAMECUBE_CONTROLLER = 0
         private const val EMULATED_GAMECUBE_CONTROLLER = 6
         private const val EMULATED_AM_BASEBOARD = 11
         private const val GAMECUBE_ADAPTER = 12
+
+        @JvmStatic
+        val isGameSpecificLayoutAvailable: Boolean
+            get() = getCurrentGameId() != null
+
+        @JvmStatic
+        val isGameSpecificLayoutEnabled: Boolean
+            get() {
+                val gameId = getCurrentGameId() ?: return false
+                return PreferenceManager.getDefaultSharedPreferences(
+                    DolphinApplication.getAppContext()
+                ).getBoolean(getGameEnabledKey(gameId), false)
+            }
+
+        @JvmStatic
+        fun setGameSpecificLayoutEnabled(enabled: Boolean) {
+            val gameId = getCurrentGameId() ?: return
+            PreferenceManager.getDefaultSharedPreferences(DolphinApplication.getAppContext())
+                .edit()
+                .putBoolean(getGameEnabledKey(gameId), enabled)
+                .apply()
+        }
+
+        @JvmStatic
+        fun getBooleanSetting(setting: BooleanSetting): Boolean =
+            if (isGameSpecificLayoutEnabled) setting.boolean
+            else setting.getBoolean(NativeConfig.LAYER_BASE)
+
+        @JvmStatic
+        fun getIntSetting(setting: IntSetting): Int =
+            if (isGameSpecificLayoutEnabled) setting.int
+            else setting.getInt(NativeConfig.LAYER_BASE)
+
+        private fun getCurrentGameId(): String? {
+            if (!NativeLibrary.IsGameMetadataValid()) return null
+            return NativeLibrary.GetCurrentGameID().takeIf { it.isNotEmpty() }
+        }
+
+        private fun getGameEnabledKey(gameId: String): String =
+            GAME_PREFERENCE_PREFIX + gameId + "-Enabled"
 
         // Buttons that have special positions in Wiimote only
         private val WIIMOTE_H_BUTTONS = ArrayList<Int>()
@@ -2334,7 +2426,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             get() {
                 val controllerSetting =
                     if (NativeLibrary.IsEmulatingWii()) IntSetting.MAIN_OVERLAY_WII_CONTROLLER else IntSetting.MAIN_OVERLAY_GC_CONTROLLER
-                val controllerIndex = controllerSetting.int
+                val controllerIndex = getIntSetting(controllerSetting)
 
                 if (controllerIndex in 0 until 4) {
                     // GameCube controller
