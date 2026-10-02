@@ -179,17 +179,11 @@ Section "Base"
 
   ; Create start menu and desktop shortcuts
   ; This needs to be done after Dolphin.exe is copied
-  CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$DisplayName.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\$DisplayName.lnk" "$INSTDIR\Dolphin.exe"
   CreateShortCut "$DESKTOP\$DisplayName.lnk" "$INSTDIR\Dolphin.exe"
 
   ; ??
   SetOutPath "$TEMP"
-SectionEnd
-
-Section -AdditionalIcons
-  ; Create start menu shortcut for the uninstaller
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Uninstall $DisplayName.lnk" "$INSTDIR\uninst.exe" "/$MultiUser.InstallMode"
 SectionEnd
 
 !include "FileFunc.nsh"
@@ -216,11 +210,8 @@ SectionEnd
 Section Uninstall
   !insertmacro UPDATE_DISPLAYNAME
 
-  Delete "$SMPROGRAMS\${PRODUCT_NAME}\Uninstall $DisplayName.lnk"
-
+  Delete "$SMPROGRAMS\$DisplayName.lnk"
   Delete "$DESKTOP\$DisplayName.lnk"
-  Delete "$SMPROGRAMS\${PRODUCT_NAME}\$DisplayName.lnk"
-  RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
 
   ; Be a bit careful to not delete files a user may have put into the install directory.
   Delete "$INSTDIR\*.dll"
