@@ -352,9 +352,9 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
           LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
       }
 
-      int light_x = std::clamp(static_cast<int>(lightCol.x), 0, 255);
-      int light_y = std::clamp(static_cast<int>(lightCol.y), 0, 255);
-      int light_z = std::clamp(static_cast<int>(lightCol.z), 0, 255);
+      int light_x = MathUtil::SaturatingCast<u8>(static_cast<int>(lightCol.x));
+      int light_y = MathUtil::SaturatingCast<u8>(static_cast<int>(lightCol.y));
+      int light_z = MathUtil::SaturatingCast<u8>(static_cast<int>(lightCol.z));
       chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
       chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
       chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
@@ -386,7 +386,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
           LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
       }
 
-      int light_a = std::clamp(static_cast<int>(lightCol), 0, 255);
+      int light_a = MathUtil::SaturatingCast<u8>(static_cast<int>(lightCol));
       chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
     }
     else

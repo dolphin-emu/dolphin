@@ -38,9 +38,8 @@ static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
   hist1 = cur;
 
   cur >>= 6;
-  cur = std::clamp(cur, -0x8000, 0x7fff);
 
-  return (s16)cur;
+  return MathUtil::SaturatingCast<s16>(cur);
 }
 
 void ADPCMDecoder::ResetFilter()

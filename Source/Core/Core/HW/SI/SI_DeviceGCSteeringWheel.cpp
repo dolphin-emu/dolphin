@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Core/HW/GCPad.h"
 
 namespace SerialInterface
@@ -78,10 +79,10 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
     // but we'll have to redesign our GameCube controller input to fix that.
 
     // All 8 bits (Accelerate)
-    low |= u32(std::clamp(accel_value * 2, 0, 0xff)) << 24;
+    low |= static_cast<u32>(MathUtil::SaturatingCast<u8>(accel_value * 2)) << 24;
 
     // All 8 bits (Brake)
-    low |= u32(std::clamp(brake_value * 2, 0, 0xff)) << 16;
+    low |= static_cast<u32>(MathUtil::SaturatingCast<u8>(brake_value * 2)) << 16;
 
     HandleButtonCombos(pad_status);
   }
