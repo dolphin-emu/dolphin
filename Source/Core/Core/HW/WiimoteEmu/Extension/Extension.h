@@ -60,6 +60,8 @@ private:
 class EncryptedExtension : public Extension
 {
 public:
+  void DoState(PointerWrap& p) override;
+
   static constexpr u8 I2C_ADDR = 0x52;
   static constexpr int CONTROLLER_DATA_BYTES = 21;
 
@@ -76,12 +78,19 @@ public:
     u8 unknown2[11];
 
     // address 0x20
-    std::array<u8, 0x10> calibration;
-    u8 unknown3[0x10];
+    union
+    {
+      std::array<u8, 0x10> calibration;
+      std::array<u8, 0x20> calibration_long;
+    };
 
     // address 0x40
     std::array<u8, 0x10> encryption_key_data;
-    u8 unknown4[0xA0];
+    u8 unknown3[0x10];
+
+    // Address 0x60
+    std::array<u8, 2> calibration2;
+    u8 unknown4[0x8e];
 
     // address 0xF0
     u8 encryption;
@@ -99,7 +108,6 @@ protected:
   Register m_reg = {};
 
   void Reset() override;
-  void DoState(PointerWrap& p) override;
 
   virtual void UpdateEncryptionKey() = 0;
 

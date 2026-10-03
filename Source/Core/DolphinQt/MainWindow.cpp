@@ -126,11 +126,12 @@
 #include "DolphinQt/ToolBar.h"
 #include "DolphinQt/WiiUpdate.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/ResourcePack/Manager.h"
 #include "UICommon/ResourcePack/ResourcePack.h"
-
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
@@ -347,12 +348,12 @@ MainWindow::~MainWindow()
   delete m_render_widget;
   delete m_netplay_dialog;
 
-  for (int i = 0; i < 4; i++)
-  {
-    delete m_gc_tas_input_windows[i];
-    delete m_gba_tas_input_windows[i];
-    delete m_wii_tas_input_windows[i];
-  }
+  for (auto& window : m_gc_tas_input_windows)
+    delete window;
+  for (auto& window : m_gba_tas_input_windows)
+    delete window;
+  for (auto& window : m_wii_tas_input_windows)
+    delete window;
 
   ShutdownControllers();
 
@@ -456,12 +457,16 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i != num_gc_controllers; ++i)
   {
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
     m_gba_tas_input_windows[i] = new GBATASInputWindow(nullptr, i);
-    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
+
+  for (int i = 0; i != MAX_WIIMOTES; ++i)
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
+
+  m_wii_tas_input_windows[WIIMOTE_BALANCE_BOARD] = new BalanceBoardTASInputWindow(nullptr);
 
   m_jit_widget = new JITWidget(m_system, this);
   m_log_widget = new LogWidget(this);
@@ -1976,7 +1981,7 @@ void MainWindow::OnStartRecording()
   Movie::ControllerTypeArray controllers{};
   Movie::WiimoteEnabledArray wiimotes{};
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
@@ -1985,8 +1990,10 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
+
+  for (int i = 0; i != MAX_BBMOTES; ++i)
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
 
   if (movie.BeginRecordingInput(controllers, wiimotes))
   {
@@ -2050,7 +2057,7 @@ void MainWindow::ShowTASInput()
     }
   }
 
-  for (int i = 0; i < num_wii_controllers; i++)
+  for (int i = 0; i != MAX_BBMOTES; ++i)
   {
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning(m_system) || m_system.IsWii()))
