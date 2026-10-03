@@ -25,6 +25,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IOFile.h"
+#include "Common/LocaleUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -158,7 +159,7 @@ std::string MovieManager::GetRTCDisplay() const
   const tm gm_time = fmt::gmtime(current_time);
 
   // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+  return fmt::format(Common::GetEnvironmentLocale(), "Date/Time: {:%c}", gm_time);
 }
 
 // NOTE: GPU Thread
