@@ -18,13 +18,13 @@
 // ~10 ms - needs to be at least 240 for surround
 constexpr u32 BUFFER_SAMPLES = 512;
 
-long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
+long CubebStream::DataCallback(cubeb_stream*, void* user_data, const void* /*input_buffer*/,
                                void* output_buffer, long num_frames)
 {
   const auto* const self = static_cast<CubebStream*>(user_data);
 
   if (self->m_stereo)
-    self->m_mixer->Mix(static_cast<short*>(output_buffer), num_frames);
+    self->m_mixer->Mix(static_cast<float*>(output_buffer), num_frames);
   else
     self->m_mixer->MixSurround(static_cast<float*>(output_buffer), num_frames);
 
@@ -35,12 +35,11 @@ void CubebStream::StateCallback(cubeb_stream* stream, void* user_data, cubeb_sta
 {
 }
 
-long CubebStream::WiimoteDataCallback(cubeb_stream* stream, void* user_data,
-                                      const void* /*input_buffer*/, void* output_buffer,
-                                      long num_frames)
+long CubebStream::WiimoteDataCallback(cubeb_stream*, void* user_data, const void* /*input_buffer*/,
+                                      void* output_buffer, long num_frames)
 {
   const auto* data = static_cast<const WiimoteStreamData*>(user_data);
-  data->self->m_mixer->MixWiimoteSpeaker(data->wiimote_index, static_cast<short*>(output_buffer),
+  data->self->m_mixer->MixWiimoteSpeaker(data->wiimote_index, static_cast<float*>(output_buffer),
                                          num_frames);
   return num_frames;
 }
@@ -49,12 +48,11 @@ void CubebStream::WiimoteStateCallback(cubeb_stream* stream, void* user_data, cu
 {
 }
 
-long CubebStream::GBADataCallback(cubeb_stream* stream, void* user_data,
-                                  const void* /*input_buffer*/, void* output_buffer,
-                                  long num_frames)
+long CubebStream::GBADataCallback(cubeb_stream*, void* user_data, const void* /*input_buffer*/,
+                                  void* output_buffer, long num_frames)
 {
   const auto* data = static_cast<const GBAStreamData*>(user_data);
-  data->self->m_mixer->MixGBA(data->gba_index, static_cast<short*>(output_buffer), num_frames);
+  data->self->m_mixer->MixGBA(data->gba_index, static_cast<float*>(output_buffer), num_frames);
   return num_frames;
 }
 
@@ -92,16 +90,15 @@ bool CubebStream::Init()
 
       cubeb_stream_params params{};
       params.rate = m_mixer->GetSampleRate();
+      params.format = CUBEB_SAMPLE_FLOAT32NE;
       if (m_stereo)
       {
         params.channels = 2;
-        params.format = CUBEB_SAMPLE_S16NE;
         params.layout = CUBEB_LAYOUT_STEREO;
       }
       else
       {
         params.channels = 6;
-        params.format = CUBEB_SAMPLE_FLOAT32NE;
         params.layout = CUBEB_LAYOUT_3F2_LFE;
       }
 
@@ -126,7 +123,7 @@ bool CubebStream::Init()
         cubeb_stream_params wiimote_params{};
         wiimote_params.rate = m_mixer->GetSampleRate();
         wiimote_params.channels = 2;
-        wiimote_params.format = CUBEB_SAMPLE_S16NE;
+        wiimote_params.format = CUBEB_SAMPLE_FLOAT32NE;
         wiimote_params.layout = CUBEB_LAYOUT_STEREO;
 
         for (std::size_t i = 0; i < m_wiimote_streams.size(); ++i)
@@ -169,7 +166,7 @@ bool CubebStream::Init()
         cubeb_stream_params gba_params{};
         gba_params.rate = m_mixer->GetSampleRate();
         gba_params.channels = 2;
-        gba_params.format = CUBEB_SAMPLE_S16NE;
+        gba_params.format = CUBEB_SAMPLE_FLOAT32NE;
         gba_params.layout = CUBEB_LAYOUT_STEREO;
 
         for (std::size_t i = 0; i < m_gba_streams.size(); ++i)
