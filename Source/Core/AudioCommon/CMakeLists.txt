@@ -1,12 +1,20 @@
 add_library(audiocommon
   AudioCommon.cpp
   AudioCommon.h
+  ChannelMaps.cpp
   CubebStream.h
   Enums.h
+  FreeSurroundDecoder.cpp
+  FreeSurroundDecoder.h
+  KissFFT.cpp
+  KissFFT.h
+  KissFFTR.cpp
+  KissFFTR.h
   Mixer.cpp
   Mixer.h
   SurroundDecoder.cpp
   SurroundDecoder.h
+  _KissFFTGuts.h
   NullSoundStream.cpp
   NullSoundStream.h
   WaveFile.cpp
@@ -85,10 +93,7 @@ endif()
 
 target_link_libraries(audiocommon
 PUBLIC
-  common
-
-PRIVATE
-  FreeSurround)
+  common)
 
 if(ENABLE_CUBEB)
   target_link_libraries(audiocommon PRIVATE cubeb::cubeb)
