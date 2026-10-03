@@ -5,6 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 
