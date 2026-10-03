@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 
 // Compile with:
-//  g++ -O2 -std=c++11 $(freetype-config --cflags --libs) gc-font-tool.cpp
+//  g++ -O2 -std=c++20 $(pkg-config --cflags --libs freetype2) gc-font-tool.cpp
 
 // Yay0
 // ===============
@@ -75,13 +75,16 @@
 //
 // Font data is encoded in 2 bit greyscale and in 8x8 blocks.
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <memory>
+#include <map>
+#include <span>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 
 #include <ft2build.h>
@@ -94,7 +97,6 @@ using std::uint32_t;
 
 // Font parameters
 const int FNT_CELL_SIZE = 24;
-const int FNT_RENDER_SIZE = FNT_CELL_SIZE * 5 / 6;
 const int FNT_CELLS_PER_ROW = 21;
 const int FNT_PIXMAP_WIDTH = 512; // Must be >= CELL_SIZE * CELLS_PER_ROW
 
@@ -762,17 +764,6 @@ static void write_le32(std::vector<uint8_t>& output, uint32_t value)
 	write_le16(output, static_cast<uint16_t>(value >> 16));
 }
 
-// Clamps an integer between two values
-static int clamp(int value, int min, int max)
-{
-	if (value < min)
-		value = min;
-	else if (value > max)
-		value = max;
-
-	return value;
-}
-
 // Compresses a file using the Yay0 format
 static std::vector<uint8_t> yay0_compress(const std::vector<uint8_t>& input)
 {
@@ -1110,11 +1101,20 @@ static std::vector<uint8_t> fnt_to_bmp(const std::vector<uint8_t>& input)
 	return bitmap;
 }
 
+struct render_options
+{
+	FT_UInt render_height = FNT_CELL_SIZE * 5 / 6;
+	int global_width_bias = 0;
+	std::map<uint32_t, int> codepoint_width_biases;
+	bool dither = false;
+};
+
 // Generates a GameCube font file
 static std::vector<uint8_t> generate_fnt(
 	font_type type,
 	const std::vector<uint8_t>& widths,
-	const image2& pixmap)
+	const image2& pixmap,
+	const render_options& render_opts)
 {
 	std::vector<uint8_t> out;
 
@@ -1152,8 +1152,8 @@ static std::vector<uint8_t> generate_fnt(
 //  out_pixmap = output vector to store pixmap (unscrambled)
 static void freetype_to_fnt_data(
 	const std::vector<uint8_t>& font_buf,
-	const uint16_t* font_table,
-	unsigned font_table_size,
+	std::span<const uint16_t> font_table,
+	const render_options& render_opts,
 	std::vector<uint8_t>& out_widths,
 	image8& out_pixmap)
 {
@@ -1166,7 +1166,7 @@ static void freetype_to_fnt_data(
 		throw font_error("error reading font data");
 
 	// Set size to render glyphs at
-	if (FT_Set_Pixel_Sizes(face, 0, FNT_RENDER_SIZE) != 0)
+	if (FT_Set_Pixel_Sizes(face, 0, render_opts.render_height) != 0)
 		throw font_error("error selecting font size (is the font scalable?)");
 
 	// Get descender size in pixels (negative value)
@@ -1174,16 +1174,16 @@ static void freetype_to_fnt_data(
 
 	// Resize output vectors
 	const unsigned cpr_squared = FNT_CELLS_PER_ROW * FNT_CELLS_PER_ROW;
-	const unsigned pages = (font_table_size + cpr_squared - 1) / cpr_squared;
+	const unsigned pages = (font_table.size() + cpr_squared - 1) / cpr_squared;
 
 	out_widths.clear();
-	out_widths.resize(font_table_size);
+	out_widths.resize(font_table.size());
 	out_pixmap.data.clear();
 	out_pixmap.data.resize(FNT_PIXMAP_WIDTH * FNT_PIXMAP_WIDTH * pages);
 	out_pixmap.width = FNT_PIXMAP_WIDTH;
 
 	// Render each glyph in the list
-	for (unsigned i = 0; i < font_table_size; i++)
+	for (unsigned i = 0; i < font_table.size(); i++)
 	{
 		unsigned glyph_index = FT_Get_Char_Index(face, font_table[i]);
 
@@ -1195,8 +1195,19 @@ static void freetype_to_fnt_data(
 		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER) != 0)
 			throw font_error("error loading glyph");
 
+		// Global width adjustment.
+		int width_bias = render_opts.global_width_bias;
+
+		// Per-codepoint width adjustment.
+		const auto bias_it = render_opts.codepoint_width_biases.find(font_table[i]);
+		if (bias_it != render_opts.codepoint_width_biases.end())
+		{
+			width_bias += bias_it->second;
+		}
+
 		// Record width
-		out_widths[i] = clamp(face->glyph->metrics.horiAdvance >> 6, 0, FNT_CELL_SIZE);
+		const int width = face->glyph->metrics.horiAdvance >> 6;
+		out_widths[i] = std::clamp(width + width_bias, 0, FNT_CELL_SIZE);
 
 		// Calculate cell offset within final image
 		const unsigned cell_page = i / cpr_squared;
@@ -1209,7 +1220,7 @@ static void freetype_to_fnt_data(
 
 		// Copy glyph image
 		const FT_Bitmap* bitmap = &face->glyph->bitmap;
-		const int xStart = face->glyph->bitmap_left;
+		const int xStart = face->glyph->bitmap_left + width_bias;
 		const int yStart = FNT_CELL_SIZE + descender - face->glyph->bitmap_top;
 		const int xMax = xStart + bitmap->width;
 		const int yMax = yStart + bitmap->rows;
@@ -1219,7 +1230,12 @@ static void freetype_to_fnt_data(
 			for (int x = xStart; x < xMax; x++)
 			{
 				// Clip pixels outsize the cell
-				if (y < 0 || x < 0 || x >= FNT_CELL_SIZE || y >= FNT_CELL_SIZE)
+				if (x >= FNT_CELL_SIZE || y >= FNT_CELL_SIZE)
+					continue;
+
+				// Rendering at y index 0 is causing bleed into other characters in CleanRip.
+				// Using 1 here instead of 0 seems hacky, but it does avoid that issue.
+				if (y < 1 || x < 0)
 					continue;
 
 				// Copy pixel
@@ -1232,34 +1248,31 @@ static void freetype_to_fnt_data(
 }
 
 // Converts a freetype font to a GameCube compressed font
-static std::vector<uint8_t> freetype_to_fnt(const std::vector<uint8_t>& font_buf, font_type type, bool dither)
+static std::vector<uint8_t> freetype_to_fnt(const std::vector<uint8_t>& font_buf, font_type type, const render_options& render_opts)
 {
 	// Get font table from font type
-	const uint16_t* font_table;
-	unsigned font_table_size;
+	std::span<const uint16_t> font_table;
 
 	if (type == font_type::windows_1252)
 	{
 		font_table = windows_1252_font_table;
-		font_table_size = sizeof(windows_1252_font_table) / 2;
 	}
 	else
 	{
 		font_table = shift_jis_font_table;
-		font_table_size = sizeof(shift_jis_font_table) / 2;
 	}
 
 	// Generate pixmap
 	std::vector<uint8_t> widths;
 	image8 pixmap;
-	freetype_to_fnt_data(font_buf, font_table, font_table_size, widths, pixmap);
+	freetype_to_fnt_data(font_buf, font_table, render_opts, widths, pixmap);
 
 	// Dither image
-	if (dither)
+	if (render_opts.dither)
 		dither_4colour(pixmap);
 
 	// Scramble pixmap, generate fnt header and compress
-	return yay0_compress(generate_fnt(type, widths, i2encode(pixmap)));
+	return yay0_compress(generate_fnt(type, widths, i2encode(pixmap), render_opts));
 }
 
 static void usage()
@@ -1325,20 +1338,74 @@ static void write_file(const std::string& filename, const std::vector<uint8_t> d
 
 int main(int argc, char* argv[])
 {
-	// Get arguments
-	if (argc != 4)
-	{
-		usage();
-		return 1;
-	}
+	render_options render_opts;
 
 	try
 	{
+		int arg_pos = 1;
+		for (; arg_pos < argc; ++arg_pos) {
+
+			std::string_view arg{argv[arg_pos]};
+
+			if (!arg.starts_with("--"))
+				break;
+
+			arg = arg.substr(2);
+
+			// "--" can end argument processing.
+			if (arg.empty())
+			{
+				++arg_pos;
+				break;
+			}
+
+			const auto equal_pos = arg.find('=');
+
+			if (equal_pos == arg.npos)
+				throw std::invalid_argument{"Expected equal sign in -- argument."};
+
+			const auto left_side = arg.substr(0, equal_pos);
+			const auto right_side = arg.substr(equal_pos + 1);
+
+			if (left_side == "render-height")
+			{
+				render_opts.render_height = std::stoi(std::string{right_side});
+				continue;
+			}
+
+			if (left_side == "global-width-bias")
+			{
+				render_opts.global_width_bias = std::stoi(std::string{right_side});
+				continue;
+			}
+
+			if (left_side == "codepoint-width-bias")
+			{
+				const auto pos_neg_pos = right_side.find_first_of("-+");
+
+				if (pos_neg_pos == right_side.npos)
+					throw std::invalid_argument{"Expected - or + sign."};
+
+				const uint32_t code_point = std::stoi(std::string{right_side.substr(0, pos_neg_pos)}, nullptr, 16);
+				const auto bias = std::stoi(std::string{right_side.substr(pos_neg_pos)});
+
+				render_opts.codepoint_width_biases[code_point] = bias;
+				continue;
+			}
+
+			arg_pos = argc;
+			break;
+		}
+
+		if (argc - arg_pos != 3) {
+			throw std::invalid_argument{"Unexpected number of arguments."};
+		}
+
 		// Read input file
-		std::vector<uint8_t> input = read_file(argv[2]);
+		std::vector<uint8_t> input = read_file(argv[arg_pos + 1]);
 
 		// Do operation
-		const std::string mode = argv[1];
+		const std::string mode = argv[arg_pos + 0];
 		char mode_char = 0;
 
 		if (mode.length() == 2 && mode[0] == '-')
@@ -1351,10 +1418,20 @@ int main(int argc, char* argv[])
 		{
 			case 'c': result = yay0_compress(input); break;
 			case 'd': result = yay0_decompress(input); break;
-			case 'a': result = freetype_to_fnt(input, font_type::windows_1252, true); break;
-			case 's': result = freetype_to_fnt(input, font_type::shift_jis, true); break;
-			case 'b': result = freetype_to_fnt(input, font_type::windows_1252, false); break;
-			case 't': result = freetype_to_fnt(input, font_type::shift_jis, false); break;
+			case 'a':
+				render_opts.dither = true;
+				result = freetype_to_fnt(input, font_type::windows_1252, render_opts);
+				break;
+			case 's':
+				render_opts.dither = true;
+				result = freetype_to_fnt(input, font_type::shift_jis, render_opts);
+				break;
+			case 'b':
+				result = freetype_to_fnt(input, font_type::windows_1252, render_opts);
+				break;
+			case 't':
+				result = freetype_to_fnt(input, font_type::shift_jis, render_opts);
+				break;
 			case 'v': result = fnt_to_bmp(input); break;
 			default:
 				usage();
@@ -1362,12 +1439,18 @@ int main(int argc, char* argv[])
 		}
 
 		// Write output file
-		write_file(argv[3], result);
+		write_file(argv[arg_pos + 2], result);
 		return 0;
 	}
 	catch (const std::ios_base::failure& e)
 	{
 		std::cerr << "gc-font-tool: io error: " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+	catch (const std::invalid_argument& e)
+	{
+		std::cerr << "invalid_argument: " << e.what() << std::endl;
+		usage();
 		return 1;
 	}
 	catch (const std::runtime_error& e)
