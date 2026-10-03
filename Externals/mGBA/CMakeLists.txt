@@ -1,7 +1,6 @@
 set(LIBMGBA_ONLY ON)
 set(USE_LZMA ON)
 add_subdirectory(mgba EXCLUDE_FROM_ALL)
-dolphin_disable_warnings(mgba)
 
 target_compile_definitions(mgba PUBLIC HAVE_CRC32 ENABLE_VFS ENABLE_DIRECTORIES)
 target_link_libraries(mgba ZLIB::ZLIB)

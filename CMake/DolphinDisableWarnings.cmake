@@ -1,0 +1,17 @@
+function(dolphin_disable_warnings target)
+  get_target_property(target_flags ${target} COMPILE_OPTIONS)
+  set(new_flags)
+  foreach(flag IN LISTS target_flags)
+    # all warning flags start with "/W" or "/w" or "-W" or "-w"
+    if (NOT flag MATCHES "^[-/][Ww]")
+      list(APPEND new_flags "${flag}")
+    endif()
+  endforeach()
+  set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "${new_flags}")
+
+  if (MSVC)
+    target_compile_options(${target} PRIVATE "/W0")
+  elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(${target} PRIVATE "-w")
+  endif()
+endfunction()
