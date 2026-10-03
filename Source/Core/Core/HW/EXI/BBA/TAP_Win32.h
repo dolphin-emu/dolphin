@@ -68,19 +68,19 @@ constexpr int TAP_WIN32_MIN_MINOR = 0;
 //=================
 
 #define ADAPTER_KEY                                                                                \
-  _T("SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}")
+  L"SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
 
 #define NETWORK_CONNECTIONS_KEY                                                                    \
-  _T("SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}")
+  L"SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
 
 //======================
 // Filesystem prefixes
 //======================
 
-#define USERMODEDEVICEDIR _T("\\\\.\\Global\\")
-#define SYSDEVICEDIR _T("\\Device\\")
-#define USERDEVICEDIR _T("\\DosDevices\\Global\\")
-#define TAPSUFFIX _T(".tap")
+#define USERMODEDEVICEDIR L"\\\\.\\Global\\"
+#define SYSDEVICEDIR L"\\Device\\"
+#define USERDEVICEDIR L"\\DosDevices\\Global\\"
+#define TAPSUFFIX L".tap"
 
 //=========================================================
 // TAP_COMPONENT_ID -- This string defines the TAP driver
@@ -88,4 +88,4 @@ constexpr int TAP_WIN32_MIN_MINOR = 0;
 // simultaneously.
 //=========================================================
 
-#define TAP_COMPONENT_ID _T("tap0901")
+#define TAP_COMPONENT_ID L"tap0901"
