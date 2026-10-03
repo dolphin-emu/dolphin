@@ -9,6 +9,7 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -16,10 +17,12 @@
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
+#include <QVBoxLayout>
 
 #include "Core/Config/NetplaySettings.h"
 #include "Core/NetPlayProto.h"
 
+#include "DolphinQt/NetPlay/DiscoveryWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
@@ -109,6 +112,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   connection_layout->addWidget(m_ip_edit, 0, 1);
   connection_layout->addWidget(m_connect_port_label, 0, 2);
   connection_layout->addWidget(m_connect_port_box, 0, 3);
+  connection_layout->addWidget(m_connect_button, 0, 4);
   auto* const alert_label = new QLabel(
       tr("ALERT:\n\n"
          "All players must use the same Dolphin version.\n"
@@ -125,8 +129,14 @@ void NetPlaySetupDialog::CreateMainLayout()
   alert_label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   connection_layout->addWidget(alert_label, 1, 0, 1, -1);
-  connection_layout->addItem(new QSpacerItem(1, 1), 2, 0, -1, -1);
-  connection_layout->addWidget(m_connect_button, 3, 3, Qt::AlignRight);
+
+  QGroupBox* discovery_group = new QGroupBox(tr("Local Network"));
+  QVBoxLayout* discovery_group_layout = new QVBoxLayout;
+  m_discovery_widget = new DiscoveryWidget;
+  discovery_group_layout->addWidget(m_discovery_widget);
+  discovery_group->setLayout(discovery_group_layout);
+
+  connection_layout->addWidget(discovery_group, 2, 0, 1, -1);
 
   connection_widget->setLayout(connection_layout);
 
@@ -216,6 +226,13 @@ void NetPlaySetupDialog::ConnectWidgets()
   // Connect widget
   connect(m_ip_edit, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_connect_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_discovery_widget, &DiscoveryWidget::ServerSelected, this,
+          &NetPlaySetupDialog::OnServerSelected);
+  connect(m_discovery_widget, &DiscoveryWidget::ServerActivated, this,
+          [this](const NetPlay::Discovery::DiscoveredServer& server) {
+            OnServerSelected(server);
+            accept();
+          });
   // Host widget
   connect(m_host_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_games, &QListWidget::currentRowChanged, [this](int index) {
@@ -316,6 +333,12 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE,
                            std::string(index == 0 ? "direct" : "traversal"));
+}
+
+void NetPlaySetupDialog::OnServerSelected(const NetPlay::Discovery::DiscoveredServer& server)
+{
+  m_ip_edit->setText(QString::fromStdString(server.address));
+  m_connect_port_box->setValue(server.payload.port);
 }
 
 void NetPlaySetupDialog::show()
