@@ -9,14 +9,13 @@
 #include <optional>
 #include <span>
 #include <string>
-#include <string_view>
-#include <vector>
 
 #include <QImage>
 #include <QPoint>
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Core/HW/GBACore.h"
 
 class QCloseEvent;
@@ -98,6 +97,10 @@ private:
   bool m_moving;
   QPoint m_move_pos;
   bool m_interframe_blending;
+
+#if defined(HAVE_WEB_INTERFACE)
+  Common::EventHookHolder m_event_hooks;
+#endif
 };
 
 class GBAWidgetController : public QObject

@@ -447,6 +447,15 @@ const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"}
 const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
 const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
+#if defined(HAVE_WEB_INTERFACE)
+const Info<bool> MAIN_ENABLE_WEB_INTERFACE{{System::Main, "Interface", "EnableWebInterface"},
+                                           false};
+const Info<std::string> MAIN_WEB_INTERFACE_SERVER_PORT{
+    {System::Main, "Interface", "WebInterfaceServerPort"}, "0.0.0.0:8080"};
+const Info<std::string> MAIN_WEB_INTERFACE_ICE_SERVERS{
+    {System::Main, "Interface", "WebInterfaceICEServers"}, ""};
+#endif
+
 // Main.Analytics
 
 const Info<std::string> MAIN_ANALYTICS_ID{{System::Main, "Analytics", "ID"}, ""};

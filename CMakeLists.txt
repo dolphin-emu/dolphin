@@ -32,6 +32,7 @@ include(CheckSymbolExists)
 include(DolphinCompileDefinitions)
 include(DolphinDisableWarningsMSVC)
 include(DolphinLibraryTools)
+include(FetchContent)
 include(GNUInstallDirs)
 include(RemoveCompileFlag)
 
@@ -119,6 +120,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
+option(ENABLE_WEB_INTERFACE "Enables Web Interface" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -765,6 +767,13 @@ add_subdirectory(Externals/watcher)
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
   add_subdirectory(Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
+endif()
+
+if(ENABLE_WEB_INTERFACE)
+  dolphin_find_optional_system_library(LibDataChannel Externals/LibDataChannel)
+  dolphin_find_optional_system_library(httplib Externals/httplib)
+
+  add_definitions(-DHAVE_WEB_INTERFACE)
 endif()
 
 ########################################

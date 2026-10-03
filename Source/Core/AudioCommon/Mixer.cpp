@@ -18,6 +18,11 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
+#if defined(HAVE_WEB_INTERFACE)
+#include "UICommon/WebUI/AVStream.h"
+#include "UICommon/WebUI/WebServer.h"
+#endif
+
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
   switch (quality)
@@ -61,7 +66,8 @@ void Mixer::DoState(PointerWrap& p)
 }
 
 // Executed from sound stream thread
-void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
+void Mixer::MixerFifo::DequeueFrames(std::size_t num_frames,
+                                     std::invocable<StereoPair> auto&& buffer_writer)
 {
   constexpr u32 INDEX_HALF = 0x80000000;
   constexpr DT_s FADE_IN_RC = DT_s(0.008);
@@ -98,7 +104,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   m_granule_queue_size.store(buffer_size_granules, std::memory_order_relaxed);
 
-  while (num_samples-- > 0)
+  while (num_frames-- > 0)
   {
     // The indexes for the front and back buffers are offset by 50% of the granule size.
     // We use the modular nature of 32-bit integers to wrap around the granule size.
@@ -148,6 +154,13 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     // Apply the fade volume and the regular volume to the sample
     sample = sample * volume * StereoPair{m_fade_volume};
 
+    buffer_writer(sample);
+  }
+}
+
+void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_frames)
+{
+  DequeueFrames(num_frames, [&](StereoPair sample) {
     // This quantization method prevents accumulated error but does not do noise shaping.
     sample.l += samples[0] - m_quantization_error.l;
     samples[0] = MathUtil::SaturatingCast<s16>(std::lround(sample.l));
@@ -158,7 +171,22 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
     m_quantization_error.r = std::clamp(samples[1] - sample.r, -1.0f, 1.0f);
 
     samples += 2;
-  }
+  });
+}
+
+void Mixer::MixerFifo::FillFloatBuffer(std::span<u8> buffer)
+{
+  u8* ptr = buffer.data();
+
+  const auto num_frames = buffer.size() / sizeof(StereoPair);
+  DequeueFrames(num_frames, [&](MixerFifo::StereoPair sample) {
+    sample.l = std::clamp(sample.l / std::numeric_limits<s16>::max(), -1.f, 1.f);
+    sample.r = std::clamp(sample.r / std::numeric_limits<s16>::max(), -1.f, 1.f);
+    std::memcpy(ptr, &sample, sizeof(sample));
+    ptr += sizeof(sample);
+  });
+
+  m_quantization_error = {};
 }
 
 std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
@@ -176,10 +204,28 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
       m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
   }
   m_skylander_portal_mixer.Mix(samples, num_samples);
-  for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
+
+  // Integrated GBAs.
+  for (std::size_t gba_index = 0; gba_index != m_gba_mixers.size(); ++gba_index)
   {
-    if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
-      m_gba_mixers[i].Mix(samples, num_samples);
+    if (m_config_gba_routing_enabled && m_config_gba_output_enabled[gba_index])
+      continue;
+
+    auto& mixer = m_gba_mixers[gba_index];
+
+#if defined(HAVE_WEB_INTERFACE)
+    // Try to send to the WebUI.
+    if (const auto av_stream = WebUI::GetGBAStream(gba_index).lock())
+    {
+      av_stream->TakeAudioSamples(num_samples,
+                                  std::bind_front(&MixerFifo::FillFloatBuffer, &mixer));
+    }
+    else
+#endif
+    {
+      // Mix normally.
+      mixer.Mix(samples, num_samples);
+    }
   }
 
   return num_samples;
