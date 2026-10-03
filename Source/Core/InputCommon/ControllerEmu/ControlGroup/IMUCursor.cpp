@@ -49,7 +49,7 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
 
 ControlState IMUCursor::GetTotalYaw() const
 {
-  return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+  return MathUtil::DegreesToRadians(m_yaw_setting.GetValue());
 }
 
 ControlState IMUCursor::GetAccelWeight() const

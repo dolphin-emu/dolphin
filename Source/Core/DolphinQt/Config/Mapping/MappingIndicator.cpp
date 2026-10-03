@@ -275,7 +275,7 @@ void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, QCol
 template <typename F>
 void GenerateFibonacciSphere(int point_count, F&& callback)
 {
-  const float golden_angle = MathUtil::PI * (3.f - std::sqrt(5.f));
+  const float golden_angle = std::numbers::pi * (3.f - std::sqrt(5.f));
 
   for (int i = 0; i != point_count; ++i)
   {
@@ -462,7 +462,8 @@ QColor TiltIndicator::GetGateBrushColor() const
 
 void TiltIndicator::Draw()
 {
-  auto adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+  auto adj_coord =
+      Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / std::numbers::pi;
 
   // Angle values after dividing by pi.
   constexpr auto norm_180_deg = 1;

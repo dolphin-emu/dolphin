@@ -99,7 +99,7 @@ OctagonAnalogStick::OctagonAnalogStick(const char* name_, const char* ui_name_,
 
 ControlState OctagonAnalogStick::GetVirtualNotchSize() const
 {
-  return m_virtual_notch_setting.GetValue() * MathUtil::TAU / 360;
+  return MathUtil::DegreesToRadians(m_virtual_notch_setting.GetValue());
 }
 
 ControlState OctagonAnalogStick::GetGateRadiusAtAngle(double ang) const
