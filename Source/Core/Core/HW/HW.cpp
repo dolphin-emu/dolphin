@@ -77,6 +77,7 @@ void Shutdown(Core::System& system)
   system.GetHSP().Shutdown();
   system.GetExpansionInterface().Shutdown();
   system.GetSerialInterface().Shutdown();
+  system.GetVideoInterface().Shutdown();
   system.GetAudioInterface().Shutdown();
 
   State::Shutdown();

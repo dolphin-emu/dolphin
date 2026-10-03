@@ -151,6 +151,15 @@ static jclass s_audio_utils_class;
 static jmethodID s_audio_utils_get_sample_rate;
 static jmethodID s_audio_utils_get_frames_per_buffer;
 
+static jclass s_observer_class;
+static jmethodID s_observer_on_changed;
+
+static jclass s_event_hook_lifecycle_observer_class;
+static jmethodID s_event_hook_lifecycle_observer_constructor;
+
+static jclass s_double_class;
+static jmethodID s_double_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -721,6 +730,36 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jclass GetObserverClass()
+{
+  return s_observer_class;
+}
+
+jmethodID GetObserverOnChanged()
+{
+  return s_observer_on_changed;
+}
+
+jclass GetEventHookLifecycleObserverClass()
+{
+  return s_event_hook_lifecycle_observer_class;
+}
+
+jmethodID GetEventHookLifecycleObserverConstructor()
+{
+  return s_event_hook_lifecycle_observer_constructor;
+}
+
+jclass GetDoubleClass()
+{
+  return s_double_class;
+}
+
+jmethodID GetDoubleConstructor()
+{
+  return s_double_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -1015,6 +1054,24 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
 
+  const jclass observer_class = env->FindClass("androidx/lifecycle/Observer");
+  s_observer_class = reinterpret_cast<jclass>(env->NewGlobalRef(observer_class));
+  s_observer_on_changed = env->GetMethodID(observer_class, "onChanged", "(Ljava/lang/Object;)V");
+  env->DeleteLocalRef(observer_class);
+
+  const jclass event_hook_lifecycle_observer_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/EventHookLifecycleObserver");
+  s_event_hook_lifecycle_observer_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(event_hook_lifecycle_observer_class));
+  s_event_hook_lifecycle_observer_constructor = env->GetMethodID(
+      event_hook_lifecycle_observer_class, "<init>", "(Landroidx/lifecycle/LifecycleOwner;JJ)V");
+  env->DeleteLocalRef(event_hook_lifecycle_observer_class);
+
+  const jclass double_class = env->FindClass("java/lang/Double");
+  s_double_class = reinterpret_cast<jclass>(env->NewGlobalRef(double_class));
+  s_double_constructor = env->GetMethodID(double_class, "<init>", "(D)V");
+  env->DeleteLocalRef(double_class);
+
   return JNI_VERSION;
 }
 
@@ -1054,5 +1111,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_input_detector_class);
   env->DeleteGlobalRef(s_permission_handler_class);
   env->DeleteGlobalRef(s_audio_utils_class);
+  env->DeleteGlobalRef(s_observer_class);
+  env->DeleteGlobalRef(s_event_hook_lifecycle_observer_class);
+  env->DeleteGlobalRef(s_double_class);
 }
 }
