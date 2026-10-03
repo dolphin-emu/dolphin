@@ -3,6 +3,8 @@
 
 #include "VideoCommon/TextureDecoder.h"
 
+#include <numeric>
+
 #ifdef CHECK
 #include "Common/Assert.h"
 #endif
@@ -188,8 +190,10 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   {
     // color[3] is the same as color[2] (average of both colors), but transparent.
     // This differs from DXT1 where color[3] is transparent black.
-    colors[2] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
-    colors[3] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
+    colors[2] = MakeRGBA(std::midpoint(red1 + red2), std::midpoint(green1, green2),
+                         std::midpoint(blue1, blue2), 255);
+    colors[3] = MakeRGBA(std::midpoint(red1 + red2), std::midpoint(green1, green2),
+                         std::midpoint(blue1, blue2), 0);
   }
 
   for (int y = 0; y < 4; y++)

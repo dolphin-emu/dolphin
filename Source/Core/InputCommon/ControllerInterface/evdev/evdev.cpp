@@ -7,6 +7,7 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <string>
 
 #include <fcntl.h>
@@ -177,7 +178,7 @@ public:
     const int min = libevdev_get_abs_minimum(m_dev, m_code);
     const int max = libevdev_get_abs_maximum(m_dev, m_code);
 
-    m_base = (max + min) / 2;
+    m_base = std::midpoint(min, max);
     m_range = (upper ? max : min) - m_base;
   }
 
