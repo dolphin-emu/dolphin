@@ -125,13 +125,12 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     vertex_shader_uid_data* vs = out.vs_uid.GetUidData();
     const PortableVertexDeclaration& decl = out.vertex_format->GetVertexDeclaration();
     vs->position_has_3_elems = decl.position.components >= 3;
-    vs->texcoord_elem_count = 0;
     for (int i = 0; i < 8; i++)
     {
       if (decl.texcoords[i].enable)
       {
         ASSERT(decl.texcoords[i].components <= 3);
-        vs->texcoord_elem_count |= decl.texcoords[i].components << (i * 2);
+        vs->texGenInfo[i].texcoord_elem_count = decl.texcoords[i].components;
       }
     }
     out.vertex_format = nullptr;

@@ -3,6 +3,7 @@
 
 #include "InputCommon/InputConfig.h"
 
+#include <utility>
 #include <vector>
 
 #include "Common/FileUtil.h"
@@ -16,10 +17,11 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
 
-InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
-                         const std::string& profile_directory_name, const std::string& profile_key)
-    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_directory_name(profile_directory_name),
-      m_profile_key(profile_key)
+InputConfig::InputConfig(std::string ini_name, std::string gui_name,
+                         std::string profile_directory_name, std::string profile_key)
+    : m_ini_name(std::move(ini_name)), m_gui_name(std::move(gui_name)),
+      m_profile_directory_name(std::move(profile_directory_name)),
+      m_profile_key(std::move(profile_key))
 {
 }
 

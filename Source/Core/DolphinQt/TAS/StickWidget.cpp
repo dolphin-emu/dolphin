@@ -24,6 +24,11 @@ StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
   setMinimumSize(QSize(64, 64));
 }
 
+QSize StickWidget::sizeHint() const
+{
+  return QSize(128, 128);
+}
+
 void StickWidget::SetX(u16 x)
 {
   m_x = std::min(m_max_x, x);

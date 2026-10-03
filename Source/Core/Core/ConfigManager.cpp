@@ -4,6 +4,7 @@
 #include "Core/ConfigManager.h"
 
 #include <algorithm>
+#include <fmt/format.h>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -12,8 +13,6 @@
 #include <variant>
 
 #include <Core/Core.h>
-
-#include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -130,6 +129,27 @@ const std::string SConfig::GetGameTDBID() const
   return m_gametdb_id;
 }
 
+const std::string SConfig::GetGameIDElfDol() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_game_id_elf_dol;
+}
+
+const std::string SConfig::GetGameIDForTextures() const
+{
+  return GetGameIDsForTextures().front();
+}
+
+const std::vector<std::string> SConfig::GetGameIDsForTextures() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+
+  if (m_game_id_elf_dol.empty())
+    return {m_game_id};
+
+  return {fmt::format("{}-{}", m_game_id_elf_dol, m_game_id), m_game_id};
+}
+
 const std::string SConfig::GetTitleName() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
@@ -140,12 +160,6 @@ const std::string SConfig::GetTitleDescription() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   return m_title_description;
-}
-
-std::string SConfig::GetTriforceID() const
-{
-  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  return m_triforce_id;
 }
 
 u64 SConfig::GetTitleID() const
@@ -160,27 +174,36 @@ u16 SConfig::GetRevision() const
   return m_revision;
 }
 
+u32 SConfig::GetSimulatedMemorySize() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_simulated_memory_size;
+}
+
 void SConfig::ResetRunningGameMetadata()
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  SetRunningGameMetadata("00000000", "", "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown, 0);
+  SetElfDolID("");
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                                      const DiscIO::Partition& partition)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+
   if (partition == volume.GetGamePartition())
   {
-    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(), volume.GetTriforceID(),
+    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
                            volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
-                           volume.GetRegion());
+                           volume.GetRegion(), volume.GetSimulatedMemorySize());
   }
   else
   {
     SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
-                           volume.GetTriforceID(), volume.GetTitleID(partition).value_or(0),
-                           volume.GetRevision(partition).value_or(0), volume.GetRegion());
+                           volume.GetTitleID(partition).value_or(0),
+                           volume.GetRevision(partition).value_or(0), volume.GetRegion(),
+                           volume.GetSimulatedMemorySize());
   }
 }
 
@@ -197,30 +220,30 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
       !Core::System::GetInstance().GetDVDInterface().UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), "", tmd_title_id,
-                           tmd.GetTitleVersion(), tmd.GetRegion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
+                           tmd.GetRegion(), 0);
   }
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  SetRunningGameMetadata(game_id, "", "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown, 0);
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     std::string triforce_id, u64 title_id, u16 revision,
-                                     DiscIO::Region region)
+                                     u64 title_id, u16 revision, DiscIO::Region region,
+                                     u32 simulated_memory_size)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
-                           m_triforce_id != triforce_id || m_title_id != title_id ||
-                           m_revision != revision;
+                           m_title_id != title_id || m_revision != revision ||
+                           m_simulated_memory_size != simulated_memory_size;
   m_game_id = game_id;
   m_gametdb_id = gametdb_id;
-  m_triforce_id = triforce_id;
   m_title_id = title_id;
   m_revision = revision;
+  m_simulated_memory_size = simulated_memory_size;
 
   if (game_id.length() == 6)
   {
@@ -251,7 +274,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const Core::TitleDatabase title_database;
   auto& system = Core::System::GetInstance();
   const DiscIO::Language language = GetLanguageAdjustedForRegion(system.IsWii(), region);
-  m_title_name = title_database.GetTitleName(m_gametdb_id, m_triforce_id, language);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
@@ -265,6 +288,12 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 
   if (is_running_or_starting)
     DolphinAnalytics::Instance().ReportGameStart();
+}
+
+void SConfig::SetElfDolID(const std::string& game_id)
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  m_game_id_elf_dol = game_id;
 }
 
 void SConfig::OnESTitleChanged()
@@ -366,7 +395,9 @@ struct SetGameMetadata
     constexpr char BACKSLASH = '\\';
     constexpr char FORWARDSLASH = '/';
     std::ranges::replace(executable_path, BACKSLASH, FORWARDSLASH);
-    config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
+    const std::string made_game_id = SConfig::MakeGameID(PathToFileName(executable_path));
+    config->SetRunningGameMetadata(made_game_id);
+    config->SetElfDolID(made_game_id);
 
     Host_TitleChanged();
 
@@ -457,6 +488,9 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
 
   if (m_region == DiscIO::Region::Unknown)
     m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+
+  if (system.IsTriforce())
+    m_region = DiscIO::Region::DEV;
 
   // Set up paths
   const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));

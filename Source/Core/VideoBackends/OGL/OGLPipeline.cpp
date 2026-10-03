@@ -3,6 +3,8 @@
 
 #include "VideoBackends/OGL/OGLPipeline.h"
 
+#include <utility>
+
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -27,12 +29,12 @@ static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
   }
 }
 OGLPipeline::OGLPipeline(const AbstractPipelineConfig& config, const GLVertexFormat* vertex_format,
-                         const RasterizationState& rasterization_state,
-                         const DepthState& depth_state, const BlendingState& blending_state,
-                         PipelineProgram* program, GLuint gl_primitive)
+                         RasterizationState rasterization_state, DepthState depth_state,
+                         BlendingState blending_state, PipelineProgram* program,
+                         GLuint gl_primitive)
     : AbstractPipeline(config), m_vertex_format(vertex_format),
-      m_rasterization_state(rasterization_state), m_depth_state(depth_state),
-      m_blending_state(blending_state), m_program(program), m_gl_primitive(gl_primitive)
+      m_rasterization_state(std::move(rasterization_state)), m_depth_state(std::move(depth_state)),
+      m_blending_state(std::move(blending_state)), m_program(program), m_gl_primitive(gl_primitive)
 {
 }
 

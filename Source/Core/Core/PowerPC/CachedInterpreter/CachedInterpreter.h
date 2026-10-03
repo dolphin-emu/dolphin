@@ -5,9 +5,8 @@
 
 #include <cstddef>
 
-#include <rangeset/rangesizeset.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/RangeSizeSet.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreterBlockCache.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreterEmitter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -112,7 +111,7 @@ private:
   static s32 CheckIdle(PowerPC::PowerPCState& ppc_state, const CheckIdleOperands& operands);
   static s32 CheckIdle(std::ostream& stream, const CheckIdleOperands& operands);
 
-  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges;
+  Common::RangeSizeSet<u8*> m_free_ranges;
   CachedInterpreterBlockCache m_block_cache;
 };
 

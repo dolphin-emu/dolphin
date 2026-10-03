@@ -1,5 +1,4 @@
 add_library(videoogl
-  GPUTimer.h
   OGLBoundingBox.cpp
   OGLBoundingBox.h
   OGLConfig.cpp

@@ -369,11 +369,8 @@ std::string_view Lexer::CurrentLine() const
   size_t begin_index = line_index == 0 ? 0 : line_index - 1;
   for (; begin_index > 0; begin_index--)
   {
-    if (m_lex_string[begin_index] == '\n')
-    {
-      begin_index++;
+    if (m_lex_string[begin_index - 1] == '\n')
       break;
-    }
   }
   size_t end_index = begin_index;
   for (; end_index < m_lex_string.size(); end_index++)
@@ -486,7 +483,7 @@ void Lexer::EatAndReset()
   SetIdentifierMatchRule(IdentifierMatchRule::Typical);
 }
 
-std::optional<std::string_view> Lexer::RunDfa(const std::vector<DfaNode>& dfa) const
+std::optional<std::string_view> Lexer::RunDfa(std::span<const DfaNode> dfa) const
 {
   size_t dfa_index = 0;
   bool transition_found;

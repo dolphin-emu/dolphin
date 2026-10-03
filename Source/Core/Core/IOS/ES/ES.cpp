@@ -283,7 +283,11 @@ static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, ES::UIDSys* ui
   {
     const bool is_wiiu_transfer_tool =
         active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484353ff;
-    if (is_wiiu_transfer_tool)
+    const bool is_wii_system_transfer =
+        active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484354ff;
+    const bool is_wagoncompat_transfer =
+        active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010008'48435aff;
+    if (is_wiiu_transfer_tool || is_wii_system_transfer || is_wagoncompat_transfer)
       return IPC_SUCCESS;
   }
 

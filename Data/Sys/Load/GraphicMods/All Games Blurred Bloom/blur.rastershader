@@ -1,0 +1,23 @@
+{
+	"properties":[
+		{
+			"code_name": "HORIZONTAL",
+			"default": true,
+			"description": "Whether to apply the blur horizontally or vertically",
+			"type": "bool"
+		},
+		{
+			"code_name": "SPREAD_MULTIPLIER",
+			"default": 1.0,
+			"description": "How much to spread the blur",
+			"type": "float"
+		},
+		{
+			"code_name": "BRIGHTNESS_MULTIPLIER",
+			"default": 1.0,
+			"description": "How bright the blur is",
+			"type": "float"
+		}
+	],
+	"samplers":[]
+}

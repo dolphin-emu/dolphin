@@ -127,11 +127,6 @@ void ProcessWiimotePool()
   }
 }
 
-bool IsScannerReady()
-{
-  return s_wiimote_scanner.IsReady();
-}
-
 void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
 {
   // Our real wiimote class requires an index.
@@ -590,12 +585,6 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 {
   m_scan_mode.store(scan_mode);
   m_scan_mode_changed_or_population_event.Set();
-}
-
-bool WiimoteScanner::IsReady() const
-{
-  std::lock_guard lg(m_backends_mutex);
-  return std::ranges::any_of(m_backends, &WiimoteScannerBackend::IsReady);
 }
 
 static void CheckForDisconnectedWiimotes()

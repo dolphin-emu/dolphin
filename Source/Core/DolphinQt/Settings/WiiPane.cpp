@@ -369,7 +369,6 @@ void WiiPane::OnUSBWhitelistAddButton()
   }
   whitelist.emplace(*usb_device);
   Config::SetUSBDeviceWhitelist(whitelist);
-  Config::Save();
   PopulateUSBPassthroughListWidget();
 }
 

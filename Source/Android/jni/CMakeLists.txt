@@ -14,8 +14,6 @@ add_library(main SHARED
   GameList/GameFile.h
   GameList/GameFileCache.cpp
   GpuDriver.cpp
-  Host.cpp
-  Host.h
   InfinityConfig.cpp
   Input/Control.cpp
   Input/Control.h
@@ -32,6 +30,9 @@ add_library(main SHARED
   Input/MappingCommon.cpp
   Input/NumericSetting.cpp
   Input/NumericSetting.h
+  NetPlay/Netplay.cpp
+  NetPlay/NetPlayUICallbacks.cpp
+  NetPlay/NetPlayUICallbacks.h
   MainAndroid.cpp
   RiivolutionPatches.cpp
   SkylanderConfig.cpp

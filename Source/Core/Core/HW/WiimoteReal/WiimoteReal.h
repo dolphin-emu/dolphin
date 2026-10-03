@@ -181,9 +181,6 @@ class WiimoteScannerBackend
 public:
   virtual ~WiimoteScannerBackend() = default;
 
-  // Note: Invoked from UI thread.
-  virtual bool IsReady() const = 0;
-
   // function called when not looking for more Wiimotes
   virtual void Update() = 0;
   // requests the backend to stop scanning if FindWiimotes is blocking
@@ -219,8 +216,6 @@ public:
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
   void PopulateDevices();
-
-  bool IsReady() const;
 
 private:
   void ThreadFunc();
@@ -259,5 +254,4 @@ void InitAdapterClass();
 void HandleWiimotesInControllerInterfaceSettingChange();
 void PopulateDevices();
 void ProcessWiimotePool();
-bool IsScannerReady();
 }  // namespace WiimoteReal

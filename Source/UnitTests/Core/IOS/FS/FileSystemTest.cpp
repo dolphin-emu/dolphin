@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -468,4 +469,109 @@ TEST_F(FileSystemTest, CreateFullPath)
   // See https://github.com/dolphin-emu/dolphin/pull/8593
   EXPECT_EQ(m_fs->CreateFullPath(Uid{0x1000}, Gid{1}, "/shared2/wc24/mbox/Readme.txt", 0, modes),
             ResultCode::Success);
+}
+
+TEST_F(FileSystemTest, DoState)
+{
+  const std::string TEST_DATA_1 = "123";
+  const std::string TEST_DATA_2 = "4567";
+
+  std::array<u8, 4> read_buffer;
+
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{1}, Gid{2}, "/tmp/a", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{1}, Gid{2}, "/tmp/a/b", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/a/c", 0, modes), ResultCode::Success);
+
+  ASSERT_EQ(m_fs->CreateFile(Uid{1}, Gid{2}, "/tmp/a/d", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{3}, Gid{4}, "/tmp/e", 0, modes), ResultCode::Success);
+
+  {
+    Result<FileHandle> file1 = m_fs->OpenFile(Uid{1}, Gid{2}, "/tmp/a/d", Mode::ReadWrite);
+    ASSERT_TRUE(file1.has_value());
+    ASSERT_TRUE(file1->Write(TEST_DATA_1.data(), TEST_DATA_1.size()).has_value());
+  }
+
+  std::array<u8, 1024> state_buffer;
+  size_t state_size;
+
+  {
+    Result<FileHandle> file2 = m_fs->OpenFile(Uid{3}, Gid{4}, "/tmp/e", Mode::ReadWrite);
+    ASSERT_TRUE(file2.has_value());
+    ASSERT_TRUE(file2->Write(TEST_DATA_2.data(), TEST_DATA_2.size()).has_value());
+
+    u8* state_pointer = state_buffer.data();
+    PointerWrap p(&state_pointer, state_buffer.size(), PointerWrap::Mode::Write);
+    m_fs->DoState(p);
+    ASSERT_TRUE(p.IsWriteMode());
+
+    ASSERT_TRUE(file2->Seek(2, SeekMode::Set).has_value());
+    ASSERT_TRUE(file2->Write("_", 1).has_value());
+
+    Fd fd = file2->Release();
+    p.Do(fd);
+    ASSERT_TRUE(p.IsWriteMode());
+
+    state_size = state_pointer - state_buffer.data();
+  }
+
+  ASSERT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/tmp/a"), ResultCode::Success);
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a").error(), ResultCode::NotFound);
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/b").error(), ResultCode::NotFound);
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/c").error(), ResultCode::NotFound);
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/d").error(), ResultCode::NotFound);
+
+  ASSERT_EQ(m_fs->CreateFile(Uid{5}, Gid{6}, "/tmp/f", 0, modes), ResultCode::Success);
+
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{7}, Gid{8}, "/tmp/g", 0, modes), ResultCode::Success);
+
+  u8* state_pointer = state_buffer.data();
+  PointerWrap p(&state_pointer, state_size, PointerWrap::Mode::Read);
+  m_fs->DoState(p);
+  ASSERT_TRUE(p.IsReadMode());
+
+  constexpr auto check_directory_metadata = [](const Result<Metadata>& metadata, Uid uid, Gid gid) {
+    ASSERT_TRUE(metadata.has_value());
+    ASSERT_EQ(metadata->uid, uid);
+    ASSERT_EQ(metadata->gid, gid);
+    ASSERT_FALSE(metadata->is_file);
+  };
+
+  constexpr auto check_file_metadata = [](const Result<Metadata>& metadata, Uid uid, Gid gid,
+                                          u32 size) {
+    ASSERT_TRUE(metadata.has_value());
+    ASSERT_EQ(metadata->uid, uid);
+    ASSERT_EQ(metadata->gid, gid);
+    ASSERT_TRUE(metadata->is_file);
+    ASSERT_EQ(metadata->size, size);
+  };
+
+  check_directory_metadata(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a"), Uid{1}, Gid{2});
+  check_directory_metadata(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/b"), Uid{1}, Gid{2});
+  check_directory_metadata(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/c"), Uid{0}, Gid{0});
+
+  check_file_metadata(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/a/d"), Uid{1}, Gid{2}, 3);
+  check_file_metadata(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/e"), Uid{3}, Gid{4}, 4);
+
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f").error(), ResultCode::NotFound);
+  ASSERT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/g").error(), ResultCode::NotFound);
+
+  Fd fd{};
+  p.Do(fd);
+  ASSERT_TRUE(p.IsReadMode());
+
+  {
+    FileHandle file2(m_fs.get(), fd);
+    ASSERT_EQ(file2.GetStatus()->offset, 4u);
+    ASSERT_TRUE(file2.Seek(0, SeekMode::Set).has_value());
+    ASSERT_TRUE(file2.Read(read_buffer.data(), TEST_DATA_2.size()).has_value());
+    for (size_t i = 0; i < TEST_DATA_2.size(); ++i)
+      ASSERT_EQ(read_buffer[i], TEST_DATA_2[i]);
+  }
+
+  {
+    Result<FileHandle> file1 = m_fs->OpenFile(Uid{5}, Gid{6}, "/tmp/a/d", Mode::Read);
+    ASSERT_TRUE(file1->Read(read_buffer.data(), TEST_DATA_1.size()).has_value());
+    for (size_t i = 0; i < TEST_DATA_1.size(); ++i)
+      ASSERT_EQ(read_buffer[i], TEST_DATA_1[i]);
+  }
 }

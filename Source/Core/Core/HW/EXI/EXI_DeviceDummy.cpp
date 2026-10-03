@@ -4,14 +4,15 @@
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
 namespace ExpansionInterface
 {
-CEXIDummy::CEXIDummy(Core::System& system, const std::string& name)
-    : IEXIDevice(system), m_name{name}
+CEXIDummy::CEXIDummy(Core::System& system, std::string name)
+    : IEXIDevice(system), m_name{std::move(name)}
 {
 }
 

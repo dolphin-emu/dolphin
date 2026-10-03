@@ -13,14 +13,16 @@
 #include <fmt/format.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <windows.h>
 #include "Common/WindowsRegistry.h"
-#elif defined(__APPLE__)
-#include <objc/message.h>
 #endif
 
 #if defined(ANDROID)
 #include <functional>
+#endif
+
+#if defined(__APPLE__)
+#include "Common/CommonFuncs.h"
 #endif
 
 #include "Common/Analytics.h"
@@ -205,7 +207,7 @@ void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
   Send(builder);
 }
 
-void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
+void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample sample)
 {
   if (ShouldStartPerformanceSampling())
   {
@@ -214,7 +216,7 @@ void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
 
   if (m_sampling_performance_info)
   {
-    m_performance_samples.emplace_back(std::move(sample));
+    m_performance_samples.emplace_back(sample);
   }
 
   if (m_performance_samples.size() >= NUM_PERFORMANCE_SAMPLES_PER_REPORT)
@@ -300,32 +302,10 @@ void DolphinAnalytics::MakeBaseBuilder()
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 
-  // id processInfo = [NSProcessInfo processInfo]
-  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
-      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
-  if (processInfo)
-  {
-    struct OSVersion  // NSOperatingSystemVersion
-    {
-      s64 major_version;  // NSInteger majorVersion
-      s64 minor_version;  // NSInteger minorVersion
-      s64 patch_version;  // NSInteger patchVersion
-    };
-    // Under arm64, we need to call objc_msgSend to receive a struct.
-    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
-#ifdef _M_ARM_64
-#define msgSend objc_msgSend
-#else
-#define msgSend objc_msgSend_stret
-#endif
-    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
-    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
-        processInfo, sel_getUid("operatingSystemVersion"));
-#undef msgSend
-    builder.AddData("osx-ver-major", version.major_version);
-    builder.AddData("osx-ver-minor", version.minor_version);
-    builder.AddData("osx-ver-bugfix", version.patch_version);
-  }
+  Common::MacOSVersion version = Common::GetMacOSVersion();
+  builder.AddData("osx-ver-major", version.major);
+  builder.AddData("osx-ver-minor", version.minor);
+  builder.AddData("osx-ver-bugfix", version.patch);
 #elif defined(__linux__)
   builder.AddData("os-type", "linux");
 #elif defined(__FreeBSD__)
@@ -373,6 +353,9 @@ void DolphinAnalytics::MakePerGameBuilder()
 
   // Unique id bound to the gameid.
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+
+  // Other game-specific fields.
+  builder.AddData("simulated-memory-size", SConfig::GetInstance().GetSimulatedMemorySize());
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));

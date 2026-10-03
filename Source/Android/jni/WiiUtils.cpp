@@ -102,10 +102,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDB
 
   return DiscIO::NANDImporter().ImportNANDBin(
       path,
-      [] {
-        // This callback gets called every now and then in case we want to update the GUI. However,
-        // we have no way of knowing what the current progress is, so we can't do anything
-        // especially useful. DolphinQt chooses to show the elapsed time, for reference.
+      [](DiscIO::NANDImporter::Step, int, int) {
+        // This callback gets called every now and then in case we want to update the GUI.
+        // TODO
+        return false;
       },
       [] {
         // This callback gets called if the NAND file does not have decryption keys appended to it.

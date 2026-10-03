@@ -66,45 +66,45 @@ void Statistics::Display() const
 
   if (g_backend_info.api_type == APIType::Nothing)
   {
-    draw_statistic("Objects", "%d", this_frame.num_drawn_objects);
-    draw_statistic("Vertices Loaded", "%d", this_frame.num_vertices_loaded);
-    draw_statistic("Triangles Input", "%d", this_frame.num_triangles_in);
-    draw_statistic("Triangles Rejected", "%d", this_frame.num_triangles_rejected);
-    draw_statistic("Triangles Culled", "%d", this_frame.num_triangles_culled);
-    draw_statistic("Triangles Clipped", "%d", this_frame.num_triangles_clipped);
-    draw_statistic("Triangles Drawn", "%d", this_frame.num_triangles_drawn);
-    draw_statistic("Rasterized Pix", "%d", this_frame.rasterized_pixels);
-    draw_statistic("TEV Pix In", "%d", this_frame.tev_pixels_in);
-    draw_statistic("TEV Pix Out", "%d", this_frame.tev_pixels_out);
+    draw_statistic("Objects", "%u", this_frame.num_drawn_objects);
+    draw_statistic("Vertices Loaded", "%u", this_frame.num_vertices_loaded);
+    draw_statistic("Triangles Input", "%u", this_frame.num_triangles_in);
+    draw_statistic("Triangles Rejected", "%u", this_frame.num_triangles_rejected);
+    draw_statistic("Triangles Culled", "%u", this_frame.num_triangles_culled);
+    draw_statistic("Triangles Clipped", "%u", this_frame.num_triangles_clipped);
+    draw_statistic("Triangles Drawn", "%u", this_frame.num_triangles_drawn);
+    draw_statistic("Rasterized Pix", "%u", this_frame.rasterized_pixels);
+    draw_statistic("TEV Pix In", "%u", this_frame.tev_pixels_in);
+    draw_statistic("TEV Pix Out", "%u", this_frame.tev_pixels_out);
   }
 
-  draw_statistic("Textures created", "%d", num_textures_created);
-  draw_statistic("Textures uploaded", "%d", num_textures_uploaded);
-  draw_statistic("Textures alive", "%d", num_textures_alive);
-  draw_statistic("pshaders created", "%d", num_pixel_shaders_created);
-  draw_statistic("pshaders alive", "%d", num_pixel_shaders_alive);
-  draw_statistic("vshaders created", "%d", num_vertex_shaders_created);
-  draw_statistic("vshaders alive", "%d", num_vertex_shaders_alive);
-  draw_statistic("shaders changes", "%d", this_frame.num_shader_changes);
-  draw_statistic("dlists called", "%d", this_frame.num_dlists_called);
-  draw_statistic("Primitive joins", "%d", this_frame.num_primitive_joins);
-  draw_statistic("Draw calls", "%d", this_frame.num_draw_calls);
-  draw_statistic("Primitives", "%d", this_frame.num_prims);
-  draw_statistic("Primitives (DL)", "%d", this_frame.num_dl_prims);
-  draw_statistic("XF loads", "%d", this_frame.num_xf_loads);
-  draw_statistic("XF loads (DL)", "%d", this_frame.num_xf_loads_in_dl);
-  draw_statistic("CP loads", "%d", this_frame.num_cp_loads);
-  draw_statistic("CP loads (DL)", "%d", this_frame.num_cp_loads_in_dl);
-  draw_statistic("BP loads", "%d", this_frame.num_bp_loads);
-  draw_statistic("BP loads (DL)", "%d", this_frame.num_bp_loads_in_dl);
-  draw_statistic("Vertex streamed", "%i kB", this_frame.bytes_vertex_streamed / 1024);
-  draw_statistic("Index streamed", "%i kB", this_frame.bytes_index_streamed / 1024);
-  draw_statistic("Uniform streamed", "%i kB", this_frame.bytes_uniform_streamed / 1024);
-  draw_statistic("Vertex Loaders", "%d", num_vertex_loaders);
-  draw_statistic("EFB peeks:", "%d", this_frame.num_efb_peeks);
-  draw_statistic("EFB pokes:", "%d", this_frame.num_efb_pokes);
-  draw_statistic("Draw dones:", "%d", this_frame.num_draw_done);
-  draw_statistic("Tokens:", "%d/%d", this_frame.num_token, this_frame.num_token_int);
+  draw_statistic("Textures created", "%u", num_textures_created);
+  draw_statistic("Textures uploaded", "%u", num_textures_uploaded);
+  draw_statistic("Textures alive", "%u", num_textures_alive);
+  draw_statistic("pshaders created", "%u", num_pixel_shaders_created);
+  draw_statistic("pshaders alive", "%u", num_pixel_shaders_alive);
+  draw_statistic("vshaders created", "%u", num_vertex_shaders_created);
+  draw_statistic("vshaders alive", "%u", num_vertex_shaders_alive);
+  draw_statistic("shaders changes", "%u", this_frame.num_shader_changes);
+  draw_statistic("dlists called", "%u", this_frame.num_dlists_called);
+  draw_statistic("Primitive joins", "%u", this_frame.num_primitive_joins);
+  draw_statistic("Draw calls", "%u", this_frame.num_draw_calls);
+  draw_statistic("Primitives", "%u", this_frame.num_prims);
+  draw_statistic("Primitives (DL)", "%u", this_frame.num_dl_prims);
+  draw_statistic("XF loads", "%u", this_frame.num_xf_loads);
+  draw_statistic("XF loads (DL)", "%u", this_frame.num_xf_loads_in_dl);
+  draw_statistic("CP loads", "%u", this_frame.num_cp_loads);
+  draw_statistic("CP loads (DL)", "%u", this_frame.num_cp_loads_in_dl);
+  draw_statistic("BP loads", "%u", this_frame.num_bp_loads);
+  draw_statistic("BP loads (DL)", "%u", this_frame.num_bp_loads_in_dl);
+  draw_statistic("Vertex streamed", "%u kB", this_frame.bytes_vertex_streamed / 1024);
+  draw_statistic("Index streamed", "%u kB", this_frame.bytes_index_streamed / 1024);
+  draw_statistic("Uniform streamed", "%u kB", this_frame.bytes_uniform_streamed / 1024);
+  draw_statistic("Vertex Loaders", "%u", num_vertex_loaders);
+  draw_statistic("EFB peeks:", "%u", this_frame.num_efb_peeks);
+  draw_statistic("EFB pokes:", "%u", this_frame.num_efb_pokes);
+  draw_statistic("Draw dones:", "%u", this_frame.num_draw_done);
+  draw_statistic("Tokens:", "%u/%u", this_frame.num_token, this_frame.num_token_int);
 
   ImGui::Columns(1);
 
@@ -372,24 +372,24 @@ void Statistics::DisplayScissor()
     draw_list->AddRect(
         p2, ImVec2(p2.x + EFB_WIDTH * scale_height, p2.y + EFB_HEIGHT * scale_height), light_grey);
     ImGui::SameLine();
-    ImGui::Text("%d", int(info.rectangles.size()));
+    ImGui::Text("%zu", info.rectangles.size());
 
     if (show_raw_scissors)
     {
       ImGui::TableNextColumn();
       ImGui::TextColored(COLORS[index % COLORS.size()], "Raw");
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_tl.x_full.Value());
+      ImGui::Text("%u", info.scissor_tl.x_full.Value());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_tl.y_full.Value());
+      ImGui::Text("%u", info.scissor_tl.y_full.Value());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_br.x_full.Value());
+      ImGui::Text("%u", info.scissor_br.x_full.Value());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_br.y_full.Value());
+      ImGui::Text("%u", info.scissor_br.y_full.Value());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_off.x_full.Value());
+      ImGui::Text("%u", info.scissor_off.x_full.Value());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_off.y_full.Value());
+      ImGui::Text("%u", info.scissor_off.y_full.Value());
       ImGui::TableNextColumn();
     }
   };

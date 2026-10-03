@@ -66,11 +66,6 @@ WiimoteControllersWidget::~WiimoteControllersWidget()
   m_bluetooth_adapter_refresh_thread.WaitForCompletion();
 }
 
-void WiimoteControllersWidget::UpdateBluetoothAvailableStatus()
-{
-  m_bluetooth_unavailable->setHidden(WiimoteReal::IsScannerReady());
-}
-
 void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 {
 #ifdef __LIBUSB__
@@ -98,7 +93,7 @@ void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 }
 
 void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
-    const std::vector<USBUtils::DeviceInfo>& devices)
+    std::span<const USBUtils::DeviceInfo> devices)
 {
   const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
   const int configured_pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
@@ -284,10 +279,6 @@ void WiimoteControllersWidget::CreateLayout()
 
   m_wiimote_layout->addLayout(left_of_refresh_button_layout, continuous_scanning_row, 0, 1, 3);
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
-
-  m_bluetooth_unavailable = new QLabel(tr("A supported Bluetooth device could not be found.\n"
-                                          "You must manually connect your Wii Remote."));
-  m_wiimote_layout->addWidget(m_bluetooth_unavailable, m_wiimote_layout->rowCount(), 1, 1, -1);
 
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);

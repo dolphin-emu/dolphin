@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -104,17 +105,21 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     val requestSkylanderFile = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+        ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
             val slot = SkylanderConfig.loadSkylander(
                 skylanderSlots[skylanderSlot].portalSlot,
                 uri.toString()
-            )!!
-            clearSkylander(skylanderSlot)
-            skylanderSlots[skylanderSlot].portalSlot = slot.first!!
-            skylanderSlots[skylanderSlot].label = slot.second!!
-            skylandersBinding.figureManager.adapter!!.notifyItemChanged(skylanderSlot)
+            )
+            if (slot != null && slot.first != null && slot.second != null) {
+                clearSkylander(skylanderSlot)
+                skylanderSlots[skylanderSlot].portalSlot = slot.first!!
+                skylanderSlots[skylanderSlot].label = slot.second!!
+                skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+            } else {
+                Toast.makeText(this, R.string.skylander_load_failed, Toast.LENGTH_SHORT).show()
+            }
             skylanderSlot = -1
             skylanderData = Skylander.BLANK_SKYLANDER
         }
@@ -131,10 +136,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                     uri.toString(),
                     skylanderSlots[skylanderSlot].portalSlot
                 )
-                clearSkylander(skylanderSlot)
-                skylanderSlots[skylanderSlot].portalSlot = slot.first
-                skylanderSlots[skylanderSlot].label = slot.second
-                skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+                if (slot.first != -1) {
+                    clearSkylander(skylanderSlot)
+                    skylanderSlots[skylanderSlot].portalSlot = slot.first
+                    skylanderSlots[skylanderSlot].label = slot.second
+                    skylandersBinding.figureManager.adapter?.notifyItemChanged(skylanderSlot)
+                }
                 skylanderSlot = -1
                 skylanderData = Skylander.BLANK_SKYLANDER
             }
@@ -142,7 +149,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     val requestInfinityFigureFile = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+        ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
             val label = InfinityConfig.loadFigure(infinityPosition, uri.toString())
@@ -518,6 +525,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
+            MENU_ACTION_RESET -> emulationFragment!!.resetEmulation()
         }
     }
 
@@ -1077,6 +1085,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_RESET = 39;
 
         init {
             buttonsActionsMap.apply {

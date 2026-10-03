@@ -176,9 +176,9 @@ static SectionKey GetINILocationFromConfig(const Location& location)
 class INIGameConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
-  INIGameConfigLayerLoader(const std::string& id, u16 revision, bool global)
+  INIGameConfigLayerLoader(std::string id, u16 revision, bool global)
       : ConfigLayerLoader(global ? Config::LayerType::GlobalGame : Config::LayerType::LocalGame),
-        m_id(id), m_revision(revision)
+        m_id(std::move(id)), m_revision(revision)
   {
   }
 
@@ -229,7 +229,7 @@ private:
       std::string path = "Profiles/" + std::get<1>(use_data) + "/";
 
       const auto control_section = [&](std::string key) {
-        return Config::Location{std::get<2>(use_data), "Controls", key};
+        return Config::Location{std::get<2>(use_data), "Controls", std::move(key)};
       };
 
       for (const char num : nums)

@@ -3,10 +3,12 @@
 
 #include "DiscIO/Volume.h"
 
+#include <cstring>
 #include <functional>
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -33,6 +35,25 @@ namespace DiscIO
 const IOS::ES::TicketReader Volume::INVALID_TICKET{};
 const IOS::ES::TMDReader Volume::INVALID_TMD{};
 const std::vector<u8> Volume::INVALID_CERT_CHAIN{};
+
+std::string Volume::DecodeString(std::span<const char> data) const
+{
+  // strnlen to trim null bytes
+  std::string string(data.data(), strnlen(data.data(), data.size()));
+  return GetRegion() == Region::NTSC_J ? SHIFTJISToUTF8(string) : CP1252ToUTF8(string);
+}
+
+std::string Volume::FilterGameID(std::span<const char> data)
+{
+  std::string string(data.data(), data.size());
+
+  // We don't want game IDs to contain characters that are unprintable or might cause path
+  // traversal. Game IDs normally only contain ASCII uppercase letters and numbers,
+  // but GNHE5d contains a lowercase letter, so let's allow all ASCII letters and numbers.
+  std::ranges::replace_if(string, std::not_fn(Common::IsAlnum), '-');
+
+  return string;
+}
 
 template <typename T>
 static void AddToSyncHash(Common::SHA1::Context* context, const T& data)
@@ -71,7 +92,7 @@ void Volume::AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& p
     AddToSyncHash(context, content);
 }
 
-std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<char16_t>& data)
+std::map<Language, std::string> Volume::ReadWiiNames(std::span<const char16_t> data)
 {
   std::map<Language, std::string> names;
   for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)

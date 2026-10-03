@@ -41,20 +41,27 @@ void ProcessorInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_fifo_cpu_base);
   p.Do(m_fifo_cpu_end);
   p.Do(m_fifo_cpu_write_pointer);
+  p.Do(m_error_cause);
+  p.Do(m_error_address);
   p.Do(m_reset_code);
+  p.Do(m_unknown);
+  p.Do(m_flipper_bus_strength);
 }
 
 void ProcessorInterfaceManager::Init()
 {
   m_interrupt_mask = 0;
-  m_interrupt_cause = 0;
+  m_interrupt_cause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
   m_fifo_cpu_base = 0;
   m_fifo_cpu_end = 0;
   m_fifo_cpu_write_pointer = 0;
 
+  m_error_cause = 0;
+  m_error_address = 0;
   m_reset_code = 0;  // Cold reset
-  m_interrupt_cause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
+  m_unknown = 0x000001FF;
+  m_flipper_bus_strength = 0x02492492;
 
   auto& core_timing = m_system.GetCoreTiming();
   m_event_type_toggle_reset_button =
@@ -82,13 +89,25 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | PI_FIFO_BASE, MMIO::DirectRead<u32>(&m_fifo_cpu_base),
-                 MMIO::DirectWrite<u32>(&m_fifo_cpu_base, 0xFFFFFFE0));
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   u32 mask = CommandProcessor::GetPhysicalAddressMask(system.IsWii()) & 0xFFFFFFE0;
+                   auto& processor_interface = system.GetProcessorInterface();
+                   processor_interface.m_fifo_cpu_base = val & mask;
+                 }));
 
   mmio->Register(base | PI_FIFO_END, MMIO::DirectRead<u32>(&m_fifo_cpu_end),
-                 MMIO::DirectWrite<u32>(&m_fifo_cpu_end, 0xFFFFFFE0));
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   u32 mask = CommandProcessor::GetPhysicalAddressMask(system.IsWii()) & 0xFFFFFFE0;
+                   auto& processor_interface = system.GetProcessorInterface();
+                   processor_interface.m_fifo_cpu_end = val & mask;
+                 }));
 
   mmio->Register(base | PI_FIFO_WPTR, MMIO::DirectRead<u32>(&m_fifo_cpu_write_pointer),
-                 MMIO::DirectWrite<u32>(&m_fifo_cpu_write_pointer, 0xFFFFFFE0));
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   u32 mask = CommandProcessor::GetPhysicalAddressMask(system.IsWii()) & 0xFFFFFFE0;
+                   auto& processor_interface = system.GetProcessorInterface();
+                   processor_interface.m_fifo_cpu_write_pointer = val & mask;
+                 }));
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
@@ -116,6 +135,13 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }
                  }));
 
+  // TODO: Use the ErrorCause enum instead.
+  mmio->Register(base | PI_ERROR_CAUSE, MMIO::DirectRead<u32>(&m_error_cause),
+                 MMIO::DirectWrite<u32>(&m_error_cause, 0x00000007));
+
+  mmio->Register(base | PI_ERROR_ADDRESS, MMIO::DirectRead<u32>(&m_error_address),
+                 MMIO::InvalidWrite<u32>());
+
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    auto& processor_interface = system.GetProcessorInterface();
                    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}",
@@ -133,8 +159,14 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }
                  }));
 
+  mmio->Register(base | PI_UNKNOWN, MMIO::DirectRead<u32>(&m_unknown),
+                 MMIO::DirectWrite<u32>(&m_unknown, 0x000003FF));
+
   mmio->Register(base | PI_FLIPPER_REV, MMIO::Constant<u32>(FLIPPER_REV_C),
                  MMIO::InvalidWrite<u32>());
+
+  mmio->Register(base | PI_FLIPPER_BUS_STRENGTH, MMIO::DirectRead<u32>(&m_flipper_bus_strength),
+                 MMIO::DirectWrite<u32>(&m_flipper_bus_strength, 0x07FFFFFF));
 
   // 16 bit reads are based on 32 bit reads.
   for (u32 i = 0; i < 0x1000; i += 4)

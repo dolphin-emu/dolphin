@@ -116,7 +116,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     ShaderProperty::RGB rgb;
     if (!ParseNumeric<float, 3>(asset_id, json_value, code_name, &rgb.value))
       return false;
-    *value = std::move(rgb);
+    *value = rgb;
     return true;
   }
   else if (type == "rgba")
@@ -124,7 +124,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     ShaderProperty::RGBA rgba;
     if (!ParseNumeric<float, 4>(asset_id, json_value, code_name, &rgba.value))
       return false;
-    *value = std::move(rgba);
+    *value = rgba;
     return true;
   }
   else if (type == "bool")

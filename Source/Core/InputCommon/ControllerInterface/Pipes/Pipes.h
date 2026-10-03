@@ -26,7 +26,7 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
 class PipeDevice : public Core::Device
 {
 public:
-  PipeDevice(int fd, const std::string& name);
+  PipeDevice(int fd, std::string name);
   ~PipeDevice();
 
   Core::DeviceRemoval UpdateInput() override;

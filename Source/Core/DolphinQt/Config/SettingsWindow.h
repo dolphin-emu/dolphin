@@ -49,6 +49,7 @@ enum class SettingsWindowPaneIndex : int
   Paths,
   GameCube,
   Wii,
+  Triforce,
   Advanced,
 };
 
@@ -59,4 +60,6 @@ public:
   explicit SettingsWindow(MainWindow* parent);
 
   void SelectPane(SettingsWindowPaneIndex);
+
+  void closeEvent(QCloseEvent* event) override;
 };

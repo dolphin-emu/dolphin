@@ -34,8 +34,10 @@ constexpr u32 MEM1_BASE_ADDR = 0x80000000U;
 constexpr u32 MEM2_BASE_ADDR = 0x90000000U;
 constexpr u32 MEM1_SIZE_RETAIL = 0x01800000U;
 constexpr u32 MEM1_SIZE_GDEV = 0x04000000U;
+constexpr u32 MEM1_SIZE_MAX = 0x04000000U;
 constexpr u32 MEM2_SIZE_RETAIL = 0x04000000U;
 constexpr u32 MEM2_SIZE_NDEV = 0x08000000U;
+constexpr u32 MEM2_SIZE_MAX = 0x08000000U;
 
 struct PhysicalMemoryRegion
 {
@@ -123,7 +125,6 @@ public:
   // If the specified range is within a single valid memory region, returns a pointer to the start
   // of the corresponding range in host memory. Otherwise, returns nullptr.
   u8* GetPointerForRange(u32 address, size_t size) const;
-
   void CopyFromEmu(void* data, u32 address, size_t size) const;
   void CopyToEmu(u32 address, const void* data, size_t size);
   void Memset(u32 address, u8 value, size_t size);
@@ -290,11 +291,11 @@ private:
   void TryAddLargePageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
   bool TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
                                    std::map<u32, std::vector<u32>>& map);
-  bool CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const;
+  bool CanCreateHostMappingForGuestPages(std::span<const u32> entries) const;
   void AddHostPageTableMapping(u32 logical_address, u32 translated_address, bool writeable,
                                u32 logical_size);
   void RemoveLargePageTableMapping(u32 logical_address);
   void RemoveLargePageTableMapping(u32 logical_address, std::map<u32, std::vector<u32>>& map);
-  void RemoveHostPageTableMappings(const std::set<u32>& mappings);
+  void RemoveHostPageTableMapping(u32 logical_address);
 };
 }  // namespace Memory

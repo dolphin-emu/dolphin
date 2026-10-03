@@ -38,8 +38,7 @@ public:
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
   bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db,
                    const std::string& filename) const override;
-  // TODO: actually check for validity.
-  bool IsValid() const override { return true; }
+  bool IsValid() const override { return m_is_valid; }
   bool IsWii() const override;
 
   int GetNumSegments() const { return (int)(header->e_phnum); }
@@ -65,16 +64,17 @@ public:
   bool DidRelocate() const { return bRelocate; }
 
 private:
-  void Initialize(u8* bytes);
+  bool Initialize();
 
-  char* base;
-  u32* base32;
+  char* base = nullptr;
+  u32* base32 = nullptr;
 
-  Elf32_Ehdr* header;
-  Elf32_Phdr* segments;
-  Elf32_Shdr* sections;
+  Elf32_Ehdr* header = nullptr;
+  Elf32_Phdr* segments = nullptr;
+  Elf32_Shdr* sections = nullptr;
 
-  u32* sectionAddrs;
-  bool bRelocate;
-  u32 entryPoint;
+  u32* sectionAddrs = nullptr;
+  bool bRelocate = false;
+  u32 entryPoint = 0;
+  bool m_is_valid = false;
 };

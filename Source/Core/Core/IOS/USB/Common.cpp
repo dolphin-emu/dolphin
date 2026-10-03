@@ -54,7 +54,26 @@ void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_
 {
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
+  SetPacketReturnValue(packet_num, return_value, memory);
+}
+
+inline void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value,
+                                             Memory::MemoryManager& memory) const
+{
   memory.Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));
+}
+
+u16 IsoMessage::SetPacketsReturnValueFromSize(u16 data_size) const
+{
+  auto& system = m_ios.GetSystem();
+  auto& memory = system.GetMemory();
+  for (std::size_t i = 0; i < num_packets; i++)
+  {
+    const u16 packet_size = std::min(data_size, packet_sizes[i]);
+    SetPacketReturnValue(i, packet_size, memory);
+    data_size -= packet_size;
+  }
+  return data_size;
 }
 
 Device::~Device() = default;

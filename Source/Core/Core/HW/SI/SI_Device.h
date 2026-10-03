@@ -59,6 +59,7 @@ enum class EBufferCommands : u8
   CMD_ORIGIN = 0x41,
   CMD_RECALIBRATE = 0x42,
   CMD_DIRECT_KB = 0x54,
+  CMD_AM_BASEBOARD = 0x70,
   CMD_RESET = 0xFF
 };
 
@@ -97,8 +98,6 @@ enum SIDevices : int
   SIDEVICE_GC_STEERING,
   SIDEVICE_DANCEMAT,
   SIDEVICE_GC_TARUKONGA,
-  // Was used for Triforce in the past, but the implementation is no longer in Dolphin.
-  // It's kept here so that values below will stay constant.
   SIDEVICE_AM_BASEBOARD,
   SIDEVICE_WIIU_ADAPTER,
   SIDEVICE_GC_GBA_EMULATED,

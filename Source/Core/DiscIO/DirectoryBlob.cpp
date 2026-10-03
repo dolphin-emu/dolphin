@@ -575,7 +575,7 @@ u64 DirectoryBlobReader::GetDataSize() const
   return m_data_size;
 }
 
-void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(const std::vector<u8>& partition_header,
+void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(std::span<const u8> partition_header,
                                                             const std::string& game_partition_root)
 {
   std::vector<u8> header_bin(WII_NONPARTITION_DISCHEADER_SIZE);
@@ -585,7 +585,7 @@ void DirectoryBlobReader::SetNonpartitionDiscHeaderFromFile(const std::vector<u8
   SetNonpartitionDiscHeader(partition_header, std::move(header_bin));
 }
 
-void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
+void DirectoryBlobReader::SetNonpartitionDiscHeader(std::span<const u8> partition_header,
                                                     std::vector<u8> header_bin)
 {
   const size_t header_bin_size = header_bin.size();
@@ -619,7 +619,7 @@ void DirectoryBlobReader::SetWiiRegionDataFromFile(const std::string& game_parti
   SetWiiRegionData(wii_region_data, region_bin_path);
 }
 
-void DirectoryBlobReader::SetWiiRegionData(const std::vector<u8>& wii_region_data,
+void DirectoryBlobReader::SetWiiRegionData(std::span<const u8> wii_region_data,
                                            const std::string& log_path)
 {
   std::vector<u8> region_data(0x10, 0x00);
@@ -837,9 +837,9 @@ static void GenerateBuilderNodesFromFileSystem(const VolumeDisc& volume, const P
   }
 }
 
-DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory,
+DirectoryBlobPartition::DirectoryBlobPartition(std::string root_directory,
                                                std::optional<bool> is_wii)
-    : m_root_directory(root_directory)
+    : m_root_directory(std::move(root_directory))
 {
   std::vector<u8> disc_header(DISCHEADER_SIZE);
   if (ReadFileToVector(m_root_directory + "sys/boot.bin", &disc_header) < 0x20)
@@ -895,7 +895,8 @@ DirectoryBlobPartition::DirectoryBlobPartition(
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback,
     DirectoryBlobReader* blob)
-    : m_wrapped_partition(partition)
+    : m_is_triforce(volume && volume->GetVolumeType() == Platform::Triforce),
+      m_wrapped_partition(partition)
 {
   std::vector<FSTBuilderNode> sys_nodes;
 
@@ -961,7 +962,7 @@ DirectoryBlobPartition::DirectoryBlobPartition(
 }
 
 void DirectoryBlobPartition::SetDiscType(std::optional<bool> is_wii,
-                                         const std::vector<u8>& disc_header)
+                                         std::span<const u8> disc_header)
 {
   if (is_wii.has_value())
   {
@@ -1108,7 +1109,7 @@ static void ConvertUTF8NamesToSHIFTJIS(std::vector<FSTBuilderNode>* fst)
   }
 }
 
-static u32 ComputeNameSize(const std::vector<FSTBuilderNode>& files)
+static u32 ComputeNameSize(std::span<const FSTBuilderNode> files)
 {
   u32 name_size = 0;
   for (const FSTBuilderNode& entry : files)
@@ -1230,6 +1231,14 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
     }
     else
     {
+      // Skip Triforce DIMM so the file doesn't overlap with it. Any portion of
+      // a file placed in 0x1F000000-0x1F800000 would be shadowed by SRAM on the
+      // AMMediaboard and read back as DIMM contents instead of disc data.
+      if (m_is_triforce && *data_offset < 0x1F800000 && *data_offset + entry.m_size > 0x1F000000)
+      {
+        *data_offset = 0x1F800000ull;
+      }
+
       // put entry in FST
       WriteEntryData(fst_data, fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.m_size,
                      m_address_shift);
@@ -1243,8 +1252,11 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
                        std::move(content.m_source));
       }
 
-      // 32 KiB aligned - many games are fine with less alignment, but not all
-      *data_offset = Common::AlignUp(*data_offset + entry.m_size, 0x8000ull);
+      // For most files, an alignment of 0x20 is enough. But some files need 0x8000,
+      // in particular all DTK audio files in GameCube games.
+      // TODO: Do any Wii games need 0x8000 alignment?
+      const u64 data_alignment = m_is_triforce ? 0x20ull : 0x8000ull;
+      *data_offset = Common::AlignUp(*data_offset + entry.m_size, data_alignment);
     }
   }
 }

@@ -236,7 +236,8 @@ QVariant JitBlockTableModel::DisplayRoleData(const QModelIndex& index) const
   case Column::CodeBufferSize:
     return QString::number(jit_block.originalSize * sizeof(UGeckoInstruction));
   case Column::RepeatInstructions:
-    return QString::number(jit_block.originalSize - jit_block.physical_addresses.size());
+    return QString::number(jit_block.originalSize - jit_block.physical_addresses.get_stats().first /
+                                                        sizeof(UGeckoInstruction));
   case Column::HostNearCodeSize:
     return QString::number(jit_block.near_end - jit_block.near_begin);
   case Column::HostFarCodeSize:
@@ -329,7 +330,9 @@ QVariant JitBlockTableModel::SortRoleData(const QModelIndex& index) const
   case Column::CodeBufferSize:
     return static_cast<qulonglong>(jit_block.originalSize);
   case Column::RepeatInstructions:
-    return static_cast<qulonglong>(jit_block.originalSize - jit_block.physical_addresses.size());
+    return static_cast<qulonglong>(jit_block.originalSize -
+                                   jit_block.physical_addresses.get_stats().first /
+                                       sizeof(UGeckoInstruction));
   case Column::HostNearCodeSize:
     return static_cast<qulonglong>(jit_block.near_end - jit_block.near_begin);
   case Column::HostFarCodeSize:

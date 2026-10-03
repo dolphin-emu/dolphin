@@ -111,7 +111,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
 
 template <typename T>
 auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
-                       const std::vector<Cheats::MemoryRange>& memory_ranges,
+                       std::span<const Cheats::MemoryRange> memory_ranges,
                        PowerPC::RequestedAddressSpace address_space, bool aligned,
                        const std::function<bool(const T& value)>& validator)
     -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
@@ -164,7 +164,7 @@ auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 
 template <typename T>
 auto Cheats::NextSearch(
-    const Core::CPUThreadGuard& guard, const std::vector<Cheats::SearchResult<T>>& previous_results,
+    const Core::CPUThreadGuard& guard, std::span<const Cheats::SearchResult<T>> previous_results,
     PowerPC::RequestedAddressSpace address_space,
     const std::function<bool(const T& new_value, const T& old_value)>& validator)
     -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
@@ -281,6 +281,15 @@ void Cheats::CheatSearchSession<T>::ResetResults()
 {
   m_first_search_done = false;
   m_search_results.clear();
+}
+
+template <typename T>
+void Cheats::CheatSearchSession<T>::RemoveResult(size_t index)
+{
+  if (index < m_search_results.size())
+  {
+    m_search_results.erase(m_search_results.begin() + index);
+  }
 }
 
 template <typename T>

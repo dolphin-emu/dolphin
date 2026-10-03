@@ -5,11 +5,11 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <set>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/RangeSet.h"
 #include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
@@ -51,11 +51,14 @@ struct CodeOp  // 16B
   bool canCauseException = false;
   bool skipLRStack = false;
   bool skip = false;  // followed BL-s for example
-  BitSet8 crInUse;
+  BitSet8 crWillBeRead;
+  BitSet8 crWillBeWritten;
   BitSet8 crDiscardable;
   // which registers are still needed after this instruction in this block
-  BitSet32 fprInUse;
-  BitSet32 gprInUse;
+  BitSet32 gprWillBeRead;
+  BitSet32 gprWillBeWritten;
+  BitSet32 fprWillBeRead;
+  BitSet32 fprWillBeWritten;
   // which registers have values which are known to be unused after this instruction
   BitSet32 gprDiscardable;
   BitSet32 fprDiscardable;
@@ -129,7 +132,7 @@ struct CodeBlock
   BitSet32 m_gpr_inputs;
 
   // Which memory locations are occupied by this block.
-  std::set<u32> m_physical_addresses;
+  Common::RangeSet<u32> m_physical_addresses;
 };
 
 class PPCAnalyzer

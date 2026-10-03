@@ -14,9 +14,6 @@
 #if defined(__HAIKU__)
 #include "Common/GL/GLInterface/BGL.h"
 #endif
-#if HAVE_X11
-#include "Common/GL/GLInterface/GLX.h"
-#endif
 #if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
 #if HAVE_X11
@@ -79,7 +76,7 @@ void* GLContext::GetFuncAddress(const std::string& name)
 }
 
 std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool stereo, bool core,
-                                             bool prefer_egl, bool prefer_gles)
+                                             bool prefer_gles)
 {
   std::unique_ptr<GLContext> context;
 #if defined(__APPLE__)
@@ -98,22 +95,11 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   if (wsi.type == WindowSystemType::Haiku)
     context = std::make_unique<GLContextBGL>();
 #endif
+#if HAVE_EGL
 #if HAVE_X11
   if (wsi.type == WindowSystemType::X11)
-  {
-#if defined(HAVE_EGL)
-    // GLES 3 is not supported via GLX.
-    const bool use_egl = prefer_egl || prefer_gles;
-    if (use_egl)
-      context = std::make_unique<GLContextEGLX11>();
-    else
-      context = std::make_unique<GLContextGLX>();
-#else
-    context = std::make_unique<GLContextGLX>();
+    context = std::make_unique<GLContextEGLX11>();
 #endif
-  }
-#endif
-#if HAVE_EGL
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();
 #endif

@@ -159,15 +159,13 @@ void Settings::ApplyStyle()
 {
   const StyleType style_type = GetStyleType();
 
-  {
-    const bool use_fusion{style_type == StyleType::FusionLight ||
-                          style_type == StyleType::FusionDarkGray ||
-                          style_type == StyleType::FusionDark};
-    static const QString s_initial_style_name{QApplication::style()->name()};
-    const QString style_name{use_fusion ? QStringLiteral("fusion") : s_initial_style_name};
-    if (QApplication::style()->name() != style_name)
-      QApplication::setStyle(style_name);
-  }
+  const bool use_fusion{style_type == StyleType::FusionLight ||
+                        style_type == StyleType::FusionDarkGray ||
+                        style_type == StyleType::FusionDark};
+  static const QString s_initial_style_name{QApplication::style()->name()};
+  const QString style_name{use_fusion ? QStringLiteral("fusion") : s_initial_style_name};
+  if (QApplication::style()->name() != style_name)
+    QApplication::setStyle(style_name);
 
   const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
@@ -386,6 +384,28 @@ void Settings::ApplyStyle()
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  // For Fusion, define group box style if not already defined.
+  if (style_name.compare(QStringLiteral("fusion"), Qt::CaseInsensitive) == 0 &&
+      !stylesheet_contents.contains(QStringLiteral("QGroupBox")))
+  {
+    stylesheet_contents.append(QStringLiteral("QGroupBox {"
+                                              " margin-top: 0.6em;"
+                                              " padding-top: 0.5em;"
+                                              " padding-bottom: 0;"
+                                              " padding-left: 1px;"
+                                              " padding-right: 1px;"
+                                              "} "
+                                              "QGroupBox::title {"
+                                              " subcontrol-origin: margin;"
+                                              " subcontrol-position: top left;"
+                                              " left: 0.7em;"
+                                              " padding-top: 1px;"
+                                              " min-width: 0;"
+                                              "}"));
+  }
+#endif
+
   qApp->setStyleSheet(stylesheet_contents);
 }
 
@@ -514,12 +534,27 @@ void Settings::SetAutoRefreshEnabled(bool enabled)
   emit AutoRefreshToggled(enabled);
 }
 
+bool Settings::IsGameCountVisible() const
+{
+  return GetQSettings().value(QStringLiteral("GameCount/Visible"), true).toBool();
+}
+
+void Settings::SetGameCountVisible(const bool visible)
+{
+  if (IsGameCountVisible() == visible)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("GameCount/Visible"), visible);
+
+  emit GameCountVisibilityChanged(visible);
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
 }
 
-void Settings::SetDefaultGame(QString path)
+void Settings::SetDefaultGame(const QString& path)
 {
   if (GetDefaultGame() != path)
   {
@@ -815,9 +850,10 @@ void Settings::RefreshWidgetVisibility()
   emit DebugModeToggled(IsDebugModeEnabled());
   emit LogVisibilityChanged(IsLogVisible());
   emit LogConfigVisibilityChanged(IsLogConfigVisible());
+  emit GameCountVisibilityChanged(IsGameCountVisible());
 }
 
-void Settings::SetDebugFont(QFont font)
+void Settings::SetDebugFont(const QFont& font)
 {
   if (GetDebugFont() != font)
   {
@@ -833,6 +869,20 @@ QFont Settings::GetDebugFont() const
   default_font.setPointSizeF(9.0);
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
+}
+
+void Settings::SetShowDemangledNames(bool enabled)
+{
+  if (IsShowDemangledNames() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showdemanglednames"), enabled);
+
+  emit ShowDemangledNamesChanged(enabled);
+}
+
+bool Settings::IsShowDemangledNames() const
+{
+  return QSettings().value(QStringLiteral("debugger/showdemanglednames")).toBool();
 }
 
 void Settings::SetAutoUpdateTrack(const QString& mode)

@@ -35,7 +35,6 @@ class WiimoteScannerHidapi final : public WiimoteScannerBackend
 public:
   WiimoteScannerHidapi();
   ~WiimoteScannerHidapi() override;
-  bool IsReady() const override;
 
   FindResults FindAttachedWiimotes() override;
 

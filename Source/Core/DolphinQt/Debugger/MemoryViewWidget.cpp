@@ -126,7 +126,9 @@ public:
       if (event->modifiers() == Qt::ControlModifier)
       {
         m_view->TriggerActivateSearch();
+        return;
       }
+      [[fallthrough]];
     default:
       QWidget::keyPressEvent(event);
       return;
@@ -356,6 +358,7 @@ void MemoryViewWidget::UpdateDispatcher(UpdateType type)
     // Values were captured on CPU thread while doing a callback.
     if (m_values.size() != 0)
       UpdateColumns();
+    break;
   default:
     break;
   }

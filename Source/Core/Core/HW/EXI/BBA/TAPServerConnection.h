@@ -19,8 +19,7 @@ class TAPServerConnection
 public:
   using RecvCallback = std::function<void(std::string&&)>;
 
-  TAPServerConnection(const std::string& destination, RecvCallback recv_cb,
-                      std::size_t max_frame_size);
+  TAPServerConnection(std::string destination, RecvCallback recv_cb, std::size_t max_frame_size);
 
   bool Activate();
   void Deactivate();

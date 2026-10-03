@@ -15,7 +15,7 @@ namespace VideoCommon
 class ShaderIncluder final : public glslang::TShader::Includer
 {
 public:
-  ShaderIncluder(const std::string& user_path, const std::string& system_path);
+  ShaderIncluder(std::string user_path, std::string system_path);
   ~ShaderIncluder() override = default;
 
   std::vector<std::string> GetIncludes() const;

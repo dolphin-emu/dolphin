@@ -19,7 +19,7 @@ ModalMessageBox::ModalMessageBox(QWidget* parent, Qt::WindowModality modality)
 static inline int ExecMessageBox(ModalMessageBox::Icon icon, QWidget* parent, const QString& title,
                                  const QString& text, ModalMessageBox::StandardButtons buttons,
                                  ModalMessageBox::StandardButton default_button,
-                                 Qt::WindowModality modality, QString detailed_text)
+                                 Qt::WindowModality modality, const QString& detailed_text)
 {
   ModalMessageBox msg(parent, modality);
   msg.setIcon(icon);

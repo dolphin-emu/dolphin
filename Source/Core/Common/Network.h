@@ -4,11 +4,17 @@
 #pragma once
 
 #include <array>
+#include <initializer_list>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
+
+#if defined(__linux__) || defined(__HAIKU__)
+#include <sys/socket.h>
+#endif
 
 #include "Common/CommonTypes.h"
 
@@ -179,8 +185,12 @@ static_assert(sizeof(DHCPBody) == DHCPBody::SIZE);
 struct DHCPPacket
 {
   DHCPPacket();
-  DHCPPacket(const std::vector<u8>& data);
-  void AddOption(u8 fnc, const std::vector<u8>& params);
+  DHCPPacket(std::span<const u8> data);
+  void AddOption(u8 fnc, std::span<const u8> params);
+  void AddOption(u8 fnc, std::initializer_list<u8> params)
+  {
+    AddOption(fnc, {params.begin(), params.end()});
+  }
   std::vector<u8> Build() const;
 
   DHCPBody body;
@@ -264,6 +274,30 @@ struct NetworkErrorState
 #endif
 };
 
+struct IPv4Port
+{
+  IPAddress ip_address;
+  u16 port;  // Network byte order.
+
+  // These convert to host byte order.
+  u32 GetIPAddressValue() const;
+  u16 GetPortValue() const;
+};
+
+struct IPv4PortRange
+{
+  IPv4Port first;
+  IPv4Port last;
+
+  bool IsMatch(IPv4Port subject) const;
+  std::string ToString() const;
+};
+
+std::string IPAddressToString(IPAddress ip_address);
+
+// Syntax is: first_ip[-last_ip|/network_prefix_length][:first_port[-last_port]]
+std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject);
+
 MACAddress GenerateMacAddress(MACConsumer type);
 
 std::string MacAddressToString(const MACAddress& mac);
@@ -279,4 +313,15 @@ NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
 const char* DecodeNetworkError(s32 error_code);
 const char* StrNetworkError();
+
+// Sets SO_NOSIGPIPE when available.
+bool SetPlatformSocketOptions(int fd);
+
+// Pass this to all `send` calls to avoid SIGPIPE.
+#if defined(__linux__) || defined(__HAIKU__)
+static constexpr int SEND_FLAGS = MSG_NOSIGNAL;
+#else
+static constexpr int SEND_FLAGS = 0;
+#endif
+
 }  // namespace Common

@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
@@ -81,7 +83,7 @@ private:
   }
   std::string GetCubebStreamName() const override
   {
-    return "Dolphin Emulated Logitech USB Microphone " + std::to_string(m_index);
+    return fmt::format("Dolphin Emulated Logitech USB Microphone {}", m_index);
   }
   s16 GetVolumeModifier() const override
   {
@@ -717,10 +719,10 @@ int LogitechMic::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
     u16 size = 0;
     if (m_microphone && m_microphone->HasData(cmd->length / sizeof(s16)))
       size = m_microphone->ReadIntoBuffer(packets, cmd->length);
-    for (std::size_t i = 0; i < cmd->num_packets; i++)
+    if (const u16 remainder = cmd->SetPacketsReturnValueFromSize(size); remainder != 0)
     {
-      cmd->SetPacketReturnValue(i, std::min(size, cmd->packet_sizes[i]));
-      size = (size > cmd->packet_sizes[i]) ? (size - cmd->packet_sizes[i]) : 0;
+      WARN_LOG_FMT(IOS_USB, "Microphone data truncated, {} byte(s) lost in isochronous message",
+                   remainder);
     }
     break;
   }

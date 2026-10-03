@@ -3,7 +3,9 @@
 
 #include "DolphinQt/CheatSearchWidget.h"
 
+#include <algorithm>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -31,10 +33,13 @@
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -46,6 +51,32 @@ constexpr int ADDRESS_TABLE_COLUMN_INDEX_DESCRIPTION = 0;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_ADDRESS = 1;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_LAST_VALUE = 2;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE = 3;
+
+namespace
+{
+int GetDataTypeByteSize(Cheats::DataType data_type)
+{
+  switch (data_type)
+  {
+  case Cheats::DataType::U8:
+  case Cheats::DataType::S8:
+    return 1;
+  case Cheats::DataType::U16:
+  case Cheats::DataType::S16:
+    return 2;
+  case Cheats::DataType::U32:
+  case Cheats::DataType::S32:
+  case Cheats::DataType::F32:
+    return 4;
+  case Cheats::DataType::U64:
+  case Cheats::DataType::S64:
+  case Cheats::DataType::F64:
+    return 8;
+  default:
+    return 1;
+  }
+}
+}  // namespace
 
 CheatSearchWidget::CheatSearchWidget(Core::System& system,
                                      std::unique_ptr<Cheats::CheatSearchSessionBase> session,
@@ -224,6 +255,7 @@ void CheatSearchWidget::CreateWidgets()
 
   m_address_table = new QTableWidget();
   m_address_table->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_address_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 
   m_info_label_1 = new QLabel(tr("Waiting for first scan..."));
   m_info_label_2 = new QLabel();
@@ -483,6 +515,8 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
+  std::vector<const QTableWidgetItem*> selected_items = GetSelectedAddressTableItems();
+
   QMenu* menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -491,8 +525,8 @@ void CheatSearchWidget::OnAddressTableContextMenu()
     const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
     emit ShowMemory(address);
   });
-  menu->addAction(tr("Add to watch"), this, [this] {
-    for (auto* const item : m_address_table->selectedItems())
+  menu->addAction(tr("Add to watch"), this, [this, selected_items] {
+    for (auto* const item : selected_items)
     {
       const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
       const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
@@ -501,8 +535,46 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   });
   menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
   menu->addAction(tr("Write value"), this, &CheatSearchWidget::WriteValue);
+  menu->addAction(tr("Delete Address"), this, [this, selected_items] {
+    // Process in reverse so removal won't change the index of items about to be processed.
+    for (auto* const item : selected_items | std::views::reverse)
+    {
+      const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
+      m_last_value_session->RemoveResult(index);
+    }
+    RecreateGUITable();
+  });
+
+  if (m_last_value_session->GetAddressSpace() == PowerPC::RequestedAddressSpace::Virtual)
+  {
+    menu->addAction(tr("Add Read/Write Breakpoint(s)"), this,
+                    [this]() { AddMemoryBreakpoints("rw"); });
+    menu->addAction(tr("Add Write Breakpoint(s)"), this, [this]() { AddMemoryBreakpoints("w"); });
+    menu->addAction(tr("Add Read Breakpoint(s)"), this, [this]() { AddMemoryBreakpoints("r"); });
+  }
 
   menu->exec(QCursor::pos());
+}
+
+void CheatSearchWidget::AddMemoryBreakpoints(std::string_view type)
+{
+  if (m_last_value_session->GetAddressSpace() != PowerPC::RequestedAddressSpace::Virtual)
+    return;
+
+  const int last_byte_offset = GetDataTypeByteSize(m_last_value_session->GetDataType()) - 1;
+
+  MemChecks::TMemChecksStr bps;
+
+  for (auto& item : GetSelectedAddressTableItems())
+  {
+    const u32 addr = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+    std::string bp = fmt::format("{:08x} {:08x} nbl{}", addr, addr + last_byte_offset, type);
+    bps.push_back(bp);
+  }
+
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+  memchecks.AddFromStrings(bps);
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void CheatSearchWidget::OnValueSourceChanged()
@@ -533,7 +605,7 @@ void CheatSearchWidget::GenerateARCodes()
   bool had_multiple_errors = false;
   std::optional<Cheats::GenerateActionReplayCodeErrorCode> error_code;
 
-  for (auto* const item : m_address_table->selectedItems())
+  for (auto* const item : GetSelectedAddressTableItems())
   {
     const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
     const auto result = Cheats::GenerateActionReplayCode(*m_last_value_session, index);
@@ -600,9 +672,9 @@ void CheatSearchWidget::WriteValue()
     return;
   }
 
-  auto items = m_address_table->selectedItems();
+  auto items = GetSelectedAddressTableItems();
   std::vector<u32> addresses(items.size());
-  std::transform(items.begin(), items.end(), addresses.begin(), [](QTableWidgetItem* item) {
+  std::transform(items.begin(), items.end(), addresses.begin(), [](const QTableWidgetItem* item) {
     return item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
   });
   Core::CPUThreadGuard guard{m_system};
@@ -610,6 +682,7 @@ void CheatSearchWidget::WriteValue()
   {
     m_info_label_1->setText(tr("There was an error writing (some) values."));
   }
+  UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
 size_t CheatSearchWidget::GetTableRowCount() const
@@ -636,6 +709,26 @@ void CheatSearchWidget::RefreshGUICurrentValues(const size_t begin_index, const 
         m_address_table->item(static_cast<int>(i), ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE);
     RefreshCurrentValueTableItem(current_value_table_item);
   }
+}
+
+const std::vector<const QTableWidgetItem*> CheatSearchWidget::GetSelectedAddressTableItems() const
+{
+  // Don't process each selectedItems(), as it can produce duplicate commands for one address when
+  // multiple items in the same row are selected. Instead, uses rows and gets one item from each
+  // row. All row items have identical data.
+  auto selected_rows = m_address_table->selectionModel()->selectedRows();
+
+  // Ascending address order.
+  std::sort(selected_rows.begin(), selected_rows.end(),
+            [](const QModelIndex& a, const QModelIndex& b) { return a.row() < b.row(); });
+
+  std::vector<const QTableWidgetItem*> selected_items;
+  for (const auto& index : selected_rows)
+  {
+    const int row = index.row();
+    selected_items.push_back(m_address_table->item(row, 0));
+  }
+  return selected_items;
 }
 
 void CheatSearchWidget::RecreateGUITable()

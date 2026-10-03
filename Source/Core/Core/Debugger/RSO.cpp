@@ -183,7 +183,7 @@ void RSOSectionsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::
     RSOSection section;
     section.offset = PowerPC::MMU::HostRead<u32>(guard, address);
     section.size = PowerPC::MMU::HostRead<u32>(guard, address + 4);
-    m_sections.emplace_back(std::move(section));
+    m_sections.emplace_back(section);
     address += sizeof(RSOSection);
   }
 }
@@ -212,7 +212,7 @@ void RSOImportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::s
     rso_import.name_offset = PowerPC::MMU::HostRead<u32>(guard, address);
     rso_import.code_offset = PowerPC::MMU::HostRead<u32>(guard, address + 4);
     rso_import.entry_offset = PowerPC::MMU::HostRead<u32>(guard, address + 8);
-    m_imports.emplace_back(std::move(rso_import));
+    m_imports.emplace_back(rso_import);
     address += sizeof(RSOImport);
   }
 }
@@ -242,7 +242,7 @@ void RSOExportsView::Load(const Core::CPUThreadGuard& guard, u32 address, std::s
     rso_export.code_offset = PowerPC::MMU::HostRead<u32>(guard, address + 4);
     rso_export.section_index = PowerPC::MMU::HostRead<u32>(guard, address + 8);
     rso_export.hash = PowerPC::MMU::HostRead<u32>(guard, address + 12);
-    m_exports.emplace_back(std::move(rso_export));
+    m_exports.emplace_back(rso_export);
     address += sizeof(RSOExport);
   }
 }
@@ -271,7 +271,7 @@ void RSOInternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std:
     entry.r_offset = PowerPC::MMU::HostRead<u32>(guard, address);
     entry.r_info = PowerPC::MMU::HostRead<u32>(guard, address + 4);
     entry.r_addend = PowerPC::MMU::HostRead<u32>(guard, address + 8);
-    m_entries.emplace_back(std::move(entry));
+    m_entries.emplace_back(entry);
     address += sizeof(RSOInternalsEntry);
   }
 }
@@ -300,7 +300,7 @@ void RSOExternalsView::Load(const Core::CPUThreadGuard& guard, u32 address, std:
     entry.r_offset = PowerPC::MMU::HostRead<u32>(guard, address);
     entry.r_info = PowerPC::MMU::HostRead<u32>(guard, address + 4);
     entry.r_addend = PowerPC::MMU::HostRead<u32>(guard, address + 8);
-    m_entries.emplace_back(std::move(entry));
+    m_entries.emplace_back(entry);
     address += sizeof(RSOExternalsEntry);
   }
 }

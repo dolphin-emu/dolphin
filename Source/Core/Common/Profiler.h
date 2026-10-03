@@ -14,7 +14,7 @@ namespace Common
 class Profiler
 {
 public:
-  Profiler(const std::string& name);
+  Profiler(std::string name);
   ~Profiler();
 
   static std::string ToString();

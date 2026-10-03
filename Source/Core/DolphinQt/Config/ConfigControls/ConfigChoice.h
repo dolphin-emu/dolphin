@@ -85,9 +85,9 @@ class ConfigStringChoice final : public ConfigControl<ToolTipComboBox>
 {
   Q_OBJECT
 public:
-  ConfigStringChoice(const std::vector<std::string>& options,
-                     const Config::Info<std::string>& setting, Config::Layer* layer = nullptr);
-  ConfigStringChoice(const std::vector<std::pair<QString, QString>>& options,
+  ConfigStringChoice(std::span<const std::string> options, const Config::Info<std::string>& setting,
+                     Config::Layer* layer = nullptr);
+  ConfigStringChoice(std::span<const std::pair<QString, QString>> options,
                      const Config::Info<std::string>& setting, Config::Layer* layer = nullptr);
   void Load();
 
@@ -109,7 +109,7 @@ class ConfigComplexChoice final : public ToolTipComboBox
   using OptionVariant = std::variant<Config::DefaultState, u32, int, bool>;
 
 public:
-  ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2,
+  ConfigComplexChoice(const InfoVariant& setting1, const InfoVariant& setting2,
                       Config::Layer* layer = nullptr);
 
   void Add(const QString& name, const OptionVariant option1, const OptionVariant option2);

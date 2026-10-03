@@ -12,6 +12,8 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://github.com/mutouyun/cpp-ipc/blob/master/LICENSE)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
+- [cwdemangle](https://github.com/encounter/cwdemangle)
+   [CC0-1.0](https://github.com/encounter/cwdemangle/blob/main/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
    [MIT](https://github.com/discordapp/discord-rpc/blob/master/LICENSE)
 - [ENet](http://enet.bespin.org/):
@@ -64,8 +66,6 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](http://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/LICENSE)
 - [Qt5](http://qt-project.org/):
    [LGPLv3 and other licenses](http://doc.qt.io/qt-5/licensing.html)
-- [rangeset](https://github.com/AdmiralCurtiss/rangeset)
-   [zlib license](https://github.com/AdmiralCurtiss/rangeset/blob/master/LICENSE)
 - [SDL](https://www.libsdl.org/):
    [zlib license](http://hg.libsdl.org/SDL/file/tip/COPYING.txt)
 - [SFML](http://www.sfml-dev.org/):
@@ -76,6 +76,8 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [BSD 2-Clause](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
+- [YACardEmu](https://github.com/GXTX/YACardEmu)
+   [GPLv2+](https://github.com/GXTX/YACardEmu/blob/master/license.txt)
 - [zlib-ng](https://github.com/zlib-ng/zlib-ng):
    [zlib license](https://github.com/zlib-ng/zlib-ng/blob/develop/LICENSE.md)
 - [Zstandard](https://facebook.github.io/zstd/):

@@ -8,11 +8,13 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <variant>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Config/Layer.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -21,17 +23,68 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/SysConf.h"
 #include "Core/System.h"
 
+static bool s_sysconf_controlled_by_guest = false;
+static std::recursive_mutex s_sysconf_lock;
+
 namespace ConfigLoaders
 {
-void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Location&)> predicate)
+void TransferSYSCONFControlToGuest()
 {
-  if (Core::IsRunning(Core::System::GetInstance()))
+  std::lock_guard lock(s_sysconf_lock);
+
+  ASSERT(!s_sysconf_controlled_by_guest);
+  s_sysconf_controlled_by_guest = true;
+}
+
+void TransferSYSCONFControlFromGuest(WriteBackChangedValues write_back_changed_values)
+{
+  std::lock_guard lock(s_sysconf_lock);
+
+  ASSERT(s_sysconf_controlled_by_guest);
+  s_sysconf_controlled_by_guest = false;
+
+  if (write_back_changed_values == WriteBackChangedValues::No)
+    return;
+
+  // SYSCONF can be modified during emulation by the user and internally, which makes it
+  // a bad idea to just always overwrite it with the settings from the base layer.
+  //
+  // Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
+  // temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
+  //
+  // To avoid inconveniences in most cases, we accept changes that aren't being overridden by a
+  // non-base layer, and restore only the overridden settings.
+
+  // This layer contains the new SYSCONF settings (including any temporary settings).
+  Config::Layer temp_layer(Config::LayerType::Base);
+  // Use a separate loader so the temp layer doesn't automatically save
+  GenerateBaseConfigLoader()->Load(&temp_layer);
+
+  for (const auto& setting : Config::SYSCONF_SETTINGS)
+  {
+    std::visit(
+        [&](auto* info) {
+          // If this setting was overridden, then we copy the base layer value back to the
+          // SYSCONF. Otherwise we leave the new value in the SYSCONF.
+          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
+            Config::SetBase(*info, temp_layer.Get(*info));
+        },
+        setting.config_info);
+  }
+
+  SaveToSYSCONF(Config::LayerType::Base, SkipIfControlledByGuest::No);
+}
+
+void SaveToSYSCONF(Config::LayerType layer, SkipIfControlledByGuest skip,
+                   std::function<bool(const Config::Location&)> predicate)
+{
+  std::lock_guard lock(s_sysconf_lock);
+  if (skip == SkipIfControlledByGuest::Yes && s_sysconf_controlled_by_guest)
     return;
 
   IOS::HLE::Kernel ios;
@@ -125,7 +178,7 @@ public:
 
   void Save(Config::Layer* layer) override
   {
-    SaveToSYSCONF(layer->GetLayer());
+    SaveToSYSCONF(layer->GetLayer(), SkipIfControlledByGuest::Yes);
 
     std::map<Config::System, Common::IniFile> inis;
 
@@ -180,7 +233,8 @@ public:
 private:
   void LoadFromSYSCONF(Config::Layer* layer)
   {
-    if (Core::IsRunning(Core::System::GetInstance()))
+    std::lock_guard lock(s_sysconf_lock);
+    if (s_sysconf_controlled_by_guest)
       return;
 
     IOS::HLE::Kernel ios;

@@ -220,6 +220,66 @@ private:
   ControlState GetValue() override { return std::pow(GetArg(0).GetValue(), GetArg(1).GetValue()); }
 };
 
+// usage: floor(expression)
+class FloorExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation ValidateArguments() override
+  {
+    if (GetArgCount() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() override { return std::floor(GetArg(0).GetValue()); }
+};
+
+// usage: ceil(expression)
+class CeilExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation ValidateArguments() override
+  {
+    if (GetArgCount() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() override { return std::ceil(GetArg(0).GetValue()); }
+};
+
+// usage: round(expression)
+class RoundExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation ValidateArguments() override
+  {
+    if (GetArgCount() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() override { return std::round(GetArg(0).GetValue()); }
+};
+
+// usage: trunc(expression)
+class TruncExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation ValidateArguments() override
+  {
+    if (GetArgCount() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() override { return std::trunc(GetArg(0).GetValue()); }
+};
+
 // usage: min(a, b)
 class MinExpression : public FunctionExpression
 {
@@ -660,6 +720,14 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<SqrtExpression>();
   if (name == "pow")
     return std::make_unique<PowExpression>();
+  if (name == "floor")
+    return std::make_unique<FloorExpression>();
+  if (name == "ceil")
+    return std::make_unique<CeilExpression>();
+  if (name == "round")
+    return std::make_unique<RoundExpression>();
+  if (name == "trunc")
+    return std::make_unique<TruncExpression>();
   if (name == "min")
     return std::make_unique<MinExpression>();
   if (name == "max")

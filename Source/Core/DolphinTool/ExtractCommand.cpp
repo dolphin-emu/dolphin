@@ -119,6 +119,11 @@ static bool ListPartition(const DiscIO::Volume& disc_volume, const DiscIO::Parti
                           std::string* result_text)
 {
   const DiscIO::FileSystem* filesystem = disc_volume.GetFileSystem(partition);
+  if (!filesystem)
+  {
+    fmt::println(std::cerr, "Warning: partition {} has no filesystem.", partition_name);
+    return false;
+  }
   const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
 
   if (!info)
@@ -167,7 +172,7 @@ static bool ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
     fmt::print(std::cout, "{}", partition_start);
     result_text->append(partition_start);
 
-    success |= ListPartition(disc_volume, p, specific_partition_name, path, result_text);
+    success |= ListPartition(disc_volume, p, partition_name, path, result_text);
   }
 
   return success;

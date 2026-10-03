@@ -158,7 +158,7 @@ void PPCDebugInterface::RemoveWatch(std::size_t index)
   return m_watches.RemoveWatch(index);
 }
 
-void PPCDebugInterface::LoadWatchesFromStrings(const std::vector<std::string>& watches)
+void PPCDebugInterface::LoadWatchesFromStrings(std::span<const std::string> watches)
 {
   m_watches.LoadFromStrings(watches);
 }

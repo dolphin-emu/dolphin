@@ -3,17 +3,16 @@
 
 #pragma once
 
-#include <cstring>
 #include <limits>
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
@@ -82,7 +81,7 @@ public:
   virtual std::vector<u8> GetContent(u16 index) const { return {}; }
   virtual std::vector<u64> GetContentOffsets() const { return {}; }
   virtual bool CheckContentIntegrity(const IOS::ES::Content& content,
-                                     const std::vector<u8>& encrypted_data,
+                                     std::span<const u8> encrypted_data,
                                      const IOS::ES::TicketReader& ticket) const
   {
     return false;
@@ -96,7 +95,6 @@ public:
   }
   virtual std::string GetGameID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::string GetTriforceID() const { return ""; }
   virtual std::string GetMakerID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetInternalName(const Partition& partition = PARTITION_NONE) const = 0;
@@ -128,6 +126,7 @@ public:
   }
   virtual Region GetRegion() const = 0;
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual u32 GetSimulatedMemorySize() const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
   virtual u64 GetDataSize() const = 0;
@@ -144,24 +143,15 @@ public:
   virtual std::array<u8, 20> GetSyncHash() const = 0;
 
 protected:
-  template <u32 N>
-  std::string DecodeString(const char (&data)[N]) const
-  {
-    // strnlen to trim NULLs
-    std::string string(data, strnlen(data, sizeof(data)));
-
-    if (GetRegion() == Region::NTSC_J)
-      return SHIFTJISToUTF8(string);
-    else
-      return CP1252ToUTF8(string);
-  }
+  std::string DecodeString(std::span<const char> data) const;
+  static std::string FilterGameID(std::span<const char> data);
 
   void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
                             const Partition& partition) const;
   void AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const;
 
   virtual u32 GetOffsetShift() const { return 0; }
-  static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);
+  static std::map<Language, std::string> ReadWiiNames(std::span<const char16_t> data);
 
   static constexpr size_t NUMBER_OF_LANGUAGES = 10;
   static constexpr size_t NAME_CHARS_LENGTH = 42;

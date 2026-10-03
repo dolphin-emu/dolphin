@@ -102,7 +102,7 @@ public:
   bool GetPreferredView() const;
   void SetPreferredView(bool list);
   QString GetDefaultGame() const;
-  void SetDefaultGame(QString path);
+  void SetDefaultGame(const QString& path);
   void RefreshGameList();
   void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
@@ -110,6 +110,8 @@ public:
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
   void SetAutoRefreshEnabled(bool enabled);
+  bool IsGameCountVisible() const;
+  void SetGameCountVisible(bool visible);
 
   // Emulation
   int GetStateSlot() const;
@@ -173,7 +175,9 @@ public:
   void SetAssemblerVisible(bool enabled);
   bool IsAssemblerVisible() const;
   QFont GetDebugFont() const;
-  void SetDebugFont(QFont font);
+  void SetDebugFont(const QFont& font);
+  void SetShowDemangledNames(bool enabled);
+  bool IsShowDemangledNames() const;
 
   // Auto-Update
   QString GetAutoUpdateTrack() const;
@@ -221,6 +225,7 @@ signals:
   void AssemblerVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(const QFont& font);
+  void ShowDemangledNamesChanged(bool enabled);
   void AutoUpdateTrackChanged(const QString& mode);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
@@ -228,6 +233,7 @@ signals:
   void DevicesChanged();
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
+  void GameCountVisibilityChanged(bool visible);
 
 private:
   Settings();

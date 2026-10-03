@@ -24,8 +24,8 @@ class EmulatedController;
 class InputConfig
 {
 public:
-  InputConfig(const std::string& ini_name, const std::string& gui_name,
-              const std::string& profile_directory_name, const std::string& profile_key);
+  InputConfig(std::string ini_name, std::string gui_name, std::string profile_directory_name,
+              std::string profile_key);
 
   ~InputConfig();
 

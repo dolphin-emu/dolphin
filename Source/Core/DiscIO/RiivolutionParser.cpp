@@ -218,9 +218,9 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
   return disc;
 }
 
-static bool CheckRegion(const std::vector<std::string>& xml_regions, std::string_view game_region)
+static bool CheckRegion(std::span<const std::string> xml_regions, std::string_view game_region)
 {
-  if (xml_regions.begin() == xml_regions.end())
+  if (xml_regions.empty())
     return true;
 
   for (const auto& region : xml_regions)

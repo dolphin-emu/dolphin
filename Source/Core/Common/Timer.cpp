@@ -8,7 +8,7 @@
 #include "Common/CommonFuncs.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #include <timeapi.h>
 #endif
 

@@ -34,7 +34,7 @@ bool NullGfx::SupportsUtilityDrawing() const
 }
 
 std::unique_ptr<AbstractTexture> NullGfx::CreateTexture(const TextureConfig& config,
-                                                        [[maybe_unused]] std::string_view name)
+                                                        std::string_view /* name */)
 {
   return std::make_unique<NullTexture>(config);
 }
@@ -52,16 +52,17 @@ public:
 };
 
 std::unique_ptr<AbstractShader>
-NullGfx::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
-                                [[maybe_unused]] VideoCommon::ShaderIncluder* shader_includer,
-                                [[maybe_unused]] std::string_view name)
+NullGfx::CreateShaderFromSource(ShaderStage stage, std::string_view /* source */,
+                                VideoCommon::ShaderIncluder* /* shader_includer */,
+                                std::string_view /* name */)
 {
   return std::make_unique<NullShader>(stage);
 }
 
-std::unique_ptr<AbstractShader>
-NullGfx::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
-                                [[maybe_unused]] std::string_view name)
+std::unique_ptr<AbstractShader> NullGfx::CreateShaderFromBinary(ShaderStage stage,
+                                                                const void* /* data */,
+                                                                size_t /* length */,
+                                                                std::string_view /* name */)
 {
   return std::make_unique<NullShader>(stage);
 }

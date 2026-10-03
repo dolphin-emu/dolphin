@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -34,9 +35,8 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
-    : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
+MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot, u16 size_mbits)
+    : MemoryCardBase(card_slot, size_mbits), m_filename(std::move(filename))
 {
   File::IOFile file(m_filename, "rb");
   if (file)
@@ -61,7 +61,7 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
     const auto& sram = Core::System::GetInstance().GetSRAM();
     const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
-    const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
+    const bool shift_jis = m_filename.contains(".JAP.raw");
     const u32 rtc_bias = sram.settings.rtc_bias;
     const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =

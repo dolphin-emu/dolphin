@@ -9,6 +9,7 @@
 #include <QToolTip>
 
 #include <filesystem>
+#include <utility>
 
 #include "Common/StringUtil.h"
 #include "DolphinQt/Debugger/GekkoSyntaxHighlight.h"
@@ -23,8 +24,8 @@ void AsmEditor::LineNumberArea::paintEvent(QPaintEvent* event)
   asm_editor->LineNumberAreaPaintEvent(event);
 }
 
-AsmEditor::AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWidget* parent)
-    : QPlainTextEdit(parent), m_path(path), m_base_address(QStringLiteral("0")),
+AsmEditor::AsmEditor(QString path, int editor_num, bool dark_scheme, QWidget* parent)
+    : QPlainTextEdit(parent), m_path(std::move(path)), m_base_address(QStringLiteral("0")),
       m_editor_num(editor_num), m_dirty(false), m_dark_scheme(dark_scheme)
 {
   if (!m_path.isEmpty())

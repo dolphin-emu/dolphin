@@ -1,0 +1,64 @@
+{
+	"meta":
+	{
+		"title": "Bloom Removal",
+		"author": "Dolphin Team",
+		"description": "Skips drawing bloom effects.  May be preferable when using a bloom solution from Dolphin's post processing shaders or a third party tool.  Requires enabling 'EFB Copy To Texture Only'"
+	},
+	"groups":
+	[
+		{
+			"name": "CustomBloom",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000134_20x14_6"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000022_40x28_6"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000131_80x56_6"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000130_160x112_6"
+				}
+			]
+		},
+		{
+			"name": "Fixup",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_256x179_802b7563f35b613a_6"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000182_640x448_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000380_320x224_6"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "efb1_n000380_240x224_6"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "CustomBloom",
+			"action": "skip"
+		},
+		{
+			"group": "Fixup",
+			"action": "skip"
+		}
+	]
+}

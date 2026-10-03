@@ -1,20 +1,20 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    kotlin("plugin.serialization") version "2.2.21"
-    id("androidx.baselineprofile")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdkVersion = "android-36"
-    ndkVersion = "29.0.14206865"
+    compileSdk = 37
+    ndkVersion = "30.0.15729638"
 
     buildFeatures {
+        compose = true
         viewBinding = true
         buildConfig = true
+        resValues = true
     }
 
     compileOptions {
@@ -23,12 +23,6 @@ android {
 
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget("17")
-        }
     }
 
     lint {
@@ -43,8 +37,8 @@ android {
 
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
-        minSdk = 21
-        targetSdk = 36
+        minSdk = 24
+        targetSdk = 37
 
         versionCode = getBuildVersionCode()
 
@@ -79,7 +73,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
@@ -97,12 +91,18 @@ android {
     externalNativeBuild {
         cmake {
             path = file("../../../CMakeLists.txt")
-            version = "3.22.1+"
+            version = "3.25.0+"
         }
     }
     namespace = "org.dolphinemu.dolphinemu"
 
     defaultConfig {
+        ndk {
+            // We only officially support arm64-v8a and x86_64.
+            // If you want to try building other ABIs anyway, you need -DENABLE_GENERIC=ON.
+            abiFilters += listOf("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
+        }
+
         externalNativeBuild {
             cmake {
                 arguments(
@@ -111,7 +111,6 @@ android {
                     "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
                     // , "-DENABLE_GENERIC=ON"
                 )
-                abiFilters("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
 
                 // Uncomment the line below if you don't want to build the C++ unit tests
                 //targets("main", "hook_impl", "main_hook", "gsl_alloc_hook", "file_redirect_hook")
@@ -126,38 +125,51 @@ android {
 
 dependencies {
     baselineProfile(project(":benchmark"))
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.9")
-    implementation("androidx.slidingpanelayout:slidingpanelayout:1.2.0")
-    implementation("com.google.android.material:material:1.13.0")
-    implementation("androidx.core:core-splashscreen:1.2.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.cardview)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.slidingpanelayout)
+    implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.profileinstaller)
 
     // Kotlin extensions for lifecycle components
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Android TV UI libraries.
-    implementation("androidx.leanback:leanback:1.2.0")
-    implementation("androidx.tvprovider:tvprovider:1.1.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation(libs.androidx.leanback)
+    implementation(libs.androidx.tvprovider)
+    implementation(libs.androidx.swiperefreshlayout)
 
     // For loading game covers from disk and GameTDB
-    implementation("io.coil-kt:coil:2.7.0")
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
 
     // For loading custom GPU drivers
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation(libs.kotlinx.serialization.json)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("com.nononsenseapps:filepicker:4.2.1")
+    implementation(libs.filepicker)
+
+    // Jetpack Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
 }
 
 fun getGitVersion(): String {

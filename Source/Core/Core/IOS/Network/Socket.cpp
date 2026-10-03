@@ -117,10 +117,12 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
     return ret;
   }
 
-  ERROR_LOG_FMT(IOS_NET, "{} failed with error {}: {}, ret= {}", caller, error_code,
-                Common::DecodeNetworkError(error_code), ret);
-
   const s32 return_value = TranslateErrorCode(error_code, is_rw);
+  const auto level =
+      return_value == -SO_EAGAIN ? Common::Log::LogLevel::LINFO : Common::Log::LogLevel::LERROR;
+  GENERIC_LOG_FMT(Common::Log::LogType::IOS_NET, level, "{} failed with error {}: {}, ret = {}",
+                  caller, error_code, Common::DecodeNetworkError(error_code), ret);
+
   SetLastNetError(return_value);
 
   return return_value;
@@ -850,14 +852,14 @@ void WiiSocket::ResetTimeout()
   timeout.reset();
 }
 
-void WiiSocket::DoSock(Request request, NET_IOCTL type)
+void WiiSocket::DoSock(const Request& request, NET_IOCTL type)
 {
   sockop so = {request, false};
   so.net_type = type;
   pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(Request request, SSL_IOCTL type)
+void WiiSocket::DoSock(const Request& request, SSL_IOCTL type)
 {
   sockop so = {request, true};
   so.ssl_type = type;
@@ -893,11 +895,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     sock.SetWiiFd(wii_fd);
     m_ios.GetSystem().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
 
-#ifdef __APPLE__
-    int opt_no_sigpipe = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
-      ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
-#endif
+    Common::SetPlatformSocketOptions(fd);
 
     // Wii UDP sockets can use broadcast address by default
     if (!is_rw)

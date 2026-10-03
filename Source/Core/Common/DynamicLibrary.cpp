@@ -8,7 +8,7 @@
 #include <fmt/format.h>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <dlfcn.h>
 #endif

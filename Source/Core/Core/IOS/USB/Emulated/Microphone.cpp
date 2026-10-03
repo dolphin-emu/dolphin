@@ -21,7 +21,7 @@
 #include "Core/System.h"
 
 #ifdef _WIN32
-#include <Objbase.h>
+#include <objbase.h>
 #endif
 
 #ifdef ANDROID
@@ -31,13 +31,12 @@
 namespace IOS::HLE::USB
 {
 #ifdef HAVE_CUBEB
-Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
-    : m_sampler(sampler), m_worker(worker_name)
+Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name)
+    : m_sampler(sampler), m_worker(std::move(worker_name))
 {
 }
 #else
-Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
-    : m_sampler(sampler)
+Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name) : m_sampler(sampler)
 {
 }
 #endif
@@ -57,7 +56,7 @@ void Microphone::StreamInit()
 {
 }
 
-void Microphone::StreamStart([[maybe_unused]] u32 sampling_rate)
+void Microphone::StreamStart(u32 /* sampling_rate */)
 {
 }
 

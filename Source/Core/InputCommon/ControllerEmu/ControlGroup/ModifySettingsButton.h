@@ -13,7 +13,7 @@ namespace ControllerEmu
 class ModifySettingsButton : public Buttons
 {
 public:
-  explicit ModifySettingsButton(std::string button_name);
+  explicit ModifySettingsButton(const std::string& button_name);
 
   void AddInput(std::string button_name, bool toggle = false);
 

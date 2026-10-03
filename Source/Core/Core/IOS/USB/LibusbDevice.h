@@ -60,7 +60,8 @@ private:
   {
   public:
     void AddTransfer(std::unique_ptr<TransferCommand> command, libusb_transfer* transfer);
-    void HandleTransfer(libusb_transfer* tr, std::function<s32(const TransferCommand&)> function);
+    void HandleTransfer(libusb_transfer* tr,
+                        const std::function<s32(const TransferCommand&)>& function);
     void CancelTransfers();
 
   private:

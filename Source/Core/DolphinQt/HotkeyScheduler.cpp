@@ -344,7 +344,7 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(std::string("Volume: ") +
                         (Config::Get(Config::MAIN_AUDIO_MUTED) ?
                              "Muted" :
-                             std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
+                             fmt::format("{}%", Config::Get(Config::MAIN_AUDIO_VOLUME))));
       };
 
       // Volume
@@ -397,8 +397,14 @@ void HotkeyScheduler::Run()
         }
       }
 
-      if (IsHotkey(HK_TOGGLE_CROP))
-        Config::SetCurrent(Config::GFX_CROP, !Config::Get(Config::GFX_CROP));
+      if (IsHotkey(HK_TOGGLE_CROP_TO_ASPECT_RATIO))
+      {
+        Config::SetCurrent(Config::GFX_CROP_TO_ASPECT_RATIO,
+                           !Config::Get(Config::GFX_CROP_TO_ASPECT_RATIO));
+      }
+
+      if (IsHotkey(HK_TOGGLE_CROP_CUSTOM))
+        Config::SetCurrent(Config::GFX_CROP_CUSTOM, !Config::Get(Config::GFX_CROP_CUSTOM));
 
       if (IsHotkey(HK_TOGGLE_AR))
       {
@@ -551,15 +557,15 @@ void HotkeyScheduler::Run()
         emit DecrementSelectedStateSlotHotkey();
 
       // Stereoscopy
-      if (IsHotkey(HK_TOGGLE_STEREO_SBS))
+      if (IsHotkey(HK_TOGGLE_STEREO_SIDE_BY_SIDE))
       {
-        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::SBS)
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::SideBySide)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
           if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
             Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
 
-          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::SBS);
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::SideBySide);
         }
         else
         {
@@ -567,15 +573,15 @@ void HotkeyScheduler::Run()
         }
       }
 
-      if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+      if (IsHotkey(HK_TOGGLE_STEREO_TOP_AND_BOTTOM))
       {
-        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::TAB)
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::TopAndBottom)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
           if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
             Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
 
-          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::TAB);
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::TopAndBottom);
         }
         else
         {

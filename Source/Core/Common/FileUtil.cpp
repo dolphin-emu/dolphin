@@ -29,13 +29,13 @@
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <Shlwapi.h>
+#include <windows.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
+#include <shlwapi.h>
 #else
 #include <libgen.h>
 #include <stdlib.h>
@@ -425,7 +425,7 @@ static FSTEntry ScanDirectoryTreeAndroidContent(std::string directory, bool recu
 #endif
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, directory);
 
@@ -740,6 +740,11 @@ std::string GetExePath()
   if (sysctl(name, 4, dolphin_exe_path.data(), &length, nullptr, 0) != 0)
     return {};
   return dolphin_exe_path;
+#elif defined(__OpenBSD__) && defined(HAVE_GETEXECPATH)
+  char dolphin_exe_path[PATH_MAX];
+  if (getexecpath(dolphin_exe_path, sizeof(dolphin_exe_path)) != 0)
+    return {};
+  return dolphin_exe_path;
 #else
   char dolphin_exe_path[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -759,27 +764,27 @@ std::string GetExeDirectory()
 
 static std::string CreateSysDirectoryPath()
 {
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-#define SYSDATA_DIR "Sys"
-#elif defined __APPLE__
-#define SYSDATA_DIR "Contents/Resources/Sys"
+#define SYS_FOLDER_NAME "Sys"
+#if defined __APPLE__
+#define SYSDATA_DIR "Contents/Resources/" SYS_FOLDER_NAME
 #else
-#ifdef DATA_DIR
-#define SYSDATA_DIR DATA_DIR "sys"
-#else
-#define SYSDATA_DIR "sys"
-#endif
+#define SYSDATA_DIR DATA_DIR SYS_FOLDER_NAME
 #endif
 
+  std::string sys_directory;
+
 #if defined(__APPLE__)
-  const std::string sys_directory = GetBundleDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
-#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-  const std::string sys_directory = GetExeDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
+  sys_directory = GetBundleDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
 #elif defined ANDROID
-  const std::string sys_directory = s_android_sys_directory + DIR_SEP;
+  sys_directory = s_android_sys_directory + DIR_SEP;
   ASSERT_MSG(COMMON, !s_android_sys_directory.empty(), "Sys directory has not been set");
 #else
-  const std::string sys_directory = SYSDATA_DIR DIR_SEP;
+  const std::string local_sys_directory = GetExeDirectory() + DIR_SEP SYS_FOLDER_NAME DIR_SEP;
+  if (IsDirectory(local_sys_directory))
+    sys_directory = local_sys_directory;
+  else
+    sys_directory = SYSDATA_DIR DIR_SEP;
+
 #endif
 
   INFO_LOG_FMT(COMMON, "CreateSysDirectoryPath: Setting to {}", sys_directory);
@@ -838,6 +843,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
   case D_USER_IDX:
     s_user_paths[D_GCUSER_IDX] = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
     s_user_paths[D_WIIROOT_IDX] = s_user_paths[D_USER_IDX] + WII_USER_DIR DIR_SEP;
+    s_user_paths[D_TRIUSER_IDX] = s_user_paths[D_USER_IDX] + TRI_USER_DIR DIR_SEP;
     s_user_paths[D_CONFIG_IDX] = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;

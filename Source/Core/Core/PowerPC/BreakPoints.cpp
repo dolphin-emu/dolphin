@@ -34,6 +34,9 @@ bool BreakPoints::IsAddressBreakPoint(u32 address) const
 
 bool BreakPoints::IsBreakPointEnable(u32 address) const
 {
+  if (!m_breaking_enabled)
+    return false;
+
   const TBreakPoint* bp = GetBreakpoint(address);
   return bp != nullptr && bp->is_enabled;
 }
@@ -93,10 +96,10 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
       iss.ignore();
     iss >> std::hex >> bp.address;
     iss >> flags;
-    bp.is_enabled = flags.find('n') != flags.npos;
-    bp.log_on_hit = flags.find('l') != flags.npos;
-    bp.break_on_hit = flags.find('b') != flags.npos;
-    if (flags.find('c') != std::string::npos)
+    bp.is_enabled = flags.contains('n');
+    bp.log_on_hit = flags.contains('l');
+    bp.break_on_hit = flags.contains('b');
+    if (flags.contains('c'))
     {
       iss >> std::ws;
       std::string condition;
@@ -184,6 +187,11 @@ bool BreakPoints::ToggleEnable(u32 address)
   return true;
 }
 
+void BreakPoints::EnableBreaking(bool enable)
+{
+  m_breaking_enabled = enable;
+}
+
 bool BreakPoints::Remove(u32 address)
 {
   const auto iter = std::ranges::find(m_breakpoints, address, &TBreakPoint::address);
@@ -268,12 +276,12 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
 
     mc.is_ranged = mc.start_address != mc.end_address;
-    mc.is_enabled = flags.find('n') != flags.npos;
-    mc.is_break_on_read = flags.find('r') != flags.npos;
-    mc.is_break_on_write = flags.find('w') != flags.npos;
-    mc.log_on_hit = flags.find('l') != flags.npos;
-    mc.break_on_hit = flags.find('b') != flags.npos;
-    if (flags.find('c') != std::string::npos)
+    mc.is_enabled = flags.contains('n');
+    mc.is_break_on_read = flags.contains('r');
+    mc.is_break_on_write = flags.contains('w');
+    mc.log_on_hit = flags.contains('l');
+    mc.break_on_hit = flags.contains('b');
+    if (flags.contains('c'))
     {
       iss >> std::ws;
       std::string condition;
@@ -316,6 +324,12 @@ bool MemChecks::ToggleEnable(u32 address)
 
   iter->is_enabled = !iter->is_enabled;
   return true;
+}
+
+void MemChecks::EnableBreaking(bool enabled)
+{
+  m_breaking_enabled = enabled;
+  Update();
 }
 
 DelayedMemCheckUpdate MemChecks::Remove(u32 address)

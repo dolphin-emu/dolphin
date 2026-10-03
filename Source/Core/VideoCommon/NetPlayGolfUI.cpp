@@ -3,6 +3,8 @@
 
 #include "VideoCommon/NetPlayGolfUI.h"
 
+#include <utility>
+
 #include <fmt/format.h>
 #include <imgui.h>
 
@@ -13,8 +15,8 @@ constexpr float DEFAULT_WINDOW_HEIGHT = 45.0f;
 
 std::unique_ptr<NetPlayGolfUI> g_netplay_golf_ui;
 
-NetPlayGolfUI::NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_client)
-    : m_netplay_client{netplay_client}
+NetPlayGolfUI::NetPlayGolfUI(std::weak_ptr<NetPlay::NetPlayClient> netplay_client)
+    : m_netplay_client{std::move(netplay_client)}
 {
 }
 

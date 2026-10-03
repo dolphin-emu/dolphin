@@ -383,7 +383,7 @@ QScrollBar::right-arrow:horizontal {
 
 QSpinBox, QDateEdit, QDateTimeEdit, QTimeEdit, QDoubleSpinBox {
 	border: 1px solid #7e7e7e;
-	padding-right: 15px;
+	padding-right: 4px;
 }
 QSpinBox:disabled, QDateEdit:disabled, QDateTimeEdit:disabled, QTimeEdit:disabled, QDoubleSpinBox:disabled {
 	background-color: #505050;

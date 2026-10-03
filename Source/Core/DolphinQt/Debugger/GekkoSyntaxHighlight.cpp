@@ -5,6 +5,8 @@
 
 #include "Common/Assembler/GekkoParser.h"
 
+#include <utility>
+
 #include <QLabel>
 #include <QPalette>
 
@@ -189,7 +191,7 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
 
 GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, QTextCharFormat base_format,
                                            bool dark_scheme)
-    : QSyntaxHighlighter(document), m_base_format(base_format)
+    : QSyntaxHighlighter(document), m_base_format(std::move(base_format))
 {
   QPalette base_scheme;
   m_theme_idx = dark_scheme ? 1 : 0;

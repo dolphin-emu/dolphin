@@ -65,7 +65,7 @@ public:
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
   void RemoveWatch(std::size_t index) override;
-  void LoadWatchesFromStrings(const std::vector<std::string>& watches) override;
+  void LoadWatchesFromStrings(std::span<const std::string> watches) override;
   std::vector<std::string> SaveWatchesToStrings() const override;
   void ClearWatches() override;
 

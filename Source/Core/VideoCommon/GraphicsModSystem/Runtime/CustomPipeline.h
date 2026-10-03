@@ -11,7 +11,7 @@
 
 struct CustomPipeline
 {
-  void UpdatePixelData(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+  void UpdatePixelData(const VideoCommon::CustomAssetLibrary* library,
                        std::span<const u32> texture_units,
                        const VideoCommon::CustomAssetLibrary::AssetID& material_to_load);
 };

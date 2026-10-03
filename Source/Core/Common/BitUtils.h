@@ -137,6 +137,7 @@ public:
                 "BitCastPtr source type must be trivially copyable.");
   static_assert(std::is_trivially_copyable<T>(),
                 "BitCastPtr destination type must be trivially copyable.");
+  static_assert(!std::is_pointer<T>(), "BitCastPtr destination type must not be a pointer.");
 
   explicit BitCastPtrType(PtrType* ptr) : m_ptr(ptr) {}
 
@@ -189,7 +190,7 @@ template <typename ValueType, typename From>
 }
 
 template <typename T>
-void SetBit(T& value, size_t bit_number, bool bit_value)
+constexpr void SetBit(T& value, size_t bit_number, bool bit_value)
 {
   static_assert(std::is_unsigned<T>(), "SetBit is only sane on unsigned types.");
 
@@ -200,7 +201,7 @@ void SetBit(T& value, size_t bit_number, bool bit_value)
 }
 
 template <size_t bit_number, typename T>
-void SetBit(T& value, bool bit_value)
+constexpr void SetBit(T& value, bool bit_value)
 {
   SetBit(value, bit_number, bit_value);
 }

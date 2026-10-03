@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <utility>
 
 #include <implot.h>
 
@@ -18,9 +19,9 @@ static constexpr double SAMPLE_RC_RATIO = 0.25;
 static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
 static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
 
-PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
+PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name,
                                        const std::optional<DT> sample_window_duration)
-    : m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
+    : m_log_name{std::move(log_name)}, m_sample_window_duration{sample_window_duration}
 {
   Reset();
 }

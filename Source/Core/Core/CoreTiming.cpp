@@ -70,7 +70,7 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallba
              "during Init to avoid breaking save states.",
              name);
 
-  auto info = m_event_types.emplace(name, EventType{callback, nullptr});
+  auto info = m_event_types.emplace(name, EventType{std::move(callback), nullptr});
   EventType* event_type = &info.first->second;
   event_type->name = &info.first->first;
   return event_type;
@@ -363,7 +363,7 @@ void CoreTimingManager::Advance()
 
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
-    Event evt = std::move(m_event_queue.front());
+    Event evt = m_event_queue.front();
     std::ranges::pop_heap(m_event_queue, std::ranges::greater{});
     m_event_queue.pop_back();
     evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
@@ -422,7 +422,7 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
     // Count amount of time sleeping for analytics
     const TimePoint time_after_sleep = Clock::now();
-    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+    m_system.GetPerfMetrics().CountThrottleSleep(time_after_sleep - time);
   }
   else
   {
@@ -452,8 +452,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   // Measure current performance after throttling.
   Common::ScopeGuard perf_marker{[&] {
-    g_perf_metrics.CountPerformanceMarker(target_cycle,
-                                          m_system.GetSystemTimers().GetTicksPerSecond());
+    m_system.GetPerfMetrics().CountPerformanceMarker(
+        target_cycle, m_system.GetSystemTimers().GetTicksPerSecond());
   }};
 
   if (IsSpeedUnlimited())
@@ -562,7 +562,7 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 
   UpdateSpeedLimit(ticks, m_emulation_speed);
 
-  g_perf_metrics.AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
+  m_system.GetPerfMetrics().AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
 
   for (Event& ev : m_event_queue)
   {

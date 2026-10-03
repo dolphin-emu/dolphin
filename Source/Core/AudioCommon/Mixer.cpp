@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <span>
 
 #include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
@@ -52,7 +53,8 @@ void Mixer::DoState(PointerWrap& p)
 {
   m_dma_mixer.DoState(p);
   m_streaming_mixer.DoState(p);
-  m_wiimote_speaker_mixer.DoState(p);
+  for (auto& mixer : m_wiimote_speaker_mixers)
+    mixer.DoState(p);
   m_skylander_portal_mixer.DoState(p);
   for (auto& mixer : m_gba_mixers)
     mixer.DoState(p);
@@ -67,8 +69,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   // We need at least a double because the index jump has 24 bits of fractional precision.
   const double out_sample_rate = m_mixer->m_output_sample_rate;
-  double in_sample_rate =
-      static_cast<double>(FIXED_SAMPLE_RATE_DIVIDEND) / m_input_sample_rate_divisor;
+  double in_sample_rate = double(m_input_sample_rate_dividend) / m_input_sample_rate_divisor;
 
   const double emulation_speed = m_mixer->m_config_emulation_speed;
   if (!m_mixer->m_config_audio_preserve_pitch && 0 < emulation_speed && emulation_speed != 1.0)
@@ -169,10 +170,17 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
 
   m_dma_mixer.Mix(samples, num_samples);
   m_streaming_mixer.Mix(samples, num_samples);
-  m_wiimote_speaker_mixer.Mix(samples, num_samples);
+  for (std::size_t i = 0; i < m_wiimote_speaker_mixers.size(); ++i)
+  {
+    if (!m_config_wiimote_routing_enabled || !m_config_wiimote_output_enabled[i])
+      m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
+  }
   m_skylander_portal_mixer.Mix(samples, num_samples);
-  for (auto& mixer : m_gba_mixers)
-    mixer.Mix(samples, num_samples);
+  for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
+  {
+    if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
+      m_gba_mixers[i].Mix(samples, num_samples);
+  }
 
   return num_samples;
 }
@@ -184,7 +192,7 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
 
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(float));
 
-  std::size_t const needed_frames =
+  const std::size_t needed_frames =
       m_surround_decoder.QueryFramesNeededForSurroundOutput(num_samples);
 
   constexpr std::size_t max_samples = 0x8000;
@@ -193,7 +201,7 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
              needed_frames, max_samples);
 
   std::array<s16, max_samples> buffer;
-  std::size_t const available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
+  const std::size_t available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
   if (available_frames != needed_frames)
   {
     ERROR_LOG_FMT(AUDIO,
@@ -208,29 +216,18 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
   return num_samples;
 }
 
-void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
-{
-  while (num_samples-- > 0)
-  {
-    const s16 l = m_little_endian ? samples[1] : Common::swap16(samples[1]);
-    const s16 r = m_little_endian ? samples[0] : Common::swap16(samples[0]);
-    samples += 2;
-
-    m_next_buffer[m_next_buffer_index] = StereoPair(l, r);
-    m_next_buffer_index = (m_next_buffer_index + 1) & GRANULE_MASK;
-
-    // The granules overlap by 50%, so we need to enqueue the
-    // next buffer every time we fill half of the samples.
-    if (m_next_buffer_index == 0 || m_next_buffer_index == m_next_buffer.size() / 2)
-      Enqueue();
-  }
-}
-
 void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
 {
   if (IsOutputSampleRateValid())
   {
-    m_dma_mixer.PushSamples(samples, num_samples);
+    // Big-endian RL-orderered stereo samples.
+
+    const s16* ptr = samples;
+    for (std::size_t i = 0; i != num_samples; ++i)
+    {
+      m_dma_mixer.PushSample(Common::swap16(ptr[1]), Common::swap16(ptr[0]));
+      ptr += 2;
+    }
   }
 
   if (m_log_dsp_audio)
@@ -246,43 +243,50 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
 {
   if (IsOutputSampleRateValid())
   {
-    m_streaming_mixer.PushSamples(samples, num_samples);
+    // Big-endian RL-orderered stereo samples.
+
+    const s16* ptr = samples;
+    for (std::size_t i = 0; i != num_samples; ++i)
+    {
+      m_streaming_mixer.PushSample(Common::swap16(ptr[1]), Common::swap16(ptr[0]));
+      ptr += 2;
+    }
   }
 
   if (m_log_dtk_audio)
   {
     const s32 sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
-    auto const volume = m_streaming_mixer.GetVolume();
+    const auto volume = m_streaming_mixer.GetVolume();
     m_wave_writer_dtk.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
                                          sample_rate_divisor, volume.first, volume.second);
   }
 }
 
-void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                      u32 sample_rate_divisor)
+void Mixer::PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samples,
+                                      std::size_t num_samples, u32 sample_rate_divisor)
 {
-  if (!IsOutputSampleRateValid())
+  if (!IsOutputSampleRateValid() || wiimote_index >= m_wiimote_speaker_mixers.size())
     return;
 
-  // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
-  static constexpr std::size_t MAX_SPEAKER_SAMPLES = 20 * 2;
-  std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
+  // WiimoteEmu produces host-endian mono samples.
 
-  ASSERT_MSG(AUDIO, num_samples <= MAX_SPEAKER_SAMPLES,
-             "num_samples would overflow samples_stereo: {} > {}", num_samples,
-             MAX_SPEAKER_SAMPLES);
-  if (num_samples <= MAX_SPEAKER_SAMPLES)
+  m_wiimote_speaker_mixers[wiimote_index].SetInputSampleRateDivisor(sample_rate_divisor);
+
+  for (const s16 sample : std::span{samples, num_samples})
   {
-    m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
-
-    for (std::size_t i = 0; i < num_samples; ++i)
-    {
-      samples_stereo[i * 2] = samples[i];
-      samples_stereo[i * 2 + 1] = samples[i];
-    }
-
-    m_wiimote_speaker_mixer.PushSamples(samples_stereo.data(), num_samples);
+    m_wiimote_speaker_mixers[wiimote_index].PushSample(sample, sample);
   }
+}
+
+std::size_t Mixer::MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples,
+                                     std::size_t num_samples)
+{
+  if (!samples || wiimote_index >= m_wiimote_speaker_mixers.size())
+    return 0;
+
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_wiimote_speaker_mixers[wiimote_index].Mix(samples, num_samples);
+  return num_samples;
 }
 
 void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples)
@@ -292,24 +296,13 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_sample
 
   // Skylander samples are always supplied as 64 bytes, 32 x 16 bit samples
   // The portal speaker is 1 channel, so duplicate and play as stereo audio
-  static constexpr std::size_t MAX_PORTAL_SPEAKER_SAMPLES = 32;
-  std::array<s16, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
 
-  ASSERT_MSG(AUDIO, num_samples <= MAX_PORTAL_SPEAKER_SAMPLES,
-             "num_samples is not less or equal to 32: {} > {}", num_samples,
-             MAX_PORTAL_SPEAKER_SAMPLES);
-
-  if (num_samples <= MAX_PORTAL_SPEAKER_SAMPLES)
+  while (num_samples--)
   {
-    for (std::size_t i = 0; i < num_samples; ++i)
-    {
-      s16 const sample =
-          static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
-      samples_stereo[i * 2] = sample;
-      samples_stereo[i * 2 + 1] = sample;
-    }
-
-    m_skylander_portal_mixer.PushSamples(samples_stereo.data(), num_samples);
+    // Little-endian data.
+    const s16 sample = u16(samples[0] | u16(samples[1] << 8u));
+    m_skylander_portal_mixer.PushSample(sample, sample);
+    samples += 2;
   }
 }
 
@@ -318,7 +311,22 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   if (!IsOutputSampleRateValid())
     return;
 
-  m_gba_mixers[device_number].PushSamples(samples, num_samples);
+  // Integrated GBA pushes host-endian LR-ordered stereo samples.
+
+  while (num_samples--)
+  {
+    m_gba_mixers[device_number].PushSample(samples[0], samples[1]);
+    samples += 2;
+  }
+}
+
+std::size_t Mixer::MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples)
+{
+  if (!samples || device_number >= m_gba_mixers.size())
+    return 0;
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_gba_mixers[device_number].Mix(samples, num_samples);
+  return num_samples;
 }
 
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
@@ -331,9 +339,9 @@ void Mixer::SetStreamInputSampleRateDivisor(u32 rate_divisor)
   m_streaming_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor)
+void Mixer::SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate)
 {
-  m_gba_mixers[device_number].SetInputSampleRateDivisor(rate_divisor);
+  m_gba_mixers[device_number].SetInputSampleRateDivisor(GBA_SAMPLE_RATE_DIVIDEND / sample_rate);
 }
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
@@ -342,9 +350,10 @@ void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
                               std::clamp<u32>(rvolume, 0x00, 0xff));
 }
 
-void Mixer::SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume)
+void Mixer::SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume)
 {
-  m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
+  if (wiimote_index < m_wiimote_speaker_mixers.size())
+    m_wiimote_speaker_mixers[wiimote_index].SetVolume(lvolume, rvolume);
 }
 
 void Mixer::SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume)
@@ -356,7 +365,7 @@ void Mixer::StartLogDTKAudio(const std::string& filename)
 {
   if (!m_log_dtk_audio)
   {
-    bool const success =
+    const bool success =
         m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRateDivisor());
     if (success)
     {
@@ -394,7 +403,7 @@ void Mixer::StartLogDSPAudio(const std::string& filename)
 {
   if (!m_log_dsp_audio)
   {
-    bool const success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRateDivisor());
+    const bool success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRateDivisor());
     if (success)
     {
       m_log_dsp_audio = true;
@@ -433,6 +442,12 @@ void Mixer::RefreshConfig()
   m_config_audio_preserve_pitch = Config::Get(Config::MAIN_AUDIO_PRESERVE_PITCH);
   m_config_fill_audio_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
   m_config_audio_buffer_ms = Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE);
+  m_config_wiimote_routing_enabled = Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
+  for (std::size_t i = 0; i < m_config_wiimote_output_enabled.size(); ++i)
+    m_config_wiimote_output_enabled[i] = Config::Get(Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
+  m_config_gba_routing_enabled = Config::Get(Config::MAIN_GBA_AUDIO_ROUTING_ENABLED);
+  for (std::size_t i = 0; i < m_config_gba_output_enabled.size(); ++i)
+    m_config_gba_output_enabled[i] = Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)
@@ -440,6 +455,16 @@ void Mixer::MixerFifo::DoState(PointerWrap& p)
   p.Do(m_input_sample_rate_divisor);
   p.Do(m_LVolume);
   p.Do(m_RVolume);
+}
+
+void Mixer::MixerFifo::SetInputSampleRateDividend(u32 rate_dividend)
+{
+  m_input_sample_rate_dividend = rate_dividend;
+}
+
+u32 Mixer::MixerFifo::GetInputSampleRateDividend() const
+{
+  return m_input_sample_rate_dividend;
 }
 
 void Mixer::MixerFifo::SetInputSampleRateDivisor(u32 rate_divisor)
@@ -517,10 +542,10 @@ void Mixer::MixerFifo::Enqueue()
       0.0002984010f, 0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f,
       0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
 
-  std::size_t const head = m_queue_head.load(std::memory_order_acquire);
+  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
 
   // Check if we run out of space in the circular queue. (rare)
-  std::size_t const next_head = (head + 1) & GRANULE_QUEUE_MASK;
+  const std::size_t next_head = (head + 1) & GRANULE_QUEUE_MASK;
   if (next_head == m_queue_tail.load(std::memory_order_acquire))
   {
     WARN_LOG_FMT(AUDIO,

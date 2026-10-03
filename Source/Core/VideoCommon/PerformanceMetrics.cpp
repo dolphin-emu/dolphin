@@ -8,10 +8,19 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include "Common/HookableEvent.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
-PerformanceMetrics g_perf_metrics;
+PerformanceMetrics::PerformanceMetrics()
+{
+  const auto invalidate_counters_last_time = [this](Core::State) {
+    m_fps_counter.InvalidateLastTime();
+    m_vps_counter.InvalidateLastTime();
+  };
+  m_state_change_hook = Core::AddOnStateChangedCallback(invalidate_counters_last_time);
+}
 
 void PerformanceMetrics::Reset()
 {
@@ -35,12 +44,6 @@ void PerformanceMetrics::CountFrame()
 void PerformanceMetrics::CountVBlank()
 {
   m_vps_counter.Count();
-}
-
-void PerformanceMetrics::OnEmulationStateChanged([[maybe_unused]] Core::State state)
-{
-  m_fps_counter.InvalidateLastTime();
-  m_vps_counter.InvalidateLastTime();
 }
 
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
@@ -105,6 +108,11 @@ void PerformanceMetrics::SetLatestFramePresentationOffset(DT offset)
   m_frame_presentation_offset.store(offset, std::memory_order_relaxed);
 }
 
+void PerformanceMetrics::SetLatestFrameBufferSize(u32 width, u32 height)
+{
+  m_frame_buffer_size.store(FrameBufferSize{width, height}, std::memory_order_relaxed);
+}
+
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
   m_vps_counter.UpdateStats();
@@ -143,6 +151,9 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   // the layout to default. Hopefully users aren't changing window sizes or resolutions too often.
   const ImGuiCond set_next_position_condition =
       (display_size_changed || !movable_overlays) ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+  // Reset the graph size when changing resolutions, and otherwise let the user manually resize it.
+  const ImGuiCond set_next_size_condition =
+      display_size_changed ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 
   float window_y = window_padding;
   float window_x = display_size.x - window_padding;
@@ -167,8 +178,11 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
       ImGui::SetWindowPos(ImVec2(clamped_window_x, clamped_window_y), ImGuiCond_Always);
   };
 
-  const float graph_width = display_size.x / 4.0;
-  const float graph_height = display_size.y / 4.0;
+  const float min_auto_graph_width = 200.f * backbuffer_scale + 2.f * window_padding;
+  const float min_auto_graph_height = 144.f * backbuffer_scale + 2.f * window_padding;
+
+  const float graph_width = std::max(min_auto_graph_width, display_size.x / 4.f);
+  const float graph_height = std::max(min_auto_graph_height, display_size.y / 4.f);
 
   const bool stack_vertically = !g_ActiveConfig.bShowGraphs;
 
@@ -177,7 +191,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   if (g_ActiveConfig.bShowGraphs)
   {
     // A font size of 13 is small enough to keep the tick numbers from overlapping too much.
-    ImGui::PushFont(NULL, 13.0f);
+    ImGui::PushFont(nullptr, 13.0f);
     ImGui::PushStyleColor(ImGuiCol_ResizeGrip, 0);
     const auto graph_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | movable_flag |
@@ -187,7 +201,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
                             ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(graph_width, graph_height), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(graph_width, graph_height), set_next_size_condition);
     ImGui::SetNextWindowBgAlpha(bg_alpha);
     if (ImGui::Begin("PerformanceGraphs", nullptr, graph_flags))
     {
@@ -211,7 +225,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                                                                    2000.0};
 
       clamp_window_position();
-      window_y += ImGui::GetWindowHeight();
+      window_y += ImGui::GetWindowHeight() + window_padding;
 
       const DT vblank_time = m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd();
       const DT frame_time = m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd();
@@ -332,6 +346,27 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_vps_counter.GetDtStd()).count());
       }
+    }
+    ImGui::End();
+  }
+
+  if (g_ActiveConfig.bShowInternalResolution)
+  {
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
+                            ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+
+    if (ImGui::Begin("ResolutionStats", nullptr, imgui_flags))
+    {
+      if (stack_vertically)
+        window_y += ImGui::GetWindowHeight() + window_padding;
+      else
+        window_x -= ImGui::GetWindowWidth() + window_padding;
+
+      clamp_window_position();
+
+      const FrameBufferSize size = m_frame_buffer_size.load(std::memory_order_relaxed);
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "XFB res: %ux%u", size.width, size.height);
     }
     ImGui::End();
   }

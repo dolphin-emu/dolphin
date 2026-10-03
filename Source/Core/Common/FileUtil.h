@@ -26,7 +26,8 @@ enum
 {
   D_USER_IDX,
   D_GCUSER_IDX,
-  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
+  D_WIIROOT_IDX,  // always points to User/Wii or global user-configured directory
+  D_TRIUSER_IDX,
   D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
   D_CONFIG_IDX,           // global settings
   D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
@@ -192,7 +193,7 @@ bool CopyRegularFile(std::string_view source_path, std::string_view destination_
 bool CreateEmptyFile(const std::string& filename);
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(std::string directory, bool recursive);
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory);

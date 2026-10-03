@@ -10,9 +10,10 @@
 #include "VideoCommon/ShaderGenCommon.h"
 
 enum class APIType;
-enum class TexInputForm : u32;
-enum class TexGenType : u32;
-enum class SourceRow : u32;
+enum class TexInputForm : u8;
+enum class TexGenType : u8;
+enum class SourceRow : u8;
+enum class TexSize : u8;
 enum class VSExpand : u32;
 
 // TODO should be reordered
@@ -50,41 +51,57 @@ constexpr ShaderAttrib operator+(ShaderAttrib attrib, int offset)
   return static_cast<ShaderAttrib>(static_cast<u8>(attrib) + offset);
 }
 
-#pragma pack(1)
-
-struct vertex_shader_uid_data
+// Currently optimized to 28 bytes (with 8 bits spare)
+// The smaller (and less redundant) this is, the better.
+// Though, it probably does like to be somewhat aligned.
+struct alignas(4) vertex_shader_uid_data
 {
   u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
-  u32 components : 23;
-  u32 numTexGens : 4;
-  u32 numColorChans : 2;
-  u32 dualTexTrans_enabled : 1;
-  VSExpand vs_expand : 2;
+  u32 components : 14;
   u32 position_has_3_elems : 1;
+  u32 dualTexTrans_enabled : 1;
+  u32 numTexGens : 4;  // if more bits are needed, this could be eliminated by somehow marking the
+                       // first unused texGen as empty.
+  u32 numColorChans : 2;  // Output color channels.
+  VSExpand vs_expand : 2;
 
-  u16 texcoord_elem_count;      // 2 bits per texcoord input
-  u16 texMtxInfo_n_projection;  // Stored separately to guarantee that the texMtxInfo struct is
-                                // 8 bits wide
+  u32 pad : 8;
 
+  // texInfo is optimized to fit all per-texgen config into just 16-bits.
+  // But it did require a union
   struct
   {
-    TexInputForm inputform : 2;
-    TexGenType texgentype : 3;
-    SourceRow sourcerow : 5;
-    u32 embosssourceshift : 3;
-    u32 embosslightshift : 3;
-  } texMtxInfo[8];
+    u8 texcoord_elem_count : 2;
+    TexInputForm inputform : 1;
+    SourceRow sourcerow : 4;
+    bool is_regular_texgen : 1;  // union tag
+    union
+    {
+      struct
+      {
+        u8 postmtx_index : 6;
+        u8 postmtx_normalize : 1;
+        TexSize projection : 1;
+      } regular;
+      struct
+      {
+        TexGenType texgentype : 2;
+        // these are only used by EmbossMap texgen.
+        u8 emboss_sourceshift : 3;
+        u8 emboss_lightshift : 3;
+      } other;
+    };
+  } texGenInfo[8];
 
-  struct
-  {
-    u32 index : 6;
-    u32 normalize : 1;
-    u32 pad : 1;
-  } postMtxInfo[8];
+  static_assert(sizeof(texGenInfo[0]) == 2, "texGenInfo should be 2 bytes per texgen");
 
   LightingUidData lighting;
 };
-#pragma pack()
+
+// We do need to make sure lighting is correctly aligned
+static_assert(offsetof(vertex_shader_uid_data, lighting) % alignof(LightingUidData) == 0);
+static_assert(offsetof(vertex_shader_uid_data, texGenInfo) % alignof(u32) == 0);
+static_assert(sizeof(vertex_shader_uid_data) == 28, "vertex_shader_uid_data should be 28 bytes");
 
 using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 

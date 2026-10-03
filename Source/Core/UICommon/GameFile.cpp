@@ -128,7 +128,6 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
       m_gametdb_id = volume->GetGameTDBID();
-      m_triforce_id = volume->GetTriforceID();
       m_title_id = volume->GetTitleID().value_or(0);
       m_maker_id = volume->GetMakerID();
       m_revision = volume->GetRevision().value_or(0);
@@ -309,7 +308,6 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_internal_name);
   p.Do(m_game_id);
   p.Do(m_gametdb_id);
-  p.Do(m_triforce_id);
   p.Do(m_title_id);
   p.Do(m_maker_id);
 
@@ -498,8 +496,7 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
   if (IsModDescriptor())
     return GetName(Variant::LongAndPossiblyCustom);
 
-  const std::string& database_name =
-      title_database.GetTitleName(m_gametdb_id, m_triforce_id, GetConfigLanguage());
+  const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
@@ -625,7 +622,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   if (!GetGameID().empty())
     info.push_back(GetGameID());
   if (GetRevision() != 0)
-    info.push_back("Revision " + std::to_string(GetRevision()));
+    info.push_back(fmt::format("Revision {}", GetRevision()));
 
   const std::string name = GetName(title_database);
 
@@ -633,12 +630,12 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
 
   std::string lower_name = name;
   Common::ToLower(&lower_name);
-  if (disc_number > 1 &&
-      lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
-      lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
+  auto is_numbered_disc = lower_name.contains(fmt::format("disc {}", disc_number)) ||
+                          lower_name.contains(fmt::format("disc{}", disc_number));
+
+  if (disc_number > 1 && !is_numbered_disc)
   {
-    std::string disc_text = "Disc ";
-    info.push_back(disc_text + std::to_string(disc_number));
+    info.push_back(fmt::format("Disc {}", disc_number));
   }
   if (info.empty())
     return name;
@@ -845,7 +842,8 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
+  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate &&
+         !IsModDescriptor();
 }
 
 bool GameFile::IsModDescriptor() const

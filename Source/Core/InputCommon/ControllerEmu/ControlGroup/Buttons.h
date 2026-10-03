@@ -15,7 +15,7 @@ class Buttons : public ControlGroup
 {
 public:
   explicit Buttons(const std::string& name_);
-  Buttons(const std::string& ini_name, const std::string& group_name);
+  Buttons(std::string ini_name, std::string group_name);
 
   template <typename C>
   void GetState(C* const buttons, const C* bitmasks) const

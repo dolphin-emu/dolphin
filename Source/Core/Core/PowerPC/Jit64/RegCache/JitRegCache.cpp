@@ -215,7 +215,7 @@ RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(
 }
 
 RCForkGuard::RCForkGuard(RCForkGuard&& other) noexcept
-    : rc(other.rc), m_regs(std::move(other.m_regs)), m_xregs(std::move(other.m_xregs))
+    : rc(other.rc), m_regs(other.m_regs), m_xregs(other.m_xregs)
 {
   other.rc = nullptr;
 }
@@ -330,19 +330,20 @@ void RegCache::Discard(BitSet32 pregs)
   }
 }
 
-void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_registers)
+void RegCache::Flush(BitSet32 pregs, FlushMode mode,
+                     IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
              "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
   {
-    ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, std::to_underlying(RX(i)));
+    ASSERT_MSG(DYNA_REC, mode != FlushMode::Full || !m_regs[i].IsLocked(),
+               "Someone forgot to unlock PPC reg {} (X64 reg {}).", i, std::to_underlying(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
-    StoreFromRegister(i, FlushMode::Full, ignore_discarded_registers);
+    StoreFromRegister(i, mode, ignore_discarded_registers);
   }
 }
 
@@ -615,7 +616,7 @@ void RegCache::Realize(preg_t preg)
 
   if (m_constraints[preg].ShouldBeRevertable())
   {
-    StoreFromRegister(preg, FlushMode::MaintainState);
+    StoreFromRegister(preg, FlushMode::Undirty);
     do_bind();
     m_regs[preg].SetRevertable();
     return;

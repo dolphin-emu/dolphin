@@ -13,7 +13,6 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -89,7 +88,7 @@ public:
   virtual void OnIndexRefreshFailed(std::string error) = 0;
 
   virtual void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
-                                         const std::vector<int>& players) = 0;
+                                         std::span<const int> players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 
@@ -114,8 +113,8 @@ public:
   void ThreadFunc();
   void SendAsync(sf::Packet&& packet, u8 channel_id = DEFAULT_CHANNEL);
 
-  NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                const std::string& name, const NetTraversalConfig& traversal_config);
+  NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, std::string name,
+                const NetTraversalConfig& traversal_config);
   ~NetPlayClient() override;
 
   std::vector<const Player*> GetPlayers();
@@ -233,10 +232,6 @@ protected:
 
   u32 m_current_game = 0;
 
-  PadMappingArray m_pad_map{};
-  GBAConfigArray m_gba_config{};
-  PadMappingArray m_wiimote_map{};
-
   bool m_is_recording = false;
 
 private:
@@ -262,7 +257,6 @@ private:
   bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
                                sf::Packet& packet);
 
-  void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
                                sf::Packet& packet);

@@ -234,10 +234,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 void Jit64::dcbx(UGeckoInstruction inst)
 {
-  FALLBACK_IF(m_accurate_cpu_cache_enabled);
-
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
@@ -305,25 +304,16 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // Load the loop_counter register with the amount of invalidations to execute.
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
 
-    if (IsDebuggingEnabled())
+    if (IsBranchWatchEnabled())
     {
-      const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
       const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
-                                      ~BitSet32{int(bw_reg_a), int(bw_reg_b)};
-
-      MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
-      MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
-      TEST(32, R(bw_reg_b), R(bw_reg_b));
-
-      FixupBranch branch_in = J_CC(CC_NZ, Jump::Near);
-      SwitchToFarCode();
-      SetJumpTarget(branch_in);
+                                      ~BitSet32{int(reg_cycle_count), int(reg_downcount)};
 
       // Assert RSCRATCH2 won't be clobbered before it is moved from.
       static_assert(RSCRATCH2 != ABI_PARAM1);
 
       ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
-      MOV(64, R(ABI_PARAM1), R(bw_reg_a));
+      MOV(64, R(ABI_PARAM1), ImmPtr(&m_branch_watch));
       // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
       // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
       MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
@@ -333,15 +323,11 @@ void Jit64::dcbx(UGeckoInstruction inst)
       ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
                                             &Core::BranchWatch::HitPhysicalTrue_fk_n);
       ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
-
-      FixupBranch branch_out = J(Jump::Near);
-      SwitchToNearCode();
-      SetJumpTarget(branch_out);
     }
   }
 
-  X64Reg addr = RSCRATCH;
-  MOV_sum(32, addr, Ra, Rb);
+  X64Reg effective_address = RSCRATCH;
+  MOV_sum(32, effective_address, Ra, Rb);
 
   if (make_loop)
   {
@@ -352,19 +338,19 @@ void Jit64::dcbx(UGeckoInstruction inst)
   }
 
   X64Reg tmp = RSCRATCH2;
-  RCX64Reg effective_address = gpr.Scratch();
-  RegCache::Realize(effective_address);
+  RCX64Reg addr = gpr.Scratch();
+  RegCache::Realize(addr);
 
   FixupBranch bat_lookup_failed;
-  MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
+  MOV(32, R(addr), R(effective_address));
   if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
   {
     // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(addr, tmp, m_jit.m_mmu.GetIBATTable().data());
     MOV(32, R(tmp), R(effective_address));
-    AND(32, R(tmp), Imm32(0x0001ffff));
-    AND(32, R(addr), Imm32(0xfffe0000));
+    AND(32, R(tmp), Imm32(PowerPC::BAT_PAGE_SIZE - 1));
+    AND(32, R(addr), Imm32(~(PowerPC::BAT_PAGE_SIZE - 1)));
     OR(32, R(addr), R(tmp));
   }
 
@@ -380,7 +366,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   if (make_loop)
   {
     ADD(32, R(effective_address), Imm8(32));
-    MOV(32, R(addr), R(effective_address));
     SUB(32, R(loop_counter), Imm8(1));
     J_CC(CC_NZ, loop_start);
   }
@@ -393,6 +378,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   registersInUse[X64Reg(tmp)] = false;
   registersInUse[X64Reg(effective_address)] = false;
+  registersInUse[X64Reg(addr)] = false;
   if (make_loop)
     registersInUse[X64Reg(loop_counter)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
@@ -461,7 +447,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) &&
+                        m_jit.jo.fastmem_arena && !m_accurate_cpu_cache_enabled;
 
   if (emit_fast_path)
   {

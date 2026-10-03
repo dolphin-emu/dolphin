@@ -1,0 +1,65 @@
+{
+	"meta":
+	{
+		"title": "Bloom Blurred",
+		"author": "Dolphin Team",
+		"description": "Modifies bloom effects to blur them to their native resolution.  Results in bloom looking much more natural at higher resolutions but the blur may be too intense in some games."
+	},
+	"groups":
+	[
+		{
+			"name": "CustomBloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000134_20x14_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000022_40x28_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000131_80x56_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000130_160x112_6"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "CustomBloom",
+			"action": "custom_pipeline",
+			"action_data":
+			{
+				"material_asset": "dolphin_bloom_blur_horizontal"
+			}
+		}
+	],
+	"assets": [
+		{
+			"data": {
+				"metadata": "../../All Games Blurred Bloom/blur.rastershader",
+				"pixel_shader": "../../All Games Blurred Bloom/blur.ps.glsl",
+				"vertex_shader": "../../All Games Blurred Bloom/blur.vs.glsl"
+			},
+			"name": "dolphin_bloom_blur"
+		},
+		{
+			"data": {
+				"metadata": "../../All Games Blurred Bloom/blur_horizontal.rastermaterial"
+			},
+			"name": "dolphin_bloom_blur_horizontal"
+		},
+		{
+			"data": {
+				"metadata": "../../All Games Blurred Bloom/blur_vertical.rastermaterial"
+			},
+			"name": "dolphin_bloom_blur_vertical"
+		}
+	]
+}

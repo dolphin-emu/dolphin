@@ -26,6 +26,9 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
+
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 #include "DolphinQt/Config/Mapping/GBAPadEmu.h"
@@ -457,7 +460,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_STEERINGWHEEL:
   case Type::MAPPING_GC_DANCEMAT:
   case Type::MAPPING_GCPAD:
-    widget = new GCPadEmu(this);
+    widget = CreateStandardControllerMappingWidget(this);
     setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Controller"), widget);
     break;
@@ -516,6 +519,11 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     setWindowTitle(tr("Free Look Controller %1").arg(GetPort() + 1));
   }
   break;
+  case Type::MAPPING_AM_BASEBOARD:
+    widget = CreateAMBaseboardMappingWidget(this);
+    setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("Triforce Baseboard"), widget);
+    break;
   default:
     return;
   }

@@ -860,7 +860,7 @@ size_t WIARVZFileReader<RVZ>::Chunk::GetOutBytesWrittenExcludingExceptions() con
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::ApplyHashExceptions(
-    const std::vector<HashExceptionEntry>& exception_list,
+    std::span<const HashExceptionEntry> exception_list,
     VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP])
 {
   for (const HashExceptionEntry& exception : exception_list)

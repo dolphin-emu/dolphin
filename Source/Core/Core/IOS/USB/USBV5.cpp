@@ -192,7 +192,7 @@ IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlReq
 }
 
 std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlRequest& request,
-                                                                Handler handler)
+                                                                const Handler& handler)
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 0x20)
     return IPCReply(IPC_EINVAL);

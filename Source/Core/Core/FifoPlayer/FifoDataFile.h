@@ -5,6 +5,7 @@
 
 #include <array>
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -92,7 +93,7 @@ private:
   void SetFlag(u32 flag, bool set);
   bool GetFlag(u32 flag) const;
 
-  u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
+  u64 WriteMemoryUpdates(std::span<const MemoryUpdate> memUpdates, File::IOFile& file);
   static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
                                 std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
 

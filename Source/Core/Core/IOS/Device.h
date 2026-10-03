@@ -186,7 +186,7 @@ public:
     OH0,     // OH0 child devices which are created dynamically.
   };
 
-  Device(Kernel& ios, const std::string& device_name, DeviceType type = DeviceType::Static);
+  Device(Kernel& ios, std::string device_name, DeviceType type = DeviceType::Static);
 
   virtual ~Device() = default;
   virtual void DoState(PointerWrap& p);

@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Functional.h"
 #include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
@@ -47,7 +48,8 @@ struct Globals
   float last_OC_factor_inverted = 0.0f;
 };
 
-typedef void (*TimedCallback)(Core::System& system, u64 userdata, s64 cyclesLate);
+using TimedCallback =
+    Common::MoveOnlyFunction<void(Core::System& system, u64 userdata, s64 cyclesLate)>;
 
 struct EventType
 {

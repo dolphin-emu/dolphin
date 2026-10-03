@@ -26,7 +26,7 @@ constexpr float TCScale(T val, float scale)
 }
 
 template <>
-constexpr float TCScale(float val, [[maybe_unused]] float scale)
+constexpr float TCScale(float val, float /* scale */)
 {
   return val;
 }

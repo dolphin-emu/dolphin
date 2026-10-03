@@ -21,6 +21,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
@@ -228,12 +229,16 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   ppc_state.pc = ppc_state.gpr[3];
 
   branch_watch.SetRecordingActive(guard, resume_branch_watch);
-  // Blank out session key (https://debugmo.de/2008/05/part-2-dumping-the-media-board/)
-  if (volume.GetVolumeType() == DiscIO::Platform::Triforce)
+
+  if (system.IsTriforce())
   {
     auto& memory = system.GetMemory();
 
-    memory.Memset(0, 0, 12);
+    AMMediaboard::InitDIMM(volume);
+
+    // Triforce disc register obfuscation
+    AMMediaboard::InitKeys(memory.Read_U32(0), memory.Read_U32(4), memory.Read_U32(8));
+    AMMediaboard::FirmwareMap(false);
   }
 
   return true;

@@ -191,7 +191,7 @@ protected:
     ResetCodeBuffer();
   }
 
-  void ExpectBytes(const std::vector<u8> expected_bytes)
+  void ExpectBytes(const std::vector<u8>& expected_bytes)
   {
     const std::vector code_bytes(code_buffer, emitter->GetWritableCodePtr());
 

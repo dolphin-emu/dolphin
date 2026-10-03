@@ -58,18 +58,22 @@ private:
 
   void OnClear();
   void OnClicked(QTableWidgetItem* item);
+  void OnToggleBreaking();
   void OnNewBreakpoint();
   void OnEditBreakpoint(u32 address, bool is_instruction_bp);
   void OnLoad();
   void OnSave();
   void OnContextMenu(const QPoint& pos);
   void OnItemChanged(QTableWidgetItem* item);
+  void OnDebugFontChanged(const QFont& font);
+
   void UpdateIcons();
 
   Core::System& m_system;
 
   QToolBar* m_toolbar;
   QTableWidget* m_table;
+  QAction* m_enabled;
   QAction* m_new;
   QAction* m_clear;
   QAction* m_load;

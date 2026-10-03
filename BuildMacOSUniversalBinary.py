@@ -69,6 +69,9 @@ DEFAULT_CONFIG = {
     # Whether our autoupdate functionality is enabled or not.
     "autoupdate": True,
 
+    # Whether CCache is used for the build or not.
+    "ccache": False,
+
     # The distributor for this build.
     "distributor": "None"
 }
@@ -118,6 +121,12 @@ def parse_args(conf=DEFAULT_CONFIG):
         help="Enables our autoupdate functionality",
         action=argparse.BooleanOptionalAction,
         default=conf["autoupdate"])
+
+    parser.add_argument(
+        "--ccache",
+        help="Enables CCache",
+        action=argparse.BooleanOptionalAction,
+        default=conf["ccache"])
 
     parser.add_argument(
         "--distributor",
@@ -304,7 +313,9 @@ def build(config):
                 # iconv, bzip2, and curl
                 "-DUSE_SYSTEM_ICONV=ON",
                 "-DUSE_SYSTEM_BZIP2=ON",
-                "-DUSE_SYSTEM_CURL=ON"
+                "-DUSE_SYSTEM_CURL=ON",
+                "-DENABLE_CCACHE="
+                + python_to_cmake_bool(config["ccache"]),
             ],
             env=env, cwd=arch)
 

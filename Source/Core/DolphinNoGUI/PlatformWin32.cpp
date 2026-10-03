@@ -8,7 +8,7 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <climits>
 #include <dwmapi.h>
 
@@ -196,6 +196,11 @@ LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wPa
       g_presenter->ResizeSurface();
   }
   break;
+
+  case WM_KEYDOWN:
+    if (wParam == VK_ESCAPE)
+      platform->RequestShutdown();
+    break;
 
   case WM_CLOSE:
     platform->RequestShutdown();

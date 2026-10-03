@@ -329,13 +329,13 @@ std::string SystemUpdater::GetDeviceId()
   u32 ios_device_id;
   if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
     return "";
-  return std::to_string((u64(1) << 32) | ios_device_id);
+  return std::to_string((1ULL << 32) | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater
 {
 public:
-  OnlineSystemUpdater(UpdateCallback update_callback, const std::string& region);
+  OnlineSystemUpdater(UpdateCallback update_callback, std::string region);
   UpdateResult DoOnlineUpdate();
 
 private:
@@ -346,7 +346,7 @@ private:
   };
 
   Response GetSystemTitles();
-  Response ParseTitlesResponse(const std::vector<u8>& response) const;
+  Response ParseTitlesResponse(std::span<const u8> response) const;
   bool ShouldInstallTitle(const TitleInfo& title);
 
   UpdateResult InstallTitleFromNUS(const std::string& prefix_url, const TitleInfo& title,
@@ -365,13 +365,13 @@ private:
   Common::HttpRequest m_http{std::chrono::minutes{3}};
 };
 
-OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, const std::string& region)
-    : m_update_callback(std::move(update_callback)), m_requested_region(region)
+OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, std::string region)
+    : m_update_callback(std::move(update_callback)), m_requested_region(std::move(region))
 {
 }
 
 OnlineSystemUpdater::Response
-OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
+OnlineSystemUpdater::ParseTitlesResponse(std::span<const u8> response) const
 {
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());

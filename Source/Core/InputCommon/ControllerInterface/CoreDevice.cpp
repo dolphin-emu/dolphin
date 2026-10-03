@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -25,7 +26,8 @@ class CombinedInput final : public Device::Input
 public:
   using Inputs = std::pair<Device::Input*, Device::Input*>;
 
-  CombinedInput(std::string name, const Inputs& inputs) : m_name(std::move(name)), m_inputs(inputs)
+  CombinedInput(std::string name, Inputs inputs)
+      : m_name(std::move(name)), m_inputs(std::move(inputs))
   {
   }
   ControlState GetState() const override
@@ -259,12 +261,7 @@ std::vector<std::shared_ptr<Device>> DeviceContainer::GetAllDevices() const
 {
   std::lock_guard lk(m_devices_mutex);
 
-  std::vector<std::shared_ptr<Device>> devices;
-
-  for (const auto& d : m_devices)
-    devices.emplace_back(d);
-
-  return devices;
+  return m_devices;
 }
 
 std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const

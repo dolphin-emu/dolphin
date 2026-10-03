@@ -156,7 +156,7 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   clock_override_layout->addLayout(cpu_clock_override_slider_layout);
 
-  m_cpu_clock_override_slider = new ConfigFloatSlider(0.01f, 4.0f, Config::MAIN_OVERCLOCK, 0.01f);
+  m_cpu_clock_override_slider = new ConfigFloatSlider(0.01f, 5.0f, Config::MAIN_OVERCLOCK, 0.01f);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
   m_cpu_label = new QLabel();
@@ -263,7 +263,7 @@ void AdvancedPane::CreateLayout()
   mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem2_override_slider_layout);
 
-  m_mem2_override_slider = new ConfigSliderU32(64, 128, Config::MAIN_MEM2_SIZE, 0x100000);
+  m_mem2_override_slider = new ConfigSliderU32(64, 256, Config::MAIN_MEM2_SIZE, 0x100000);
   mem2_override_slider_layout->addWidget(m_mem2_override_slider);
 
   m_mem2_label =
@@ -276,10 +276,9 @@ void AdvancedPane::CreateLayout()
   });
 
   m_ram_override_checkbox->SetDescription(
-      tr("Adjusts the amount of RAM in the emulated console.<br><br>"
-         "<b>WARNING</b>: Enabling this will completely break many games.<br>Only a small "
-         "number "
-         "of games can benefit from this."
+      tr("Sets the amount of RAM in the emulated console to the values provided.<br><br>"
+         "<b>WARNING</b>: Enabling this will completely break many games. By default, Dolphin "
+         "determines what value is required based on the game information."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
@@ -336,11 +335,12 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
-                             static_cast<u32>(date_time.toSecsSinceEpoch()));
-    Update();
-  });
+  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged,
+          [this](const QDateTime& date_time) {
+            Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+                                     static_cast<u32>(date_time.toSecsSinceEpoch()));
+            Update();
+          });
 }
 
 void AdvancedPane::Update()

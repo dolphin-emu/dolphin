@@ -70,7 +70,6 @@ add_library(core
   Debugger/Debugger_SymbolMap.h
   Debugger/Dump.cpp
   Debugger/Dump.h
-  Debugger/GCELF.h
   Debugger/OSThread.cpp
   Debugger/OSThread.h
   Debugger/PPCDebugInterface.cpp
@@ -181,6 +180,8 @@ add_library(core
   HW/DSPLLE/DSPSymbols.h
   HW/DVD/DVDInterface.cpp
   HW/DVD/DVDInterface.h
+  HW/DVD/AMMediaboard.cpp
+  HW/DVD/AMMediaboard.h
   HW/DVD/DVDMath.cpp
   HW/DVD/DVDMath.h
   HW/DVD/DVDThread.cpp
@@ -248,10 +249,18 @@ add_library(core
   HW/HSP/HSP_Device.h
   HW/HSP/HSP_DeviceARAMExpansion.cpp
   HW/HSP/HSP_DeviceARAMExpansion.h
+  HW/HSP/HSP_DeviceGBPlayer.cpp
+  HW/HSP/HSP_DeviceGBPlayer.h
   HW/HSP/HSP_DeviceNull.cpp
   HW/HSP/HSP_DeviceNull.h
   HW/HW.cpp
   HW/HW.h
+  HW/MagCard/C1231BR.cpp
+  HW/MagCard/C1231BR.h
+  HW/MagCard/C1231LR.cpp
+  HW/MagCard/C1231LR.h
+  HW/MagCard/MagneticCardReader.cpp
+  HW/MagCard/MagneticCardReader.h
   HW/Memmap.cpp
   HW/Memmap.h
   HW/MemoryInterface.cpp
@@ -274,6 +283,8 @@ add_library(core
   HW/SI/SI_DeviceGCSteeringWheel.h
   HW/SI/SI_DeviceKeyboard.cpp
   HW/SI/SI_DeviceKeyboard.h
+  HW/SI/SI_DeviceAMBaseboard.cpp
+  HW/SI/SI_DeviceAMBaseboard.h
   HW/SI/SI_DeviceNull.cpp
   HW/SI/SI_DeviceNull.h
   HW/SI/SI.cpp
@@ -284,6 +295,22 @@ add_library(core
   HW/StreamADPCM.h
   HW/SystemTimers.cpp
   HW/SystemTimers.h
+  HW/Triforce/DeckReader.cpp
+  HW/Triforce/DeckReader.h
+  HW/Triforce/FZeroAX.cpp
+  HW/Triforce/FZeroAX.h
+  HW/Triforce/ICCardReader.cpp
+  HW/Triforce/ICCardReader.h
+  HW/Triforce/IOPorts.cpp
+  HW/Triforce/IOPorts.h
+  HW/Triforce/JVSIO.cpp
+  HW/Triforce/JVSIO.h
+  HW/Triforce/MarioKartGP.cpp
+  HW/Triforce/MarioKartGP.h
+  HW/Triforce/SerialDevice.cpp
+  HW/Triforce/SerialDevice.h
+  HW/Triforce/Touchscreen.cpp
+  HW/Triforce/Touchscreen.h
   HW/VideoInterface.cpp
   HW/VideoInterface.h
   HW/WII_IPC.cpp
@@ -563,6 +590,20 @@ add_library(core
   WiiUtils.h
 )
 
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AchievementApprovedHash.h
+  COMMAND ${CMAKE_COMMAND}
+          -DJSON_FILE=${CMAKE_SOURCE_DIR}/Data/Sys/ApprovedInis.json
+          -DTEMPLATE_FILE=${CMAKE_CURRENT_SOURCE_DIR}/AchievementApprovedHash.h.in
+          -DOUTPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/AchievementApprovedHash.h
+          -P ${CMAKE_SOURCE_DIR}/CMake/GenerateAchievementHash.cmake
+  DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys/ApprovedInis.json
+          ${CMAKE_CURRENT_SOURCE_DIR}/AchievementApprovedHash.h.in
+  COMMENT "Generating AchievementApprovedHash.h"
+)
+
+target_sources(core PRIVATE AchievementApprovedHash.h)
+
 if(_M_X86_64)
   target_sources(core PRIVATE
     DSP/Jit/x64/DSPEmitter.cpp
@@ -650,7 +691,6 @@ PUBLIC
   inputcommon
   MbedTLS::mbedtls
   pugixml
-  RangeSet::RangeSet
   sfml-network
   videonull
   videoogl

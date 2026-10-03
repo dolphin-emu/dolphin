@@ -7,6 +7,10 @@
 
 #include "Core/DolphinAnalytics.h"
 
+#ifdef __APPLE__
+#include "Common/CommonFuncs.h"
+#endif
+
 namespace DriverDetails
 {
 struct BugInfo
@@ -148,9 +152,9 @@ constexpr BugInfo m_known_bugs[] = {
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART,
      -1.0, -1.0, true},
     {API_VULKAN, OS_OSX, VENDOR_APPLE, DRIVER_PORTABILITY, Family::UNKNOWN,
-     BUG_BROKEN_DISCARD_WITH_EARLY_Z, -1.0, -1.0, true},
+     BUG_BROKEN_DISCARD_WITH_EARLY_Z, 1100, 1400, true},
     {API_METAL, OS_OSX, VENDOR_APPLE, DRIVER_APPLE, Family::UNKNOWN,
-     BUG_BROKEN_DISCARD_WITH_EARLY_Z, -1.0, -1.0, true},
+     BUG_BROKEN_DISCARD_WITH_EARLY_Z, 1100, 1400, true},
     {API_VULKAN, OS_OSX, VENDOR_INTEL, DRIVER_PORTABILITY, Family::UNKNOWN,
      BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING, -1.0, -1.0, true},
     {API_METAL, OS_OSX, VENDOR_INTEL, DRIVER_APPLE, Family::UNKNOWN,
@@ -197,6 +201,16 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
       break;
     }
   }
+
+#ifdef __APPLE__
+  // The Metal graphics drivers are part of macOS, so we use the current macOS version as the
+  // driver version for Metal and Vulkan on Metal.
+  if (api == API_METAL || (api == API_VULKAN && driver == DRIVER_PORTABILITY))
+  {
+    Common::MacOSVersion mac_version = Common::GetMacOSVersion();
+    m_version = mac_version.major * 100 + mac_version.minor;
+  }
+#endif
 
   // Clear bug list, as the API may have changed
   m_bugs.clear();

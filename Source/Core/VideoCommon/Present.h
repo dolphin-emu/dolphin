@@ -61,6 +61,15 @@ public:
 
   void UpdateDrawRectangle();
 
+  // Get the amount of pixels the given rect should be cropped on all sides from custom cropping.
+  MathUtil::Rectangle<int> GetCustomCrop(const MathUtil::Rectangle<int>& rect) const;
+
+  // Crop the given rectangle by the custom cropping.
+  MathUtil::Rectangle<int> AdjustForCustomCrop(const MathUtil::Rectangle<int>& rect) const;
+
+  // Modify an aspect ratio by the aspect ratio change that custom cropping will apply.
+  float AdjustAspectRatioForCustomCrop(float input_aspect_ratio) const;
+
   // Returns the target aspect ratio the XFB output should be drawn with.
   float CalculateDrawAspectRatio(bool allow_stretch = true) const;
 

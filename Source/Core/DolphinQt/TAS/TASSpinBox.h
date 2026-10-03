@@ -19,6 +19,8 @@ public:
   int GetValue() const;
   // Must be called from the CPU thread
   void OnControllerValueChanged(int new_value);
+  QValidator::State validate(QString& input, int& pos) const override;
+  void fixup(QString& input) const override;
 
 private slots:
   void OnUIValueChanged(int new_value);

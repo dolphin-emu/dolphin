@@ -4,12 +4,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <utility>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #else
 #include <netinet/in.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -31,16 +33,13 @@ using ws_ssize_t = int;
 using ws_ssize_t = ssize_t;
 #endif
 
-#ifdef __linux__
-#define SEND_FLAGS MSG_NOSIGNAL
-#else
-#define SEND_FLAGS 0
-#endif
+using Common::SEND_FLAGS;
 
-TAPServerConnection::TAPServerConnection(const std::string& destination,
+TAPServerConnection::TAPServerConnection(std::string destination,
                                          std::function<void(std::string&&)> recv_cb,
                                          std::size_t max_frame_size)
-    : m_destination(destination), m_recv_cb(recv_cb), m_max_frame_size(max_frame_size)
+    : m_destination(std::move(destination)), m_recv_cb(std::move(recv_cb)),
+      m_max_frame_size(max_frame_size)
 {
 }
 
@@ -114,11 +113,7 @@ static int ConnectToDestination(const std::string& destination)
     return -1;
   }
 
-#ifdef __APPLE__
-  int opt_no_sigpipe = 1;
-  if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
-    INFO_LOG_FMT(SP1, "Failed to set SO_NOSIGPIPE on socket\n");
-#endif
+  Common::SetPlatformSocketOptions(fd);
 
   if (connect(fd, reinterpret_cast<sockaddr*>(&ss), ss_size) == -1)
   {

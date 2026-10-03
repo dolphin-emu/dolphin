@@ -89,7 +89,7 @@ void Watches::RemoveWatch(std::size_t index)
   m_watches.erase(m_watches.begin() + index);
 }
 
-void Watches::LoadFromStrings(const std::vector<std::string>& watches)
+void Watches::LoadFromStrings(std::span<const std::string> watches)
 {
   for (const std::string& watch : watches)
   {

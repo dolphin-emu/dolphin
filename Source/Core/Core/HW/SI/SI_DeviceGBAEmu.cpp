@@ -14,6 +14,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/GBACore.h"
 #include "Core/HW/GBAPad.h"
+#include "Core/HW/GBAPadEmu.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"
@@ -91,11 +92,9 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
   case NextAction::ReceiveResponse:
   {
     m_next_action = NextAction::SendCommand;
-
-    std::vector<u8> response = m_core->GetJoybusResponse();
-    if (response.empty())
+    const auto response_length = m_core->GetJoybusResponse(buffer);
+    if (response_length == 0)
       return -1;
-    std::ranges::copy(response, buffer);
 
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =
@@ -105,10 +104,10 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-                    response.size());
+                    response_length);
 #endif
 
-    return static_cast<int>(response.size());
+    return response_length;
   }
   }
 
@@ -130,25 +129,11 @@ DataResponse CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
                                                                 m_device_number, &pad_status);
 
-  static constexpr std::array<PadButton, 10> buttons_map = {
-      PadButton::PAD_BUTTON_A,      // A
-      PadButton::PAD_BUTTON_B,      // B
-      PadButton::PAD_TRIGGER_Z,     // Select
-      PadButton::PAD_BUTTON_START,  // Start
-      PadButton::PAD_BUTTON_RIGHT,  // Right
-      PadButton::PAD_BUTTON_LEFT,   // Left
-      PadButton::PAD_BUTTON_UP,     // Up
-      PadButton::PAD_BUTTON_DOWN,   // Down
-      PadButton::PAD_TRIGGER_R,     // R
-      PadButton::PAD_TRIGGER_L,     // L
-  };
+  // Note: The misused GCPadStatus contains GBA button values.
+  m_keys = pad_status.button & GBAPad::GBA_ALL_BUTTONS;
 
-  m_keys = 0;
-  for (size_t i = 0; i < buttons_map.size(); ++i)
-    m_keys |= static_cast<u16>(static_cast<bool>((pad_status.button & buttons_map[i]))) << i;
-
-  // Use X button as a reset signal for NetPlay/Movies
-  if (pad_status.button & PadButton::PAD_BUTTON_X)
+  // A reset signal for NetPlay/Movies
+  if (pad_status.button & GBAPad::PAD_STATUS_RESET_SIGNAL)
     m_core->Reset();
 
   return DataResponse::NoData;
@@ -169,7 +154,7 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
-  m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
+  m_core->SyncJoybus(m_system.GetCoreTiming().GetTicks() + userdata, m_keys);
 
   const auto num_cycles = userdata + GetSyncInterval(m_system.GetSystemTimers());
   m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);

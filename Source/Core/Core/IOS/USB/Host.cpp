@@ -111,7 +111,7 @@ void USBHost::OnDevicesChangedInternal(const USBScanner::DeviceMap& new_devices)
                    device->GetPid());
 
       changes = true;
-      auto device_copy = std::move(device);
+      auto device_copy = device;
       it = m_devices.erase(it);
       OnDeviceChange(ChangeEvent::Removed, std::move(device_copy));
     }
@@ -138,8 +138,9 @@ void USBHost::OnDevicesChangedInternal(const USBScanner::DeviceMap& new_devices)
     OnDeviceChangeEnd();
 }
 
-std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                                std::function<s32()> submit) const
+std::optional<IPCReply> USBHost::HandleTransfer(const std::shared_ptr<USB::Device>& device,
+                                                u32 request,
+                                                const std::function<s32()>& submit) const
 {
   if (!device)
     return IPCReply(IPC_ENOENT);

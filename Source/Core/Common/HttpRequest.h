@@ -10,6 +10,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -50,9 +51,9 @@ public:
   std::string GetHeaderValue(std::string_view name) const;
   Response Get(const std::string& url, const Headers& headers = {},
                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
-  Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
+  Response Post(const std::string& url, std::span<const u8> payload, const Headers& headers = {},
                 AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
-  Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
+  Response Post(const std::string& url, std::string_view payload, const Headers& headers = {},
                 AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
   Response PostMultiform(const std::string& url, std::span<Multiform> multiform,

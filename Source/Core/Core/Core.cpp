@@ -252,9 +252,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
 
 static void ResetRumble()
 {
-#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
-#endif
   if (!Pad::IsInitialized())
     return;
   for (int i = 0; i < 4; ++i)
@@ -332,7 +330,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   DolphinAnalytics::Instance().ReportGameStart();
 
   // Clear performance data collected from previous threads.
-  g_perf_metrics.Reset();
+  system.GetPerfMetrics().Reset();
 
   // The JIT need to be able to intercept faults, both for fastmem and for the BLR optimization.
   const bool exception_handler = EMM::IsExceptionHandlerSupported();
@@ -433,8 +431,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   }
   else
   {
-    // FIFO log does not contain any frames, cannot continue.
-    PanicAlertFmt("FIFO file is invalid, cannot playback.");
+    PanicAlertFmt("FIFO file doesn't contain any frame, cannot playback.");
     system.GetFifoPlayer().Close();
     return;
   }
@@ -856,11 +853,15 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
 // Called from Renderer::Swap (GPU thread) when a frame is presented to the host screen.
 void Callback_FramePresented(const PresentInfo& present_info)
 {
-  g_perf_metrics.CountFrame();
+  auto& perf_metrics = Core::System::GetInstance().GetPerfMetrics();
+  perf_metrics.CountFrame();
 
   const auto presentation_offset =
       present_info.actual_present_time - present_info.intended_present_time;
-  g_perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
+  perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
+
+  perf_metrics.SetLatestFrameBufferSize(present_info.frame_buffer_width,
+                                        present_info.frame_buffer_height);
 
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;
@@ -929,10 +930,9 @@ Common::EventHook AddOnStateChangedCallback(StateChangedCallbackFunc callback)
   return s_state_changed_event.Register(std::move(callback));
 }
 
-void NotifyStateChanged(Core::State state)
+void NotifyStateChanged(const Core::State state)
 {
   s_state_changed_event.Trigger(state);
-  g_perf_metrics.OnEmulationStateChanged(state);
 }
 
 void UpdateWantDeterminism(Core::System& system, bool initial)

@@ -45,6 +45,7 @@ else()
   check_and_add_flag(INIT_SELF -Winit-self)
   check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
   check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
+  check_and_add_flag(IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough)
 
   # Disable -Wstringop-truncation warnings as they result in many false positives.
   # In most (all?) cases where std::strncpy is used, we want to fill the entire buffer
@@ -77,6 +78,11 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 check_symbol_exists(elf_aux_info sys/auxv.h HAVE_ELF_AUX_INFO)
 if(HAVE_ELF_AUX_INFO)
   add_definitions(-DHAVE_ELF_AUX_INFO)
+endif()
+
+check_symbol_exists(getexecpath unistd.h HAVE_GETEXECPATH)
+if(HAVE_GETEXECPATH)
+  add_definitions(-DHAVE_GETEXECPATH)
 endif()
 
 add_subdirectory(Core)

@@ -14,13 +14,6 @@ ControllersPane::ControllersPane()
   CreateMainLayout();
 }
 
-void ControllersPane::showEvent(QShowEvent* event)
-{
-  QWidget::showEvent(event);
-
-  m_wiimote_controllers->UpdateBluetoothAvailableStatus();
-}
-
 void ControllersPane::CreateMainLayout()
 {
   auto* const layout = new QVBoxLayout{this};

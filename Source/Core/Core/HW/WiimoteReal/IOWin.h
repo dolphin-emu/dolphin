@@ -62,7 +62,6 @@ public:
   };
 
   WiimoteScannerWindows();
-  bool IsReady() const override;
 
   FindResults FindNewWiimotes() override;
   FindResults FindAttachedWiimotes() override;

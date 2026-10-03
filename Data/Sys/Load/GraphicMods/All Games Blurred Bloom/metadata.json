@@ -1,0 +1,41 @@
+{
+	"meta":
+	{
+		"title": "Bloom Blurred",
+		"author": "Dolphin Team",
+		"description": "Modifies bloom effects to blur them to their native resolution.  Results in bloom looking much more natural at higher resolutions but the blur may be too intense in some games."
+	},
+	"features":
+	[
+		{
+			"group": "Bloom",
+			"action": "custom_pipeline",
+			"action_data":
+			{
+				"material_asset": "dolphin_bloom_blur_horizontal"
+			}
+		}
+	],
+	"assets": [
+	{
+		"data": {
+			"metadata": "blur.rastershader",
+			"pixel_shader": "blur.ps.glsl",
+			"vertex_shader": "blur.vs.glsl"
+		},
+		"name": "dolphin_bloom_blur"
+	},
+	{
+		"data": {
+			"metadata": "blur_horizontal.rastermaterial"
+		},
+		"name": "dolphin_bloom_blur_horizontal"
+	},
+	{
+		"data": {
+			"metadata": "blur_vertical.rastermaterial"
+		},
+		"name": "dolphin_bloom_blur_vertical"
+	}
+  ]
+}

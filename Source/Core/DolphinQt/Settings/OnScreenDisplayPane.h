@@ -48,4 +48,5 @@ private:
   // Debug
   ConfigBool* m_show_statistics;
   ConfigBool* m_show_proj_statistics;
+  ConfigBool* m_show_internal_resolution;
 };

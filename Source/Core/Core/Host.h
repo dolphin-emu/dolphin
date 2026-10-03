@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -36,7 +37,7 @@ class GBAHostInterface
 public:
   virtual ~GBAHostInterface() = default;
   virtual void GameChanged() = 0;
-  virtual void FrameEnded(const std::vector<u32>& video_buffer) = 0;
+  virtual void FrameEnded(std::span<const u32> video_buffer) = 0;
 };
 
 enum class HostMessageID

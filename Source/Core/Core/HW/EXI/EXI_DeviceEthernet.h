@@ -11,7 +11,7 @@
 #include "SFML/Network/IpAddress.hpp"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <SFML/Network.hpp>
@@ -463,7 +463,7 @@ private:
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
-    void WriteToQueue(const std::vector<u8>& data);
+    void WriteToQueue(std::vector<u8> data);
     bool WillQueueOverrun() const;
     void PollData(std::size_t* datasize);
     std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);

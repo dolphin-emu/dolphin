@@ -956,7 +956,7 @@ private:
 
   static bool IsRTLBinaryOp(TokenType type) { return type == TOK_ASSIGN; }
 
-  static bool IsBinaryOpWithPrecedence(Token tok, int precedence)
+  static bool IsBinaryOpWithPrecedence(const Token& tok, int precedence)
   {
     if (!tok.IsBinaryOperator())
       return false;

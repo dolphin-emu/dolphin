@@ -22,6 +22,7 @@
 
 #include <future>
 #include <optional>
+#include <utility>
 #include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -95,6 +96,7 @@
 #include "DolphinQt/EmulatedUSB/WiiSpeakWindow.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/GameCount.h"
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
@@ -200,7 +202,7 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   return wsi;
 }
 
-static std::vector<std::string> StringListToStdVector(QStringList list)
+static std::vector<std::string> StringListToStdVector(const QStringList& list)
 {
   std::vector<std::string> result;
   result.reserve(list.size());
@@ -449,6 +451,7 @@ void MainWindow::CreateComponents()
   m_menu_bar = new MenuBar(this);
   m_tool_bar = new ToolBar(this);
   m_search_bar = new SearchBar(this);
+  m_game_count = new GameCount(this);
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
@@ -472,7 +475,7 @@ void MainWindow::CreateComponents()
   m_code_widget = new CodeWidget(this);
   m_assembler_widget = new AssemblerWidget(this);
 
-  const auto request_watch = [this](QString name, u32 addr) {
+  const auto request_watch = [this](const QString& name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
   };
   const auto request_breakpoint = [this](u32 addr) { m_breakpoint_widget->AddBP(addr); };
@@ -738,9 +741,30 @@ void MainWindow::ConnectStack()
 
   layout->addWidget(m_game_list);
   layout->addWidget(m_search_bar);
+  layout->addWidget(m_game_count);
+  layout->setSpacing(0);
   layout->setContentsMargins(0, 0, 0, 0);
 
   connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
+  connect(m_game_list, &GameList::GameCountUpdated, m_game_count, &GameCount::OnGameCountUpdated);
+
+  m_game_list->UpdateGameCount();
+
+  const auto update_spacing = [this](const bool game_count_is_visible) {
+    // The bottom margin of the search bar and the top margin of the game count are both suitable
+    // when the other widget is hidden, but when both are visible the gap created by the combination
+    // is too large. To fix this we set the bottom margin of the search bar to 0 when the game count
+    // is visible and set it to the top margin when the game count is hidden.
+    m_game_count->setVisible(game_count_is_visible);
+    auto* const search_layout = m_search_bar->layout();
+    QMargins search_margins = search_layout->contentsMargins();
+    const int new_bottom_margin = game_count_is_visible ? 0 : search_margins.top();
+    search_margins.setBottom(new_bottom_margin);
+    search_layout->setContentsMargins(search_margins);
+  };
+  update_spacing(Settings::Instance().IsGameCountVisible());
+
+  connect(&Settings::Instance(), &Settings::GameCountVisibilityChanged, update_spacing);
 
   m_stack->addWidget(widget);
 
@@ -1151,6 +1175,32 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
       if (!NKitWarningDialog::ShowUnlessDisabled())
         return;
     }
+
+    const auto volume_type =
+        std::get<BootParameters::Disc>(parameters->parameters).volume->GetVolumeType();
+    if (volume_type != DiscIO::Platform::Triforce)
+    {
+      const bool triforce_hardware_sp1 =
+          Config::Get(Config::MAIN_SERIAL_PORT_1) == ExpansionInterface::EXIDeviceType::Baseboard;
+      const bool triforce_hardware_port_1 = Config::Get(Config::GetInfoForSIDevice(0)) ==
+                                            SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD;
+
+      // Some Triforce tools don't include a boot.id file, but they can still be launched.
+      if (triforce_hardware_sp1)
+      {
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from SP1."),
+                                 QMessageBox::Ok);
+      }
+      if (triforce_hardware_port_1)
+      {
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from Port 1."),
+                                 QMessageBox::Ok);
+      }
+    }
   }
 
   // If we're running, only start a new game once we've stopped the last.
@@ -1287,6 +1337,12 @@ void MainWindow::ShowControllersWindow()
 {
   ShowSettingsWindow();
   m_settings_window->SelectPane(SettingsWindowPaneIndex::Controllers);
+}
+
+void MainWindow::ShowTriforceWindow()
+{
+  ShowSettingsWindow();
+  m_settings_window->SelectPane(SettingsWindowPaneIndex::Triforce);
 }
 
 void MainWindow::ShowFreeLookWindow()
@@ -1826,20 +1882,24 @@ void MainWindow::OnImportNANDBackup()
     return;
 
   ParallelProgressDialog dialog(this);
-  dialog.GetRaw()->setMinimum(0);
-  dialog.GetRaw()->setMaximum(0);
-  dialog.GetRaw()->setLabelText(tr("Importing NAND backup"));
-  dialog.GetRaw()->setCancelButton(nullptr);
-
-  auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
+  dialog.GetRaw()->setWindowTitle(tr("Importing NAND backup"));
 
   std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
-        [&dialog, beginning] {
-          dialog.SetLabelText(
-              tr("Importing NAND backup\n Time elapsed: %1s")
-                  .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
+        [&dialog](DiscIO::NANDImporter::Step step, u32 cur, u32 max) {
+          switch (step)
+          {
+          case DiscIO::NANDImporter::Step::Loading:
+            dialog.SetLabelText(tr("Loading NAND..."));
+            break;
+          case DiscIO::NANDImporter::Step::Extracting:
+            dialog.SetLabelText(tr("Extracting NAND..."));
+            break;
+          }
+          dialog.SetValue(cur);
+          dialog.SetMaximum(max);
+          return dialog.WasCanceled();
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {

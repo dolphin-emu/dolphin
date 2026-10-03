@@ -163,7 +163,9 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
 
   // Say component cable is plugged
   m_dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  m_dtv_status.ntsc_j = region == DiscIO::Region::NTSC_J;
+
+  // Triforce IPL requires the DTV NTSC-J flag to be set.
+  m_dtv_status.ntsc_j = m_system.IsTriforce() || region == DiscIO::Region::NTSC_J;
 
   m_fb_width.Hex = 0;
   m_border_hblank.Hex = 0;
@@ -893,7 +895,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   if (is_vblank_data_wanted)
     m_system.GetCoreTiming().Throttle(ticks);
 
-  g_perf_metrics.CountVBlank();
+  m_system.GetPerfMetrics().CountVBlank();
   m_system.GetVideoEvents().vi_end_field_event.Trigger();
   Core::OnFrameEnd(m_system);
 }

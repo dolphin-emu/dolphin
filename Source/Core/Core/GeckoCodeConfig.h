@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <expected>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -17,8 +19,8 @@ class IniFile;
 namespace Gecko
 {
 std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni);
-std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded);
-void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes);
+std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string_view gametdb_id);
+void SaveCodes(Common::IniFile& inifile, std::span<const GeckoCode> gcodes);
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line);
 }  // namespace Gecko

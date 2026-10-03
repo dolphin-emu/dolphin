@@ -7,6 +7,7 @@
 
 namespace Common
 {
+const std::string& GetEmulatorName();
 const std::string& GetScmDescStr();
 const std::string& GetScmBranchStr();
 const std::string& GetScmRevStr();

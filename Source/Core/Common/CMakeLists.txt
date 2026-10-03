@@ -47,6 +47,8 @@ add_library(common
   Crypto/HMAC.h
   Crypto/SHA1.cpp
   Crypto/SHA1.h
+  CWDemangler.cpp
+  CWDemangler.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/Threads.h
@@ -99,6 +101,8 @@ add_library(common
   Lazy.h
   LinearDiskCache.h
   UnixUtil.h
+  LocaleUtil.cpp
+  LocaleUtil.h
   Logging/ConsoleListener.h
   Logging/Log.h
   Logging/LogManager.cpp
@@ -127,10 +131,11 @@ add_library(common
   QoSSession.h
   Random.cpp
   Random.h
+  RangeSet.h
+  RangeSizeSet.h
   ScopeGuard.h
   SDCardUtil.cpp
   SDCardUtil.h
-  Semaphore.h
   SettingsHandler.cpp
   SettingsHandler.h
   SFMLHelper.cpp
@@ -140,7 +145,6 @@ add_library(common
   SocketContext.h
   SpanUtils.h
   SPSCQueue.h
-  StringLiteral.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp
@@ -202,6 +206,7 @@ if (APPLE)
   PRIVATE
     ${APPKIT_LIBRARY}
     ${COREFOUNDATION_LIBRARY}
+    ${FOUNDATION_LIBRARY}
     ${IOK_LIBRARY}
   )
 elseif(WIN32)
@@ -237,6 +242,7 @@ elseif(WIN32)
   )
 elseif(APPLE)
   target_sources(common PRIVATE
+    CommonFuncsObjC.mm
     Logging/ConsoleListenerNix.cpp
     MemArenaDarwin.cpp
   )
@@ -327,13 +333,7 @@ elseif(ENABLE_X11 AND X11_FOUND)
   target_sources(common PRIVATE
     GL/GLX11Window.cpp
     GL/GLX11Window.h
-    GL/GLInterface/GLX.cpp
-    GL/GLInterface/GLX.h
   )
-
-  # GLX has a hard dependency on libGL.
-  # Make sure to link to it if using GLX.
-  target_link_libraries(common PUBLIC ${OPENGL_LIBRARIES})
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

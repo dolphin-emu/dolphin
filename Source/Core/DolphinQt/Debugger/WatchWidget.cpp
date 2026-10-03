@@ -518,7 +518,7 @@ void WatchWidget::ShowInMemory(int row)
   emit ShowMemory(m_system.GetPowerPC().GetDebugInterface().GetWatch(row).address);
 }
 
-void WatchWidget::AddWatch(QString name, u32 addr)
+void WatchWidget::AddWatch(const QString& name, u32 addr)
 {
   m_system.GetPowerPC().GetDebugInterface().SetWatch(addr, name.toStdString());
   Update();

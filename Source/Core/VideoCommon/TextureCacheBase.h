@@ -41,6 +41,7 @@ namespace VideoCommon
 {
 class CustomTextureData;
 class GameTextureAsset;
+class MaterialResource;
 }  // namespace VideoCommon
 
 constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
@@ -313,6 +314,11 @@ public:
   static SamplerState GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
                                       bool has_arbitrary_mips);
 
+  static void RenderPaletteEntry(u32 texel_buffer_offset, const RcTcacheEntry& entry,
+                                 AbstractTexture* texture, TLUTFormat tlutfmt);
+  static void RenderReinterpretEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
+                                     TextureFormat old_format, TextureFormat new_format);
+
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
   // Returns false if the configuration is not supported.
@@ -359,9 +365,11 @@ private:
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
-  RcTcacheEntry ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
+  std::pair<RcTcacheEntry, u32> CreatePaletteEntryWithOffset(const RcTcacheEntry& entry,
+                                                             const u8* palette);
 
-  RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
+  RcTcacheEntry CreateReinterpretEntry(const RcTcacheEntry& existing_entry,
+                                       TextureFormat new_format);
 
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
                                         TLUTFormat tlutfmt);
@@ -406,6 +414,8 @@ private:
   bool CheckReadbackTexture(u32 width, u32 height, AbstractTextureFormat format);
   void DoSaveState(PointerWrap& p);
   void DoLoadState(PointerWrap& p);
+
+  void ApplyMaterialToCacheEntry(const VideoCommon::MaterialResource& material, TCacheEntry* entry);
 
   // m_textures_by_address is the authoritive version of what's actually "in" the texture cache
   // but it's possible for invalidated TCache entries to live on elsewhere

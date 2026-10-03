@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <map>
+#include <utility>
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -152,8 +153,8 @@ void IOCtlVRequest::DumpUnknown(Core::System& system, const std::string& descrip
   Dump(system, "Unknown IOCtlV - " + description, type, level);
 }
 
-Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
-    : m_ios(ios), m_name(device_name), m_device_type(type)
+Device::Device(Kernel& ios, std::string device_name, const DeviceType type)
+    : m_ios(ios), m_name(std::move(device_name)), m_device_type(type)
 {
 }
 

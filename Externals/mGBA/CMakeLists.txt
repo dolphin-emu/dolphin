@@ -11,6 +11,7 @@ if(NOT MSVC)
 endif()
 
 if(ANDROID)
+  target_compile_definitions(mgba PUBLIC ENABLE_VFS_FD)
   target_compile_definitions(mgba PRIVATE -Dfutimes=futimens)
 endif()
 

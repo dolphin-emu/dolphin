@@ -4,13 +4,18 @@
 #pragma once
 
 #include <pthread.h>
+
+#if defined(__linux__)
 #include <sys/eventfd.h>
+#endif
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 
 namespace UnixUtil
 {
+
+#if defined(__linux__)
 inline int CreateEventFD(unsigned int count, int flags)
 {
   const int result = eventfd(count, flags);
@@ -21,6 +26,7 @@ inline int CreateEventFD(unsigned int count, int flags)
   }
   return result;
 }
+#endif
 
 // Repeatedly call a function that can erroneously produce EINTR.
 auto RetryOnEINTR(auto func, auto... args)

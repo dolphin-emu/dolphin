@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -14,9 +15,9 @@
 
 namespace Common
 {
-TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port,
+TraversalClient::TraversalClient(ENetHost* netHost, std::string server, const u16 port,
                                  const u16 port_alt)
-    : m_NetHost(netHost), m_Server(server), m_port(port), m_portAlt(port_alt)
+    : m_NetHost(netHost), m_Server(std::move(server)), m_port(port), m_portAlt(port_alt)
 {
   netHost->intercept = TraversalClient::InterceptCallback;
 

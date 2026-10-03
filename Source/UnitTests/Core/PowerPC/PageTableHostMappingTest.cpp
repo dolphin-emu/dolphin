@@ -10,6 +10,7 @@
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/BreakPoints.h"
@@ -36,8 +37,8 @@ static constexpr u32 HOLE_MASK_PAGE_TABLE_BASE = 0x00080000;
 static constexpr u32 HOLE_MASK_PAGE_TABLE_MASK = 0x0002ffff;
 static constexpr u32 HOLE_MASK_PAGE_TABLE_MASK_WITHOUT_HOLE = 0x0003ffff;
 
-static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE = 0x000e0000;
-static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE_ALIGNED = 0x000d0000;
+static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE = 0x000d0000;
+static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE_ALIGNED = 0x000c0000;
 static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_MASK = 0x0002ffff;
 static constexpr u32 MISALIGNED_HOLE_MASK_PAGE_TABLE_MASK_WITHOUT_HOLE = 0x0003ffff;
 
@@ -131,6 +132,8 @@ public:
     if (!EMM::IsExceptionHandlerSupported())
       GTEST_SKIP() << "Skipping PageTableHostMappingTest because exception handler is unsupported.";
 
+    SConfig::Init();
+
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
     const u32 host_page_size = memory.GetHostPageSize();
@@ -177,6 +180,8 @@ public:
     EMM::UninstallExceptionHandler();
     Core::UndeclareAsCPUThread();
     system.GetMemory().Shutdown();
+
+    SConfig::Shutdown();
   }
 
   static void SetSR(size_t index, u32 vsid)
@@ -820,12 +825,12 @@ TEST_F(PageTableHostMappingTest, HoleInMask)
 // mask, we get the same result as if we just make the base misaligned.
 TEST_F(PageTableHostMappingTest, HoleInMaskMisalignedPageTable)
 {
-  SetSDR(MISALIGNED_PAGE_TABLE_BASE + 0x10000, PowerPC::PAGE_TABLE_MIN_SIZE - 1);
+  SetSDR(MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE + 0x10000, PowerPC::PAGE_TABLE_MIN_SIZE - 1);
 
   AddHostSizedMapping(0x10ad0000, 0x002d0000, 4);
   ExpectMapped(0x10ad0000, 0x002d0000);
 
-  SetSDR(MISALIGNED_PAGE_TABLE_BASE, MISALIGNED_PAGE_TABLE_MASK);
+  SetSDR(MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE, MISALIGNED_HOLE_MASK_PAGE_TABLE_MASK);
 
   ExpectNotMapped(0x10ad0000);
 
@@ -850,7 +855,8 @@ TEST_F(PageTableHostMappingTest, HoleInMaskMisalignedPageTable)
   ExpectMapped(0x10ad0000, 0x00310000);
   ExpectMapped(0x10ed0000, 0x00300000);
 
-  SetSDR(MISALIGNED_PAGE_TABLE_BASE_ALIGNED, MISALIGNED_PAGE_TABLE_MASK);
+  SetSDR(MISALIGNED_HOLE_MASK_PAGE_TABLE_BASE_ALIGNED,
+         MISALIGNED_HOLE_MASK_PAGE_TABLE_MASK_WITHOUT_HOLE);
 
   ExpectNotMapped(0x102d0000);
   ExpectMapped(0x106d0000, 0x002f0000);

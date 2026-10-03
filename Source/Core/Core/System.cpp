@@ -36,10 +36,12 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFStateManager.h"
 
 namespace Core
@@ -85,6 +87,7 @@ struct System::Impl
   IOS::WiiIPC m_wii_ipc;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
+  PerformanceMetrics m_perf_metrics;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
   PowerPC::PowerPCManager m_power_pc;
@@ -116,6 +119,7 @@ void System::Initialize()
   m_separate_cpu_and_gpu_threads = Config::Get(Config::MAIN_CPU_THREAD);
   m_mmu_enabled = Config::Get(Config::MAIN_MMU);
   m_pause_on_panic_enabled = Config::Get(Config::MAIN_PAUSE_ON_PANIC);
+  m_simulated_memory_size = SConfig::GetInstance().GetSimulatedMemorySize();
 }
 
 SoundStream* System::GetSoundStream() const
@@ -271,6 +275,11 @@ PowerPC::MMU& System::GetMMU() const
 Movie::MovieManager& System::GetMovie() const
 {
   return m_impl->m_movie;
+}
+
+PerformanceMetrics& System::GetPerfMetrics() const
+{
+  return m_impl->m_perf_metrics;
 }
 
 PixelEngine::PixelEngineManager& System::GetPixelEngine() const

@@ -96,13 +96,13 @@ HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& he
   return m_impl->Fetch(url, Impl::Method::GET, headers, nullptr, 0, codes);
 }
 
-HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vector<u8>& payload,
+HttpRequest::Response HttpRequest::Post(const std::string& url, std::span<const u8> payload,
                                         const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers, payload.data(), payload.size(), codes);
 }
 
-HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload,
+HttpRequest::Response HttpRequest::Post(const std::string& url, std::string_view payload,
                                         const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers,

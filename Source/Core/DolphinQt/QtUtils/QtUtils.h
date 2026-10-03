@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include <QStyle>
 
 class QDateTimeEdit;
@@ -36,5 +38,8 @@ public:
   //  which would cause this to stack overflow.
   QSize sizeHint() const override { return Widget::minimumSizeHint(); }
 };
+
+// Opens the folder of the given file (and also selects the file on supported platforms).
+void ShowFileInFolder(std::string_view file_path);
 
 }  // namespace QtUtils

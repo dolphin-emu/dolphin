@@ -12,23 +12,84 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
 std::string VolumeDisc::GetGameID(const Partition& partition) const
 {
-  char id[6];
+  char id[6]{};
+
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    // Triforce games have their Game ID stored in the boot.id file
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    // Construct game ID from the BTID
+    id[0] = 'G';
+
+    memcpy(id + 1, boot_id->game_id.data() + 2, 2);
+
+    switch (GetCountry())
+    {
+    default:
+    case Country::Japan:
+      id[3] = 'J';
+      break;
+    case Country::Taiwan:
+      id[3] = 'W';
+      break;
+    case Country::USA:
+      id[3] = 'E';
+      break;
+    case Country::Europe:
+      id[3] = 'P';
+      break;
+    }
+
+    const std::string maker_id{GetMakerID()};
+    memcpy(id + 4, maker_id.c_str(), std::min<std::size_t>(maker_id.size(), 2));
+
+    return FilterGameID(id);
+  }
 
   if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
     return std::string();
 
-  return DecodeString(id);
+  return FilterGameID(id);
 }
 
 Country VolumeDisc::GetCountry(const Partition& partition) const
 {
-  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
-  const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
+  u8 country_byte = 0;
+
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    switch (boot_id->region_flags & 0x000000FF)
+    {
+    default:
+    case 0x02:  // JAPAN
+      country_byte = 'J';
+      break;
+    case 0x08:  // ASIA
+      country_byte = 'W';
+      break;
+    case 0x0E:  // USA
+      country_byte = 'E';
+      break;
+    case 0x0C:  // EXPORT
+      country_byte = 'P';
+      break;
+    }
+  }
+  else
+  {
+    // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
+    country_byte = ReadSwapped<u8>(3, partition).value_or(0);
+  }
+
   const Region region = GetRegion();
   const std::optional<u16> revision = GetRevision();
 
@@ -51,10 +112,33 @@ std::string VolumeDisc::GetMakerID(const Partition& partition) const
 {
   char maker_id[2];
 
+  // Triforce games have their maker stored in the boot.id file as an actual string
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    // There only seem to be three different makers here,
+    // so we can just check the first char to difference between them.
+    //
+    // NAMCO CORPORATION, SEGA CORPORATION and Hitmaker co,ltd.
+
+    switch (boot_id->manufacturer[0])
+    {
+    case 'S':  // SEGA CORPORATION
+    case 'H':  // Hitmaker co,ltd
+      return "6E";
+    case 'N':  // NAMCO CORPORATION
+      return "82";
+    default:
+      break;
+    }
+    // Fall back to normal maker from header
+  }
+
   if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
     return std::string();
 
-  return DecodeString(maker_id);
+  return FilterGameID(maker_id);
 }
 
 std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
@@ -66,6 +150,14 @@ std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
 std::string VolumeDisc::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
+
+  // Triforce games have their Title stored in the boot.id file
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+    return DecodeString(boot_id->game_name);
+  }
+
   if (!Read(0x20, sizeof(name), reinterpret_cast<u8*>(&name), partition))
     return std::string();
 
@@ -85,6 +177,14 @@ std::string VolumeDisc::GetApploaderDate(const Partition& partition) const
 std::optional<u8> VolumeDisc::GetDiscNumber(const Partition& partition) const
 {
   return ReadSwapped<u8>(6, partition);
+}
+
+u32 VolumeDisc::GetSimulatedMemorySize() const
+{
+  // Simulated memory size is a 32-bit unsigned integer in the `bi2.bin` file at offset `0x04`.
+  // Apploader reads this and "simulates" a smaller memory size. Originally useful for simulating
+  // 24 MiB of memory on devkits with 48 MiB.
+  return ReadSwapped<u32>(BI2_ADDRESS + 0x04, GetGamePartition()).value_or(0);
 }
 
 bool VolumeDisc::IsNKit() const

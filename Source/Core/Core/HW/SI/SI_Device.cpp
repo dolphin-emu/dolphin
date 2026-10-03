@@ -17,6 +17,7 @@
 #ifdef HAS_LIBMGBA
 #include "Core/HW/SI/SI_DeviceGBAEmu.h"
 #endif
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
@@ -149,6 +150,7 @@ bool SIDevice_IsGCController(SIDevices type)
   case SIDEVICE_GC_TARUKONGA:
   case SIDEVICE_DANCEMAT:
   case SIDEVICE_GC_STEERING:
+  case SIDEVICE_AM_BASEBOARD:
     return true;
   default:
     return false;
@@ -191,6 +193,8 @@ std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices
     return std::make_unique<CSIDevice_Keyboard>(system, device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
+    return std::make_unique<CSIDevice_AMBaseboard>(system, device, port_number);
+
   case SIDEVICE_NONE:
   default:
     return std::make_unique<CSIDevice_Null>(system, device, port_number);

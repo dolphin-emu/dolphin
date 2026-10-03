@@ -23,6 +23,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace Core
 {
@@ -160,13 +161,14 @@ protected:
   bool m_accurate_nans = false;
   bool m_accurate_fmadds = false;
   bool m_fastmem_enabled = false;
+  bool m_page_table_fastmem_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
   bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 25> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
@@ -200,6 +202,11 @@ public:
 
   bool IsProfilingEnabled() const { return m_enable_profiling && m_enable_debugging; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
+  bool IsBranchWatchEnabled() const
+  {
+    auto& branch_watch = m_system.GetPowerPC().GetBranchWatch();
+    return branch_watch.GetRecordingActive();
+  }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;

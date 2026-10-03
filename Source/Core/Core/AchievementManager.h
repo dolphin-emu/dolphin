@@ -81,10 +81,6 @@ public:
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
-  static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
-  static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x7D, 0x96, 0x3E, 0x00, 0x30, 0x1C, 0x7D, 0x0E, 0x72, 0x09,
-      0xE1, 0xF0, 0xF3, 0x51, 0x6D, 0x5C, 0xB3, 0x68, 0xAD, 0x79};
 
   struct LeaderboardEntry
   {
@@ -121,6 +117,7 @@ public:
   void Login(const std::string& password);
   bool HasAPIToken() const;
   void LoadGame(const DiscIO::Volume* volume);
+  void ChangeDisc(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
@@ -246,8 +243,8 @@ private:
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
                       void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
-  void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
-                  const UpdatedItems callback_data);
+  void FetchBadge(Badge* badge, u32 badge_type, BadgeNameFunction function,
+                  UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
@@ -332,6 +329,8 @@ public:
   }
 
   constexpr void LoadGame(const DiscIO::Volume*) {}
+
+  constexpr void ChangeDisc(const DiscIO::Volume*) {}
 
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 

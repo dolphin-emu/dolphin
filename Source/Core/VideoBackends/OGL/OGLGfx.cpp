@@ -235,9 +235,10 @@ OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
   return OGLShader::CreateFromSource(stage, source, shader_includer, name);
 }
 
-std::unique_ptr<AbstractShader>
-OGLGfx::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
-                               [[maybe_unused]] std::string_view name)
+std::unique_ptr<AbstractShader> OGLGfx::CreateShaderFromBinary(ShaderStage /* stage */,
+                                                               const void* /* data */,
+                                                               size_t /* length */,
+                                                               std::string_view /* name */)
 {
   return nullptr;
 }

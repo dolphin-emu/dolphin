@@ -69,6 +69,15 @@ enum class StringSetting(
         ""
     ),
     MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
+    MAIN_GBA_BIOS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "BIOS", ""),
+    MAIN_GB_PLAYER_ROM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "GBPlayerRom", ""),
+    MAIN_GBA_SAVES_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "SavesPath", ""),
+    MAIN_TRIFORCE_IP_REDIRECTIONS(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "TriforceIPRedirections",
+        "0.0.0.0/0=127.0.0.1"
+    ),
     GFX_ENHANCE_POST_SHADER(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_ENHANCEMENTS,
@@ -92,7 +101,23 @@ enum class StringSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ApiToken",
         ""
-    );
+    ),
+    NETPLAY_TRAVERSAL_CHOICE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "TraversalChoice",
+        "direct"
+    ),
+    NETPLAY_HOST_CODE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_NETPLAY,
+        "HostCode",
+        ""
+    ),
+    NETPLAY_ADDRESS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Address", "127.0.0.1"),
+    NETPLAY_NICKNAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Nickname", "Player"),
+    NETPLAY_GAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Game", ""),
+    NETPLAY_NETWORK_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "NetworkMode", "fixeddelay");
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)

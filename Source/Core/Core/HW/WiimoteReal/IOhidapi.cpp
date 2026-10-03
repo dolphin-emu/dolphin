@@ -103,11 +103,6 @@ WiimoteScannerHidapi::~WiimoteScannerHidapi()
     ERROR_LOG_FMT(WIIMOTE, "Failed to clean up hidapi.");
 }
 
-bool WiimoteScannerHidapi::IsReady() const
-{
-  return true;
-}
-
 auto WiimoteScannerHidapi::FindAttachedWiimotes() -> FindResults
 {
   FindResults results;

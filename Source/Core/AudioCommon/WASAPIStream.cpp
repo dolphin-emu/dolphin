@@ -7,13 +7,15 @@
 
 // clang-format off
 #include <initguid.h>
-#include <Audioclient.h>
+#include <audioclient.h>
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <wil/resource.h>
 // clang-format on
 
 #include <thread>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/HRWrap.h"
@@ -110,7 +112,7 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   {
     ComPtr<IMMDevice> device;
     devices->Item(i, &device);
-    if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
+    if (!HandleWinAPI(fmt::format("Failed to get device {}", i), result))
       continue;
 
     ComPtr<IPropertyStore> device_properties;
@@ -159,7 +161,7 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  HRESULT const result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+  const HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
                                           CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
@@ -176,7 +178,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     HRESULT result;
 
-    if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
+    if (Config::IsDefaultValue(Config::MAIN_WASAPI_DEVICE))
     {
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
     }
@@ -320,14 +322,24 @@ void WASAPIStream::SoundLoop()
   Common::SetCurrentThreadName("WASAPI Handler");
   BYTE* data;
 
-  m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+  HRESULT getbuffer_result = m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+  if (getbuffer_result != S_OK)
+  {
+    m_running.store(false, std::memory_order_relaxed);
+    return;
+  }
   m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
 
   while (m_running.load(std::memory_order_relaxed))
   {
     WaitForSingleObject(m_need_data_event.get(), 1000);
 
-    m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+    getbuffer_result = m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+    if (getbuffer_result != S_OK)
+    {
+      m_running.store(false, std::memory_order_relaxed);
+      return;
+    }
 
     s16* audio_data = reinterpret_cast<s16*>(data);
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
