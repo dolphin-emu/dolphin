@@ -11,8 +11,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include <algorithm>
-
 std::unique_ptr<BoundingBox> g_bounding_box;
 
 void BoundingBox::Enable(PixelShaderManager& pixel_shader_manager)

@@ -4,7 +4,6 @@
 #include "VideoCommon/VertexLoaderX64.h"
 
 #include <array>
-#include <cstring>
 
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"

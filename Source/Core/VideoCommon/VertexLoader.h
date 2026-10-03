@@ -6,8 +6,6 @@
 // Top vertex loaders
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/SmallVector.h"
 #include "VideoCommon/VertexLoaderBase.h"

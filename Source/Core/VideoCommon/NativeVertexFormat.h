@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <functional>  // for hash
 
 #include "Common/CommonTypes.h"

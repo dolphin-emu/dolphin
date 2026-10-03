@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <span>
 
 #include "Common/CommonTypes.h"

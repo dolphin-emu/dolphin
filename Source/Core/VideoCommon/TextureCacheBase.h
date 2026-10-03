@@ -18,7 +18,6 @@
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/AbstractTexture.h"
