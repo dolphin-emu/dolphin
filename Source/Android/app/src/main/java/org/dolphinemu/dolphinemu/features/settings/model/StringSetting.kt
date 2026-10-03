@@ -117,7 +117,9 @@ enum class StringSetting(
     NETPLAY_ADDRESS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Address", "127.0.0.1"),
     NETPLAY_NICKNAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Nickname", "Player"),
     NETPLAY_GAME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "Game", ""),
-    NETPLAY_NETWORK_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "NetworkMode", "fixeddelay");
+    NETPLAY_NETWORK_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "NetworkMode", "fixeddelay"),
+    MAIN_MEMCARD_A_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MemcardAPath", ""),
+    MAIN_MEMCARD_B_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MemcardBPath", "");
 
     override val isOverridden: Boolean
         get() = NativeConfig.isOverridden(file, section, key)
