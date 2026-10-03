@@ -54,15 +54,9 @@ inline void CON_Clear()
   printf("\x1b[2J");
 }
 
-// libogc's clear escape codes are crappy
 inline void CON_BlankRow(const int y)
 {
-  int columns = 0, rows = 0;
-  CON_GetMetrics(&columns, &rows);
-  char blank[columns];
-  std::fill_n(blank, columns, ' ');
-  blank[columns - 1] = '\0';
-  CON_Printf(0, y, "%s", blank);
+  CON_Printf(0, y, "\x1b[2K");
 }
 
 #define CON_PrintRow(x, y, ...)                                                                    \
