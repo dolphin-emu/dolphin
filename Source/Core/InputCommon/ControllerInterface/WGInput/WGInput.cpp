@@ -14,12 +14,47 @@
 
 // NOTE: winrt translates com failures to c++ exceptions, so we must use try/catch in this file to
 // prevent possible errors from escaping and terminating Dolphin.
+#ifdef _MSC_VER
 #include <winrt/base.h>
 #include <winrt/windows.devices.haptics.h>
 #include <winrt/windows.devices.power.h>
 #include <winrt/windows.foundation.collections.h>
 #include <winrt/windows.gaming.input.h>
 #include <winrt/windows.system.power.h>
+#else
+#ifdef __MINGW32__
+// for: https://github.com/msys2/MINGW-packages/issues/22160
+#define ____FIReference_1_boolean_INTERFACE_DEFINED__
+enum BatteryStatus
+{
+  BatteryStatus_NotPresent = 0,
+  BatteryStatus_Discharging = 1,
+  BatteryStatus_Idle = 2,
+  BatteryStatus_Charging = 3
+};
+namespace ABI
+{
+namespace Windows
+{
+namespace Storage
+{
+enum KnownFoldersAccessStatus
+{
+  KnownFoldersAccessStatus_Denied = 0,
+  KnownFoldersAccessStatus_Allowed = 1
+};
+}  // namespace Storage
+}  // namespace Windows
+}  // namespace ABI
+#include <windows.devices.haptics.h>
+#include <windows.devices.power.h>
+#include <windows.foundation.collections.h>
+#include <windows.gaming.input.forcefeedback.h>
+#include <windows.gaming.input.h>
+#include <windows.system.power.h>
+#endif
+#endif
+
 #pragma comment(lib, "windowsapp")
 
 #include <fmt/format.h>
@@ -693,7 +728,7 @@ static void HandleAddRemoveEvent(AddRemoveEvent evt)
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE,
                   "WGInput: Failed to CoInitialize for add/remove controller event: {}",
-                  WStringToUTF8(ex.message()));
+                  winrt::to_string(ex.message()));
     return;
   }
   Common::ScopeGuard coinit_guard([] { winrt::uninit_apartment(); });
@@ -708,8 +743,13 @@ static void HandleAddRemoveEvent(AddRemoveEvent evt)
     RemoveDevice(evt.raw_game_controller);
     break;
   default:
+#ifdef __MINGW32__
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Invalid add/remove controller event: {}",
+                  static_cast<std::underlying_type_t<decltype(evt.type)>>(evt.type));
+#else
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Invalid add/remove controller event: {}",
                   std::to_underlying(evt.type));
+#endif
   }
 }
 
