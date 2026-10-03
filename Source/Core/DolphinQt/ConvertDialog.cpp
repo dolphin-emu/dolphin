@@ -48,6 +48,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_format->addItem(QStringLiteral("ISO"), static_cast<int>(DiscIO::BlobType::PLAIN));
   m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
   m_format->addItem(QStringLiteral("WIA"), static_cast<int>(DiscIO::BlobType::WIA));
+  m_format->addItem(QStringLiteral("WBFS"), static_cast<int>(DiscIO::BlobType::WBFS));
   m_format->addItem(QStringLiteral("RVZ"), static_cast<int>(DiscIO::BlobType::RVZ));
   if (std::ranges::all_of(
           m_files, [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
@@ -70,6 +71,16 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   auto* const convert_button = new QPushButton(tr("Convert..."));
 
+  m_lossy_warning = new QLabel(
+      tr("Warning: This file uses a lossy format. Some disc data may have been lost "
+         "during the original conversion, so the result will not be an exact copy of the original "
+         "disc. This won't affect your ability to play the game."));
+  m_lossy_warning->setWordWrap(true);
+  m_lossy_warning->setStyleSheet(QStringLiteral("color: red; font-weight: bold;"));
+  m_lossy_warning->setVisible(std::ranges::any_of(m_files, [](const auto& file) {
+    return file->GetVolumeSizeType() == DiscIO::DataSizeType::UpperBound;
+  }));
+
   auto* const info_text = new QLabel(
       tr("ISO: A simple and robust format which is supported by many programs. It takes up more "
          "space than any other format.\n\n"
@@ -80,7 +91,9 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "and a few other programs. It can efficiently compress encrypted Wii data, but not junk "
          "data (unless removed).\n\n"
          "RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. "
-         "It can efficiently compress both junk data and encrypted Wii data."));
+         "It can efficiently compress both junk data and encrypted Wii data.\n\n"
+         "WBFS: A block-mapped format that strips unused disc sectors to save space. "
+         "Compatible with real Wiis."));
   info_text->setWordWrap(true);
   info_text->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
@@ -95,6 +108,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   auto* const main_layout = new QVBoxLayout{this};
   main_layout->addWidget(options_group);
+  main_layout->addWidget(m_lossy_warning);
   main_layout->addWidget(info_group, 1);
 
   connect(m_format, &QComboBox::currentIndexChanged, this, &ConvertDialog::OnFormatChanged);
@@ -236,8 +250,9 @@ void ConvertDialog::OnFormatChanged()
   m_block_size->setEnabled(m_block_size->count() > 1);
   m_compression->setEnabled(m_compression->count() > 1);
 
-  // Block scrubbing of RVZ containers and Datel discs
+  // Block scrubbing of RVZ containers, WBFS, and Datel discs
   const bool scrubbing_allowed = format != DiscIO::BlobType::RVZ &&
+                                 format != DiscIO::BlobType::WBFS &&
                                  std::ranges::none_of(m_files, &UICommon::GameFile::IsDatelDisc);
 
   m_scrub->setEnabled(scrubbing_allowed);
@@ -295,6 +310,18 @@ void ConvertDialog::Convert()
     }
   }
 
+  if (format == DiscIO::BlobType::WBFS && std::ranges::any_of(m_files, [](const auto& file) {
+        return file->GetPlatform() == DiscIO::Platform::GameCubeDisc;
+      }))
+  {
+    if (!ShowAreYouSureDialog(tr("Converting a GameCube disc to WBFS will produce a valid WBFS "
+                                 "file, but the result is not playable on a real Wii. "
+                                 "Do you want to continue anyway?")))
+    {
+      return;
+    }
+  }
+
   if (!scrub && format == DiscIO::BlobType::GCZ &&
       std::ranges::any_of(m_files, [](const auto& file) {
         return file->GetPlatform() == DiscIO::Platform::WiiDisc && !file->IsDatelDisc();
@@ -342,6 +369,10 @@ void ConvertDialog::Convert()
   case DiscIO::BlobType::RVZ:
     extension = QStringLiteral(".rvz");
     filter = tr("RVZ GC/Wii images (*.rvz)");
+    break;
+  case DiscIO::BlobType::WBFS:
+    extension = QStringLiteral(".wbfs");
+    filter = tr("WBFS Wii images (*.wbfs)");
     break;
   default:
     ASSERT(false);
@@ -431,6 +462,10 @@ void ConvertDialog::Convert()
     std::unique_ptr<DiscIO::BlobReader> blob_reader;
     bool scrub_current_file = scrub;
 
+    // WBFS already strips unused sectors, so scrubbing is redundant
+    if (format == DiscIO::BlobType::WBFS)
+      scrub_current_file = false;
+
     if (scrub_current_file)
     {
       blob_reader = DiscIO::ScrubbedBlob::Create(original_path);
@@ -497,6 +532,15 @@ void ConvertDialog::Convert()
               DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
                                         format == DiscIO::BlobType::RVZ, compression,
                                         compression_level, block_size, callback);
+          progress_dialog.Reset();
+          return good;
+        });
+        break;
+
+      case DiscIO::BlobType::WBFS:
+        success = std::async(std::launch::async, [&] {
+          const bool good = DiscIO::ConvertToWBFS(blob_reader.get(), original_path,
+                                                  dst_path.toStdString(), callback);
           progress_dialog.Reset();
           return good;
         });

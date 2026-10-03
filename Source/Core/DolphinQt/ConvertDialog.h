@@ -12,6 +12,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QLabel;
 
 namespace DiscIO
 {
@@ -48,5 +49,6 @@ private:
   QComboBox* m_compression;
   QComboBox* m_compression_level;
   QCheckBox* m_scrub;
+  QLabel* m_lossy_warning;
   QList<std::shared_ptr<const UICommon::GameFile>> m_files;
 };

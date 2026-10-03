@@ -257,7 +257,8 @@ public:
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
   bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
-  bool ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_data_offset) override;
+  bool ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_data_offset,
+                        Common::AES::Context* aes_context = nullptr) override;
 
   BlobType GetBlobType() const override;
   std::unique_ptr<BlobReader> CopyReader() const override;

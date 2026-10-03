@@ -177,7 +177,6 @@ private:
   u32 m_crc32_context = 0;
   mbedtls_md5_context m_md5_context{};
   std::unique_ptr<Common::SHA1::Context> m_sha1_context;
-
   u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
   std::future<void> m_crc32_future;

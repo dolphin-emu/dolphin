@@ -3,17 +3,34 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/NKitv2Header.h"
+#include "DiscIO/VolumeWii.h"
+#include "DiscIO/WiiEncryptionCache.h"
 
 namespace DiscIO
 {
 static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
+
+#pragma pack(1)
+struct WbfsHeader
+{
+  u32 magic;
+  u32 hd_sector_count;
+  u8 hd_sector_shift;
+  u8 wbfs_sector_shift;
+  u8 padding[2];
+  u8 disc_table[500];
+};
+#pragma pack()
 
 class WbfsFileReader final : public BlobReader
 {
@@ -27,7 +44,10 @@ public:
 
   u64 GetRawSize() const override { return m_size; }
   u64 GetDataSize() const override;
-  DataSizeType GetDataSizeType() const override { return DataSizeType::UpperBound; }
+  DataSizeType GetDataSizeType() const override
+  {
+    return m_has_nkit_header ? DataSizeType::Accurate : DataSizeType::UpperBound;
+  }
 
   u64 GetBlockSize() const override { return m_wbfs_sector_size; }
   bool HasFastRandomAccessInBlock() const override { return true; }
@@ -35,6 +55,9 @@ public:
   std::optional<int> GetCompressionLevel() const override { return std::nullopt; }
 
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
+  bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
+  bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
+                        Common::AES::Context* aes_context = nullptr) override;
 
 private:
   WbfsFileReader(File::DirectIOFile file, const std::string& path = "");
@@ -42,6 +65,19 @@ private:
   void OpenAdditionalFiles(const std::string& path);
   bool AddFileToList(File::DirectIOFile file);
   bool ReadHeader();
+  bool ReadNKitHeader();
+  void ReadPartitionInfo();
+  bool IsBlockStored(u64 block_index) const;
+  bool IsGapJunk(u64 block_index) const;
+
+  struct PartitionEntry
+  {
+    u64 data_offset;
+    u64 data_size;
+    // Needed by Read() -> EncryptGroups for non-stored block reconstruction
+    std::array<u8, 16> key;
+  };
+  const PartitionEntry* FindPartition(u64 disc_offset) const;
 
   File::DirectIOFile& SeekToCluster(u64 offset, u64* available);
   bool IsGood() const { return m_good; }
@@ -63,25 +99,24 @@ private:
 
   u64 m_hd_sector_size;
   u64 m_wbfs_sector_size;
-  u64 m_wbfs_sector_count;
   u64 m_disc_info_size;
 
-#pragma pack(1)
-  struct WbfsHeader
-  {
-    u32 magic;
-    u32 hd_sector_count;
-    u8 hd_sector_shift;
-    u8 wbfs_sector_shift;
-    u8 padding[2];
-    u8 disc_table[500];
-  } m_header;
-#pragma pack()
+  WbfsHeader m_header;
 
   std::vector<u16> m_wlba_table;
   u64 m_blocks_per_disc;
 
   bool m_good;
+
+  // NKit v2 header for lossless round-trip
+  NKitv2::Info m_nkit_info;
+  bool m_has_nkit_header = false;
+  u8 m_disc_id[4] = {};
+  u8 m_disc_num = 0;
+
+  // Partition info for encrypted junk reconstruction
+  std::vector<PartitionEntry> m_partitions;
+  WiiEncryptionCache m_encryption_cache;
 };
 
 }  // namespace DiscIO

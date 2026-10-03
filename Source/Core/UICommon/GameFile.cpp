@@ -842,7 +842,9 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate &&
+  return DiscIO::IsDisc(m_platform) &&
+         (m_volume_size_type == DiscIO::DataSizeType::Accurate ||
+          m_volume_size_type == DiscIO::DataSizeType::UpperBound) &&
          !IsModDescriptor();
 }
 

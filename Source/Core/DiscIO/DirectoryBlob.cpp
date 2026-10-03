@@ -530,7 +530,7 @@ bool DirectoryBlobReader::SupportsReadWiiDecrypted(u64 offset, u64 size,
 }
 
 bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer,
-                                           u64 partition_data_offset)
+                                           u64 partition_data_offset, Common::AES::Context*)
 {
   const DirectoryBlobPartition* partition = GetPartition(offset, size, partition_data_offset);
   if (!partition)

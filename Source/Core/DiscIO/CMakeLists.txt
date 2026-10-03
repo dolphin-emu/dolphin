@@ -28,6 +28,8 @@ add_library(discio
   LaggedFibonacciGenerator.cpp
   LaggedFibonacciGenerator.h
   MultithreadedCompressor.h
+  NKitv2Header.cpp
+  NKitv2Header.h
   NANDImporter.cpp
   NANDImporter.h
   NFSBlob.cpp
@@ -79,6 +81,7 @@ PRIVATE
   fmt::fmt
   MINIZIP::minizip-ng
   pugixml
+  xxhash::xxhash
   ZLIB::ZLIB
 )
 

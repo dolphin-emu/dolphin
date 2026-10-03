@@ -51,6 +51,8 @@ static std::optional<DiscIO::BlobType> ParseFormatString(const std::string& form
     return DiscIO::BlobType::WIA;
   else if (format_str == "rvz")
     return DiscIO::BlobType::RVZ;
+  else if (format_str == "wbfs")
+    return DiscIO::BlobType::WBFS;
   return std::nullopt;
 }
 
@@ -83,7 +85,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       .type("string")
       .action("store")
       .help("Container format to use. Default is RVZ. [%choices]")
-      .choices({"iso", "gcz", "wia", "rvz"});
+      .choices({"iso", "gcz", "wia", "rvz", "wbfs"});
 
   parser.add_option("-s", "--scrub")
       .action("store_true")
@@ -150,6 +152,15 @@ int ConvertCommand(const std::vector<std::string>& args)
     return EXIT_FAILURE;
   }
 
+  if (blob_reader->GetDataSizeType() == DiscIO::DataSizeType::UpperBound)
+  {
+    fmt::print(std::cerr, "Warning: This file uses a lossy format. "
+                          "Some disc data may have been lost during the original conversion, "
+                          "so the result will not be an exact copy of the original disc. "
+                          "This won't affect your ability to play the game. "
+                          "Continuing anyway.\n");
+  }
+
   // --scrub
   const bool scrub = static_cast<bool>(options.get("scrub"));
 
@@ -167,7 +178,7 @@ int ConvertCommand(const std::vector<std::string>& args)
                "Warning: The input file is not a GC/Wii disc image. Continuing anyway.\n");
   }
 
-  if (scrub)
+  if (scrub && format != DiscIO::BlobType::WBFS)
   {
     if (volume->IsDatelDisc())
     {
@@ -201,6 +212,13 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     fmt::print(std::cerr, "Warning: Converting Wii disc images to GCZ without scrubbing may not "
                           "offer space advantages over ISO. Continuing anyway.\n");
+  }
+
+  if (format == DiscIO::BlobType::WBFS && volume &&
+      volume->GetVolumeType() == DiscIO::Platform::GameCubeDisc)
+  {
+    fmt::print(std::cerr,
+               "Warning: Output will be a valid WBFS file, but the result is not playable on a real Wii.\n");
   }
 
   if (volume && volume->IsNKit())
@@ -330,6 +348,13 @@ int ConvertCommand(const std::vector<std::string>& args)
                                         format == DiscIO::BlobType::RVZ, compression_o.value(),
                                         compression_level_o.value(), block_size_o.value(),
                                         NOOP_STATUS_CALLBACK);
+    break;
+  }
+
+  case DiscIO::BlobType::WBFS:
+  {
+    success = DiscIO::ConvertToWBFS(blob_reader.get(), input_file_path, output_file_path,
+                                    NOOP_STATUS_CALLBACK);
     break;
   }
 
