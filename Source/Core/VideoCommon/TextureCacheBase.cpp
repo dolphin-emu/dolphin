@@ -2625,12 +2625,19 @@ void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_
                                              u32 num_blocks_y)
 {
   // Hack: Most games don't actually need the correct texture data in RAM
-  //       and we can just keep a copy in VRAM. We zero the memory so we
+  //       and we can just keep a copy in VRAM. We clear the memory so we
   //       can check it hasn't changed before using our copy in VRAM.
+  //       Note: Some games memset that memory (e.g. Rhythm Heaven Fever).
+  //       In that case the clear byte must be different from the game's,
+  //       otherwise the data in RAM doesn't change and Dolphin won't
+  //       invalidate the stale texture in VRAM.
+  //       Setting a clear byte different from 0 is also useful when the
+  //       game does use the texture from RAM, if we can more closely
+  //       resemble an actual EFB copy (e.g. Excite Truck).
   u8* ptr = dst;
   for (u32 i = 0; i < num_blocks_y; i++)
   {
-    std::memset(ptr, 0, bytes_per_row);
+    std::memset(ptr, g_ActiveConfig.uSkipEFBCopyToRamClearByte, bytes_per_row);
     ptr += stride;
   }
 }
