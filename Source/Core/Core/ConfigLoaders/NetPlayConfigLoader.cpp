@@ -133,20 +133,41 @@ public:
       layer->Set(Config::GFX_SSAA, false);
     }
 
+    // FYI: This controller setting logic is fundamentally flawed.
+    // GCPad/Adapter vs. GBA is controlled from the NetPlay host.
+    // GCPad vs. GCAdapter is controlled by each client.
+    // Each slot must match the desired in-game pad type for synchronization,
+    //  but GCAdapter won't be polled on a local slot if GBA is configured there.
+    //
+    // TLDR:
+    // Mix of GBA + GCPad should work.
+    // Mix of GCPad + GCadapter should work.
+    // But a mix of GBA + GCAdapter will not work properly.
+    //
+    // Code elsewhere needs overhaulting to fix this properly.
+
     u8 local_pad = 0;
     for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       const NetPlay::PlayerId player_id = m_settings.pad_map[i];
-      const SerialInterface::SIDevices si_device =
-          Config::Get(Config::GetInfoForSIDevice(local_pad));
       const auto config_info = Config::GetInfoForSIDevice(i);
 
-      if (m_settings.gba_config[i].enabled && player_id > 0)
+      if (player_id == 0)
+      {
+        // This port is not assigned to any player.
+        layer->Set(config_info, SerialInterface::SIDEVICE_NONE);
+        continue;
+      }
+
+      if (m_settings.gba_config[i].enabled)
       {
         layer->Set(config_info, SerialInterface::SIDEVICE_GC_GBA_EMULATED);
       }
-      else if (player_id == m_settings.local_player_id)
+      else
       {
+        const SerialInterface::SIDevices si_device =
+            Config::Get(Config::GetInfoForSIDevice(local_pad));
+
         // Use local controller types for local controllers if they are compatible
         if (SerialInterface::SIDevice_IsGCController(si_device))
         {
@@ -154,24 +175,18 @@ public:
 
           if (si_device == SerialInterface::SIDEVICE_WIIU_ADAPTER)
           {
+            // This seems out of place here.
             GCAdapter::ResetDeviceType(local_pad);
           }
         }
-        else
+        else if (si_device != SerialInterface::SIDEVICE_AM_BASEBOARD)
         {
           layer->Set(config_info, SerialInterface::SIDEVICE_GC_CONTROLLER);
         }
-        local_pad++;
       }
-      else if (player_id > 0)
-      {
-        if (si_device != SerialInterface::SIDEVICE_AM_BASEBOARD)
-          layer->Set(config_info, SerialInterface::SIDEVICE_GC_CONTROLLER);
-      }
-      else
-      {
-        layer->Set(config_info, SerialInterface::SIDEVICE_NONE);
-      }
+
+      if (player_id == m_settings.local_player_id)
+        ++local_pad;
     }
 
     for (int i = 0; i < MAX_WIIMOTES; ++i)
