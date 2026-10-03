@@ -119,6 +119,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 
 int main(int argc, char* argv[])
 {
+  // IF THIS COMMENT IS IN A NON-TESTING PR I'VE MADE A MISTAKE. It exists to prevent my testing PR
+  // from getting automerged by Github if its contents would be the same as a merged actual PR.
+
 #ifdef _WIN32
   const HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
   const HANDLE stderr_handle = ::GetStdHandle(STD_ERROR_HANDLE);
