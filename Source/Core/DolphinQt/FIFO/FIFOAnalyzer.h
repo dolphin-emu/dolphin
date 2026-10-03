@@ -8,6 +8,7 @@
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
 
 class FifoPlayer;
 class QFont;
@@ -19,6 +20,14 @@ class QPushButton;
 class QSplitter;
 class QTextBrowser;
 class QTreeWidget;
+class QTreeWidgetItem;
+
+struct GPState
+{
+  std::array<u32, FifoDataFile::CP_MEM_SIZE> m_cpmem;
+  std::array<u32, FifoDataFile::XF_MEM_SIZE + FifoDataFile::XF_REGS_SIZE> m_xfmem;
+  std::array<u32, FifoDataFile::BP_MEM_SIZE> m_bpmem;
+};
 
 class FIFOAnalyzer final : public QWidget
 {
@@ -40,9 +49,10 @@ private:
 
   void ShowSearchResult(size_t index);
 
-  void UpdateTree();
-  void UpdateDetails();
+  void UpdateObjectTree();
+  void UpdateCommandList();
   void UpdateDescription();
+  void UpdateStateTree();
 
   void OnDebugFontChanged(const QFont& font);
 
@@ -50,8 +60,12 @@ private:
 
   QTreeWidget* m_tree_widget;
   QListWidget* m_detail_list;
+  QTreeWidget* m_state_widget;
   QTextBrowser* m_entry_detail_browser;
   QSplitter* m_object_splitter;
+  QTreeWidgetItem* m_cp;
+  QTreeWidgetItem* m_xf;
+  QTreeWidgetItem* m_bp;
 
   // Search
   QGroupBox* m_search_box;
@@ -76,7 +90,10 @@ private:
 
   // Offsets from the start of the first part in an object for each command within the currently
   // selected object.
-  std::vector<int> m_object_data_offsets;
+  std::vector<u32> m_object_data_offsets;
 
   std::vector<SearchResult> m_search_results;
+
+  GPState m_prev_state{};
+  GPState m_prev_fifo_pos{};
 };
