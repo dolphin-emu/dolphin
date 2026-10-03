@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/LazyMemoryRegionBitSet.h"
 #include "Common/RangeSet.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
@@ -112,36 +113,6 @@ struct JitBlock : public JitBlockData
 
 typedef void (*CompiledCode)();
 
-// This is essentially just an std::bitset, but Visual Studia 2013's
-// implementation of std::bitset is slow.
-class ValidBlockBitSet final
-{
-public:
-  enum
-  {
-    // ValidBlockBitSet covers the whole 32-bit address-space in 32-byte
-    // chunks.
-    // FIXME: Maybe we can get away with less? There isn't any actual
-    // RAM in most of this space.
-    VALID_BLOCK_MASK_SIZE = (1ULL << 32) / 32,
-    // The number of elements in the allocated array. Each u32 contains 32 bits.
-    VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
-  };
-  // Directly accessed by Jit64.
-  std::unique_ptr<u32[]> m_valid_block;
-
-  ValidBlockBitSet()
-  {
-    m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
-    ClearAll();
-  }
-
-  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
-  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
-  void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
-  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
-};
-
 class JitBaseBlockCache
 {
 public:
@@ -154,10 +125,10 @@ public:
   explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();
 
-  virtual void Init();
+  [[nodiscard]] virtual bool Init();
   void Shutdown();
   void Clear();
-  void Reset();
+  [[nodiscard]] bool Reset();
 
   // Code Cache
   u8** GetEntryPoints();
@@ -187,7 +158,7 @@ public:
   void ErasePhysicalRange(u32 address, u32 length);
   void EraseSingleBlock(const JitBlock& block);
 
-  u32* GetBlockBitSet() const;
+  const u32* GetBlockBitSet() const;
 
 protected:
   virtual void DestroyBlock(JitBlock& block);
@@ -223,9 +194,10 @@ private:
   static constexpr u32 BLOCK_RANGE_MAP_MASK = ~(BLOCK_RANGE_SIZE - 1);
   std::map<u32, std::unordered_set<JitBlock*>> block_range_map;
 
-  // This bitsets shows which cachelines overlap with any blocks.
+  // This bitset shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.
-  ValidBlockBitSet valid_block;
+  static constexpr u32 VALID_BLOCK_CACHE_LINE_SIZE = 32;
+  Common::LazyMemoryRegionBitSet valid_block{(1ULL << 32) / VALID_BLOCK_CACHE_LINE_SIZE};
 
   // This contains the entry points for each block.
   // It is used by the assembly dispatcher to quickly

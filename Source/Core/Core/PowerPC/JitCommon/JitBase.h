@@ -8,18 +8,19 @@
 #include <iosfwd>
 #include <map>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/ConfigInfo.h"
+#include "Common/LazyMemoryRegionBitSet.h"
 #include "Common/x64Emitter.h"
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -80,6 +81,8 @@ protected:
   static constexpr size_t GUARD_SIZE = 64 * 1024;
   static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
 
+  static constexpr size_t INSTRUCTION_BIT_SET_SIZE = (1ULL << 32) / sizeof(UGeckoInstruction);
+
   struct JitOptions
   {
     bool enableBlocklink;
@@ -128,9 +131,9 @@ protected:
 
     JitBlock* curBlock;
 
-    std::unordered_set<u32> fifoWriteAddresses;
-    std::unordered_set<u32> pairedQuantizeAddresses;
-    std::unordered_set<u32> noSpeculativeConstantsAddresses;
+    Common::LazyMemoryRegionBitSet fifoWriteAddresses{INSTRUCTION_BIT_SET_SIZE};
+    Common::LazyMemoryRegionBitSet pairedQuantizeAddresses{INSTRUCTION_BIT_SET_SIZE};
+    Common::LazyMemoryRegionBitSet noSpeculativeConstantsAddresses{INSTRUCTION_BIT_SET_SIZE};
   };
 
   PPCAnalyst::CodeBlock code_block;
@@ -169,6 +172,8 @@ protected:
   u8* m_stack_guard = nullptr;
 
   static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 25> JIT_SETTINGS;
+
+  [[nodiscard]] bool CheckValidity() const;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();

@@ -50,10 +50,10 @@ void JitBlockCache::WriteDestroyBlock(const JitBlock& block)
   emit.INT3();
 }
 
-void JitBlockCache::Init()
+bool JitBlockCache::Init()
 {
-  JitBaseBlockCache::Init();
   ClearRangesToFree();
+  return JitBaseBlockCache::Init();
 }
 
 void JitBlockCache::DestroyBlock(JitBlock& block)

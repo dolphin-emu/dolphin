@@ -166,7 +166,7 @@ struct DDSLoadInfo
 
 static constexpr u32 GetBlockCount(u32 extent, u32 block_size)
 {
-  return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
+  return std::max(Common::DivideRoundingUp(extent, block_size), 1u);
 }
 
 static u32 CalculateMipCount(u32 width, u32 height)
