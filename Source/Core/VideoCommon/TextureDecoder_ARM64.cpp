@@ -3,6 +3,8 @@
 
 #include "VideoCommon/TextureDecoder.h"
 
+#include <array>
+
 #include <arm_neon.h>
 
 #include "Common/CommonTypes.h"
@@ -376,14 +378,28 @@ TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int height, int 
   }
 }
 
+static constexpr std::array<u32, 256> GenerateUnpack2BitTable()
+{
+  std::array<u32, 256> table;
+
+  u32 index = 0;
+  for (u32 i = 0; i < 4; ++i)
+    for (u32 j = 0; j < 4; ++j)
+      for (u32 k = 0; k < 4; ++k)
+        for (u32 l = 0; l < 4; ++l)
+          table[index++] = (l << 24) | (k << 16) | (j << 8) | i;
+
+  return table;
+}
+
 static DOLPHIN_FORCE_INLINE void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width,
                                                             int height, int Wsteps4, int Wsteps8)
 {
+  static constexpr std::array<u32, 256> unpack_2bit_table = GenerateUnpack2BitTable();
+  std::array<u32, 16> unpacked_indices;
+
   uint8x8_t dxt_blend_factors_0 = vreinterpret_u8_u16(vdup_n_u16(0x0305));
   uint8x8_t dxt_blend_factors_1 = vreinterpret_u8_u16(vdup_n_u16(0x0503));
-
-  uint8x16_t table_offsets_0_1 = vreinterpretq_u8_u64(vdupq_n_u64(0x0404040400000000));
-  uint8x16_t table_offsets_2_3 = vreinterpretq_u8_u64(vdupq_n_u64(0x0C0C0C0C08080808));
 
   for (int y = 0; y < height; y += 8)
   {
@@ -391,9 +407,9 @@ static DOLPHIN_FORCE_INLINE void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* 
     {
       // Load four blocks at once
 
-      uint32x4x2_t values = vld2q_u32(reinterpret_cast<const u32*>(src + 32 * yStep));
+      const u32* src2 = reinterpret_cast<const u32*>(src + 32 * yStep);
+      uint32x4x2_t values = vld2q_u32(src2);
       uint16x8_t rgb565 = vreinterpretq_u16_u32(values.val[0]);
-      uint8x16_t c2 = vreinterpretq_u8_u32(values.val[1]);
 
       // Unpack colors 0 and 1
 
@@ -457,48 +473,45 @@ static DOLPHIN_FORCE_INLINE void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* 
           zip_colors(color_0_1.a, a_2_3),
       };
 
-      // Unpack the indices so each one takes up one byte
-      // TODO: vluti2q_laneq_u8 should be faster, but it requires an optional extension
-
-      uint8x16x4_t c8_interleaved;
-      c8_interleaved.val[0] = vshrq_n_u8(c2, 6);
-      c8_interleaved.val[1] = vandq_u8(vshrq_n_u8(c2, 4), vdupq_n_u8(0x03));
-      c8_interleaved.val[2] = vandq_u8(vshrq_n_u8(c2, 2), vdupq_n_u8(0x03));
-      c8_interleaved.val[3] = vandq_u8(c2, vdupq_n_u8(0x03));
-
-      uint16x8x4_t c8_partially_interleaved;
-      c8_partially_interleaved.val[0] = vzip1q_u8(c8_interleaved.val[0], c8_interleaved.val[1]);
-      c8_partially_interleaved.val[1] = vzip2q_u8(c8_interleaved.val[0], c8_interleaved.val[1]);
-      c8_partially_interleaved.val[2] = vzip1q_u8(c8_interleaved.val[2], c8_interleaved.val[3]);
-      c8_partially_interleaved.val[3] = vzip2q_u8(c8_interleaved.val[2], c8_interleaved.val[3]);
-
-      uint32x4x4_t c8;
-      c8.val[0] = vzip1q_u16(c8_partially_interleaved.val[0], c8_partially_interleaved.val[2]);
-      c8.val[1] = vzip2q_u16(c8_partially_interleaved.val[0], c8_partially_interleaved.val[2]);
-      c8.val[2] = vzip1q_u16(c8_partially_interleaved.val[1], c8_partially_interleaved.val[3]);
-      c8.val[3] = vzip2q_u16(c8_partially_interleaved.val[1], c8_partially_interleaved.val[3]);
-
-      // Rearrange the lines so every line from the first block is next to a line from the second
+      // Unpack the indices so each one takes up one byte. We could do this entirely using SIMD,
+      // but doing it using GPR units lets us offload the already busy FPR units.
+      //
+      // We rearrange the lines so every line from the first block is next to a line from the second
       // block, and every line from the third block is next to a line from the fourth block.
       // This lets us write 8 texels at a time to dst instead of just 4.
+      //
+      // TODO: vluti2q_laneq_u8 might be faster, but it requires an optional extension
 
-      uint8x16x4_t c8_lines;
-      c8_lines.val[0] = vzip1q_u32(c8.val[0], c8.val[1]);
-      c8_lines.val[1] = vzip2q_u32(c8.val[0], c8.val[1]);
-      c8_lines.val[2] = vzip1q_u32(c8.val[2], c8.val[3]);
-      c8_lines.val[3] = vzip2q_u32(c8.val[2], c8.val[3]);
+      u32 first_block_indices = src2[1];
+      u32 second_block_indices = src2[3];
+      for (size_t i = 0; i < 4; ++i)
+      {
+        unpacked_indices[i * 2 + 0] = unpack_2bit_table[(first_block_indices >> i * 8) & 0xFF];
+        unpacked_indices[i * 2 + 1] =
+            unpack_2bit_table[(second_block_indices >> i * 8) & 0xFF] | 0x04040404;
+      }
+
+      u32 third_block_indices = src2[5];
+      u32 fourth_block_indices = src2[7];
+      for (size_t i = 0; i < 4; ++i)
+      {
+        unpacked_indices[i * 2 + 8] =
+            unpack_2bit_table[(third_block_indices >> i * 8) & 0xFF] | 0x08080808;
+        unpacked_indices[i * 2 + 9] =
+            unpack_2bit_table[(fourth_block_indices >> i * 8) & 0xFF] | 0x0C0C0C0C;
+      }
 
       // Finally, do the table lookup and store the result
 
+      uint8x16x4_t table_indices =
+          vld1q_u8_x4(reinterpret_cast<const u8*>(unpacked_indices.data()));
       for (int i = 0; i < 4; ++i)
       {
-        uint8x16_t table_indices =
-            vaddq_u8(c8_lines.val[i], i < 2 ? table_offsets_0_1 : table_offsets_2_3);
         RGBAx16 rgba = {
-            vqtbl1q_u8(color.r, table_indices),
-            vqtbl1q_u8(color.g, table_indices),
-            vqtbl1q_u8(color.b, table_indices),
-            vqtbl1q_u8(color.a, table_indices),
+            vqtbl1q_u8(color.r, table_indices.val[i]),
+            vqtbl1q_u8(color.g, table_indices.val[i]),
+            vqtbl1q_u8(color.b, table_indices.val[i]),
+            vqtbl1q_u8(color.a, table_indices.val[i]),
         };
         Store8x2RGBA(dst, x, y + i * 2, width, rgba);
       }
