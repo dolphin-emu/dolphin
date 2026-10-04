@@ -68,7 +68,9 @@ They cover motion strength/direction, reversals, fixed-axis bounds, closed paths
 gyro consistency, pointing stability and modifier transitions. Additional tests
 cover analog bindings, forward/backward, settings persistence and default
 absolute Swing returning to neutral. These tests cannot establish game acceptance
-of the reworked build; it requires a fresh manual regression test.
+of the reworked build. The PR author has since manually tested Swordplay in
+Wii Sports Resort with the reworked mouse controls and reports that it plays
+very well. A fresh manual Golf regression remains to be confirmed.
 
 For the reworked Windows build:
 
