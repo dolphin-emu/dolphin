@@ -25,6 +25,14 @@ public:
 
   StateData GetState(bool adjusted = true) const;
 
+  // Relative input treats the same bindings as displacement rather than position.
+  void SetRelativeInput(bool value);
+  bool IsRelativeInput() const;
+  bool IsMotionPressed() const;
+  bool IsRecenterPressed() const;
+  StateData GetRelativeState() const;
+  ControlState GetSensitivity() const;
+
   // Velocities returned in m/s.
   ControlState GetSpeed() const;
   ControlState GetReturnSpeed() const;
@@ -36,6 +44,10 @@ public:
   ControlState GetMaxDistance() const;
 
 private:
+  SettingValue<bool> m_relative_setting;
+  SettingValue<double> m_sensitivity_setting;
+  SettingValue<double> m_horizontal_sensitivity_setting;
+  SettingValue<double> m_vertical_sensitivity_setting;
   SettingValue<double> m_distance_setting;
   SettingValue<double> m_speed_setting;
   SettingValue<double> m_return_speed_setting;

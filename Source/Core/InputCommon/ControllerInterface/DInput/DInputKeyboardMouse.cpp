@@ -39,7 +39,7 @@ public:
 
   ControlState GetState() const override
   {
-    return ControlState(m_state.GetValue().data[m_index] * m_scale);
+    return ControlState(m_state.GetValue().data[m_index] * m_scale) / MOUSE_AXIS_SENSITIVITY;
   }
 
 private:
@@ -147,6 +147,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   // We don't use caps here due to reporting inconsistencies
   for (u8 i = 0; i < std::size(m_state_in.mouse.rgbButtons); ++i)
     AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
+  AddCombinedInput("Mouse Side Button", {"Click 3", "Click 4"});
   // mouse axes
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
   {

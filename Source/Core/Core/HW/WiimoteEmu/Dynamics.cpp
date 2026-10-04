@@ -130,8 +130,138 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   ApproachAngleWithAccel(state, target_angle, max_accel, time_elapsed);
 }
 
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
+Common::Quaternion GetSwingRotation(const MotionState& state)
 {
+  return (Common::Quaternion::RotateX(state.angle.x) * Common::Quaternion::RotateZ(state.angle.z))
+      .Normalized();
+}
+
+static void EmulateRelativeSwing(MotionState* state, ControllerEmu::Force* group,
+                                 float time_elapsed, std::optional<Common::Vec2> point_angles)
+{
+  // Model an outstretched arm. Both sensors must describe the same movement, including
+  // tangential and centripetal acceleration, rather than independent shake/gyro effects.
+  const float arm_length = group->GetMaxDistance();
+  const float max_angular_velocity = std::min(20.f, float(group->GetSpeed() / arm_length));
+  const float max_point_velocity = float(group->GetReturnSpeed() * 3);
+  const float max_angle = std::min(float(MathUtil::TAU * 85 / 360), float(group->GetTwistAngle()));
+  constexpr float SMOOTHING_TIME = 0.02f;
+  const float recenter_time = float(0.48 * arm_length / group->GetReturnSpeed());
+
+  if (time_elapsed <= 0)
+    return;
+
+  const bool recenter = group->IsRecenterPressed();
+  const auto input = group->GetRelativeState();
+  const Common::Vec2 delta{input.x, -input.y};
+  const float sensitivity = group->GetSensitivity();
+  Common::Vec2 angles{-state->angle.z, state->angle.x};
+  Common::Vec2 angle_velocity{state->input_velocity.x, state->input_velocity.y};
+  const float old_forward_velocity = state->input_velocity.z;
+  const auto old_angular_velocity = state->angular_velocity;
+  const auto old_rotation = GetSwingRotation(*state);
+  if (point_angles && !recenter)
+  {
+    // Point already has Dolphin's usual smoothing. Limit the return from a swing,
+    // but don't apply a second filter to normal cursor movement.
+    auto target = *point_angles;
+    for (auto& angle : target.data)
+      angle = std::clamp(angle, -max_angle, max_angle);
+    auto step = target - angles;
+    const float distance = step.Length();
+    if (distance > max_point_velocity * time_elapsed)
+      step = step * (max_point_velocity * time_elapsed / distance);
+    angles += step;
+    angle_velocity = step / time_elapsed;
+  }
+  else
+  {
+    auto target_velocity =
+        recenter ? -angles / recenter_time : delta * (sensitivity / time_elapsed);
+    const float speed = target_velocity.Length();
+    if (speed > max_angular_velocity)
+      target_velocity = target_velocity * (max_angular_velocity / speed);
+    for (std::size_t i = 0; i != angles.data.size(); ++i)
+    {
+      auto& velocity = angle_velocity.data[i];
+      // A direction change must not continue moving the old way due to filter lag.
+      if (!recenter && velocity * target_velocity.data[i] < 0)
+        velocity = 0;
+      velocity +=
+          (target_velocity.data[i] - velocity) * (time_elapsed / (SMOOTHING_TIME + time_elapsed));
+      if (std::abs(velocity) < 1e-5f)
+        velocity = 0;
+      const float angle = angles.data[i] + velocity * time_elapsed;
+      angles.data[i] = std::clamp(angle, -max_angle, max_angle);
+      // Discard overflow so reversing at an edge responds immediately.
+      if (angles.data[i] != angle)
+        velocity = 0;
+    }
+  }
+
+  // A unique pose for each displacement: no accumulated roll from closed paths.
+  // The bounded, fixed axes keep left/right and up/down from becoming inverted.
+  const auto rotation =
+      (Common::Quaternion::RotateX(angles.y) * Common::Quaternion::RotateZ(-angles.x)).Normalized();
+
+  const auto change = (old_rotation.Conjugate() * rotation).Normalized();
+  const Common::Vec3 axis{change.data.x, change.data.y, change.data.z};
+  const float length = axis.Length();
+  state->angular_velocity =
+      length > 1e-8f ? axis * (2 * std::atan2(length, std::abs(change.data.w)) /
+                               (length * time_elapsed) * std::copysign(1.f, change.data.w)) :
+                       Common::Vec3{};
+
+  state->angle = {angles.y, 0, -angles.x};
+  state->input_velocity.x = angle_velocity.x;
+  state->input_velocity.y = angle_velocity.y;
+
+  // Forward/backward bindings use the same displacement mode for arm translation.
+  auto& forward_velocity = state->input_velocity.z;
+  const float target_forward_velocity = recenter ?
+                                            -state->forward_offset / recenter_time :
+                                            input.z * sensitivity * arm_length / time_elapsed;
+  if (!recenter && forward_velocity * target_forward_velocity < 0)
+    forward_velocity = 0;
+  forward_velocity +=
+      (std::clamp(target_forward_velocity, -float(group->GetSpeed()), float(group->GetSpeed())) -
+       forward_velocity) *
+      (time_elapsed / (SMOOTHING_TIME + time_elapsed));
+  if (std::abs(forward_velocity) < 1e-5f)
+    forward_velocity = 0;
+  const float forward = state->forward_offset + forward_velocity * time_elapsed;
+  state->forward_offset = std::clamp(forward, -arm_length, arm_length);
+  if (forward != state->forward_offset)
+    forward_velocity = 0;
+
+  const Common::Vec3 arm{0, -arm_length, 0};
+  const auto angular_acceleration = (state->angular_velocity - old_angular_velocity) / time_elapsed;
+  const auto velocity = state->angular_velocity.Cross(arm);
+  state->position = rotation * arm - arm + Common::Vec3{0, -state->forward_offset, 0};
+  state->velocity = rotation * velocity + Common::Vec3{0, -forward_velocity, 0};
+  state->acceleration =
+      rotation * (angular_acceleration.Cross(arm) + state->angular_velocity.Cross(velocity));
+  state->acceleration.y -= (forward_velocity - old_forward_velocity) / time_elapsed;
+  if (point_angles && !recenter)
+  {
+    state->forward_offset = 0;
+    state->input_velocity.z = 0;
+    state->position = rotation * arm - arm;
+    // Ordinary pointing is wrist rotation, not a swing of the whole virtual arm.
+    state->velocity = {};
+    state->acceleration = {};
+  }
+}
+
+void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed,
+                  std::optional<Common::Vec2> point_angles)
+{
+  if (swing_group->IsRelativeInput())
+  {
+    EmulateRelativeSwing(state, swing_group, time_elapsed, point_angles);
+    return;
+  }
+
   const auto input_state = swing_group->GetState();
   const float max_distance = swing_group->GetMaxDistance();
   const float max_angle = swing_group->GetTwistAngle();
@@ -205,91 +335,6 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
         std::clamp(state->position.y, -1.f * max_distance, max_y_progress * max_distance);
     state->velocity.y = 0;
     state->acceleration.y = 0;
-  }
-}
-
-void EmulateMouseMotion(MouseMotionState* state, const Common::Vec2& delta, float sensitivity,
-                        float time_elapsed, bool recenter, std::optional<Common::Vec2> point_angles)
-{
-  // Model an outstretched arm. Both sensors must describe the same movement, including
-  // tangential and centripetal acceleration, rather than independent shake/gyro effects.
-  constexpr float ARM_LENGTH = 0.5f;
-  constexpr float MAX_ANGULAR_VELOCITY = 20.f;
-  constexpr float MAX_POINT_VELOCITY = 6.f;
-  constexpr float MAX_ANGLE = float(MathUtil::TAU * 85 / 360);
-  constexpr float SMOOTHING_TIME = 0.02f;
-  constexpr float RECENTER_TIME = 0.12f;
-
-  if (time_elapsed <= 0)
-    return;
-
-  const auto old_angular_velocity = state->angular_velocity;
-  const auto old_rotation = state->rotation;
-  if (point_angles && !recenter)
-  {
-    // Point already has Dolphin's usual smoothing. Limit the return from a swing,
-    // but don't apply a second filter to normal cursor movement.
-    auto target = *point_angles;
-    for (auto& angle : target.data)
-      angle = std::clamp(angle, -MAX_ANGLE, MAX_ANGLE);
-    auto step = target - state->angles;
-    const float distance = step.Length();
-    if (distance > MAX_POINT_VELOCITY * time_elapsed)
-      step = step * (MAX_POINT_VELOCITY * time_elapsed / distance);
-    state->angles += step;
-    state->angle_velocity = step / time_elapsed;
-  }
-  else
-  {
-    auto target_velocity =
-        recenter ? -state->angles / RECENTER_TIME : delta * (sensitivity / time_elapsed);
-    const float speed = target_velocity.Length();
-    if (speed > MAX_ANGULAR_VELOCITY)
-      target_velocity = target_velocity * (MAX_ANGULAR_VELOCITY / speed);
-    for (std::size_t i = 0; i != state->angles.data.size(); ++i)
-    {
-      auto& velocity = state->angle_velocity.data[i];
-      // A direction change must not continue moving the old way due to filter lag.
-      if (!recenter && velocity * target_velocity.data[i] < 0)
-        velocity = 0;
-      velocity +=
-          (target_velocity.data[i] - velocity) * (time_elapsed / (SMOOTHING_TIME + time_elapsed));
-      if (std::abs(velocity) < 1e-5f)
-        velocity = 0;
-      const float angle = state->angles.data[i] + velocity * time_elapsed;
-      state->angles.data[i] = std::clamp(angle, -MAX_ANGLE, MAX_ANGLE);
-      // Discard overflow so reversing at an edge responds immediately.
-      if (state->angles.data[i] != angle)
-        velocity = 0;
-    }
-  }
-
-  // A unique pose for each mouse position: no accumulated roll from closed paths.
-  // The bounded, fixed axes keep left/right and up/down from becoming inverted.
-  state->rotation =
-      (Common::Quaternion::RotateX(state->angles.y) * Common::Quaternion::RotateZ(-state->angles.x))
-          .Normalized();
-
-  const auto change = (old_rotation.Conjugate() * state->rotation).Normalized();
-  const Common::Vec3 axis{change.data.x, change.data.y, change.data.z};
-  const float length = axis.Length();
-  state->angular_velocity =
-      length > 1e-8f ? axis * (2 * std::atan2(length, std::abs(change.data.w)) /
-                               (length * time_elapsed) * std::copysign(1.f, change.data.w)) :
-                       Common::Vec3{};
-
-  const Common::Vec3 arm{0, -ARM_LENGTH, 0};
-  const auto angular_acceleration = (state->angular_velocity - old_angular_velocity) / time_elapsed;
-  const auto velocity = state->angular_velocity.Cross(arm);
-  state->position = state->rotation * arm - arm;
-  state->velocity = state->rotation * velocity;
-  state->acceleration =
-      state->rotation * (angular_acceleration.Cross(arm) + state->angular_velocity.Cross(velocity));
-  if (point_angles && !recenter)
-  {
-    // Ordinary pointing is wrist rotation, not a swing of the whole virtual arm.
-    state->velocity = {};
-    state->acceleration = {};
   }
 }
 

@@ -50,7 +50,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace WiimoteEmu
 {
@@ -65,121 +64,6 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
-
-// Fixed internal references reuse device discovery, input gating and per-channel mouse deltas.
-// They are deliberately not direction bindings in the controller configuration.
-class MouseMotion final : public ControllerEmu::ControlGroup
-{
-public:
-  MouseMotion()
-      : ControlGroup("Mouse Motion", _trans("Mouse Motion"), ControllerEmu::GroupType::Other,
-                     DefaultValue::Disabled)
-  {
-    AddInput(ControllerEmu::Translatability::Translate, _trans("Motion Hold"));
-    AddInput(ControllerEmu::Translatability::Translate, _trans("Recenter"));
-    AddSetting(&m_sensitivity,
-               {_trans("Sensitivity"), _trans("%"),
-                _trans("Use relative mouse movement as Wii Remote motion (Windows and X11). "
-                       "Move toward yourself to swing down, away to swing up. "
-                       "Hold a side mouse button for motion; otherwise move the pointer. "
-                       "Hold the middle mouse button or R to recenter. "
-                       "Higher sensitivity needs less mouse movement for a swing. "
-                       "This does not affect the pointer."),
-                _trans("Motion Sensitivity")},
-               100, 1, 400);
-    AddSetting(&m_horizontal_sensitivity,
-               {_trans("Horizontal Sensitivity"), _trans("%"),
-                _trans("Multiplier for left/right mouse motion. "
-                       "100% uses Motion Sensitivity unchanged; 200% doubles it.")},
-               100, 1, 400);
-    AddSetting(&m_vertical_sensitivity,
-               {_trans("Vertical Sensitivity"), _trans("%"),
-                _trans("Multiplier for upward/downward mouse motion. "
-                       "100% uses Motion Sensitivity unchanged; 200% doubles it.")},
-               100, 1, 400);
-  }
-
-  void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env) override
-  {
-    m_last_update = {};
-    std::string device_name;
-    m_scale = 1;
-    int side_button = 3;
-    for (const auto& device : g_controller_interface.GetAllDevices())
-    {
-      if ((device->GetSource() == "DInput" || device->GetSource() == "XInput2") &&
-          device->FindInput("RelativeMouse X+") && device->FindInput("RelativeMouse Y+"))
-      {
-        device_name = device->GetQualifiedName();
-        // XInput2 exposes relative movement in units of eight counts, unlike DInput.
-        const bool is_x11 = device->GetSource() == "XInput2";
-        m_scale = is_x11 ? 8.f : 1.f;
-        side_button = is_x11 ? 8 : 3;
-        break;
-      }
-    }
-
-    constexpr std::array names{"RelativeMouse X+", "RelativeMouse X-", "RelativeMouse Y+",
-                               "RelativeMouse Y-"};
-    for (std::size_t i = 0; i != m_inputs.size(); ++i)
-    {
-      m_inputs[i].SetExpression(
-          device_name.empty() ? "" : fmt::format("`{}:{}`", device_name, names[i]));
-      m_inputs[i].UpdateReference(env);
-    }
-
-    if (!device_name.empty())
-    {
-      // X11 numbers the side buttons 8/9; DInput numbers them 3/4.
-      if (controls[0]->control_ref->GetExpression().empty())
-        controls[0]->control_ref->SetExpression(fmt::format("`{}:Click {}` | `{}:Click {}`",
-                                                            device_name, side_button, device_name,
-                                                            side_button + 1));
-      if (controls[1]->control_ref->GetExpression().empty())
-        controls[1]->control_ref->SetExpression(
-            fmt::format("`{}:Click 2` | `{}:R`", device_name, device_name));
-    }
-    ControlGroup::UpdateReferences(env);
-  }
-
-  std::optional<Common::Vec2> GetDelta()
-  {
-    if (!ControlReference::GetInputGate() || !m_inputs[0].BoundCount())
-    {
-      m_last_update = {};
-      return std::nullopt;
-    }
-
-    const auto now = std::chrono::steady_clock::now();
-    const bool stale = now - m_last_update > std::chrono::milliseconds(250);
-    m_last_update = now;
-    // Relative inputs can accumulate while emulation is paused. Discard that first sample.
-    if (stale)
-      return std::nullopt;
-
-    return Common::Vec2{float(m_inputs[0].State(0) - m_inputs[1].State(0)),
-                        float(m_inputs[2].State(0) - m_inputs[3].State(0))} *
-           Common::Vec2{float(m_horizontal_sensitivity.GetValue() / 100),
-                        float(m_vertical_sensitivity.GetValue() / 100)} *
-           m_scale;
-  }
-
-  bool IsMotionPressed() const { return controls[0]->GetState<bool>(); }
-  bool IsRecenterPressed() const { return controls[1]->GetState<bool>(); }
-  float GetSensitivity() const
-  {
-    // 0.2 degrees per count at 100%; 900 counts cover a 180-degree swing.
-    return float(m_sensitivity.GetValue() / 100 * MathUtil::TAU / 1800);
-  }
-
-private:
-  std::array<InputReference, 4> m_inputs;
-  ControllerEmu::SettingValue<double> m_sensitivity;
-  ControllerEmu::SettingValue<double> m_horizontal_sensitivity;
-  ControllerEmu::SettingValue<double> m_vertical_sensitivity;
-  float m_scale = 1;
-  std::chrono::steady_clock::time_point m_last_update{};
-};
 
 void Wiimote::Reset()
 {
@@ -313,9 +197,9 @@ void Wiimote::Reset()
 
   // Dynamics:
   m_swing_state = {};
-  m_mouse_motion_state = {};
-  m_mouse_motion_active = false;
-  m_mouse_gesture_active = false;
+  m_relative_swing_active = false;
+  m_swing_input_active = false;
+  m_last_swing_update = {};
   m_tilt_state = {};
   m_point_state = {};
   m_shake_state = {};
@@ -349,7 +233,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-  groups.emplace_back(m_mouse_motion = new MouseMotion());
 
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
   const auto fov_default =
@@ -469,8 +352,6 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
     return m_tilt;
   case WiimoteGroup::Swing:
     return m_swing;
-  case WiimoteGroup::MouseMotion:
-    return m_mouse_motion;
   case WiimoteGroup::Rumble:
     return m_rumble;
   case WiimoteGroup::Attachments:
@@ -957,49 +838,47 @@ void Wiimote::RefreshConfig()
 
 void Wiimote::StepDynamics()
 {
-  const bool mouse_motion_enabled = m_mouse_motion->enabled.GetValue();
-  const bool mouse_gesture_active = mouse_motion_enabled && m_mouse_motion->IsMotionPressed();
-  const auto mouse_delta = mouse_motion_enabled ? m_mouse_motion->GetDelta() : std::nullopt;
-
-  // Preserve the pointer target during a gesture; ordinary movement is just pointing.
-  if (!mouse_gesture_active || !m_mouse_gesture_active)
+  const bool relative_swing = m_swing->IsRelativeInput();
+  const bool swing_input_active = relative_swing && m_swing->IsMotionPressed();
+  if (!swing_input_active || !m_swing_input_active)
     EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
   else
     m_point_state.angular_velocity = {};
 
-  if (!mouse_motion_enabled || !m_mouse_motion_active)
-    m_mouse_motion_state = {};
-  else if (!ControlReference::GetInputGate() || (!mouse_delta && mouse_gesture_active))
+  if (relative_swing != m_relative_swing_active)
+    m_swing_state = {};
+  if (relative_swing)
   {
-    // Preserve the pose on focus changes and pauses, without replaying stale motion.
-    m_mouse_motion_state.angular_velocity = {};
-    m_mouse_motion_state.angle_velocity = {};
-    m_mouse_motion_state.velocity = {};
-    m_mouse_motion_state.acceleration = {};
+    const auto now = std::chrono::steady_clock::now();
+    const bool stale = now - m_last_swing_update > std::chrono::milliseconds(250);
+    m_last_swing_update =
+        ControlReference::GetInputGate() ? now : std::chrono::steady_clock::time_point{};
+    if (!ControlReference::GetInputGate() ||
+        (swing_input_active && (stale || !m_swing_input_active)))
+    {
+      // Don't consume accumulated displacement after a pause, or the last pointing sample.
+      m_swing_state.input_velocity = {};
+      m_swing_state.angular_velocity = {};
+      m_swing_state.velocity = {};
+      m_swing_state.acceleration = {};
+    }
+    else
+    {
+      const auto point_angles =
+          swing_input_active ?
+              std::nullopt :
+              std::optional(Common::Vec2{-m_point_state.angle.z, m_point_state.angle.x});
+      EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ, point_angles);
+    }
   }
   else
   {
-    if (mouse_gesture_active && !m_mouse_gesture_active)
-    {
-      // Pressing the modifier must not replay the last pointing sample as a swing.
-      m_mouse_motion_state.angle_velocity = {};
-      m_mouse_motion_state.angular_velocity = {};
-    }
-    const auto delta = mouse_gesture_active && m_mouse_gesture_active && mouse_delta ?
-                           *mouse_delta :
-                           Common::Vec2{};
-    const auto point_angles =
-        mouse_gesture_active ?
-            std::nullopt :
-            std::optional(Common::Vec2{-m_point_state.angle.z, m_point_state.angle.x});
-    EmulateMouseMotion(&m_mouse_motion_state, delta, m_mouse_motion->GetSensitivity(),
-                       1.f / ::Wiimote::UPDATE_FREQ, m_mouse_motion->IsRecenterPressed(),
-                       point_angles);
+    m_last_swing_update = {};
+    EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   }
-  m_mouse_motion_active = mouse_motion_enabled;
-  m_mouse_gesture_active = mouse_gesture_active;
+  m_relative_swing_active = relative_swing;
+  m_swing_input_active = swing_input_active;
 
-  EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
@@ -1008,10 +887,8 @@ void Wiimote::StepDynamics()
 
 Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 {
-  Common::Vec3 accel =
-      GetOrientation() *
-      GetTransformation().Transform(
-          m_swing_state.acceleration + m_mouse_motion_state.acceleration + extra_acceleration, 0);
+  Common::Vec3 accel = GetOrientation() * GetTransformation().Transform(
+                                              m_swing_state.acceleration + extra_acceleration, 0);
 
   // Our shake effects have never been affected by orientation. Should they be?
   accel += m_shake_state.acceleration;
@@ -1021,35 +898,32 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 
 Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
 {
-  // Absolute pointing must not add a second rotation for the same mouse movement.
+  // Absolute pointing must not add a second rotation for the same input.
   const auto point_velocity =
-      m_mouse_motion_active ? Common::Vec3{} : m_point_state.angular_velocity;
-  return GetOrientation() *
-         (m_tilt_state.angular_velocity + m_swing_state.angular_velocity + point_velocity +
-          m_mouse_motion_state.angular_velocity + extra_angular_velocity);
+      m_relative_swing_active ? Common::Vec3{} : m_point_state.angular_velocity;
+  return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
+                             point_velocity + extra_angular_velocity);
 }
 
 Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation,
-                                            bool include_mouse_position) const
+                                            bool include_swing_position) const
 {
-  const MouseMotionState mouse_motion =
-      m_mouse_motion_active ? m_mouse_motion_state : MouseMotionState{};
-  const bool include_point_motion = !m_mouse_motion_active;
-  const auto point_angle = include_point_motion ? m_point_state.angle : Common::Vec3{};
+  const auto point_angle = m_relative_swing_active ? Common::Vec3{} : m_point_state.angle;
   const auto point_position =
-      include_point_motion || !include_mouse_position ? m_point_state.position : Common::Vec3{};
-  // Includes positional and rotational effects of:
-  // Point (included in the mouse pose when enabled), Swing, Tilt, Shake, Mouse Motion
-
+      !m_relative_swing_active || !include_swing_position ? m_point_state.position : Common::Vec3{};
+  const auto swing_rotation =
+      m_relative_swing_active ?
+          Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate()) :
+          GetRotationalMatrix(-m_swing_state.angle);
+  // Includes Point (part of relative Swing's pose), Swing, Tilt and Shake.
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(
-             extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
-             GetRotationalMatrix(-point_angle) * GetRotationalMatrix(-m_swing_state.angle) *
-             Common::Matrix33::FromQuaternion(mouse_motion.rotation.Conjugate())) *
-         Common::Matrix44::Translate(
-             -m_swing_state.position - point_position -
-             (include_mouse_position ? mouse_motion.position : Common::Vec3{}));
+         Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
+                                        GetRotationalMatrix(-point_angle) * swing_rotation) *
+         Common::Matrix44::Translate(-point_position -
+                                     ((!m_relative_swing_active || include_swing_position) ?
+                                          m_swing_state.position :
+                                          Common::Vec3{}));
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -1143,7 +1017,7 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  // IR and motion sensors share one pose, including the return from a gesture to pointing.
+  // IR and motion sensors share one pose, including the return from a swing to pointing.
   return GetTransformation(Common::Matrix33::FromQuaternion(
                                m_imu_cursor_state.rotation *
                                Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)),

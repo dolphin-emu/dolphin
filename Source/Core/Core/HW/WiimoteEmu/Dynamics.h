@@ -48,17 +48,11 @@ struct IMUCursorState
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
-  MotionState() = default;
-};
+  // Filtered displacement rate used only by relative Swing input.
+  Common::Vec3 input_velocity{};
+  float forward_offset = 0;
 
-struct MouseMotionState : PositionalState
-{
-  // Mouse X/Y displacement in a fixed frame, in radians, and its filtered rate.
-  Common::Vec2 angles{};
-  Common::Vec2 angle_velocity{};
-  // Device-to-world rotation and angular velocity in device coordinates.
-  Common::Quaternion rotation = Common::Quaternion::Identity();
-  Common::Vec3 angular_velocity{};
+  MotionState() = default;
 };
 
 // Note that 'gyroscope' is rotation of world around device.
@@ -89,11 +83,9 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
-// Mouse delta is in counts; sensitivity is radians per count. Positive Y pitches downward.
-void EmulateMouseMotion(MouseMotionState* state, const Common::Vec2& delta, float sensitivity,
-                        float time_elapsed, bool recenter = false,
-                        std::optional<Common::Vec2> point_angles = std::nullopt);
+Common::Quaternion GetSwingRotation(const MotionState& state);
+void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed,
+                  std::optional<Common::Vec2> point_angles = std::nullopt);
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
                   const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
