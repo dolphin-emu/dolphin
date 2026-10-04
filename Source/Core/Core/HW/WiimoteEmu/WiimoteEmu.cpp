@@ -358,7 +358,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                        // i18n: FOV stands for "Field of view".
                        {_trans("Horizontal FOV"),
                         // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-                        _trans("В°"),
+                        _trans("°"),
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.x, 0.01, 180);
@@ -366,7 +366,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                        // i18n: FOV stands for "Field of view".
                        {_trans("Vertical FOV"),
                         // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-                        _trans("В°"),
+                        _trans("°"),
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);

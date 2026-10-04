@@ -83,5 +83,8 @@ request to disconnect an extension. Check calibration at rest, then perform a
 slow movement away from yourself, pause, and a faster stroke toward yourself,
 while holding a side mouse button and the game's required button(s).
 Verify an actual ball hit, different shot strengths, repeated swings, and pointer
-use in menus. This in-game acceptance test still requires a working emulator
-build and a game supplied by the tester.
+use in menus.
+
+The PR author manually tested the current Windows build in Wii Sports Resort Golf with Mouse Motion enabled and confirmed a complete mouse swing and a
+successful ball hit. This passes the primary acceptance test; it does not
+establish compatibility with every Wii game.
