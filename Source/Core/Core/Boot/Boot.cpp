@@ -76,6 +76,11 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
     // This is the UTF-8 representation of U+FEFF.
     constexpr std::string_view utf8_bom = "\xEF\xBB\xBF";
 
+#ifndef _WIN32
+    if (line.ends_with('\r'))
+      line.pop_back();
+#endif
+
     if (line.starts_with(utf8_bom))
     {
       WARN_LOG_FMT(BOOT, "UTF-8 BOM in file: {}", m3u_path);

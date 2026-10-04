@@ -14,6 +14,8 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -114,7 +116,7 @@ protected:
     }
   }
 
-  std::string GetIndexedName() const { return "Button " + std::to_string(m_index); }
+  std::string GetIndexedName() const { return fmt::format("Button {}", m_index); }
 
   const u8 m_index;
 };
@@ -184,7 +186,7 @@ public:
 protected:
   std::string GetIndexedName() const
   {
-    return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
+    return fmt::format("Axis {}{}", m_index, m_range < 0 ? '-' : '+');
   }
 
 private:

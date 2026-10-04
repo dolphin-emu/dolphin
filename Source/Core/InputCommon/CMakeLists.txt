@@ -181,7 +181,6 @@ if(ENABLE_SDL)
     ControllerInterface/SDL/SDLGamepad.h
   )
   target_link_libraries(inputcommon PRIVATE SDL3::SDL3)
-  target_compile_definitions(inputcommon PUBLIC HAVE_SDL3=1)
 endif()
 
 if(MSVC)

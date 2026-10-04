@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
@@ -81,7 +83,7 @@ private:
   }
   std::string GetCubebStreamName() const override
   {
-    return "Dolphin Emulated Logitech USB Microphone " + std::to_string(m_index);
+    return fmt::format("Dolphin Emulated Logitech USB Microphone {}", m_index);
   }
   s16 GetVolumeModifier() const override
   {

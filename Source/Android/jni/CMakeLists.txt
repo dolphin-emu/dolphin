@@ -30,6 +30,9 @@ add_library(main SHARED
   Input/MappingCommon.cpp
   Input/NumericSetting.cpp
   Input/NumericSetting.h
+  NetPlay/Netplay.cpp
+  NetPlay/NetPlayUICallbacks.cpp
+  NetPlay/NetPlayUICallbacks.h
   MainAndroid.cpp
   RiivolutionPatches.cpp
   SkylanderConfig.cpp

@@ -16,11 +16,10 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
-
-#include <SetupAPI.h>
+#include <windows.h>
 #include <cfgmgr32.h>
 #include <devpropdef.h>
+#include <setupapi.h>
 
 #include "Common/Functional.h"
 

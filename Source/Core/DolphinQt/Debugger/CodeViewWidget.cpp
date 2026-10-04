@@ -1174,7 +1174,9 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
     if (event->modifiers() == Qt::ControlModifier)
     {
       emit ActivateSearch();
+      return;
     }
+    [[fallthrough]];
   default:
     QWidget::keyPressEvent(event);
     break;

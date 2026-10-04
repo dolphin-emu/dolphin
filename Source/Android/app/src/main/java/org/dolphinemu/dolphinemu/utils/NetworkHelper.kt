@@ -75,4 +75,9 @@ object NetworkHelper {
             0
         }
     }
+
+    @JvmStatic
+    fun getLocalIpString(): String? {
+        return getIPv4Link()?.address?.hostAddress
+    }
 }

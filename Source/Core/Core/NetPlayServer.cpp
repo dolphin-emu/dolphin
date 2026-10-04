@@ -24,7 +24,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/ENet.h"
 #include "Common/FileUtil.h"
-#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -226,16 +225,9 @@ void NetPlayServer::SetupIndex()
   }
   else
   {
-    Common::HttpRequest request;
-    // ENet does not support IPv6, so IPv4 has to be used
-    request.UseIPv4();
-    Common::HttpRequest::Response response =
-        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
-
-    if (!response.has_value())
+    session.server_id = GetExternalIPAddress();
+    if (session.server_id.empty())
       return;
-
-    session.server_id = std::string(response->begin(), response->end());
   }
 
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
@@ -334,7 +326,7 @@ void NetPlayServer::ThreadFunc()
 
           if (error != ConnectionError::NoError)
           {
-            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", u8(error),
+            INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", static_cast<u8>(error),
                          netEvent.peer->address.host, netEvent.peer->address.port);
 
             sf::Packet spac;
@@ -399,7 +391,8 @@ void NetPlayServer::ThreadFunc()
         if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
           INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
         else
-          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}",
+                        static_cast<int>(netEvent.type));
         break;
       }
     }
@@ -1226,8 +1219,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncSaveDataID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}", u8(sub_id),
-                 player.pid);
+    INFO_LOG_FMT(NETPLAY, "Got client SyncSaveData message: {:x} from client {}",
+                 static_cast<u8>(sub_id), player.pid);
 
     switch (sub_id)
     {
@@ -1283,8 +1276,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SyncCodeID sub_id;
     packet >> sub_id;
 
-    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}", u8(sub_id),
-                 player.pid);
+    INFO_LOG_FMT(NETPLAY, "Got client SyncCodes message: {:x} from client {}",
+                 static_cast<u8>(sub_id), player.pid);
 
     // Check If Code Sync was successful or not
     switch (sub_id)
@@ -2335,6 +2328,15 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 void NetPlayServer::AssignNewUserAPad(const Client& player)
 {
   for (PlayerId& mapping : m_pad_map)
+  {
+    // 0 means unmapped
+    if (mapping == 0)
+    {
+      mapping = player.pid;
+      break;
+    }
+  }
+  for (PlayerId& mapping : m_wiimote_map)
   {
     // 0 means unmapped
     if (mapping == 0)

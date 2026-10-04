@@ -51,11 +51,14 @@ struct CodeOp  // 16B
   bool canCauseException = false;
   bool skipLRStack = false;
   bool skip = false;  // followed BL-s for example
-  BitSet8 crInUse;
+  BitSet8 crWillBeRead;
+  BitSet8 crWillBeWritten;
   BitSet8 crDiscardable;
   // which registers are still needed after this instruction in this block
-  BitSet32 fprInUse;
-  BitSet32 gprInUse;
+  BitSet32 gprWillBeRead;
+  BitSet32 gprWillBeWritten;
+  BitSet32 fprWillBeRead;
+  BitSet32 fprWillBeWritten;
   // which registers have values which are known to be unused after this instruction
   BitSet32 gprDiscardable;
   BitSet32 fprDiscardable;

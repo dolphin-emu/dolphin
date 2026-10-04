@@ -21,12 +21,10 @@ jobs:
         fetch-depth: 0
     - name: Setup Submodules
       run: git config --global --add safe.directory . && git submodule update --init --recursive
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-      with:
-        vs-version: '16.6.2'
+    - name: Configure CMake
+      run: cmake -S . -B build -A x64 -DCMAKE_TOOLCHAIN_FILE=CMake/DolphinToolchain.cmake -DARCH=x86_64
     - name: Build
-      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+      run: cmake --build build --config Release --parallel
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:

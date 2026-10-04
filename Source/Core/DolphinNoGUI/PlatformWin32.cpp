@@ -8,7 +8,7 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <climits>
 #include <dwmapi.h>
 

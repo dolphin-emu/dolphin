@@ -136,7 +136,7 @@ void GeckoSockServer::ClientThread()
       {
         did_nothing = false;
 
-        recv_fifo.insert(recv_fifo.end(), buffer.data(), &buffer[got]);
+        recv_fifo.insert(recv_fifo.end(), buffer.data(), buffer.data() + got);
       }
 
       if (!send_fifo.empty())

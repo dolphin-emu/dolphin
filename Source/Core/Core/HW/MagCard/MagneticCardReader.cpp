@@ -193,6 +193,7 @@ void MagneticCardReader::Command_33_ReadData()
 
       AppendRange(&m_command_payload, *track_data);
     }
+    break;
   }
   default:
     break;

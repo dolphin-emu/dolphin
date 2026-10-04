@@ -60,15 +60,18 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
-## Building for Windows
+## Building
 
-Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Dolphin targets the latest MSVC shipped with Visual Studio or Build Tools.
-Other compilers might be able to build Dolphin on Windows but have not been
-tested and are not recommended to be used. Git and latest Windows SDK must be
-installed when building.
+You may find building instructions on the appropriate wiki page for your operating system:
 
-Make sure to pull submodules before building:
+* [Windows](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Windows)
+* [Linux](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux)
+* [macOS](https://github.com/dolphin-emu/dolphin/wiki/Building-for-macOS)
+* [Android](#android-specific-instructions) <!-- TODO: Create a "Building for Android" wiki page and link it here -->
+* [OpenBSD](https://github.com/dolphin-emu/dolphin/wiki/Building-for-OpenBSD) (unsupported)
+
+Before building, make sure to pull all submodules:
+
 ```sh
 git submodule update --init --recursive
 ```
@@ -158,11 +161,6 @@ Used for distribution of Project+ builds.
 
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
-
-Make sure to pull submodules before building:
-```sh
-git submodule update --init --recursive
-```
 
 If using Android Studio, import the Gradle project located in `./Source/Android`.
 

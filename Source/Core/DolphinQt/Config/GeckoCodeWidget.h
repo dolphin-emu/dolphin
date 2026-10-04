@@ -55,11 +55,15 @@ private:
   void EditCode();
   void RemoveCode();
   void DownloadCodes();
+  void ToggleAllCodes();
   void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();
   void SortDisabledCodesFirst();
+  void UpdateToggleButton();
+
+  bool IsEveryCodeEnabled();
 
   std::string m_game_id;
   std::string m_gametdb_id;
@@ -78,6 +82,7 @@ private:
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
+  QPushButton* m_toggle_all_codes;
   CheatCodeEditor* m_cheat_code_editor;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
   bool m_restart_required;

@@ -231,6 +231,7 @@ private:
 
   std::string m_root_directory;
   bool m_is_wii = false;
+  bool m_is_triforce = false;
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift = 0;
 

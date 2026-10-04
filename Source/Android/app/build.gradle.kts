@@ -1,15 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.androidx.baselineprofile)
 }
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdk = 36
-    ndkVersion = "29.0.14206865"
+    compileSdk = 37
+    ndkVersion = "30.0.15729638"
 
     buildFeatures {
+        compose = true
         viewBinding = true
         buildConfig = true
         resValues = true
@@ -36,7 +38,7 @@ android {
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
 
         versionCode = getBuildVersionCode()
 
@@ -89,7 +91,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("../../../CMakeLists.txt")
-            version = "3.22.1+"
+            version = "3.25.0+"
         }
     }
     namespace = "org.dolphinemu.dolphinemu"
@@ -133,6 +135,7 @@ dependencies {
     implementation(libs.androidx.profileinstaller)
 
     // Kotlin extensions for lifecycle components
+    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
@@ -143,6 +146,7 @@ dependencies {
 
     // For loading game covers from disk and GameTDB
     implementation(libs.coil)
+    implementation(libs.coil.compose)
 
     // For loading custom GPU drivers
     implementation(libs.kotlinx.serialization.json)
@@ -150,6 +154,17 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.filepicker)
+
+    // Jetpack Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
 }
 
 fun getGitVersion(): String {

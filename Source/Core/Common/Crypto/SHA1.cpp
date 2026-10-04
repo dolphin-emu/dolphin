@@ -394,8 +394,4 @@ std::string DigestToString(const Digest& digest)
   return fmt::format("{:02X}", fmt::join(digest, ""));
 }
 
-std::string DigestToSource(const Digest& digest)
-{
-  return fmt::format("{{0x{:02X}}}", fmt::join(digest, ", 0x"));
-}
 }  // namespace Common::SHA1

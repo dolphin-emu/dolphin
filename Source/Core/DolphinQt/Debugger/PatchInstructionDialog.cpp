@@ -9,7 +9,9 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Common/Assembler/GekkoAssembler.h"
 #include "Common/GekkoDisassembler.h"
+#include "Common/Swap.h"
 
 PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32 value)
     : QDialog(parent), m_address(address)
@@ -49,14 +51,43 @@ void PatchInstructionDialog::ConnectWidgets()
 
 void PatchInstructionDialog::OnEditChanged()
 {
-  bool good;
-  m_code = m_input_edit->text().toUInt(&good, 16);
+  const QString input = m_input_edit->text();
 
-  m_button_box->button(QDialogButtonBox::Ok)->setEnabled(good);
+  bool legal = false;
+  bool is_hex = false;
 
-  m_preview_label->setText(
-      tr("Instruction: %1")
-          .arg(QString::fromStdString(Common::GekkoDisassembler::Disassemble(m_code, m_address))));
+  QString preview = QStringLiteral("(ill)\t---");
+
+  const u32 hex_code = input.toUInt(&is_hex, 16);
+
+  if (is_hex)
+  {
+    legal = true;
+    m_code = hex_code;
+    preview = QString::fromStdString(Common::GekkoDisassembler::Disassemble(hex_code, m_address));
+  }
+  else  // Try to parse as a single instruction
+  {
+    const auto asm_result = Common::GekkoAssembler::Assemble(input.toStdString(), m_address);
+
+    if (!Common::GekkoAssembler::IsFailure(asm_result))
+    {
+      const auto& blocks = Common::GekkoAssembler::GetT(asm_result);
+
+      if (!blocks.empty())
+      {
+        legal = true;
+
+        m_code = Common::swap32(blocks[0].instructions.data());
+
+        preview = QStringLiteral("%1").arg(m_code, 8, 16, QLatin1Char('0'));
+      }
+    }
+  }
+
+  m_button_box->button(QDialogButtonBox::Ok)->setEnabled(legal);
+
+  m_preview_label->setText(tr("Instruction: %1").arg(preview));
 }
 
 u32 PatchInstructionDialog::GetCode() const
