@@ -256,9 +256,9 @@ if(_M_X86_64)
   )
 elseif(_M_ARM_64)
   target_sources(videocommon PRIVATE
+    TextureDecoder_ARM64.cpp
     VertexLoaderARM64.cpp
     VertexLoaderARM64.h
-    TextureDecoder_Generic.cpp
   )
 else()
   target_sources(videocommon PRIVATE
