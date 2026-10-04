@@ -278,7 +278,7 @@ public:
   void Invalidate();
   void ReleaseToPool(TCacheEntry* entry);
 
-  TCacheEntry* Load(u32 stage);
+  RcTcacheEntry Load(u32 stage);
   RcTcacheEntry GetTexture(const int textureCacheSafetyColorSampleSize,
                            const TextureInfo& texture_info);
   RcTcacheEntry GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
@@ -352,7 +352,7 @@ private:
 
   static bool DidLinkedAssetsChange(const TCacheEntry& entry);
 
-  TCacheEntry* LoadImpl(u32 stage, bool force_reload);
+  RcTcacheEntry LoadImpl(u32 stage, bool force_reload);
 
   bool CreateUtilityTextures();
 
