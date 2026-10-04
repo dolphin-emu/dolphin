@@ -26,7 +26,6 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -54,8 +53,6 @@ bool IsAnyHotkeySet()
     return false;
 
   auto* const hotkeys = static_cast<HotkeyManager*>(config->GetController(0));
-
-  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
   for (const int hotkey : GetSupportedHotkeys())
   {
