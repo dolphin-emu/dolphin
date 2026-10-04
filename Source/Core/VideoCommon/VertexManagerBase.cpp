@@ -25,7 +25,6 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomShaderCache.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -124,7 +123,6 @@ bool VertexManagerBase::Initialize()
   m_after_present_event = video_events.after_present_event.Register(
       [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; });
   m_index_generator.Init();
-  m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
   return true;
 }
@@ -610,25 +608,12 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
-    CustomPixelShaderContents custom_pixel_shader_contents;
-    std::optional<CustomPixelShader> custom_pixel_shader;
-    std::vector<std::string> custom_pixel_texture_names;
-    std::span<u8> custom_pixel_shader_uniforms;
     bool skip = false;
-    for (size_t i = 0; i < texture_names.size(); i++)
+    for (const std::string& texture_name : texture_names)
     {
-      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
-                                                      &custom_pixel_shader_uniforms};
-      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_names[i]))
-      {
+      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip};
+      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
         action->OnDrawStarted(&draw_started);
-        if (custom_pixel_shader)
-        {
-          custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
-          custom_pixel_texture_names.push_back(texture_names[i]);
-        }
-        custom_pixel_shader = std::nullopt;
-      }
     }
 
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
@@ -648,18 +633,8 @@ void VertexManagerBase::Flush()
       UpdatePipelineObject();
       if (m_current_pipeline_object)
       {
-        const AbstractPipeline* pipeline_object = m_current_pipeline_object;
-        if (!custom_pixel_shader_contents.shaders.empty())
-        {
-          if (const auto custom_pipeline =
-                  GetCustomPipeline(custom_pixel_shader_contents, m_current_pipeline_config,
-                                    m_current_uber_pipeline_config, m_current_pipeline_object))
-          {
-            pipeline_object = custom_pipeline;
-          }
-        }
-        RenderDrawCall(pixel_shader_manager, geometry_shader_manager, custom_pixel_shader_contents,
-                       custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object);
+        RenderDrawCall(pixel_shader_manager, geometry_shader_manager, m_current_primitive_type,
+                       m_current_pipeline_object);
       }
     }
 
@@ -1048,27 +1023,14 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config)
-{
-  m_custom_shader_cache->SetHostConfig(host_config);
-  m_custom_shader_cache->Reload();
-}
-
-void VertexManagerBase::RenderDrawCall(
-    PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
-    const CustomPixelShaderContents& custom_pixel_shader_contents,
-    std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-    const AbstractPipeline* current_pipeline)
+void VertexManagerBase::RenderDrawCall(PixelShaderManager& pixel_shader_manager,
+                                       GeometryShaderManager& geometry_shader_manager,
+                                       PrimitiveType primitive_type,
+                                       const AbstractPipeline* current_pipeline)
 {
   // Now we can upload uniforms, as nothing else will override them.
   geometry_shader_manager.SetConstants(primitive_type);
   pixel_shader_manager.SetConstants();
-  if (!custom_pixel_shader_uniforms.empty() &&
-      pixel_shader_manager.custom_constants.data() != custom_pixel_shader_uniforms.data())
-  {
-    pixel_shader_manager.custom_constants_dirty = true;
-  }
-  pixel_shader_manager.custom_constants = custom_pixel_shader_uniforms;
   UploadUniforms();
 
   g_gfx->SetPipeline(current_pipeline);
@@ -1097,71 +1059,4 @@ void VertexManagerBase::RenderDrawCall(
 
   if (PerfQueryBase::ShouldEmulate())
     g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-}
-
-const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
-    const CustomPixelShaderContents& custom_pixel_shader_contents,
-    const VideoCommon::GXPipelineUid& current_pipeline_config,
-    const VideoCommon::GXUberPipelineUid& current_uber_pipeline_config,
-    const AbstractPipeline* current_pipeline) const
-{
-  if (current_pipeline)
-  {
-    if (!custom_pixel_shader_contents.shaders.empty())
-    {
-      CustomShaderInstance custom_shaders;
-      custom_shaders.pixel_contents = custom_pixel_shader_contents;
-      switch (g_ActiveConfig.iShaderCompilationMode)
-      {
-      case ShaderCompilationMode::Synchronous:
-      case ShaderCompilationMode::AsynchronousSkipRendering:
-      {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                current_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *pipeline;
-        }
-      }
-      break;
-      case ShaderCompilationMode::SynchronousUberShaders:
-      {
-        // D3D has issues compiling large custom ubershaders
-        // use specialized shaders instead
-        if (g_backend_info.api_type == APIType::D3D)
-        {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                  current_pipeline_config, custom_shaders, current_pipeline->m_config))
-          {
-            return *pipeline;
-          }
-        }
-        else
-        {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                  current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
-          {
-            return *pipeline;
-          }
-        }
-      }
-      break;
-      case ShaderCompilationMode::AsynchronousUberShaders:
-      {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                current_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *pipeline;
-        }
-        else if (auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
-                     current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *uber_pipeline;
-        }
-      }
-      break;
-      };
-    }
-  }
-
-  return nullptr;
 }
