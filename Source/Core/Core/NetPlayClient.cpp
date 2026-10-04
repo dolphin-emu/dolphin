@@ -1209,12 +1209,18 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     WiiSave::Header header;
     packet >> header.tid;
     packet >> header.banner_size;
+    if (!packet || header.banner_size > sizeof(header.banner))
+    {
+      WARN_LOG_FMT(NETPLAY, "Received invalid Wii save banner size.");
+      SyncSaveDataResponse(false);
+      return;
+    }
     packet >> header.permissions;
     packet >> header.unk1;
     for (u8& byte : header.md5)
       packet >> byte;
     packet >> header.unk2;
-    for (size_t i = 0; i < std::min<size_t>(header.banner_size, sizeof(header.banner)); i++)
+    for (size_t i = 0; i < header.banner_size; i++)
       packet >> header.banner[i];
 
     // BkHeader
