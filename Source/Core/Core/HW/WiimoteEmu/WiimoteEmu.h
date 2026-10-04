@@ -44,6 +44,7 @@ namespace WiimoteEmu
 {
 struct DesiredWiimoteState;
 struct DesiredExtensionState;
+class MouseMotion;
 
 enum class WiimoteGroup
 {
@@ -61,6 +62,7 @@ enum class WiimoteGroup
   IMUGyroscope,
   IMUPoint,
   IRPassthrough,
+  MouseMotion,
 };
 
 enum class NunchukGroup;
@@ -203,7 +205,8 @@ private:
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
   Common::Matrix44
-  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
+  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity(),
+                    bool include_mouse_position = true) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
@@ -301,6 +304,7 @@ private:
   ControllerEmu::IMUGyroscope* m_imu_gyroscope;
   ControllerEmu::IMUCursor* m_imu_ir;
   ControllerEmu::IRPassthrough* m_ir_passthrough;
+  MouseMotion* m_mouse_motion;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
@@ -343,6 +347,9 @@ private:
 
   // Dynamics:
   MotionState m_swing_state;
+  MouseMotionState m_mouse_motion_state;
+  bool m_mouse_motion_active = false;
+  bool m_mouse_gesture_active = false;
   RotationalState m_tilt_state;
   MotionState m_point_state;
   PositionalState m_shake_state;

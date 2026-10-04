@@ -208,6 +208,91 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
   }
 }
 
+void EmulateMouseMotion(MouseMotionState* state, const Common::Vec2& delta, float sensitivity,
+                        float time_elapsed, bool recenter, std::optional<Common::Vec2> point_angles)
+{
+  // Model an outstretched arm. Both sensors must describe the same movement, including
+  // tangential and centripetal acceleration, rather than independent shake/gyro effects.
+  constexpr float ARM_LENGTH = 0.5f;
+  constexpr float MAX_ANGULAR_VELOCITY = 20.f;
+  constexpr float MAX_POINT_VELOCITY = 6.f;
+  constexpr float MAX_ANGLE = float(MathUtil::TAU * 85 / 360);
+  constexpr float SMOOTHING_TIME = 0.02f;
+  constexpr float RECENTER_TIME = 0.12f;
+
+  if (time_elapsed <= 0)
+    return;
+
+  const auto old_angular_velocity = state->angular_velocity;
+  const auto old_rotation = state->rotation;
+  if (point_angles && !recenter)
+  {
+    // Point already has Dolphin's usual smoothing. Limit the return from a swing,
+    // but don't apply a second filter to normal cursor movement.
+    auto target = *point_angles;
+    for (auto& angle : target.data)
+      angle = std::clamp(angle, -MAX_ANGLE, MAX_ANGLE);
+    auto step = target - state->angles;
+    const float distance = step.Length();
+    if (distance > MAX_POINT_VELOCITY * time_elapsed)
+      step = step * (MAX_POINT_VELOCITY * time_elapsed / distance);
+    state->angles += step;
+    state->angle_velocity = step / time_elapsed;
+  }
+  else
+  {
+    auto target_velocity =
+        recenter ? -state->angles / RECENTER_TIME : delta * (sensitivity / time_elapsed);
+    const float speed = target_velocity.Length();
+    if (speed > MAX_ANGULAR_VELOCITY)
+      target_velocity = target_velocity * (MAX_ANGULAR_VELOCITY / speed);
+    for (std::size_t i = 0; i != state->angles.data.size(); ++i)
+    {
+      auto& velocity = state->angle_velocity.data[i];
+      // A direction change must not continue moving the old way due to filter lag.
+      if (!recenter && velocity * target_velocity.data[i] < 0)
+        velocity = 0;
+      velocity +=
+          (target_velocity.data[i] - velocity) * (time_elapsed / (SMOOTHING_TIME + time_elapsed));
+      if (std::abs(velocity) < 1e-5f)
+        velocity = 0;
+      const float angle = state->angles.data[i] + velocity * time_elapsed;
+      state->angles.data[i] = std::clamp(angle, -MAX_ANGLE, MAX_ANGLE);
+      // Discard overflow so reversing at an edge responds immediately.
+      if (state->angles.data[i] != angle)
+        velocity = 0;
+    }
+  }
+
+  // A unique pose for each mouse position: no accumulated roll from closed paths.
+  // The bounded, fixed axes keep left/right and up/down from becoming inverted.
+  state->rotation =
+      (Common::Quaternion::RotateX(state->angles.y) * Common::Quaternion::RotateZ(-state->angles.x))
+          .Normalized();
+
+  const auto change = (old_rotation.Conjugate() * state->rotation).Normalized();
+  const Common::Vec3 axis{change.data.x, change.data.y, change.data.z};
+  const float length = axis.Length();
+  state->angular_velocity =
+      length > 1e-8f ? axis * (2 * std::atan2(length, std::abs(change.data.w)) /
+                               (length * time_elapsed) * std::copysign(1.f, change.data.w)) :
+                       Common::Vec3{};
+
+  const Common::Vec3 arm{0, -ARM_LENGTH, 0};
+  const auto angular_acceleration = (state->angular_velocity - old_angular_velocity) / time_elapsed;
+  const auto velocity = state->angular_velocity.Cross(arm);
+  state->position = state->rotation * arm - arm;
+  state->velocity = state->rotation * velocity;
+  state->acceleration =
+      state->rotation * (angular_acceleration.Cross(arm) + state->angular_velocity.Cross(velocity));
+  if (point_angles && !recenter)
+  {
+    // Ordinary pointing is wrist rotation, not a swing of the whole virtual arm.
+    state->velocity = {};
+    state->acceleration = {};
+  }
+}
+
 WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g, u16 one_g)
 {
   const auto scaled_accel = accel * (one_g - zero_g) / float(GRAVITY_ACCELERATION);

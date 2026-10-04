@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
@@ -49,6 +51,16 @@ struct MotionState : PositionalState, RotationalState
   MotionState() = default;
 };
 
+struct MouseMotionState : PositionalState
+{
+  // Mouse X/Y displacement in a fixed frame, in radians, and its filtered rate.
+  Common::Vec2 angles{};
+  Common::Vec2 angle_velocity{};
+  // Device-to-world rotation and angular velocity in device coordinates.
+  Common::Quaternion rotation = Common::Quaternion::Identity();
+  Common::Vec3 angular_velocity{};
+};
+
 // Note that 'gyroscope' is rotation of world around device.
 // Alternative accelerometer_normal can be supplied to correct from non-accelerometer data.
 // e.g. Used for yaw/pitch correction with IR data.
@@ -78,6 +90,10 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
+// Mouse delta is in counts; sensitivity is radians per count. Positive Y pitches downward.
+void EmulateMouseMotion(MouseMotionState* state, const Common::Vec2& delta, float sensitivity,
+                        float time_elapsed, bool recenter = false,
+                        std::optional<Common::Vec2> point_angles = std::nullopt);
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
                   const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,

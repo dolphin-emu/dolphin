@@ -239,6 +239,8 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
   HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
   {
+    // A relative sample must not be replayed while the mouse is unavailable.
+    m_state_in.relative_mouse = {};
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to get state");
     if (FAILED(m_mo_device->Acquire()))
       INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to re-acquire, we'll retry later");
@@ -254,6 +256,10 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
 
     // copy over the buttons
     std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
+  }
+  else
+  {
+    m_state_in.relative_mouse = {};
   }
 
   HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
