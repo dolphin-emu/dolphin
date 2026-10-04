@@ -39,7 +39,6 @@ constexpr int POLL_INTERVAL_MS = 5;
 
 std::thread s_thread;
 Common::Flag s_stop_requested;
-Common::Flag s_foreground{true};
 Common::Flag s_any_hotkey_set;
 Common::Event s_wakeup;
 
@@ -74,10 +73,7 @@ bool IsAnyHotkeySet()
 
 bool ShouldPoll()
 {
-  if (!s_foreground.IsSet() || !s_any_hotkey_set.IsSet())
-    return false;
-
-  if (!HotkeyManagerEmu::IsEnabled())
+  if (!s_any_hotkey_set.IsSet() || !HotkeyManagerEmu::IsEnabled())
     return false;
 
   return Core::GetState(Core::System::GetInstance()) != Core::State::Stopping;
@@ -286,7 +282,6 @@ void Start()
   if (s_thread.joinable())
     return;
 
-  HotkeyManagerEmu::Enable(true);
   State::SetSelectedSlot(1);
   s_any_hotkey_set.Set(IsAnyHotkeySet());
   s_stop_requested.Clear();
@@ -304,12 +299,6 @@ void Stop()
   s_thread.join();
 
   Core::SetIsThrottlerTempDisabled(false);
-}
-
-void SetBackgroundExecutionAllowed(bool allowed)
-{
-  s_foreground.Set(allowed);
-  s_wakeup.Set();
 }
 
 void RefreshActiveHotkeys()

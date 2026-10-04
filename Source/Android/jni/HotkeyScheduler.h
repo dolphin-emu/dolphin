@@ -11,8 +11,6 @@ void Start();
 
 void Stop();
 
-void SetBackgroundExecutionAllowed(bool allowed);
-
 void RefreshActiveHotkeys();
 
 const std::vector<int>& GetSupportedHotkeys();

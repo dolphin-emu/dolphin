@@ -27,7 +27,6 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
-import org.dolphinemu.dolphinemu.features.input.model.Hotkeys
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
@@ -181,8 +180,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     override fun onStart() {
         super.onStart()
         presenter!!.onStart()
-
-        Hotkeys.setEnabled(false)
     }
 
     override fun onResume() {
@@ -202,8 +199,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     override fun onStop() {
         super.onStop()
         presenter!!.onStop(isFinishing)
-
-        Hotkeys.setEnabled(true)
     }
 
     override fun onDestroy() {

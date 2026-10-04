@@ -6,7 +6,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 #include "UICommon/UICommon.h"
-#include "jni/HotkeyScheduler.h"
 
 extern "C" {
 
@@ -19,7 +18,6 @@ Java_org_dolphinemu_dolphinemu_utils_ActivityTracker_setBackgroundExecutionAllow
 
   INFO_LOG_FMT(CORE, "SetBackgroundExecutionAllowed {}", allowed);
   AchievementManager::GetInstance().SetBackgroundExecutionAllowed(allowed);
-  HotkeyScheduler::SetBackgroundExecutionAllowed(allowed);
 }
 
 JNIEXPORT void JNICALL
