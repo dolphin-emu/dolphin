@@ -7,10 +7,7 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-#include <locale>
-#include <mbedtls/md.h>
 #include <mutex>
-#include <thread>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -201,8 +198,6 @@ void MovieManager::Init(const BootParameters& boot)
   if (IsPlayingInput())
   {
     ReadHeader();
-    std::thread md5thread(&MovieManager::CheckMD5, this);
-    md5thread.detach();
     if (strncmp(m_temp_header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertFmtT("The recorded game ({0}) is not the same as the selected game ({1})",
@@ -214,8 +209,6 @@ void MovieManager::Init(const BootParameters& boot)
   if (IsRecordingInput())
   {
     GetSettings();
-    std::thread md5thread(&MovieManager::GetMD5, this);
-    md5thread.detach();
     m_tick_count_at_last_input = 0;
   }
 
@@ -493,8 +486,6 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     State::SaveAs(m_system, save_path);
     m_recording_from_save_state = true;
 
-    std::thread md5thread(&MovieManager::GetMD5, this);
-    md5thread.detach();
     GetSettings();
   }
 
@@ -851,7 +842,6 @@ void MovieManager::ReadHeader()
 
   m_disc_change_filename = {m_temp_header.discChange.begin(), m_temp_header.discChange.end()};
   m_author = {m_temp_header.author.begin(), m_temp_header.author.end()};
-  m_md5 = m_temp_header.md5;
   m_dsp_irom_hash = m_temp_header.DSPiromHash;
   m_dsp_coef_hash = m_temp_header.DSPcoefHash;
 }
@@ -1325,7 +1315,6 @@ void MovieManager::SaveRecording(const std::string& filename)
   header.bNetPlay = m_net_play;
   strncpy(header.discChange.data(), m_disc_change_filename.c_str(), header.discChange.size());
   strncpy(header.author.data(), m_author.c_str(), header.author.size());
-  header.md5 = m_md5;
   header.revision = m_revision;
   header.DSPiromHash = m_dsp_irom_hash;
   header.DSPcoefHash = m_dsp_coef_hash;
@@ -1426,41 +1415,6 @@ void MovieManager::GetSettings()
     m_dsp_irom_hash = 0;
     m_dsp_coef_hash = 0;
   }
-}
-
-// NOTE: Entrypoint for own thread
-void MovieManager::CheckMD5()
-{
-  if (m_current_file_name.empty())
-    return;
-
-  // The MD5 hash was introduced in 3.0-846-gca650d4435.
-  // Before that, these header bytes were set to zero.
-  if (m_temp_header.md5 == std::array<u8, 16>{})
-    return;
-
-  Core::DisplayMessage("Verifying checksum...", 2000);
-
-  std::array<u8, 16> game_md5;
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  game_md5.data());
-
-  if (game_md5 == m_md5)
-    Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
-  else
-    Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
-}
-
-// NOTE: Entrypoint for own thread
-void MovieManager::GetMD5()
-{
-  if (m_current_file_name.empty())
-    return;
-
-  Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  m_md5.data());
-  Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
 // NOTE: EmuThread

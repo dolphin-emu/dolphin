@@ -102,7 +102,7 @@ struct DTMHeader
 
   std::array<char, 16> videoBackend;   // UTF-8 representation of the video backend
   std::array<char, 16> audioEmulator;  // UTF-8 representation of the audio emulator
-  std::array<u8, 16> md5;              // MD5 of game iso
+  std::array<u8, 16> not_used{};       // Used to be MD5 of game file. No longer used.
 
   u64 recordingStartTime;  // seconds since 1970 that recording started (used for RTC)
 
@@ -227,9 +227,6 @@ private:
   void GetSettings();
   void CheckInputEnd();
 
-  void CheckMD5();
-  void GetMD5();
-
   bool m_read_only = true;
   u32 m_rerecords = 0;
   PlayMode m_play_mode = PlayMode::None;
@@ -256,7 +253,6 @@ private:
   bool m_reset = false;
   std::string m_author;
   std::string m_disc_change_filename;
-  std::array<u8, 16> m_md5{};
   u8 m_bongos = 0;
   u8 m_memcards = 0;
   std::array<u8, 20> m_revision{};
