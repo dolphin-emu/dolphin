@@ -343,6 +343,10 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
   *out_base_index = 0;
 }
 
+void VertexManagerBase::BindCommittedBuffer(u32)
+{
+}
+
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
@@ -393,6 +397,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
     m_index_generator.AddExternalIndices(indices, num_indices, num_vertices);
 
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
+  BindCommittedBuffer(vertex_stride);
 }
 
 u32 VertexManagerBase::GetTexelBufferElementSize(TexelBufferFormat buffer_format)
@@ -560,6 +565,7 @@ void VertexManagerBase::Flush()
   std::vector<std::string> texture_names;
   Common::SmallVector<u32, 8> texture_units;
   std::array<SamplerState, 8> samplers;
+  Common::SmallVector<SubmittedSampledTexture, 8> sampled_textures;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
@@ -572,6 +578,9 @@ void VertexManagerBase::Flush()
         const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
         samplers[i] = TextureCacheBase::GetSamplerState(
             i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
+
+        sampled_textures.push_back(
+            SubmittedSampledTexture{.entry = cache_entry, .sampler = samplers[i], .index = i});
       }
     }
     else
@@ -590,6 +599,9 @@ void VertexManagerBase::Flush()
           const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
           samplers[i] = TextureCacheBase::GetSamplerState(
               i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
+
+          sampled_textures.push_back(
+              SubmittedSampledTexture{.entry = cache_entry, .sampler = samplers[i], .index = i});
         }
       }
     }
@@ -633,8 +645,8 @@ void VertexManagerBase::Flush()
       UpdatePipelineObject();
       if (m_current_pipeline_object)
       {
-        RenderDrawCall(pixel_shader_manager, geometry_shader_manager, m_current_primitive_type,
-                       m_current_pipeline_object);
+        ProcessEmulatedMesh(pixel_shader_manager, geometry_shader_manager,
+                            m_current_pipeline_object, sampled_textures);
       }
     }
 
@@ -1023,25 +1035,54 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                                       GeometryShaderManager& geometry_shader_manager,
-                                       PrimitiveType primitive_type,
-                                       const AbstractPipeline* current_pipeline)
+void VertexManagerBase::ProcessEmulatedMesh(
+    PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
+    const AbstractPipeline* pipeline, std::span<const SubmittedSampledTexture> sampled_textures)
 {
-  // Now we can upload uniforms, as nothing else will override them.
-  geometry_shader_manager.SetConstants(primitive_type);
+  geometry_shader_manager.SetConstants(m_current_primitive_type);
   pixel_shader_manager.SetConstants();
-  UploadUniforms();
 
-  g_gfx->SetPipeline(current_pipeline);
+  const u32 vertex_stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
+  const u32 index_size = m_index_generator.GetIndexLen();
 
   u32 base_vertex, base_index;
-  CommitBuffer(m_index_generator.GetNumVerts(),
-               VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
-               m_index_generator.GetIndexLen(), &base_vertex, &base_index);
+  CommitBuffer(m_index_generator.GetNumVerts(), vertex_stride, index_size, &base_vertex,
+               &base_index);
 
+  SubmittedDrawCallData draw_call_data;
+  draw_call_data.pipeline = pipeline;
+  draw_call_data.frame_buffer = g_gfx->GetCurrentFramebuffer();
+  draw_call_data.base_index = base_index;
+  draw_call_data.base_vertex = base_vertex;
+  draw_call_data.index_size = index_size;
+  draw_call_data.vertex_stride = vertex_stride;
+  draw_call_data.primitive_type = m_current_primitive_type;
+  for (const SubmittedSampledTexture& texture : sampled_textures)
+    draw_call_data.textures.emplace_back(texture);
+
+  DrawSubmittedDrawData(g_framebuffer_manager.get(), draw_call_data);
+}
+
+void VertexManagerBase::DrawSubmittedDrawData(FramebufferManager* /*framebuffer_manager*/,
+                                              const SubmittedDrawCallData& draw_call_data)
+{
+  BindCommittedBuffer(draw_call_data.vertex_stride);
+
+  // Now we can upload uniforms, as nothing else will override them.
+  UploadUniforms();
+
+  g_gfx->SetPipeline(draw_call_data.pipeline);
+
+  for (const SubmittedSampledTexture& texture : draw_call_data.textures)
+  {
+    g_gfx->SetTexture(texture.index, texture.entry->texture.get());
+    g_gfx->SetSamplerState(texture.index, texture.sampler);
+  }
+
+  u32 base_vertex = draw_call_data.base_vertex;
   if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
-      (primitive_type == PrimitiveType::Points || primitive_type == PrimitiveType::Lines))
+      (draw_call_data.primitive_type == PrimitiveType::Points ||
+       draw_call_data.primitive_type == PrimitiveType::Lines))
   {
     // VS point/line expansion puts the vertex id at gl_VertexID << 2
     // That means the base vertex has to be adjusted to match
@@ -1052,7 +1093,7 @@ void VertexManagerBase::RenderDrawCall(PixelShaderManager& pixel_shader_manager,
   if (PerfQueryBase::ShouldEmulate())
     g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
-  DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
+  DrawCurrentBatch(draw_call_data.base_index, draw_call_data.index_size, base_vertex);
 
   // Track the total emulated state draws
   INCSTAT(g_stats.this_frame.num_draw_calls);
