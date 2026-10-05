@@ -177,12 +177,16 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   *out_base_vertex = vertex_stride > 0 ? (m_vertex_buffer->GetCurrentOffset() / vertex_stride) : 0;
   *out_base_index = m_index_buffer->GetCurrentOffset() / sizeof(u16);
 
-  CheckBufferBinding();
   m_vertex_buffer->Unmap(vertex_data_size);
   m_index_buffer->Unmap(index_data_size);
 
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, vertex_data_size);
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, index_data_size);
+}
+
+void VertexManager::BindCommittedBuffer(u32 /*vertex_stride*/)
+{
+  CheckBufferBinding();
 }
 
 void VertexManager::UploadUniforms()
