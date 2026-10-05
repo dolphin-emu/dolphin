@@ -166,6 +166,8 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
 
   buffer = m_index_buffer->Map(MAXIBUFFERSIZE * sizeof(u16));
   m_index_generator.Start(reinterpret_cast<u16*>(buffer.first));
+
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,

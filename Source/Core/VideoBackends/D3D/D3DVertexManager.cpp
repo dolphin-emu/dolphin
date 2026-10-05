@@ -213,6 +213,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_cur_buffer_pointer = m_base_buffer_pointer;
   m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
   m_index_generator.Start(m_cpu_index_buffer.data());
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -255,7 +256,10 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
 
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, vertexBufferSize);
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, indexBufferSize);
+}
 
+void VertexManager::BindCommittedBuffer(u32 vertex_stride)
+{
   D3D::stateman->SetVertexBuffer(m_buffers[m_current_buffer].Get(), vertex_stride, 0);
   D3D::stateman->SetIndexBuffer(m_buffers[m_current_buffer].Get());
 }

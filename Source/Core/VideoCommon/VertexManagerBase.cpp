@@ -25,7 +25,6 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomShaderCache.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -124,7 +123,6 @@ bool VertexManagerBase::Initialize()
   m_after_present_event = video_events.after_present_event.Register(
       [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; });
   m_index_generator.Init();
-  m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
   return true;
 }
@@ -336,6 +334,7 @@ void VertexManagerBase::ResetBuffer(u32 vertex_stride)
   m_cur_buffer_pointer = m_cpu_vertex_buffer.data();
   m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
   m_index_generator.Start(m_cpu_index_buffer.data());
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -343,6 +342,10 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 {
   *out_base_vertex = 0;
   *out_base_index = 0;
+}
+
+void VertexManagerBase::BindCommittedBuffer(u32)
+{
 }
 
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
@@ -395,6 +398,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
     m_index_generator.AddExternalIndices(indices, num_indices, num_vertices);
 
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
+  BindCommittedBuffer(vertex_stride);
 }
 
 u32 VertexManagerBase::GetTexelBufferElementSize(TexelBufferFormat buffer_format)
@@ -545,7 +549,6 @@ void VertexManagerBase::Flush()
   }
 
   auto& pixel_shader_manager = system.GetPixelShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& xf_state_manager = system.GetXFStateManager();
 
@@ -562,6 +565,7 @@ void VertexManagerBase::Flush()
   std::vector<std::string> texture_names;
   Common::SmallVector<u32, 8> texture_units;
   std::array<SamplerState, 8> samplers;
+  Common::SmallVector<VideoCommon::TextureRef, 8> texture_refs;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
@@ -574,6 +578,9 @@ void VertexManagerBase::Flush()
         const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
         samplers[i] = TextureCacheBase::GetSamplerState(
             i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
+
+        texture_refs.push_back(
+            VideoCommon::TextureRef{.entry = cache_entry, .unit = static_cast<u8>(i)});
       }
     }
     else
@@ -592,6 +599,9 @@ void VertexManagerBase::Flush()
           const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
           samplers[i] = TextureCacheBase::GetSamplerState(
               i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
+
+          texture_refs.push_back(
+              VideoCommon::TextureRef{.entry = cache_entry, .unit = static_cast<u8>(i)});
         }
       }
     }
@@ -610,25 +620,12 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
-    CustomPixelShaderContents custom_pixel_shader_contents;
-    std::optional<CustomPixelShader> custom_pixel_shader;
-    std::vector<std::string> custom_pixel_texture_names;
-    std::span<u8> custom_pixel_shader_uniforms;
     bool skip = false;
-    for (size_t i = 0; i < texture_names.size(); i++)
+    for (const std::string& texture_name : texture_names)
     {
-      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
-                                                      &custom_pixel_shader_uniforms};
-      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_names[i]))
-      {
+      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip};
+      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
         action->OnDrawStarted(&draw_started);
-        if (custom_pixel_shader)
-        {
-          custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
-          custom_pixel_texture_names.push_back(texture_names[i]);
-        }
-        custom_pixel_shader = std::nullopt;
-      }
     }
 
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
@@ -645,22 +642,21 @@ void VertexManagerBase::Flush()
     if (!skip)
     {
       UpdatePipelineConfig();
-      UpdatePipelineObject();
-      if (m_current_pipeline_object)
-      {
-        const AbstractPipeline* pipeline_object = m_current_pipeline_object;
-        if (!custom_pixel_shader_contents.shaders.empty())
-        {
-          if (const auto custom_pipeline =
-                  GetCustomPipeline(custom_pixel_shader_contents, m_current_pipeline_config,
-                                    m_current_uber_pipeline_config, m_current_pipeline_object))
-          {
-            pipeline_object = custom_pipeline;
-          }
-        }
-        RenderDrawCall(pixel_shader_manager, geometry_shader_manager, custom_pixel_shader_contents,
-                       custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object);
-      }
+
+      VideoCommon::DrawDataView draw_data;
+      draw_data.vertex_data = m_last_reset_pointer;
+      draw_data.vertex_count = m_index_generator.GetNumVerts();
+      draw_data.index_data = {m_index_generator.GetIndexDataStart(),
+                              m_index_generator.GetIndexLen()};
+      draw_data.projection_transform = vertex_shader_manager.constants.projection;
+      draw_data.viewport_details = xfmem.viewport;
+      draw_data.vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
+      draw_data.textures = std::move(texture_refs);
+      draw_data.samplers = samplers;
+      draw_data.projection_type = xfmem.projection.type;
+      draw_data.uid = &m_current_pipeline_config;
+
+      DrawEmulatedMesh(draw_data);
     }
 
     // Even if we skip the draw, emulated state should still be impacted
@@ -1048,38 +1044,75 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config)
+void VertexManagerBase::DrawEmulatedMesh(const VideoCommon::DrawDataView& data)
 {
-  m_custom_shader_cache->SetHostConfig(host_config);
-  m_custom_shader_cache->Reload();
+  UpdatePipelineObject();
+  if (!m_current_pipeline_object)
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+
+  ProcessEmulatedMesh(pixel_shader_manager, geometry_shader_manager, m_current_pipeline_object,
+                      data);
 }
 
-void VertexManagerBase::RenderDrawCall(
-    PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
-    const CustomPixelShaderContents& custom_pixel_shader_contents,
-    std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-    const AbstractPipeline* current_pipeline)
+void VertexManagerBase::ProcessEmulatedMesh(PixelShaderManager& pixel_shader_manager,
+                                            GeometryShaderManager& geometry_shader_manager,
+                                            const AbstractPipeline* pipeline,
+                                            const VideoCommon::DrawDataView& data)
 {
-  // Now we can upload uniforms, as nothing else will override them.
-  geometry_shader_manager.SetConstants(primitive_type);
+  geometry_shader_manager.SetConstants(m_current_primitive_type);
   pixel_shader_manager.SetConstants();
-  if (!custom_pixel_shader_uniforms.empty() &&
-      pixel_shader_manager.custom_constants.data() != custom_pixel_shader_uniforms.data())
-  {
-    pixel_shader_manager.custom_constants_dirty = true;
-  }
-  pixel_shader_manager.custom_constants = custom_pixel_shader_uniforms;
-  UploadUniforms();
 
-  g_gfx->SetPipeline(current_pipeline);
+  const u32 vertex_stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
+  const u32 index_size = m_index_generator.GetIndexLen();
 
   u32 base_vertex, base_index;
-  CommitBuffer(m_index_generator.GetNumVerts(),
-               VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
-               m_index_generator.GetIndexLen(), &base_vertex, &base_index);
+  CommitBuffer(m_index_generator.GetNumVerts(), vertex_stride, index_size, &base_vertex,
+               &base_index);
 
+  SubmittedDrawCallData draw_call_data;
+  draw_call_data.pipeline = pipeline;
+  draw_call_data.frame_buffer = g_gfx->GetCurrentFramebuffer();
+  draw_call_data.base_index = base_index;
+  draw_call_data.base_vertex = base_vertex;
+  draw_call_data.index_size = index_size;
+  draw_call_data.vertex_stride = vertex_stride;
+  draw_call_data.primitive_type = m_current_primitive_type;
+  for (const VideoCommon::TextureRef& texture_ref : data.textures)
+  {
+    draw_call_data.textures.emplace_back(SubmittedSampledTexture{
+        .entry = texture_ref.entry,
+        .sampler = data.samplers[texture_ref.unit],
+        .index = texture_ref.unit,
+    });
+  }
+
+  DrawSubmittedDrawData(g_framebuffer_manager.get(), draw_call_data);
+}
+
+void VertexManagerBase::DrawSubmittedDrawData(FramebufferManager* /*framebuffer_manager*/,
+                                              const SubmittedDrawCallData& draw_call_data)
+{
+  BindCommittedBuffer(draw_call_data.vertex_stride);
+
+  // Now we can upload uniforms, as nothing else will override them.
+  UploadUniforms();
+
+  g_gfx->SetPipeline(draw_call_data.pipeline);
+
+  for (const SubmittedSampledTexture& texture : draw_call_data.textures)
+  {
+    g_gfx->SetTexture(texture.index, texture.entry->texture.get());
+    g_gfx->SetSamplerState(texture.index, texture.sampler);
+  }
+
+  u32 base_vertex = draw_call_data.base_vertex;
   if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
-      (primitive_type == PrimitiveType::Points || primitive_type == PrimitiveType::Lines))
+      (draw_call_data.primitive_type == PrimitiveType::Points ||
+       draw_call_data.primitive_type == PrimitiveType::Lines))
   {
     // VS point/line expansion puts the vertex id at gl_VertexID << 2
     // That means the base vertex has to be adjusted to match
@@ -1090,78 +1123,11 @@ void VertexManagerBase::RenderDrawCall(
   if (PerfQueryBase::ShouldEmulate())
     g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
-  DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
+  DrawCurrentBatch(draw_call_data.base_index, draw_call_data.index_size, base_vertex);
 
   // Track the total emulated state draws
   INCSTAT(g_stats.this_frame.num_draw_calls);
 
   if (PerfQueryBase::ShouldEmulate())
     g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-}
-
-const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
-    const CustomPixelShaderContents& custom_pixel_shader_contents,
-    const VideoCommon::GXPipelineUid& current_pipeline_config,
-    const VideoCommon::GXUberPipelineUid& current_uber_pipeline_config,
-    const AbstractPipeline* current_pipeline) const
-{
-  if (current_pipeline)
-  {
-    if (!custom_pixel_shader_contents.shaders.empty())
-    {
-      CustomShaderInstance custom_shaders;
-      custom_shaders.pixel_contents = custom_pixel_shader_contents;
-      switch (g_ActiveConfig.iShaderCompilationMode)
-      {
-      case ShaderCompilationMode::Synchronous:
-      case ShaderCompilationMode::AsynchronousSkipRendering:
-      {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                current_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *pipeline;
-        }
-      }
-      break;
-      case ShaderCompilationMode::SynchronousUberShaders:
-      {
-        // D3D has issues compiling large custom ubershaders
-        // use specialized shaders instead
-        if (g_backend_info.api_type == APIType::D3D)
-        {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                  current_pipeline_config, custom_shaders, current_pipeline->m_config))
-          {
-            return *pipeline;
-          }
-        }
-        else
-        {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                  current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
-          {
-            return *pipeline;
-          }
-        }
-      }
-      break;
-      case ShaderCompilationMode::AsynchronousUberShaders:
-      {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
-                current_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *pipeline;
-        }
-        else if (auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
-                     current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
-        {
-          return *uber_pipeline;
-        }
-      }
-      break;
-      };
-    }
-  }
-
-  return nullptr;
 }

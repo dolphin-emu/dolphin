@@ -9,15 +9,18 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 #include "VideoCommon/CPUCull.h"
+#include "VideoCommon/DrawDataView.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoEvents.h"
 
-struct CustomPixelShaderContents;
-class CustomShaderCache;
+class AbstractFramebuffer;
 class DataReader;
+class FramebufferManager;
 class GeometryShaderManager;
 class NativeVertexFormat;
 class PixelShaderManager;
@@ -134,7 +137,6 @@ public:
     m_current_pipeline_object = nullptr;
     m_pipeline_config_changed = true;
   }
-  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config);
 
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
@@ -171,6 +173,31 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  struct SubmittedSampledTexture
+  {
+    RcTcacheEntry entry;
+    SamplerState sampler;
+    u32 index = 0;
+  };
+
+  struct SubmittedDrawCallData
+  {
+    const AbstractPipeline* pipeline = nullptr;
+    AbstractFramebuffer* frame_buffer = nullptr;
+    u32 base_index = 0;
+    u32 base_vertex = 0;
+    u32 index_size = 0;
+    u32 vertex_stride = 0;
+    PrimitiveType primitive_type = PrimitiveType::Points;
+    Common::SmallVector<SubmittedSampledTexture, 8> textures;
+  };
+
+  // Executes a previously captured draw call.
+  void DrawSubmittedDrawData(FramebufferManager* framebuffer_manager,
+                             const SubmittedDrawCallData& draw_call_data);
+
+  void DrawEmulatedMesh(const VideoCommon::DrawDataView& data);
+
 protected:
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -181,6 +208,11 @@ protected:
   // Commits/uploads the current batch of vertices.
   virtual void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
                             u32* out_base_vertex, u32* out_base_index);
+
+  // Binds the buffers most recently committed, so that a draw can be issued against them.
+  // Separated from CommitBuffer so that draws can rebind the buffers if the draws
+  // are triggered independently
+  virtual void BindCommittedBuffer(u32 vertex_stride);
 
   // Uploads uniform buffers for GX draws.
   virtual void UploadUniforms();
@@ -199,6 +231,10 @@ protected:
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
   u8* m_end_buffer_pointer = nullptr;
+
+  // Pointer to the start of the buffer most recently reset, used to describe the batch's
+  // CPU-side vertex data to the draw path.
+  u8* m_last_reset_pointer = nullptr;
 
   // Alternative buffers in CPU memory for primitives we are going to discard.
   std::vector<u8> m_cpu_vertex_buffer;
@@ -223,19 +259,11 @@ private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
-  void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                      GeometryShaderManager& geometry_shader_manager,
-                      const CustomPixelShaderContents& custom_pixel_shader_contents,
-                      std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
+  void ProcessEmulatedMesh(PixelShaderManager& pixel_shader_manager,
+                           GeometryShaderManager& geometry_shader_manager,
+                           const AbstractPipeline* pipeline, const VideoCommon::DrawDataView& data);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
-
-  const AbstractPipeline*
-  GetCustomPipeline(const CustomPixelShaderContents& custom_pixel_shader_contents,
-                    const VideoCommon::GXPipelineUid& current_pipeline_config,
-                    const VideoCommon::GXUberPipelineUid& current_uber_pipeline_confi,
-                    const AbstractPipeline* current_pipeline) const;
 
   bool m_is_flushed = true;
   FlushStatistics m_flush_statistics = {};
@@ -248,7 +276,6 @@ private:
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
 
-  std::unique_ptr<CustomShaderCache> m_custom_shader_cache;
   u64 m_ticks_elapsed = 0;
 
   Common::EventHook m_frame_end_event;

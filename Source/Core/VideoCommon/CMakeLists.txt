@@ -57,6 +57,7 @@ add_library(videocommon
   CPUCullImpl.h
   DriverDetails.cpp
   DriverDetails.h
+  DrawDataView.h
   EFBInterface.cpp
   EFBInterface.h
   Fifo.cpp
@@ -99,8 +100,6 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/SkipAction.h
   GraphicsModSystem/Runtime/CustomPipeline.cpp
   GraphicsModSystem/Runtime/CustomPipeline.h
-  GraphicsModSystem/Runtime/CustomShaderCache.cpp
-  GraphicsModSystem/Runtime/CustomShaderCache.h
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h

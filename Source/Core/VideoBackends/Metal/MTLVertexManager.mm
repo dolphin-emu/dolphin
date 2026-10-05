@@ -68,6 +68,7 @@ void Metal::VertexManager::ResetBuffer(u32 vertex_stride)
   m_cur_buffer_pointer = m_base_buffer_pointer = static_cast<u8*>(vertex.first) + m_vertex_offset;
   m_end_buffer_pointer = m_base_buffer_pointer + max_vertex_size;
   m_index_generator.Start(static_cast<u16*>(index.first));
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void Metal::VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,

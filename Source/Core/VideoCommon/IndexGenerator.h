@@ -24,6 +24,7 @@ public:
   u32 GetNumVerts() const { return m_base_index; }
   u32 GetIndexLen() const { return static_cast<u32>(m_index_buffer_current - m_base_index_ptr); }
   u32 GetRemainingIndices(OpcodeDecoder::Primitive primitive) const;
+  u16* GetIndexDataStart() const { return m_base_index_ptr; }
 
 private:
   u16* m_index_buffer_current = nullptr;
