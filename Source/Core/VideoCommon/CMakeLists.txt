@@ -57,6 +57,7 @@ add_library(videocommon
   CPUCullImpl.h
   DriverDetails.cpp
   DriverDetails.h
+  DrawDataView.h
   EFBInterface.cpp
   EFBInterface.h
   Fifo.cpp

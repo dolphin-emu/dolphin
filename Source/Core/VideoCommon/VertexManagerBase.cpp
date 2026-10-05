@@ -334,6 +334,7 @@ void VertexManagerBase::ResetBuffer(u32 vertex_stride)
   m_cur_buffer_pointer = m_cpu_vertex_buffer.data();
   m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
   m_index_generator.Start(m_cpu_index_buffer.data());
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -548,7 +549,6 @@ void VertexManagerBase::Flush()
   }
 
   auto& pixel_shader_manager = system.GetPixelShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& xf_state_manager = system.GetXFStateManager();
 
@@ -565,7 +565,7 @@ void VertexManagerBase::Flush()
   std::vector<std::string> texture_names;
   Common::SmallVector<u32, 8> texture_units;
   std::array<SamplerState, 8> samplers;
-  Common::SmallVector<SubmittedSampledTexture, 8> sampled_textures;
+  Common::SmallVector<VideoCommon::TextureRef, 8> texture_refs;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
@@ -579,8 +579,8 @@ void VertexManagerBase::Flush()
         samplers[i] = TextureCacheBase::GetSamplerState(
             i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
 
-        sampled_textures.push_back(
-            SubmittedSampledTexture{.entry = cache_entry, .sampler = samplers[i], .index = i});
+        texture_refs.push_back(
+            VideoCommon::TextureRef{.entry = cache_entry, .unit = static_cast<u8>(i)});
       }
     }
     else
@@ -600,8 +600,8 @@ void VertexManagerBase::Flush()
           samplers[i] = TextureCacheBase::GetSamplerState(
               i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
 
-          sampled_textures.push_back(
-              SubmittedSampledTexture{.entry = cache_entry, .sampler = samplers[i], .index = i});
+          texture_refs.push_back(
+              VideoCommon::TextureRef{.entry = cache_entry, .unit = static_cast<u8>(i)});
         }
       }
     }
@@ -642,12 +642,21 @@ void VertexManagerBase::Flush()
     if (!skip)
     {
       UpdatePipelineConfig();
-      UpdatePipelineObject();
-      if (m_current_pipeline_object)
-      {
-        ProcessEmulatedMesh(pixel_shader_manager, geometry_shader_manager,
-                            m_current_pipeline_object, sampled_textures);
-      }
+
+      VideoCommon::DrawDataView draw_data;
+      draw_data.vertex_data = m_last_reset_pointer;
+      draw_data.vertex_count = m_index_generator.GetNumVerts();
+      draw_data.index_data = {m_index_generator.GetIndexDataStart(),
+                              m_index_generator.GetIndexLen()};
+      draw_data.projection_transform = vertex_shader_manager.constants.projection;
+      draw_data.viewport_details = xfmem.viewport;
+      draw_data.vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
+      draw_data.textures = std::move(texture_refs);
+      draw_data.samplers = samplers;
+      draw_data.projection_type = xfmem.projection.type;
+      draw_data.uid = &m_current_pipeline_config;
+
+      DrawEmulatedMesh(draw_data);
     }
 
     // Even if we skip the draw, emulated state should still be impacted
@@ -1035,9 +1044,24 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::ProcessEmulatedMesh(
-    PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
-    const AbstractPipeline* pipeline, std::span<const SubmittedSampledTexture> sampled_textures)
+void VertexManagerBase::DrawEmulatedMesh(const VideoCommon::DrawDataView& data)
+{
+  UpdatePipelineObject();
+  if (!m_current_pipeline_object)
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+
+  ProcessEmulatedMesh(pixel_shader_manager, geometry_shader_manager, m_current_pipeline_object,
+                      data);
+}
+
+void VertexManagerBase::ProcessEmulatedMesh(PixelShaderManager& pixel_shader_manager,
+                                            GeometryShaderManager& geometry_shader_manager,
+                                            const AbstractPipeline* pipeline,
+                                            const VideoCommon::DrawDataView& data)
 {
   geometry_shader_manager.SetConstants(m_current_primitive_type);
   pixel_shader_manager.SetConstants();
@@ -1057,8 +1081,14 @@ void VertexManagerBase::ProcessEmulatedMesh(
   draw_call_data.index_size = index_size;
   draw_call_data.vertex_stride = vertex_stride;
   draw_call_data.primitive_type = m_current_primitive_type;
-  for (const SubmittedSampledTexture& texture : sampled_textures)
-    draw_call_data.textures.emplace_back(texture);
+  for (const VideoCommon::TextureRef& texture_ref : data.textures)
+  {
+    draw_call_data.textures.emplace_back(SubmittedSampledTexture{
+        .entry = texture_ref.entry,
+        .sampler = data.samplers[texture_ref.unit],
+        .index = texture_ref.unit,
+    });
+  }
 
   DrawSubmittedDrawData(g_framebuffer_manager.get(), draw_call_data);
 }

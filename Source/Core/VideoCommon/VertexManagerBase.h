@@ -4,7 +4,6 @@
 #pragma once
 
 #include <memory>
-#include <span>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -12,6 +11,7 @@
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 #include "VideoCommon/CPUCull.h"
+#include "VideoCommon/DrawDataView.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
@@ -196,6 +196,8 @@ public:
   void DrawSubmittedDrawData(FramebufferManager* framebuffer_manager,
                              const SubmittedDrawCallData& draw_call_data);
 
+  void DrawEmulatedMesh(const VideoCommon::DrawDataView& data);
+
 protected:
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -230,6 +232,10 @@ protected:
   u8* m_base_buffer_pointer = nullptr;
   u8* m_end_buffer_pointer = nullptr;
 
+  // Pointer to the start of the buffer most recently reset, used to describe the batch's
+  // CPU-side vertex data to the draw path.
+  u8* m_last_reset_pointer = nullptr;
+
   // Alternative buffers in CPU memory for primitives we are going to discard.
   std::vector<u8> m_cpu_vertex_buffer;
   std::vector<u16> m_cpu_index_buffer;
@@ -255,8 +261,7 @@ private:
 
   void ProcessEmulatedMesh(PixelShaderManager& pixel_shader_manager,
                            GeometryShaderManager& geometry_shader_manager,
-                           const AbstractPipeline* pipeline,
-                           std::span<const SubmittedSampledTexture> sampled_textures);
+                           const AbstractPipeline* pipeline, const VideoCommon::DrawDataView& data);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
