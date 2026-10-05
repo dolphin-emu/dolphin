@@ -34,15 +34,18 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   AddSetting(&m_sensitivity_setting,
              {_trans("Motion Sensitivity"), _trans("%"),
               _trans("Sensitivity of relative swing input. Higher values need less travel. "
-                     "Does not affect the pointer or absolute swing input.")},
+                     "Does not affect the pointer or absolute swing input."),
+              nullptr, SettingVisibility::Advanced},
              100, 1, 400);
   AddSetting(&m_horizontal_sensitivity_setting,
              {_trans("Horizontal Sensitivity"), _trans("%"),
-              _trans("Multiplier for left/right relative swing input.")},
+              _trans("Multiplier for left/right relative swing input."), nullptr,
+              SettingVisibility::Advanced},
              100, 1, 400);
   AddSetting(&m_vertical_sensitivity_setting,
              {_trans("Vertical Sensitivity"), _trans("%"),
-              _trans("Multiplier for up/down relative swing input.")},
+              _trans("Multiplier for up/down relative swing input."), nullptr,
+              SettingVisibility::Advanced},
              100, 1, 400);
 
   AddSetting(&m_distance_setting,
@@ -53,11 +56,9 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
               _trans("Distance of travel from neutral position.")},
              50, 1, 100);
 
-  // These speed settings are used to calculate a maximum jerk (change in acceleration).
-  // The calculation uses a travel distance of 1 meter.
+  // Speed limits the shared arm movement; Return Speed allows a slow return.
   // The maximum value of 40 m/s is the approximate speed of the head of a golf club.
   // Games seem to not even properly detect motions at this speed.
-  // Values result in an exponentially increasing jerk.
 
   AddSetting(&m_speed_setting,
              {_trans("Speed"),

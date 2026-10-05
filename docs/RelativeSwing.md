@@ -4,7 +4,8 @@ In the emulated Wii Remote configuration, open **Motion Simulation** and click
 **Use Mouse Controlled Swing** in **Swing**. This assigns the direction bindings,
 Motion Hold and Recenter and enables **Relative Input**. No separate Mouse Motion
 group or manual direction binding is needed. Relative Input is off by default;
-ordinary Swing profiles keep their existing position-based behavior.
+ordinary Swing profiles keep their position-based bindings. Swing now uses a
+shared arm model for both input modes, replacing the older jerk-based movement.
 
 Move the mouse normally to point. Hold either side mouse button to swing: away
 from yourself moves upward, toward yourself moves downward, and left/right moves
@@ -22,7 +23,7 @@ It requires relative mouse inputs, currently provided by Windows DInput and X11
 XInput2. macOS and Wayland mouse presets are not supported.
 
 **Motion Sensitivity**, **Horizontal Sensitivity** and **Vertical Sensitivity**
-(default 100%) control the relative bindings, not the pointer or absolute Swing
+(in Swing's **Advanced** settings, default 100%) control the relative bindings, not the pointer or absolute Swing
 mode. The default mouse conversion remains 0.2 degrees per count: 400 counts
 for 80 degrees, about 13 mm at 800 DPI. Swing's **Distance** is the arm length;
 **Angle** bounds rotation, capped at 85 degrees per axis to avoid inversion;
@@ -40,13 +41,16 @@ leaves these two bindings empty because the mouse supplies only two axes.
 - Qt's preset assigns public Swing bindings. Force exposes the raw displacements
   without the absolute position gate or unit-radius clamp, with generic axis
   sensitivity settings. It performs no device discovery or backend scaling.
-- EmulateSwing selects displacement or the unchanged absolute-position model.
-  Both use the existing MotionState, accelerometer and MotionPlus report paths.
-  Relative input integrates two fixed bounded axes with 20 ms rate smoothing,
+- EmulateSwing converts position targets or displacements into requested rates,
+  then applies one shared filter, bounded pose and arm/sensor calculation. Small
+  absolute inputs produce proportionally small acceleration; Swing no longer
+  uses the distance-independent jerk in ApproachPositionWithJerk. Both input
+  modes use the existing MotionState, accelerometer and MotionPlus report paths.
+  The shared model integrates two fixed bounded axes with 20 ms rate smoothing,
   discards overflow at the limits and reacts immediately to direction reversal.
   Gyro comes from the actual quaternion difference. Arm acceleration includes
   tangential and centripetal terms. No second Mouse Motion state or report path
-  remains. Nunchuk's shared Swing uses the same orientation in relative mode.
+  remains. Nunchuk's shared Swing uses the same orientation in both input modes.
 - Wii Remote pointing and relative Swing share one pose, including the return
   after releasing the modifier. Ordinary pointing avoids full-arm acceleration;
   the Point target is frozen while Motion Hold is pressed. Input gating and a
@@ -67,10 +71,13 @@ trajectories now run through public Force direction bindings and EmulateSwing.
 They cover motion strength/direction, reversals, fixed-axis bounds, closed paths,
 gyro consistency, pointing stability and modifier transitions. Additional tests
 cover analog bindings, forward/backward, settings persistence and default
-absolute Swing returning to neutral. These tests cannot establish game acceptance
+absolute Swing returning to neutral, small-movement acceleration scaling and
+absolute gyro/arm consistency. These tests cannot establish game acceptance
 of the reworked build. The PR author has since manually tested Swordplay in
 Wii Sports Resort with the reworked mouse controls and reports that it plays
-very well. A fresh manual Golf regression remains to be confirmed.
+very well. The subsequent unified-model revision has also been manually retested
+by the PR author in Swordplay successfully. A fresh Golf regression on the
+unified model remains to be confirmed.
 
 For the reworked Windows build:
 

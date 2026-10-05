@@ -136,74 +136,105 @@ Common::Quaternion GetSwingRotation(const MotionState& state)
       .Normalized();
 }
 
-static void EmulateRelativeSwing(MotionState* state, ControllerEmu::Force* group,
-                                 float time_elapsed, std::optional<Common::Vec2> point_angles)
+void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed,
+                  std::optional<Common::Vec2> point_angles)
 {
-  // Model an outstretched arm. Both sensors must describe the same movement, including
-  // tangential and centripetal acceleration, rather than independent shake/gyro effects.
-  const float arm_length = group->GetMaxDistance();
-  const float max_angular_velocity = std::min(20.f, float(group->GetSpeed() / arm_length));
-  const float max_point_velocity = float(group->GetReturnSpeed() * 3);
-  const float max_angle = std::min(float(MathUtil::TAU * 85 / 360), float(group->GetTwistAngle()));
-  constexpr float SMOOTHING_TIME = 0.02f;
-  const float recenter_time = float(0.48 * arm_length / group->GetReturnSpeed());
-
   if (time_elapsed <= 0)
     return;
 
-  const bool recenter = group->IsRecenterPressed();
-  const auto input = group->GetRelativeState();
-  const Common::Vec2 delta{input.x, -input.y};
-  const float sensitivity = group->GetSensitivity();
-  Common::Vec2 angles{-state->angle.z, state->angle.x};
-  Common::Vec2 angle_velocity{state->input_velocity.x, state->input_velocity.y};
-  const float old_forward_velocity = state->input_velocity.z;
-  const auto old_angular_velocity = state->angular_velocity;
-  const auto old_rotation = GetSwingRotation(*state);
-  if (point_angles && !recenter)
+  const bool relative = swing_group->IsRelativeInput();
+  const bool recenter = relative && swing_group->IsRecenterPressed();
+  const bool pointing = relative && point_angles && !recenter;
+  const float arm_length = swing_group->GetMaxDistance();
+  const float configured_angle = swing_group->GetTwistAngle();
+  const float max_angle =
+      relative ? std::min(float(MathUtil::TAU * 85 / 360), configured_angle) : configured_angle;
+  constexpr float RESPONSE_TIME = 0.02f;
+  float response_time = RESPONSE_TIME;
+  float movement_speed = swing_group->GetSpeed();
+  Common::Vec3 coordinates{-state->angle.z, state->angle.x, state->forward_offset};
+  const float old_forward_offset = state->forward_offset;
+  Common::Vec3 requested_velocity{};
+  std::optional<Common::Vec3> target;
+
+  // Only input interpretation differs. All inputs drive the same rate filter,
+  // bounded pose, arm kinematics and sensor derivatives below.
+  if (!relative)
   {
-    // Point already has Dolphin's usual smoothing. Limit the return from a swing,
-    // but don't apply a second filter to normal cursor movement.
-    auto target = *point_angles;
-    for (auto& angle : target.data)
-      angle = std::clamp(angle, -max_angle, max_angle);
-    auto step = target - angles;
-    const float distance = step.Length();
-    if (distance > max_point_velocity * time_elapsed)
-      step = step * (max_point_velocity * time_elapsed / distance);
-    angles += step;
-    angle_velocity = step / time_elapsed;
+    const auto input = swing_group->GetState();
+    target =
+        Common::Vec3{input.x / arm_length * max_angle, -input.y / arm_length * max_angle, input.z};
+    const float extent = std::clamp(
+        std::max(Common::Vec2{input.x, input.y}.Length(), std::abs(input.z)) / arm_length, 0.f,
+        1.f);
+    movement_speed = MathUtil::Lerp(float(swing_group->GetReturnSpeed()), movement_speed, extent);
+  }
+  else if (recenter)
+  {
+    target = Common::Vec3{};
+    response_time = float(0.48 * arm_length / swing_group->GetReturnSpeed());
+  }
+  else if (pointing)
+  {
+    target = Common::Vec3{point_angles->x, point_angles->y, 0};
+    // Point already has its own filter. Only limit the return from a gesture.
+    response_time = time_elapsed;
   }
   else
   {
-    auto target_velocity =
-        recenter ? -angles / recenter_time : delta * (sensitivity / time_elapsed);
-    const float speed = target_velocity.Length();
-    if (speed > max_angular_velocity)
-      target_velocity = target_velocity * (max_angular_velocity / speed);
-    for (std::size_t i = 0; i != angles.data.size(); ++i)
-    {
-      auto& velocity = angle_velocity.data[i];
-      // A direction change must not continue moving the old way due to filter lag.
-      if (!recenter && velocity * target_velocity.data[i] < 0)
-        velocity = 0;
-      velocity +=
-          (target_velocity.data[i] - velocity) * (time_elapsed / (SMOOTHING_TIME + time_elapsed));
-      if (std::abs(velocity) < 1e-5f)
-        velocity = 0;
-      const float angle = angles.data[i] + velocity * time_elapsed;
-      angles.data[i] = std::clamp(angle, -max_angle, max_angle);
-      // Discard overflow so reversing at an edge responds immediately.
-      if (angles.data[i] != angle)
-        velocity = 0;
-    }
+    const auto input = swing_group->GetRelativeState();
+    const float sensitivity = swing_group->GetSensitivity();
+    requested_velocity =
+        Common::Vec3{input.x, -input.y, input.z * arm_length} * (sensitivity / time_elapsed);
   }
 
-  // A unique pose for each displacement: no accumulated roll from closed paths.
-  // The bounded, fixed axes keep left/right and up/down from becoming inverted.
-  const auto rotation =
-      (Common::Quaternion::RotateX(angles.y) * Common::Quaternion::RotateZ(-angles.x)).Normalized();
+  const Common::Vec3 limits{max_angle, max_angle, arm_length};
+  if (target)
+  {
+    for (std::size_t i = 0; i != target->data.size(); ++i)
+      target->data[i] = std::clamp(target->data[i], -limits.data[i], limits.data[i]);
+    // Small position changes produce proportionally small rates and accelerations,
+    // rather than the distance-independent jerk previously used by Swing.
+    requested_velocity = (*target - coordinates) / response_time;
+  }
+  const float max_angular_velocity = pointing ? float(swing_group->GetReturnSpeed() * 3) :
+                                                std::min(20.f, movement_speed / arm_length);
+  const float speed = Common::Vec2{requested_velocity.x, requested_velocity.y}.Length();
+  if (speed > max_angular_velocity)
+  {
+    requested_velocity.x *= max_angular_velocity / speed;
+    requested_velocity.y *= max_angular_velocity / speed;
+  }
+  requested_velocity.z = std::clamp(requested_velocity.z, -movement_speed, movement_speed);
 
+  const auto old_rotation = GetSwingRotation(*state);
+  const auto old_angular_velocity = state->angular_velocity;
+  const Common::Vec3 arm{0, -arm_length, 0};
+  const float old_forward_velocity =
+      (old_rotation * old_angular_velocity.Cross(arm)).y - state->velocity.y;
+  const float filter = pointing ? 1.f : time_elapsed / (RESPONSE_TIME + time_elapsed);
+  for (std::size_t i = 0; i != coordinates.data.size(); ++i)
+  {
+    auto& velocity = state->input_velocity.data[i];
+    if (!recenter && velocity * requested_velocity.data[i] < 0)
+      velocity = 0;
+    velocity += (requested_velocity.data[i] - velocity) * filter;
+    if (std::abs(velocity) < 1e-5f)
+      velocity = 0;
+    float next = coordinates.data[i] + velocity * time_elapsed;
+    if (target && (next - target->data[i]) * (coordinates.data[i] - target->data[i]) <= 0)
+    {
+      next = target->data[i];
+      velocity = 0;
+    }
+    coordinates.data[i] = std::clamp(next, -limits.data[i], limits.data[i]);
+    // Discard overflow so a reversal at a limit responds immediately.
+    if (coordinates.data[i] != next)
+      velocity = 0;
+  }
+  state->angle = {coordinates.y, 0, -coordinates.x};
+  state->forward_offset = coordinates.z;
+  const auto rotation = GetSwingRotation(*state);
   const auto change = (old_rotation.Conjugate() * rotation).Normalized();
   const Common::Vec3 axis{change.data.x, change.data.y, change.data.z};
   const float length = axis.Length();
@@ -212,129 +243,20 @@ static void EmulateRelativeSwing(MotionState* state, ControllerEmu::Force* group
                                (length * time_elapsed) * std::copysign(1.f, change.data.w)) :
                        Common::Vec3{};
 
-  state->angle = {angles.y, 0, -angles.x};
-  state->input_velocity.x = angle_velocity.x;
-  state->input_velocity.y = angle_velocity.y;
-
-  // Forward/backward bindings use the same displacement mode for arm translation.
-  auto& forward_velocity = state->input_velocity.z;
-  const float target_forward_velocity = recenter ?
-                                            -state->forward_offset / recenter_time :
-                                            input.z * sensitivity * arm_length / time_elapsed;
-  if (!recenter && forward_velocity * target_forward_velocity < 0)
-    forward_velocity = 0;
-  forward_velocity +=
-      (std::clamp(target_forward_velocity, -float(group->GetSpeed()), float(group->GetSpeed())) -
-       forward_velocity) *
-      (time_elapsed / (SMOOTHING_TIME + time_elapsed));
-  if (std::abs(forward_velocity) < 1e-5f)
-    forward_velocity = 0;
-  const float forward = state->forward_offset + forward_velocity * time_elapsed;
-  state->forward_offset = std::clamp(forward, -arm_length, arm_length);
-  if (forward != state->forward_offset)
-    forward_velocity = 0;
-
-  const Common::Vec3 arm{0, -arm_length, 0};
+  // Every Swing uses the same outstretched arm and pose-derived sensor data.
   const auto angular_acceleration = (state->angular_velocity - old_angular_velocity) / time_elapsed;
   const auto velocity = state->angular_velocity.Cross(arm);
+  const float forward_velocity = (state->forward_offset - old_forward_offset) / time_elapsed;
   state->position = rotation * arm - arm + Common::Vec3{0, -state->forward_offset, 0};
   state->velocity = rotation * velocity + Common::Vec3{0, -forward_velocity, 0};
   state->acceleration =
       rotation * (angular_acceleration.Cross(arm) + state->angular_velocity.Cross(velocity));
   state->acceleration.y -= (forward_velocity - old_forward_velocity) / time_elapsed;
-  if (point_angles && !recenter)
+  if (pointing)
   {
-    state->forward_offset = 0;
-    state->input_velocity.z = 0;
-    state->position = rotation * arm - arm;
-    // Ordinary pointing is wrist rotation, not a swing of the whole virtual arm.
+    // Ordinary pointing is wrist rotation, not a swing of the whole arm.
     state->velocity = {};
     state->acceleration = {};
-  }
-}
-
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed,
-                  std::optional<Common::Vec2> point_angles)
-{
-  if (swing_group->IsRelativeInput())
-  {
-    EmulateRelativeSwing(state, swing_group, time_elapsed, point_angles);
-    return;
-  }
-
-  const auto input_state = swing_group->GetState();
-  const float max_distance = swing_group->GetMaxDistance();
-  const float max_angle = swing_group->GetTwistAngle();
-
-  // Note: Y/Z swapped because X/Y axis to the swing_group is X/Z to the wiimote.
-  // X is negated because Wiimote X+ is to the left.
-  const auto target_position = Common::Vec3{-input_state.x, -input_state.z, input_state.y};
-
-  // Jerk is scaled based on input distance from center.
-  // X and Z scale is connected for sane movement about the circle.
-  const auto xz_target_dist = Common::Vec2{target_position.x, target_position.z}.Length();
-  const auto y_target_dist = std::abs(target_position.y);
-  const auto target_dist = Common::Vec3{xz_target_dist, y_target_dist, xz_target_dist};
-  const auto speed = MathUtil::Lerp(Common::Vec3{1, 1, 1} * float(swing_group->GetReturnSpeed()),
-                                    Common::Vec3{1, 1, 1} * float(swing_group->GetSpeed()),
-                                    target_dist / max_distance);
-
-  // Convert our m/s "speed" to the jerk required to reach this speed when traveling 1 meter.
-  const auto max_jerk = speed * speed * speed * 4;
-
-  // Rotational acceleration to approximately match the completion time of our swing.
-  const auto max_accel = max_angle * speed.x * speed.x;
-
-  // Apply rotation based on amount of swing.
-  const auto target_angle =
-      Common::Vec3{-target_position.z, 0, target_position.x} / max_distance * max_angle;
-
-  // Angular acceleration * 2 seems to reduce "spurious stabs" in ZSS.
-  // TODO: Fix properly.
-  ApproachAngleWithAccel(state, target_angle, max_accel * 2, time_elapsed);
-
-  // Clamp X and Z rotation.
-  for (const int c : {0, 2})
-  {
-    if (std::abs(state->angle.data[c] / max_angle) > 1 &&
-        MathUtil::Sign(state->angular_velocity.data[c]) == MathUtil::Sign(state->angle.data[c]))
-    {
-      state->angular_velocity.data[c] = 0;
-    }
-  }
-
-  // Adjust target position backwards based on swing progress and max angle
-  // to simulate a swing with an outstretched arm.
-  const auto backwards_angle = std::max(std::abs(state->angle.x), std::abs(state->angle.z));
-  const auto backwards_movement = (1 - std::cos(backwards_angle)) * max_distance;
-
-  // TODO: Backswing jerk should be based on x/z speed.
-
-  ApproachPositionWithJerk(state, target_position + Common::Vec3{0, backwards_movement, 0},
-                           max_jerk, time_elapsed);
-
-  // Clamp Left/Right/Up/Down movement within the configured circle.
-  const auto xz_progress =
-      Common::Vec2{state->position.x, state->position.z}.Length() / max_distance;
-  if (xz_progress > 1)
-  {
-    state->position.x /= xz_progress;
-    state->position.z /= xz_progress;
-
-    state->acceleration.x = state->acceleration.z = 0;
-    state->velocity.x = state->velocity.z = 0;
-  }
-
-  // Clamp Forward/Backward movement within the configured distance.
-  // We allow additional backwards movement for the back swing.
-  const auto y_progress = state->position.y / max_distance;
-  const auto max_y_progress = 2 - std::cos(max_angle);
-  if (y_progress > max_y_progress || y_progress < -1)
-  {
-    state->position.y =
-        std::clamp(state->position.y, -1.f * max_distance, max_y_progress * max_distance);
-    state->velocity.y = 0;
-    state->acceleration.y = 0;
   }
 }
 

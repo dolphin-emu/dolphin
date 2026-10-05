@@ -912,9 +912,7 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
   const auto point_position =
       !m_relative_swing_active || !include_swing_position ? m_point_state.position : Common::Vec3{};
   const auto swing_rotation =
-      m_relative_swing_active ?
-          Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate()) :
-          GetRotationalMatrix(-m_swing_state.angle);
+      Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate());
   // Includes Point (part of relative Swing's pose), Swing, Tilt and Shake.
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *

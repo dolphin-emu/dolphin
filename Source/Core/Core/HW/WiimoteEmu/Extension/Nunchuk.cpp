@@ -81,9 +81,7 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   const auto transformation =
       GetRotationalMatrix(-m_tilt_state.angle) *
-      (m_swing->IsRelativeInput() ?
-           Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate()) :
-           GetRotationalMatrix(-m_swing_state.angle));
+      Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate());
 
   Common::Vec3 accel =
       transformation *

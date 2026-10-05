@@ -48,7 +48,7 @@ struct IMUCursorState
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
-  // Filtered displacement rate used only by relative Swing input.
+  // Filtered Swing coordinate rates (two angular axes and forward translation).
   Common::Vec3 input_velocity{};
   float forward_offset = 0;
 

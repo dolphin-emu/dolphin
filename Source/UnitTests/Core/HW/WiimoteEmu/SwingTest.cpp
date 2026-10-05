@@ -475,3 +475,60 @@ TEST(Swing, AbsoluteInputStillReturnsToNeutralByDefault)
   EXPECT_NEAR(state.position.Length(), 0, 1e-5f);
   EXPECT_NEAR(state.angle.Length(), 0, 1e-5f);
 }
+
+TEST(Swing, TinyAbsoluteMovementsHaveProportionalAcceleration)
+{
+  const auto peak_acceleration = [](const char* input) {
+    ControllerEmu::Force group("Swing");
+    group.SetControlExpression(0, input);
+    WiimoteEmu::MotionState state;
+    float peak = 0;
+    for (int i = 0; i != 200; ++i)
+    {
+      WiimoteEmu::EmulateSwing(&state, &group, TIME_STEP);
+      peak = std::max(peak, state.acceleration.Length());
+    }
+    return peak;
+  };
+  const float tiny = peak_acceleration("0.00001");
+  const float small = peak_acceleration("0.0001");
+  ASSERT_GT(tiny, 0);
+  EXPECT_LT(tiny, 0.1f);
+  EXPECT_NEAR(small / tiny, 10.f, 0.5f);
+}
+
+TEST(Swing, AbsoluteGyroscopeDescribesTheSharedArmPose)
+{
+  ControllerEmu::Force group("Swing");
+  WiimoteEmu::MotionState state;
+  auto integrated = Common::Quaternion::Identity();
+  for (int i = 0; i != 500; ++i)
+  {
+    group.SetControlExpression(0, i < 250 ? "0.6" : "0");
+    group.SetControlExpression(3, i < 250 ? "0.4" : "0");
+    WiimoteEmu::EmulateSwing(&state, &group, TIME_STEP);
+    integrated = (integrated * Common::Quaternion::RotateXYZ(state.angular_velocity * TIME_STEP))
+                     .Normalized();
+    ExpectSameRotation(integrated, WiimoteEmu::GetSwingRotation(state));
+    const Common::Vec3 arm{0, -float(group.GetMaxDistance()), 0};
+    EXPECT_NEAR((state.position - (integrated * arm - arm)).Length(), 0, 1e-5f);
+  }
+}
+
+TEST(Swing, ForwardVelocityMatchesActualTravelIncludingTargetArrival)
+{
+  ControllerEmu::Force group("Swing");
+  group.SetControlExpression(4, "1");
+  WiimoteEmu::MotionState state;
+  for (int i = 0; i != 300; ++i)
+  {
+    const float previous_position = state.position.y;
+    const float previous_velocity = state.velocity.y;
+    WiimoteEmu::EmulateSwing(&state, &group, TIME_STEP);
+    EXPECT_NEAR(state.velocity.y, (state.position.y - previous_position) / TIME_STEP, 1e-5f);
+    EXPECT_NEAR(state.acceleration.y, (state.velocity.y - previous_velocity) / TIME_STEP, 1e-4f);
+  }
+  EXPECT_FLOAT_EQ(state.position.y, -float(group.GetMaxDistance()));
+  EXPECT_FLOAT_EQ(state.velocity.y, 0);
+  EXPECT_FLOAT_EQ(state.acceleration.y, 0);
+}
