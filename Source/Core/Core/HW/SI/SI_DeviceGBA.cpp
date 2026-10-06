@@ -139,6 +139,7 @@ void GBASockServer::Disconnect()
 
 void GBASockServer::ClockSync(Core::System& system)
 {
+  m_last_clock_slice = 0;
   if (!m_clock_sync)
     if (!(m_clock_sync = GetNextClock()))
       return;
@@ -160,6 +161,7 @@ void GBASockServer::ClockSync(Core::System& system)
 
   time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
+  m_last_clock_slice = time_slice;
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;
   bytes[1] = (time_slice >> 16) & 0xff;
@@ -195,6 +197,14 @@ void GBASockServer::Send(const u8* si_buffer)
   if (!Connect())
     return;
 
+  constexpr u32 LONG_SLICE_CYCLES = 20000;
+  constexpr u64 GBA_CYCLES_PER_SECOND = 16777216;
+  if (m_last_clock_slice > LONG_SLICE_CYCLES)
+  {
+    Common::SleepCurrentThread(
+        static_cast<int>(m_last_clock_slice * 1100ull / GBA_CYCLES_PER_SECOND));
+  }
+
   std::array<u8, SEND_MAX_SIZE> send_data;
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i];
@@ -216,11 +226,10 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   if (!m_client)
     return 0;
 
-  if (m_booted)
   {
     sf::SocketSelector selector;
     selector.add(*m_client);
-    (void)selector.wait(sf::milliseconds(1000));
+    (void)selector.wait(sf::milliseconds(m_booted ? 1000 : 100));
   }
 
   size_t num_received = 0;

@@ -37,6 +37,7 @@ private:
   std::unique_ptr<sf::TcpSocket> m_clock_sync;
 
   u64 m_last_time_slice = 0;
+  u32 m_last_clock_slice = 0;
   bool m_booted = false;
 };
 
