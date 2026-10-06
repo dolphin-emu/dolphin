@@ -50,7 +50,7 @@ private:
   bool AlsaInit();
   void AlsaShutdown();
 
-  s16 mix_buffer[BUFFER_SIZE_MAX * CHANNEL_COUNT];
+  std::array<s16, BUFFER_SIZE_MAX * CHANNEL_COUNT> mix_buffer{};
   std::thread thread;
   std::atomic<ALSAThreadStatus> m_thread_status;
   std::condition_variable cv;
