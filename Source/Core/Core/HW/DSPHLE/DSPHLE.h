@@ -52,6 +52,7 @@ public:
   void SwapUCode(u32 crc);
 
   Core::System& GetSystem() const { return m_system; }
+  UCodeInterface& GetUCode() const { return *m_ucode; }
 
 private:
   void SendMailToDSP(u32 mail);
