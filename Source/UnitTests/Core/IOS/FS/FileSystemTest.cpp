@@ -492,15 +492,13 @@ TEST_F(FileSystemTest, DoState)
   }
 
   std::array<u8, 1024> state_buffer;
-  size_t state_size;
 
   {
     Result<FileHandle> file2 = m_fs->OpenFile(Uid{3}, Gid{4}, "/tmp/e", Mode::ReadWrite);
     ASSERT_TRUE(file2.has_value());
     ASSERT_TRUE(file2->Write(TEST_DATA_2.data(), TEST_DATA_2.size()).has_value());
 
-    u8* state_pointer = state_buffer.data();
-    PointerWrap p(&state_pointer, state_buffer.size(), PointerWrap::Mode::Write);
+    PointerWrap p{state_buffer, PointerWrap::Mode::Write};
     m_fs->DoState(p);
     ASSERT_TRUE(p.IsWriteMode());
 
@@ -510,8 +508,6 @@ TEST_F(FileSystemTest, DoState)
     Fd fd = file2->Release();
     p.Do(fd);
     ASSERT_TRUE(p.IsWriteMode());
-
-    state_size = state_pointer - state_buffer.data();
   }
 
   ASSERT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/tmp/a"), ResultCode::Success);
@@ -524,8 +520,7 @@ TEST_F(FileSystemTest, DoState)
 
   ASSERT_EQ(m_fs->CreateDirectory(Uid{7}, Gid{8}, "/tmp/g", 0, modes), ResultCode::Success);
 
-  u8* state_pointer = state_buffer.data();
-  PointerWrap p(&state_pointer, state_size, PointerWrap::Mode::Read);
+  PointerWrap p{state_buffer, PointerWrap::Mode::Read};
   m_fs->DoState(p);
   ASSERT_TRUE(p.IsReadMode());
 

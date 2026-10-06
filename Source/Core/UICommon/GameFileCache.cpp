@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
@@ -221,26 +222,23 @@ bool GameFileCache::SyncCacheFile(bool save)
   if (save)
   {
     // Measure the size of the buffer.
-    u8* ptr = nullptr;
-    PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
+    PointerWrap p_measure({}, PointerWrap::Mode::Measure);
     DoState(&p_measure);
-    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+    const size_t buffer_size = p_measure.GetCurrentOffset();
 
     // Then actually do the write.
-    std::vector<u8> buffer(buffer_size);
-    ptr = buffer.data();
-    PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
+    Common::UniqueBuffer<u8> buffer{buffer_size};
+    PointerWrap p(buffer, PointerWrap::Mode::Write);
     DoState(&p, buffer_size);
     if (f.WriteBytes(buffer.data(), buffer.size()))
       success = true;
   }
   else
   {
-    std::vector<u8> buffer(f.GetSize());
+    Common::UniqueBuffer<u8> buffer{f.GetSize()};
     if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
-      u8* ptr = buffer.data();
-      PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
+      PointerWrap p(buffer, PointerWrap::Mode::Read);
       DoState(&p, buffer.size());
       if (p.IsReadMode())
         success = true;
