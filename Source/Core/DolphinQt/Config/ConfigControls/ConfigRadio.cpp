@@ -7,9 +7,14 @@ ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& se
                                Config::Layer* layer)
     : ConfigControl(label, setting.GetLocation(), layer), m_setting(setting), m_value(value)
 {
-  setChecked(ReadValue(setting) == value);
+  setChecked(IsSelected());
 
   connect(this, &QRadioButton::toggled, this, &ConfigRadioInt::Update);
+}
+
+int ConfigRadioInt::GetValue() const
+{
+  return m_value;
 }
 
 void ConfigRadioInt::Update()
@@ -26,7 +31,17 @@ void ConfigRadioInt::Update()
   }
 }
 
+bool ConfigRadioInt::IsSelected() const
+{
+  return ReadValue(m_setting) == m_value;
+}
+
 void ConfigRadioInt::OnConfigChanged()
 {
-  setChecked(ReadValue(m_setting) == m_value);
+  setChecked(IsSelected());
+}
+
+bool ConfigRadioInt::ShouldLabelBeBold() const
+{
+  return IsSelected() && ConfigControl::ShouldLabelBeBold();
 }
