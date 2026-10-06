@@ -266,9 +266,6 @@ void Jit64::Init()
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
-  gpr.SetEmitter(this);
-  fpr.SetEmitter(this);
-
   const size_t routines_size = asm_routines.CODE_SIZE;
   const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
   const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
@@ -1214,10 +1211,10 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         RCForkGuard gpr_guard = gpr.Fork();
         RCForkGuard fpr_guard = fpr.Fork();
 
-        gpr.Revert();
-        fpr.Revert();
-        gpr.Flush();
-        fpr.Flush();
+        BitSet32 gpr_revertable = gpr.RegistersRevertable();
+        BitSet32 fpr_revertable = fpr.RegistersRevertable();
+        gpr.Flush(~gpr_revertable);
+        fpr.Flush(~fpr_revertable);
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         WriteExceptionExit();
@@ -1233,12 +1230,10 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.Discard(op.gprDiscardable);
         fpr.Discard(op.fprDiscardable);
       }
-      gpr.Flush(~(op.gprWillBeRead | op.gprWillBeWritten) & (op.regsIn | op.regsOut),
-                RegCache::FlushMode::Full);
-      fpr.Flush(~(op.fprWillBeRead | op.fprWillBeWritten) & (op.fregsIn | op.GetFregsOut()),
-                RegCache::FlushMode::Full);
-      gpr.Flush(~op.gprWillBeWritten & op.regsOut, RegCache::FlushMode::Undirty);
-      fpr.Flush(~op.fprWillBeWritten & op.GetFregsOut(), RegCache::FlushMode::Undirty);
+      gpr.Flush(~(op.gprWillBeRead | op.gprWillBeWritten), RegCache::FlushMode::Full);
+      fpr.Flush(~(op.fprWillBeRead | op.fprWillBeWritten), RegCache::FlushMode::Full);
+      gpr.Flush(~op.gprWillBeWritten, RegCache::FlushMode::Undirty);
+      fpr.Flush(~op.fprWillBeWritten, RegCache::FlushMode::Undirty);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
@@ -1312,7 +1307,8 @@ BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 
 BitSet32 Jit64::CallerSavedRegistersInUse(BitSet32 additional_registers) const
 {
-  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16) | additional_registers;
+  BitSet32 in_use = gpr.HostRegistersInUse().Cast<u32>() |
+                    (fpr.HostRegistersInUse().Cast<u32>() << 16) | additional_registers;
   return in_use & ABI_ALL_CALLER_SAVED;
 }
 
