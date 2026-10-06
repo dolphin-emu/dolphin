@@ -10,6 +10,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
+#include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace MemoryInterface
 {
@@ -30,6 +32,7 @@ enum
   MI_UNKNOWN1 = 0x020,
   MI_PROT_ADDR_LO = 0x022,
   MI_PROT_ADDR_HI = 0x024,
+  MI_MEM_CONFIG = 0x028,
   MI_TIMER0_HI = 0x032,
   MI_TIMER0_LO = 0x034,
   MI_TIMER1_HI = 0x036,
@@ -73,6 +76,27 @@ void MemoryInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_mi_mem);
 }
 
+static u16 EncodeMemConfig(u32 ram_size)
+{
+  switch (ram_size)
+  {
+  case 0x1000000:  // 16MiB
+    return 0;
+  case 0x1800000:  // 24MiB
+    return 2;
+  case 0x2000000:  // 32MiB
+    return 1;
+  case 0x3000000:  // 48MiB
+    return 3;
+  case 0x4000000:  // 64MiB
+    return 5;
+  default:
+    return 2;  // Bespoke configs can't be represented in this bitfield
+               // Fallback to 24. Potentially dangerous, but when not emulating this register at all
+               // it is seen as 16
+  }
+}
+
 void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   for (u32 i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
@@ -103,6 +127,13 @@ void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u16>(&m_mi_mem.prot_addr.hi));
   mmio->Register(base | MI_PROT_ADDR_HI, MMIO::DirectRead<u16>(&m_mi_mem.prot_addr.lo),
                  MMIO::DirectWrite<u16>(&m_mi_mem.prot_addr.lo));
+
+  // MI RAM configuration strap. The low 3 bits encode the installed MEM1
+  // size; the SDK uses this to populate OS global 0x80000028.
+  mmio->Register(base | MI_MEM_CONFIG, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
+                   return EncodeMemConfig(system.GetMemory().GetRamSizeReal());
+                 }),
+                 MMIO::Nop<u16>());
 
   for (u32 i = 0; i < m_mi_mem.timers.size(); ++i)
   {
