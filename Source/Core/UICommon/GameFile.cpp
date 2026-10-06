@@ -541,8 +541,8 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 {
   std::vector<DiscIO::Language> languages;
   // TODO: What if some languages don't have long names but have other strings?
-  for (const auto& name : m_long_names)
-    languages.push_back(name.first);
+  for (const auto& language : m_long_names | std::views::keys)
+    languages.push_back(language);
   return languages;
 }
 

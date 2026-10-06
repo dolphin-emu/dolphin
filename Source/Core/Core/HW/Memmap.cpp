@@ -256,9 +256,9 @@ bool MemoryManager::InitFastmemArena()
 
 void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
 {
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (const auto& [pointer, size] : m_dbat_mapped_entries | std::views::values)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(pointer, size);
   }
   m_dbat_mapped_entries.clear();
 
@@ -492,9 +492,9 @@ void MemoryManager::RemoveHostPageTableMapping(u32 logical_address)
 
 void MemoryManager::RemoveAllPageTableMappings()
 {
-  for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
+  for (const auto& [pointer, size] : m_page_table_mapped_entries | std::views::values)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(pointer, size);
   }
   m_page_table_mapped_entries.clear();
   m_large_readable_pages.clear();
@@ -582,15 +582,15 @@ void MemoryManager::ShutdownFastmemArena()
     m_arena.UnmapFromMemoryRegion(base, region.size);
   }
 
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (const auto& [pointer, size] : m_dbat_mapped_entries | std::views::values)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(pointer, size);
   }
   m_dbat_mapped_entries.clear();
 
-  for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
+  for (const auto& [pointer, size] : m_page_table_mapped_entries | std::views::values)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(pointer, size);
   }
   m_page_table_mapped_entries.clear();
 

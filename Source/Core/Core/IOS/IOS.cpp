@@ -846,11 +846,11 @@ void EmulationKernel::UpdateIPC()
 void EmulationKernel::UpdateDevices()
 {
   // Check if a hardware device must be updated
-  for (const auto& entry : m_device_map)
+  for (const auto& device : m_device_map | std::views::values)
   {
-    if (entry.second->IsOpened())
+    if (device->IsOpened())
     {
-      entry.second->Update();
+      device->Update();
     }
   }
 }
@@ -859,8 +859,8 @@ void EmulationKernel::UpdateWantDeterminism(const bool new_want_determinism)
 {
   if (m_socket_manager)
     m_socket_manager->UpdateWantDeterminism(new_want_determinism);
-  for (const auto& device : m_device_map)
-    device.second->UpdateWantDeterminism(new_want_determinism);
+  for (const auto& device : m_device_map | std::views::values)
+    device->UpdateWantDeterminism(new_want_determinism);
 }
 
 void EmulationKernel::DoState(PointerWrap& p)
@@ -882,8 +882,8 @@ void EmulationKernel::DoState(PointerWrap& p)
   if (m_socket_manager)
     m_socket_manager->DoState(p);
 
-  for (const auto& entry : m_device_map)
-    entry.second->DoState(p);
+  for (const auto& device : m_device_map | std::views::values)
+    device->DoState(p);
 
   if (p.IsReadMode())
   {

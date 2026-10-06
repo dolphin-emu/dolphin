@@ -426,12 +426,12 @@ void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
 
   {
     std::lock_guard lk(m_path_map_lock);
-    for (const auto& [name, path] : previous_asset_map)
+    for (const auto& path : previous_asset_map | std::views::values)
     {
       m_path_to_asset_id.erase(PathToString(path));
     }
 
-    for (const auto& [name, path] : asset_path_map)
+    for (const auto& path : asset_path_map | std::views::values)
     {
       m_path_to_asset_id[PathToString(path)] = asset_id;
     }
