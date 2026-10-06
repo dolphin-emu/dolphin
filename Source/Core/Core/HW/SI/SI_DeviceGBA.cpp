@@ -202,7 +202,7 @@ void GBASockServer::Send(const u8* si_buffer)
   if (m_last_clock_slice > LONG_SLICE_CYCLES)
   {
     Common::SleepCurrentThread(
-        static_cast<int>(m_last_clock_slice * 1100ull / GBA_CYCLES_PER_SECOND));
+        static_cast<int>(m_last_clock_slice * 1000ull / GBA_CYCLES_PER_SECOND));
   }
 
   std::array<u8, SEND_MAX_SIZE> send_data;
