@@ -47,6 +47,14 @@ class NetplaySetupViewModel(
     private val _nickname = MutableStateFlow(StringSetting.NETPLAY_NICKNAME.string)
     val nickname = _nickname.asStateFlow()
 
+    val supportedConnectionTypes = buildList {
+        add(ConnectionType.DirectConnection)
+        add(ConnectionType.TraversalServer)
+        if (wifiDirectManager.isWifiDirectSupported) {
+            add(ConnectionType.WifiDirect)
+        }
+    }
+
     private val _connectionType = MutableStateFlow(
         ConnectionType.fromString(StringSetting.NETPLAY_TRAVERSAL_CHOICE.string)
     )
@@ -205,7 +213,7 @@ class NetplaySetupViewModel(
                             }
 
                             is WifiDirectClientSession.ConnectResult.Failure -> {
-                                Log.d(TAG,  "connect failed with message: ${result.message}")
+                                Log.d(TAG, "connect failed with message: ${result.message}")
                                 _errors.emit(NetplaySetupError.WifiDirectConnect)
                                 startWifiDirectDiscovery()
                                 return@launch

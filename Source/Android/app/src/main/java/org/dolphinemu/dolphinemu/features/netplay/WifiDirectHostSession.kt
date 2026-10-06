@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.netplay
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pManager
@@ -19,6 +20,7 @@ class WifiDirectHostSession(
 
     override fun onClose() = Unit
 
+    @SuppressLint("MissingPermission")
     suspend fun setServiceInfo(hostName: String): Result {
         val clearLocalServicesResult = awaitActionListener { manager.clearLocalServices(channel, it) }
         if (clearLocalServicesResult is ActionListenerResult.Failure) {
@@ -41,6 +43,7 @@ class WifiDirectHostSession(
         return Result.Success
     }
 
+    @SuppressLint("NewApi", "MissingPermission")
     suspend fun createGroup(): Result {
         val configBuilder = WifiP2pConfig.Builder()
             .setNetworkName(NETWORK_NAME)

@@ -25,7 +25,7 @@ sealed class ConnectionType(
     )
 
     companion object {
-        val all: List<ConnectionType>
+        private val all: List<ConnectionType>
             get() = listOf(DirectConnection, TraversalServer, WifiDirect)
 
         fun fromString(value: String): ConnectionType =
