@@ -13,7 +13,6 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "Present.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"

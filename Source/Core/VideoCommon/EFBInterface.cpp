@@ -15,7 +15,6 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

@@ -4,6 +4,8 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
+
 #include <memory>
 #include <string>
 #include <string_view>

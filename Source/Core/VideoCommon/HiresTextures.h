@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <fmt/ranges.h>
 #include <memory>
 #include <set>
 #include <string>
