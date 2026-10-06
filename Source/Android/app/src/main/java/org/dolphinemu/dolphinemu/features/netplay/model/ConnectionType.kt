@@ -19,9 +19,14 @@ sealed class ConnectionType(
         configValue = "traversal",
     )
 
+    object WifiDirect : ConnectionType(
+        labelId = R.string.netplay_connection_type_wifi_direct,
+        configValue = "direct",
+    )
+
     companion object {
         val all: List<ConnectionType>
-            get() = listOf(DirectConnection, TraversalServer)
+            get() = listOf(DirectConnection, TraversalServer, WifiDirect)
 
         fun fromString(value: String): ConnectionType =
             all.find { it.configValue == value } ?: throw IllegalArgumentException("Invalid connection type: $value")
