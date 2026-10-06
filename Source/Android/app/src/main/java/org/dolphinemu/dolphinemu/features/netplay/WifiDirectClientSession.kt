@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.netplay
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pManager
@@ -77,6 +78,7 @@ class WifiDirectClientSession(
      * Start discovering dolphin netplay services. Run until the coroutine is cancelled or an
      * error occurs.
      */
+    @SuppressLint("MissingPermission")
     suspend fun runDiscovery(): Result.Failure {
         _hosts.value = emptyMap()
 
@@ -117,6 +119,7 @@ class WifiDirectClientSession(
         }
     }
 
+    @SuppressLint("NewApi", "MissingPermission")
     suspend fun connect(wifiDirectHost: Host): ConnectResult {
         Log.d("TAG", "connect()")
 

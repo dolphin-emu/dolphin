@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.netplay
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -81,6 +82,7 @@ abstract class WifiDirectSession(
 
     protected abstract fun onClose()
 
+    @SuppressLint("NewApi")
     suspend fun close() = withContext(NonCancellable) {
         if (isClosed) return@withContext
         isClosed = true

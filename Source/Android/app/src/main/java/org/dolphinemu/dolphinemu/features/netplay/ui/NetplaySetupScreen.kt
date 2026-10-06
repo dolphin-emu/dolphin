@@ -92,6 +92,7 @@ fun NetplaySetupScreen(
     onConnectionRoleChanged: (ConnectionRole) -> Unit,
     nickname: String,
     onNicknameChanged: (String) -> Unit,
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
     ipAddress: String,
@@ -220,6 +221,7 @@ fun NetplaySetupScreen(
                 NetplaySetupContent(
                     nickname = nickname,
                     onNicknameChanged = onNicknameChanged,
+                    supportedConnectionTypes = supportedConnectionTypes,
                     connectionType = connectionType,
                     onConnectionTypeChanged = onConnectionTypeChanged,
                     ipAddress = ipAddress,
@@ -245,6 +247,7 @@ fun NetplaySetupScreen(
 private fun NetplaySetupContent(
     nickname: String,
     onNicknameChanged: (String) -> Unit,
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
     ipAddress: String,
@@ -272,6 +275,7 @@ private fun NetplaySetupContent(
     MenuSpacer()
 
     ConnectionTypePicker(
+        supportedConnectionTypes = supportedConnectionTypes,
         connectionType = connectionType,
         onConnectionTypeChanged = onConnectionTypeChanged,
     )
@@ -307,10 +311,78 @@ private fun NetplaySetupContent(
 
 @Composable
 private fun ConnectionTypePicker(
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.NEARBY_WIFI_DEVICES
+    } else {
+        Manifest.permission.ACCESS_FINE_LOCATION
+    }
+
+    var showPermissionSettingsDialog by remember { mutableStateOf(false) }
+
+    lateinit var permissionState: PermissionState
+    permissionState =
+        rememberPermissionState(permission) { granted ->
+            if (granted) {
+                onConnectionTypeChanged(ConnectionType.WifiDirect)
+            } else if (!permissionState.status.shouldShowRationale) {
+                showPermissionSettingsDialog = true
+            }
+        }
+
+    if (showPermissionSettingsDialog) {
+        val context = LocalContext.current
+        AlertDialog(
+            text = {
+                Text(
+                    text = stringResource(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            R.string.netplay_wifi_direct_nearby_devices_permission_denied
+                        } else {
+                            R.string.netplay_wifi_direct_location_permission_denied
+                        }
+                    ),
+                )
+            },
+            confirmButton = {
+                if (permissionState.status.shouldShowRationale) {
+                    TextButton(
+                        onClick = {
+                            showPermissionSettingsDialog = false
+                            permissionState.launchPermissionRequest()
+                        }
+                    ) {
+                        Text(stringResource(R.string.netplay_give_permission))
+                    }
+                } else {
+                    TextButton(
+                        onClick = {
+                            showPermissionSettingsDialog = false
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", context.packageName, null)
+                                )
+                            )
+                        }
+                    ) {
+                        Text(stringResource(R.string.settings))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionSettingsDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            onDismissRequest = { showPermissionSettingsDialog = false },
+        )
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -320,12 +392,16 @@ private fun ConnectionTypePicker(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            ConnectionType.all.forEach { connectionType ->
+            supportedConnectionTypes.forEach { connectionType ->
                 DropdownMenuItem(
                     text = { Text(stringResource(connectionType.labelId)) },
                     onClick = {
-                        onConnectionTypeChanged(connectionType)
                         expanded = false
+                        if (connectionType is ConnectionType.WifiDirect && !permissionState.status.isGranted) {
+                            permissionState.launchPermissionRequest()
+                        } else {
+                            onConnectionTypeChanged(connectionType)
+                        }
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
@@ -564,6 +640,11 @@ private fun NetplaySetupScreenPreview() {
             onConnectionRoleChanged = {},
             nickname = "Preview nickname",
             onNicknameChanged = {},
+            supportedConnectionTypes = listOf(
+                ConnectionType.DirectConnection,
+                ConnectionType.TraversalServer,
+                ConnectionType.WifiDirect
+            ),
             connectionType = ConnectionType.DirectConnection,
             onConnectionTypeChanged = {},
             ipAddress = "127.0.0.1",
@@ -576,10 +657,10 @@ private fun NetplaySetupScreenPreview() {
             onHostPortChanged = {},
             useUpnp = false,
             onUseUpnpChanged = {},
+            wifiDirectHosts = emptyList(),
+            onWifiDirectHostClicked = {},
             onHostClicked = {},
             onConnectClicked = {},
-            wifiDirectHosts = emptyList(),
-            onWifiDirectHostClicked = {}
         )
     }
 }
