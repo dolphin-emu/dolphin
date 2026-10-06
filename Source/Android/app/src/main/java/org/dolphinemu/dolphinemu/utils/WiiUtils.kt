@@ -25,7 +25,7 @@ object WiiUtils {
     external fun importWiiSave(file: String, canOverwrite: BooleanSupplier): Int
 
     @JvmStatic
-    external fun importNANDBin(file: String)
+    external fun importNANDBin(file: String, callback: NandImportCallback)
     external fun doOnlineUpdate(region: String, callback: WiiUpdateCallback): Int
     external fun doDiscUpdate(path: String, callback: WiiUpdateCallback): Int
 
