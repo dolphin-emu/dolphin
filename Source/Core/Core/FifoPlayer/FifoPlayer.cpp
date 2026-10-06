@@ -217,7 +217,7 @@ public:
   ~CPUCore() override {}
   CPUCore& operator=(const CPUCore&) = delete;
 
-  void Init() override
+  bool Init() override
   {
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
     // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
@@ -226,6 +226,8 @@ public:
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
+
+    return true;
   }
 
   void Shutdown() override { IsPlayingBackFifologWithBrokenEFBCopies = false; }

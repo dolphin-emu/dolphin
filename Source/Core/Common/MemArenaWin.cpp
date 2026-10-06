@@ -504,8 +504,8 @@ void* LazyMemoryRegion::Create(size_t size)
     return nullptr;
 
   // reserve block of memory
-  const size_t memory_size = Common::AlignUp(size, BLOCK_SIZE);
-  const size_t block_count = memory_size / BLOCK_SIZE;
+  const size_t memory_size = Common::AlignUp(size, WINDOWS_BLOCK_SIZE);
+  const size_t block_count = memory_size / WINDOWS_BLOCK_SIZE;
   u8* memory =
       static_cast<u8*>(reinterpret_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
           nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
@@ -519,13 +519,14 @@ void* LazyMemoryRegion::Create(size_t size)
   // split into individual block-sized regions
   for (size_t i = 0; i < block_count - 1; ++i)
   {
-    if (!VirtualFree(memory + i * BLOCK_SIZE, BLOCK_SIZE, MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER))
+    if (!VirtualFree(memory + i * WINDOWS_BLOCK_SIZE, WINDOWS_BLOCK_SIZE,
+                     MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER))
     {
       NOTICE_LOG_FMT(MEMMAP, "Region splitting failed: {}", GetLastErrorString());
 
       // release every split block as well as the remaining unsplit one
       for (size_t j = 0; j < i + 1; ++j)
-        VirtualFree(memory + j * BLOCK_SIZE, 0, MEM_RELEASE);
+        VirtualFree(memory + j * WINDOWS_BLOCK_SIZE, 0, MEM_RELEASE);
 
       return nullptr;
     }
@@ -535,8 +536,9 @@ void* LazyMemoryRegion::Create(size_t size)
   m_size = memory_size;
 
   // allocate a single block of real memory in the page file
-  HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
-                                        GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  HANDLE zero_block =
+      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
+                        GetHighDWORD(WINDOWS_BLOCK_SIZE), GetLowDWORD(WINDOWS_BLOCK_SIZE), nullptr);
   if (zero_block == nullptr)
   {
     NOTICE_LOG_FMT(MEMMAP, "CreateFileMapping() failed for zero block: {}", GetLastErrorString());
@@ -550,8 +552,8 @@ void* LazyMemoryRegion::Create(size_t size)
   for (size_t i = 0; i < block_count; ++i)
   {
     void* result = reinterpret_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
-        zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
-        PAGE_READONLY, nullptr, 0);
+        zero_block, nullptr, memory + i * WINDOWS_BLOCK_SIZE, 0, WINDOWS_BLOCK_SIZE,
+        MEM_REPLACE_PLACEHOLDER, PAGE_READONLY, nullptr, 0);
     if (!result)
     {
       NOTICE_LOG_FMT(MEMMAP, "Mapping the zero block failed: {}", GetLastErrorString());
@@ -578,7 +580,7 @@ void LazyMemoryRegion::Clear()
 
     // unmap the writable block
     if (!reinterpret_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
-            memory + i * BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER))
+            memory + i * WINDOWS_BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER))
     {
       PanicAlertFmt("Failed to unmap the writable block: {}", GetLastErrorString());
     }
@@ -593,8 +595,8 @@ void LazyMemoryRegion::Clear()
     // map the zero block
     void* map_result =
         reinterpret_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
-            m_zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
-            PAGE_READONLY, nullptr, 0);
+            m_zero_block, nullptr, memory + i * WINDOWS_BLOCK_SIZE, 0, WINDOWS_BLOCK_SIZE,
+            MEM_REPLACE_PLACEHOLDER, PAGE_READONLY, nullptr, 0);
     if (!map_result)
     {
       PanicAlertFmt("Failed to re-map the zero block: {}", GetLastErrorString());
@@ -611,7 +613,7 @@ void LazyMemoryRegion::Release()
     for (size_t i = 0; i < m_writable_block_handles.size(); ++i)
     {
       reinterpret_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
-          memory + i * BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER);
+          memory + i * WINDOWS_BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER);
       if (m_writable_block_handles[i])
       {
         CloseHandle(m_writable_block_handles[i]);
@@ -627,9 +629,9 @@ void LazyMemoryRegion::Release()
   if (m_memory)
   {
     u8* const memory = static_cast<u8*>(m_memory);
-    const size_t block_count = m_size / BLOCK_SIZE;
+    const size_t block_count = m_size / WINDOWS_BLOCK_SIZE;
     for (size_t i = 0; i < block_count; ++i)
-      VirtualFree(memory + i * BLOCK_SIZE, 0, MEM_RELEASE);
+      VirtualFree(memory + i * WINDOWS_BLOCK_SIZE, 0, MEM_RELEASE);
     m_memory = nullptr;
     m_size = 0;
   }
@@ -641,15 +643,16 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
 
   // unmap the zero block
   if (!reinterpret_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
-          memory + block_index * BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER))
+          memory + block_index * WINDOWS_BLOCK_SIZE, MEM_PRESERVE_PLACEHOLDER))
   {
     PanicAlertFmt("Failed to unmap the zero block: {}", GetLastErrorString());
     return;
   }
 
   // allocate a fresh block to map
-  HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                   GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  HANDLE block =
+      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                        GetHighDWORD(WINDOWS_BLOCK_SIZE), GetLowDWORD(WINDOWS_BLOCK_SIZE), nullptr);
   if (block == nullptr)
   {
     PanicAlertFmt("CreateFileMapping() failed for writable block: {}", GetLastErrorString());
@@ -658,8 +661,8 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
 
   // map the new block
   void* map_result = reinterpret_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
-      block, nullptr, memory + block_index * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
-      PAGE_READWRITE, nullptr, 0);
+      block, nullptr, memory + block_index * WINDOWS_BLOCK_SIZE, 0, WINDOWS_BLOCK_SIZE,
+      MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
   if (!map_result)
   {
     PanicAlertFmt("Failed to map the writable block: {}", GetLastErrorString());

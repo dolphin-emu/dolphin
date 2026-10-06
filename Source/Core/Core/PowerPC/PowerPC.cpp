@@ -380,9 +380,11 @@ void PowerPCManager::InjectExternalCPUCore(CPUCoreBase* new_cpu)
     return;
   }
 
-  new_cpu->Init();
+  if (!new_cpu->Init())
+    new_cpu = nullptr;
+
   m_cpu_core_base = new_cpu;
-  m_cpu_core_base_is_injected = true;
+  m_cpu_core_base_is_injected = new_cpu != nullptr;
 }
 
 void PowerPCManager::SingleStep()

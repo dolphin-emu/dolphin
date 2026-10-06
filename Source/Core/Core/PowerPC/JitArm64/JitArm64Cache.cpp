@@ -13,10 +13,10 @@ JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 {
 }
 
-void JitArm64BlockCache::Init()
+bool JitArm64BlockCache::Init()
 {
-  JitBaseBlockCache::Init();
   ClearRangesToFree();
+  return JitBaseBlockCache::Init();
 }
 
 void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,

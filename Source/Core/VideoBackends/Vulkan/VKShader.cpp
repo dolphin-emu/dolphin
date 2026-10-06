@@ -138,8 +138,8 @@ std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::str
 std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const void* data,
                                                      size_t length, std::string_view name)
 {
-  const size_t size_in_words = Common::AlignUp(length, sizeof(ShaderCompiler::SPIRVCodeType)) /
-                               sizeof(ShaderCompiler::SPIRVCodeType);
+  const size_t size_in_words =
+      Common::DivideRoundingUp(length, sizeof(ShaderCompiler::SPIRVCodeType));
   ShaderCompiler::SPIRVCodeVector spv(size_in_words);
   if (length > 0)
     std::memcpy(spv.data(), data, length);

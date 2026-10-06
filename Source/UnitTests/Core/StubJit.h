@@ -12,7 +12,7 @@ public:
   explicit StubJit(Core::System& system) : JitBase(system) {}
 
   // CPUCoreBase methods
-  void Init() override {}
+  bool Init() override { return true; }
   void Shutdown() override {}
   void ClearCache() override {}
   void Run() override {}

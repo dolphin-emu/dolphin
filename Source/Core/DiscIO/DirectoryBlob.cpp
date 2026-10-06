@@ -792,7 +792,9 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   }
 
   constexpr u32 PARTITION_HEADER_SIZE = 0x1c;
-  const u64 data_size = Common::AlignUp(partition->GetDataSize(), 0x7c00) / 0x7c00 * 0x8000;
+  const u64 data_size =
+      Common::DivideRoundingUp(partition->GetDataSize(), VolumeWii::BLOCK_DATA_SIZE) *
+      VolumeWii::BLOCK_TOTAL_SIZE;
   std::vector<u8> partition_header(PARTITION_HEADER_SIZE);
   Write32(static_cast<u32>(tmd_size), 0x0, &partition_header);
   Write32(TMD_OFFSET >> 2, 0x4, &partition_header);

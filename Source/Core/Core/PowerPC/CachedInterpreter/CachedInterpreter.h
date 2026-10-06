@@ -32,7 +32,7 @@ public:
   CachedInterpreter& operator=(CachedInterpreter&&) = delete;
   ~CachedInterpreter() override;
 
-  void Init() override;
+  [[nodiscard]] bool Init() override;
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
