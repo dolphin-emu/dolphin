@@ -125,7 +125,7 @@ void Interpreter::sbclr(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
   const u8 bit = (opc & 0x7) + 6;
 
-  state.r.sr &= ~(1U << bit);
+  OpWriteRegister(DSP_REG_SR, state.r.sr & ~(1U << bit));
 }
 
 // SBSET #I
@@ -137,7 +137,7 @@ void Interpreter::sbset(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
   const u8 bit = (opc & 0x7) + 6;
 
-  state.r.sr |= (1U << bit);
+  OpWriteRegister(DSP_REG_SR, state.r.sr | (1U << bit));
 }
 
 // This is a bunch of flag setters, flipping bits in SR.

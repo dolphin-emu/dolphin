@@ -1,0 +1,65 @@
+; This test needs to manually specify IRQs
+	jmp		irq0
+	jmp		irq1
+	jmp		irq2
+	jmp		irq3
+	jmp		irq4
+	jmp		irq5
+	jmp		irq6
+	jmp		external_irq
+
+incdir  "tests"
+include "dsp_base_noirq.inc"
+
+test_main:
+	CLR $ACC0
+	CLR $ACC1
+	SBCLR #2
+	SBCLR #3
+	SBCLR #4
+	SBCLR #5
+	SBCLR #6
+
+	LRIS $AX1.H, #1
+
+	LRIS $AX0.H, #1
+	CALL send_back
+
+	SI @DMBH, #0x8888
+	SI @DMBL, #0x5371
+
+wait_cpu_read:
+	LRS $AC1.M, @DMBH
+	ANDCF $AC1.M, #0x8000
+	JLZ wait_cpu_read
+
+	; Wait a while (0x10000 increments)
+	CLR $ACC1
+second_loop:
+	INC $ACC1
+	CMPIS $AC1.M, #1
+	JNZ second_loop
+
+	SBSET #6
+	SBSET #5
+	LRIS $AX1.H, #2
+	LRI $AX1.H, #3
+	LRIS $AX1.H, #4
+	LRIS $AX1.H, #5
+	LRIS $AX1.H, #6
+
+	LRIS $AX0.H, #2
+	CALL send_back
+
+	JMP end_of_test
+
+external_irq:
+	LRIS $AX0.H, #3
+	CALL send_back
+	RTI
+
+; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
+; 1, 1, 2024 (start)
+; 3, 3, 2825 (in interrupt handler - note that the interrupt happens after both the LRIS and LRI instructions)
+; 2, 6, 3825 (the remaining LRIS instructions execute)
+; DSPSpy shows "interrupt after 131054 ticks / 37414 tries" (exact numbers vary but are close)
