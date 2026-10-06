@@ -219,10 +219,9 @@ private:
   DT m_max_fallback = {};
   DT m_max_variance = {};
   bool m_correct_time_drift = false;
-  double m_emulation_speed = 1.0;
 
   bool IsSpeedUnlimited() const;
-  void UpdateSpeedLimit(s64 cycle, double new_speed);
+  void UpdateSpeedLimit(s64 cycle);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
   void UpdateVISkip(TimePoint current_time, TimePoint target_time);
