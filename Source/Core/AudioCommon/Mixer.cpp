@@ -18,6 +18,11 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
+#if defined(HAVE_WEB_INTERFACE)
+#include "UICommon/WebUI/AVStream.h"
+#include "UICommon/WebUI/WebServer.h"
+#endif
+
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
   switch (quality)
@@ -224,10 +229,28 @@ std::size_t Mixer::Mix(FloatOrS16 auto* samples, std::size_t num_frames)
   }
 
   // GBAs
-  for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
+  // Integrated GBAs.
+  for (std::size_t gba_index = 0; gba_index != m_gba_mixers.size(); ++gba_index)
   {
-    if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
-      m_gba_mixers[i].Mix(samples, num_frames);
+    if (m_config_gba_routing_enabled && m_config_gba_output_enabled[gba_index])
+      continue;
+
+    auto& mixer = m_gba_mixers[gba_index];
+
+#if defined(HAVE_WEB_INTERFACE)
+    // Try to send to the WebUI.
+    if (const auto av_stream = WebUI::GetGBAStream(gba_index).lock())
+    {
+      av_stream->TakeAudioSamples(num_frames, [&](std::span<float> samples) {
+        mixer.MixOverwriteExistingAndClampResult(samples.data(), samples.size() / 2);
+      });
+    }
+    else
+#endif
+    {
+      // Mix normally.
+      mixer.Mix(samples, num_frames);
+    }
   }
 
   m_skylander_portal_mixer.MixClampResult(samples, num_frames);
