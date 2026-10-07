@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <map>
+#include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -140,6 +141,16 @@ protected:
   u8* m_near_code_end = nullptr;
   bool m_near_code_write_failed = false;
 
-  std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
-  std::unordered_map<u8*, u8*> m_exception_handler_at_loc;
+  // The keys store the entry point of a block. Lookups find the currently running block through
+  // lower_bound (which is why the comparison is std::greater), and then linearly search the vector
+  // for the specific address.
+  //
+  // Because the total number of entries is in the 100s of thousands, and std::map is inefficient,
+  // this improves performance mostly by allowing to batch insert all the info for each block. (Even
+  // a better ordered map like b-trees would probably benefit.)
+  //
+  // Note that this would have had to be an ordered structure even without this optimization (to
+  // erase the entries when a block is destroyed).
+  std::map<const u8*, std::vector<TrampolineInfo>, std::greater<const u8*>> m_back_patch_info;
+  std::vector<TrampolineInfo> m_back_patch_info_temp;
 };

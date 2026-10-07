@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <map>
 #include <optional>
+#include <vector>
 
 #include "Common/Arm64Emitter.h"
 #include "Common/RangeSizeSet.h"
@@ -193,7 +194,8 @@ public:
 protected:
   struct FastmemArea
   {
-    const u8* fast_access_code;
+    u8* fast_access_start;
+    u8* fast_access_end;
     const u8* slow_access_code;
   };
 
@@ -389,8 +391,18 @@ protected:
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
-  // <Fast path fault location, slow path handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler{};
+  // The keys store the entry point of a block. Lookups find the currently running block through
+  // lower_bound (which is why the comparison is std::greater), and then linearly search the vector
+  // for the specific address.
+  //
+  // Because the total number of entries is in the 100s of thousands, and std::map is inefficient,
+  // this improves performance mostly by allowing to batch insert all the info for each block. (Even
+  // a better ordered map like b-trees would probably benefit.)
+  //
+  // Note that this would have had to be an ordered structure even without this optimization (to
+  // erase the entries when a block is destroyed).
+  std::map<const u8*, std::vector<FastmemArea>, std::greater<const u8*>> m_fault_to_handler;
+  std::vector<FastmemArea> m_fault_to_handler_temp;
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
