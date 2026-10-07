@@ -1006,6 +1006,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_connection_type">Connection type</string>
     <string name="netplay_connection_type_direct_connection">Direct connection</string>
     <string name="netplay_connection_type_traversal_server">Traversal server</string>
+    <string name="netplay_connection_type_wifi_direct">Wi-Fi Direct</string>
     <string name="netplay_connection_role_connect">Connect</string>
     <string name="netplay_connection_role_connect_loading">Connecting…</string>
     <string name="netplay_connection_role_host">Host</string>
@@ -1014,6 +1015,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_ip_address_label">IP address</string>
     <string name="netplay_host_code_label">Host code</string>
     <string name="netplay_port_label">Port</string>
+    <string name="netplay_wifi_direct_hosts_label">Hosts</string>
     <string name="netplay_title">Netplay</string>
     <string name="netplay_start">Start</string>
     <string name="netplay_start_warning_title">Warning</string>
@@ -1065,4 +1067,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="netplay_transfer_progress">%1$s/%2$s MiB</string>
     <string name="netplay_local_network_permission_info">Dolphin needs permission to connect to devices on a local network. If you only want to use netplay over the internet, the permission is not required.</string>
     <string name="netplay_give_permission">Give permission</string>
+    <string name="netplay_wifi_direct_discovery_failure">Wi-Fi Direct discovery failed. Try turning Wi-Fi off and on in settings.</string>
+    <string name="netplay_wifi_direct_connect_failure">Could not connect to host via Wi-Fi Direct. Try turning Wi-Fi off and on in settings.</string>
+    <string name="netplay_wifi_direct_host_failure">Could not setup Wi-Fi Direct hosting. Try turning Wi-Fi off and on in settings.</string>
 </resources>

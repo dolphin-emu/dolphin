@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectClientSession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectHostSession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectManager
 import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping.Companion.emptyControllerMapping
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -32,7 +35,14 @@ import org.dolphinemu.dolphinemu.utils.NetworkHelper
 class NetplayViewModel(
     private val netplaySession: NetplaySession,
     private val networkHelper: NetworkHelper,
+    private val wifiDirectManager: WifiDirectManager = WifiDirectManager,
 ) : ViewModel() {
+
+    private val wifiDirectSession = wifiDirectManager.activeSession
+
+    private val wifiDirectClientSession: WifiDirectClientSession? = wifiDirectSession as? WifiDirectClientSession
+
+    private val wifiDirectHostSession: WifiDirectHostSession? = wifiDirectSession as? WifiDirectHostSession
 
     private val isTraversal = StringSetting.NETPLAY_TRAVERSAL_CHOICE.string == "traversal"
 
@@ -102,6 +112,15 @@ class NetplayViewModel(
                 collectTraversalState()
             } else {
                 fetchExternalIp()
+            }
+        }
+
+        if (wifiDirectHostSession != null) {
+            val nickName = StringSetting.NETPLAY_NICKNAME.string
+            viewModelScope.launch {
+                wifiDirectHostSession.setServiceInfo(
+                    hostName = nickName,
+                )
             }
         }
     }
@@ -247,6 +266,8 @@ class NetplayViewModel(
         // GlobalScope and allow the activity and view model to finish immediately.
         GlobalScope.launch {
             netplaySession.close()
+            wifiDirectClientSession?.clearGroupAndPeers()
+            wifiDirectHostSession?.close()
         }
     }
 
