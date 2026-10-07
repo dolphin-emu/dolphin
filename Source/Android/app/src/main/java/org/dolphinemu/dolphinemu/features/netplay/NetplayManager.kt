@@ -5,6 +5,8 @@ package org.dolphinemu.dolphinemu.features.netplay
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 
 object NetplayManager {
 
@@ -18,10 +20,9 @@ object NetplayManager {
         private set
 
     suspend fun createSession(): NetplaySession = mutex.withLock {
-        closeComplete?.await()
-
-        // Sessions should be closed by UI navigation, but just in case.
-        activeSession?.closeBlocking()
+        withTimeoutOrNull(15.seconds) {
+            closeComplete?.await() ?: Unit
+        } ?: throw IllegalStateException("Tried to create a new NetplaySession while the old one was not closed or did not close in time. isClosed=${activeSession?.isClosed}")
 
         closeComplete = CompletableDeferred()
 

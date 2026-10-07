@@ -9,6 +9,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -68,8 +70,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectSession
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionRole
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
+import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupError
 import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
@@ -83,7 +87,7 @@ private data class ErrorDialogState(val message: String) {
 fun NetplaySetupScreen(
     onBackClicked: () -> Unit,
     connecting: Boolean,
-    errors: Flow<String>,
+    errors: Flow<NetplaySetupError>,
     connectionRole: ConnectionRole,
     onConnectionRoleChanged: (ConnectionRole) -> Unit,
     nickname: String,
@@ -100,6 +104,8 @@ fun NetplaySetupScreen(
     onHostPortChanged: (String) -> Unit,
     useUpnp: Boolean,
     onUseUpnpChanged: (Boolean) -> Unit,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
     onHostClicked: () -> Unit,
     onConnectClicked: () -> Unit,
 ) {
@@ -131,40 +137,46 @@ fun NetplaySetupScreen(
             }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    if (
-                        localNetworkPermissionState != null &&
-                        !localNetworkPermissionState.status.isGranted &&
-                        !localNetworkPermissionState.status.shouldShowRationale
-                    ) {
-                        localNetworkPermissionState.launchPermissionRequest()
-                    } else {
-                        when (connectionRole) {
-                            ConnectionRole.Host -> onHostClicked()
-                            ConnectionRole.Connect -> onConnectClicked()
+            val isWifiDirectAndNotConnecting =
+                connectionRole == ConnectionRole.Connect && connectionType == ConnectionType.WifiDirect && !connecting
+            if (!isWifiDirectAndNotConnecting) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        if (
+                            localNetworkPermissionState != null &&
+                            !localNetworkPermissionState.status.isGranted &&
+                            !localNetworkPermissionState.status.shouldShowRationale
+                        ) {
+                            localNetworkPermissionState.launchPermissionRequest()
+                        } else {
+                            when (connectionRole) {
+                                ConnectionRole.Host -> onHostClicked()
+                                ConnectionRole.Connect -> onConnectClicked()
+                            }
                         }
+                    },
+                ) {
+                    if (connecting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(connectionRole.loadingLabelId))
+                    } else {
+                        Text(stringResource(connectionRole.labelId))
                     }
-                },
-            ) {
-                if (connecting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text(stringResource(connectionRole.loadingLabelId))
-                } else {
-                    Text(stringResource(connectionRole.labelId))
                 }
             }
         }
     ) { innerPadding ->
+        val context = LocalContext.current
+
         var activeErrorDialog by remember { mutableStateOf<ErrorDialogState?>(null) }
         LaunchedEffect(Unit) {
-            errors.collect { message ->
-                activeErrorDialog = ErrorDialogState(message)
+            errors.collect { error ->
+                activeErrorDialog = ErrorDialogState(error.message(context))
                 activeErrorDialog?.onDismissed?.await()
                 activeErrorDialog = null
             }
@@ -221,6 +233,8 @@ fun NetplaySetupScreen(
                     useUpnp = useUpnp,
                     onUseUpnpChanged = onUseUpnpChanged,
                     connectionRole = connectionRole,
+                    wifiDirectHosts = wifiDirectHosts,
+                    onWifiDirectHostClicked = onWifiDirectHostClicked,
                 )
             }
         }
@@ -244,6 +258,8 @@ private fun NetplaySetupContent(
     useUpnp: Boolean,
     onUseUpnpChanged: (Boolean) -> Unit,
     connectionRole: ConnectionRole,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
 ) {
     OutlinedTextField(
         value = nickname,
@@ -271,6 +287,8 @@ private fun NetplaySetupContent(
             onHostCodeChanged = onHostCodeChanged,
             port = connectPort,
             onPortChanged = onConnectPortChanged,
+            wifiDirectHosts = wifiDirectHosts,
+            onWifiDirectHostClicked = onWifiDirectHostClicked,
         )
 
         ConnectionRole.Host -> HostMenu(
@@ -335,6 +353,8 @@ fun ConnectMenu(
     onHostCodeChanged: (String) -> Unit,
     port: String,
     onPortChanged: (String) -> Unit,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
 ) {
     when (connectionType) {
         ConnectionType.DirectConnection -> {
@@ -373,6 +393,33 @@ fun ConnectMenu(
             modifier = Modifier
                 .fillMaxWidth()
         )
+
+        ConnectionType.WifiDirect -> {
+            OutlinedBox(
+                label = { Text(stringResource(R.string.netplay_wifi_direct_hosts_label)) },
+                modifier = Modifier
+                    .sizeIn(minHeight = 160.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    wifiDirectHosts.forEach { host ->
+                        Row(
+                            modifier = Modifier
+                                .padding(vertical = 12.dp)
+                                .fillMaxWidth()
+                                .clickable(
+                                    onClick = { onWifiDirectHostClicked(host) },
+                                )
+                        ) {
+                            Text(
+                                text = host.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -531,6 +578,8 @@ private fun NetplaySetupScreenPreview() {
             onUseUpnpChanged = {},
             onHostClicked = {},
             onConnectClicked = {},
+            wifiDirectHosts = emptyList(),
+            onWifiDirectHostClicked = {}
         )
     }
 }
