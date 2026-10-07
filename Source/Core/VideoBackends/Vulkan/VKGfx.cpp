@@ -225,7 +225,6 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
 
   // Handle host window resizes.
   CheckForSurfaceChange();
-  CheckForSurfaceResize();
 
   // Check for exclusive fullscreen request.
   if (m_swap_chain->GetCurrentFullscreenState() != m_swap_chain->GetNextFullscreenState() &&
@@ -263,18 +262,18 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
     {
       // The present keeps returning exclusive mode lost unless we re-create the swap chain.
       INFO_LOG_FMT(VIDEO, "Lost exclusive fullscreen.");
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(0, 0);
     }
     else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
     {
       INFO_LOG_FMT(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
-      m_swap_chain->ResizeSwapChain();
+      m_swap_chain->ResizeSwapChain(0, 0);
     }
     else
     {
       ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
                     std::to_underlying(res), VkResultToString(res));
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(0, 0);
     }
 
     res = m_swap_chain->AcquireNextImage();
@@ -358,7 +357,8 @@ void VKGfx::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completio
 
 void VKGfx::CheckForSurfaceChange()
 {
-  if (!g_presenter->SurfaceChangedTestAndClear() || !m_swap_chain)
+  std::optional<VideoCommon::Presenter::SurfaceChangedInfo> change_info;
+  if (!(change_info = g_presenter->SurfaceChangedTestAndClear()) || !m_swap_chain)
     return;
 
   // Submit the current draws up until rendering the XFB.
@@ -367,35 +367,22 @@ void VKGfx::CheckForSurfaceChange()
   // Clear the present failed flag, since we don't want to resize after recreating.
   g_command_buffer_mgr->CheckLastPresentFail();
 
-  // Recreate the surface. If this fails we're in trouble.
-  if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle()))
-    PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
+  if (change_info->new_handle)
+  {
+    // Recreate the surface. If this fails we're in trouble.
+    if (!m_swap_chain->RecreateSurface(change_info->new_handle,  //
+                                       change_info->new_width, change_info->new_height))
+    {
+      PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
+    }
+  }
+  else
+  {
+    m_swap_chain->RecreateSwapChain(change_info->new_width, change_info->new_height);
+  }
+  m_backbuffer_scale = change_info->new_scale;
 
   // Handle case where the dimensions are now different.
-  OnSwapChainResized();
-}
-
-void VKGfx::CheckForSurfaceResize()
-{
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
-
-  // If we don't have a surface, how can we resize the swap chain?
-  // CheckForSurfaceChange should handle this case.
-  if (!m_swap_chain)
-  {
-    WARN_LOG_FMT(VIDEO, "Surface resize event received without active surface, ignoring");
-    return;
-  }
-
-  // Wait for the GPU to catch up since we're going to destroy the swap chain.
-  ExecuteCommandBuffer(false, true);
-
-  // Clear the present failed flag, since we don't want to resize after recreating.
-  g_command_buffer_mgr->CheckLastPresentFail();
-
-  // Resize the swap chain.
-  m_swap_chain->RecreateSwapChain();
   OnSwapChainResized();
 }
 
@@ -417,7 +404,7 @@ void VKGfx::OnConfigChanged(u32 bits)
   if (m_swap_chain && ((bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR)))
   {
     ExecuteCommandBuffer(false, true);
-    m_swap_chain->RecreateSwapChain();
+    m_swap_chain->RecreateSwapChain(0, 0);
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
@@ -430,7 +417,7 @@ void VKGfx::OnConfigChanged(u32 bits)
 
 void VKGfx::OnSwapChainResized()
 {
-  g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
+  g_presenter->SetBackbuffer(GetSurfaceInfo());
 }
 
 void VKGfx::BindFramebuffer(VKFramebuffer* fb)
