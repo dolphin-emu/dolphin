@@ -184,7 +184,7 @@ PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
   enet::enet
   fmt::fmt
-  MbedTLS::mbedtls
+  mbedtls2::mbedtls
   MINIZIP::minizip-ng
   sfml-network
 
