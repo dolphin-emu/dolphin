@@ -87,6 +87,8 @@
 
 namespace NetPlay
 {
+constexpr size_t MAX_PENDING_TIMEBASE_FRAMES_PER_PLAYER = 60;
+
 NetPlayServer::~NetPlayServer()
 {
   if (is_connected)
@@ -1072,28 +1074,42 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 frame;
     packet >> frame;
 
-    if (m_desync_detected)
+    if (!packet)
+      return 1;
+
+    if (!m_is_running || m_desync_detected)
       break;
 
-    std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
-    timebases.emplace_back(player.pid, timebase);
+    const auto existing = m_timebase_by_frame.find(frame);
+    if (existing != m_timebase_by_frame.end() && existing->second.contains(player.pid))
+      break;
+
+    const size_t pending_frames =
+        std::ranges::count_if(m_timebase_by_frame, [&](const auto& frame_entry) {
+          return frame_entry.second.contains(player.pid);
+        });
+    if (pending_frames >= MAX_PENDING_TIMEBASE_FRAMES_PER_PLAYER)
+      break;
+
+    std::unordered_map<PlayerId, u64>& timebases = m_timebase_by_frame[frame];
+    timebases.emplace(player.pid, timebase);
     if (timebases.size() >= m_players.size())
     {
       // we have all records for this frame
 
-      if (!std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> pair) {
-            return pair.second == timebases[0].second;
+      if (!std::ranges::all_of(timebases, [&](const auto& entry) {
+            return entry.second == timebases.begin()->second;
           }))
       {
         int pid_to_blame = 0;
-        for (auto pair : timebases)
+        for (const auto& entry : timebases)
         {
-          if (std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> other) {
-                return other.first == pair.first || other.second != pair.second;
+          if (std::ranges::all_of(timebases, [&](const auto& other) {
+                return other.first == entry.first || other.second != entry.second;
               }))
           {
             // we are the only outlier
-            pid_to_blame = pair.first;
+            pid_to_blame = entry.first;
             break;
           }
         }
