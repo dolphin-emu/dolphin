@@ -234,8 +234,7 @@ AssemblerWidget::AssemblerWidget(QWidget* parent)
   setWindowTitle(tr("Assembler"));
   setObjectName(QStringLiteral("assemblerwidget"));
 
-  setHidden(!Settings::Instance().IsAssemblerVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsAssemblerVisible() || !Config::IsDebuggingEnabled());
 
   this->setVisible(true);
   CreateWidgets();
