@@ -137,6 +137,8 @@ void SaveToDTM(Movie::DTMHeader* dtm)
       if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None)
         dtm->controllers |= 1 << (i + 4);
     }
+    if (Config::Get(Config::GetInfoForWiimoteSource(WIIMOTE_BALANCE_BOARD)) != WiimoteSource::None)
+      dtm->bBalanceBoard = true;
   }
 
   // Settings which only existed in old Dolphin versions
