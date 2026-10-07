@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: CC0-1.0
 
 // The central server implementation.
+#include <algorithm>
 #include <arpa/inet.h>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -27,6 +29,10 @@
 #define NUMBER_OF_TRIES 5
 #define PORT 6262
 #define PORT_ALT 6226
+
+constexpr u64 CLIENT_EXPIRY_TIME = 30 * 1'000'000;
+constexpr u64 CLIENT_EXPIRY_CHECK_INTERVAL = 1'000'000;
+constexpr size_t MAX_TRACKED_ENTRIES = 1 << 16;
 
 static u64 currentTime;
 
@@ -59,7 +65,6 @@ EvictFindResult<V> EvictFind(std::unordered_map<K, EvictEntry<V>>& map, const K&
                              bool refresh = false)
 {
 retry:
-  const u64 expiryTime = 30 * 1000000;  // 30s
   EvictFindResult<V> result;
   if (map.bucket_count())
   {
@@ -67,7 +72,7 @@ retry:
     auto it = map.begin(bucket);
     for (; it != map.end(bucket); ++it)
     {
-      if (currentTime - it->second.updateTime > expiryTime)
+      if (currentTime - it->second.updateTime > CLIENT_EXPIRY_TIME)
       {
         map.erase(it->first);
         goto retry;
@@ -124,6 +129,18 @@ static int sock;
 static int sockAlt;
 static OutgoingPackets outgoingPackets;
 static ConnectedClients connectedClients;
+static u64 lastClientExpiryCheck;
+
+static void RemoveExpiredClientsIfNeeded()
+{
+  if (currentTime - lastClientExpiryCheck < CLIENT_EXPIRY_CHECK_INTERVAL)
+    return;
+
+  lastClientExpiryCheck = currentTime;
+  std::erase_if(connectedClients, [](const auto& entry) {
+    return currentTime - entry.second.updateTime > CLIENT_EXPIRY_TIME;
+  });
+}
 
 static Common::TraversalInetAddress MakeInetAddress(const sockaddr_in6& addr)
 {
@@ -310,6 +327,23 @@ static void HandlePacket(Common::TraversalPacket* packet, sockaddr_in6* addr, bo
   case Common::TraversalPacketType::HelloFromClient:
   {
     u8 ok = packet->helloFromClient.protoVersion <= Common::TraversalProtoVersion;
+
+    if (ok && connectedClients.size() >= MAX_TRACKED_ENTRIES)
+    {
+      RemoveExpiredClientsIfNeeded();
+      if (connectedClients.size() >= MAX_TRACKED_ENTRIES)
+      {
+        packetOk = false;
+        break;
+      }
+    }
+
+    if (outgoingPackets.size() >= MAX_TRACKED_ENTRIES)
+    {
+      packetOk = false;
+      break;
+    }
+
     Common::TraversalPacket* reply = AllocPacket(*addr, toAlt);
     reply->type = Common::TraversalPacketType::HelloFromServer;
     reply->helloFromServer.ok = ok;
@@ -339,6 +373,12 @@ static void HandlePacket(Common::TraversalPacket* packet, sockaddr_in6* addr, bo
   }
   case Common::TraversalPacketType::ConnectPlease:
   {
+    if (outgoingPackets.size() >= MAX_TRACKED_ENTRIES)
+    {
+      packetOk = false;
+      break;
+    }
+
     Common::TraversalHostId& hostId = packet->connectPlease.hostId;
     auto r = EvictFind(connectedClients, hostId);
     if (!r.found)
