@@ -87,6 +87,8 @@
 
 namespace NetPlay
 {
+constexpr size_t MAX_PENDING_TIMEBASE_FRAMES_PER_PLAYER = 60;
+
 NetPlayServer::~NetPlayServer()
 {
   if (is_connected)
@@ -1072,7 +1074,28 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 frame;
     packet >> frame;
 
-    if (m_desync_detected)
+    if (!packet)
+      return 1;
+
+    if (!m_is_running || m_desync_detected)
+      break;
+
+    const auto is_from_player = [pid = player.pid](const auto& timebase_entry) {
+      return timebase_entry.first == pid;
+    };
+
+    const auto existing = m_timebase_by_frame.find(frame);
+    if (existing != m_timebase_by_frame.end() &&
+        std::ranges::any_of(existing->second, is_from_player))
+    {
+      break;
+    }
+
+    const size_t pending_frames =
+        std::ranges::count_if(m_timebase_by_frame, [&](const auto& frame_entry) {
+          return std::ranges::any_of(frame_entry.second, is_from_player);
+        });
+    if (pending_frames >= MAX_PENDING_TIMEBASE_FRAMES_PER_PLAYER)
       break;
 
     std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
