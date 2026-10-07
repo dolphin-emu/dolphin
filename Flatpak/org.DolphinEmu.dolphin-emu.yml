@@ -44,6 +44,8 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     build-options:
+      build-args:
+        - --share=network
       # don't use any default flags provided by the SDK
       cflags: ""
       cflags-override: true
