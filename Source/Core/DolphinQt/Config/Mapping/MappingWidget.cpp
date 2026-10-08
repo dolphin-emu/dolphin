@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include <array>
+
 #include <fmt/core.h>
 
 #include <QCheckBox>
@@ -21,6 +23,7 @@
 
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
@@ -174,6 +177,34 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     form_layout->addRow(advanced_button);
     connect(advanced_button, &QPushButton::clicked,
             [this, group] { ShowAdvancedControlGroupDialog(group); });
+  }
+
+  if (group->type == ControllerEmu::GroupType::Force)
+  {
+    auto* mouse_button = new QPushButton(tr("Use Mouse Controlled Swing"));
+    form_layout->insertRow(2, mouse_button);
+    connect(mouse_button, &QPushButton::clicked,
+            [this, grp = static_cast<ControllerEmu::Force*>(group)] {
+              const auto lock = GetController()->GetStateLock();
+              ciface::Core::DeviceQualifier qualifier;
+              qualifier.FromString(g_controller_interface.GetDefaultDeviceString());
+              const auto device = g_controller_interface.FindDevice(qualifier);
+              if (!device || !device->FindInput("RelativeMouse X+") ||
+                  !device->FindInput("RelativeMouse Y+"))
+                return;
+              const auto prefix = device->GetQualifiedName() + ":";
+              constexpr std::array names{"RelativeMouse Y-", "RelativeMouse Y+", "RelativeMouse X-",
+                                         "RelativeMouse X+"};
+              for (std::size_t i = 0; i != names.size(); ++i)
+                grp->SetControlExpression(int(i), fmt::format("`{}{}`", prefix, names[i]));
+              grp->SetControlExpression(4, "");
+              grp->SetControlExpression(5, "");
+              grp->SetControlExpression(6, fmt::format("`{}Mouse Side Button`", prefix));
+              grp->SetControlExpression(7, fmt::format("`{}Click 2` | `{}R`", prefix, prefix));
+              grp->SetRelativeInput(true);
+              emit ConfigChanged();
+              GetController()->UpdateReferences(g_controller_interface);
+            });
   }
 
   if (group->type == ControllerEmu::GroupType::Cursor)

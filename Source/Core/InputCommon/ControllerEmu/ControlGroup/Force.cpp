@@ -21,6 +21,32 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   AddInput(Translatability::Translate, _trans("Right"));
   AddInput(Translatability::Translate, _trans("Forward"));
   AddInput(Translatability::Translate, _trans("Backward"));
+  AddInput(Translatability::Translate, _trans("Motion Hold"));
+  AddInput(Translatability::Translate, _trans("Recenter"));
+
+  AddSetting(&m_relative_setting,
+             {_trans("Relative Input"),
+              {},
+              _trans("Treat direction bindings as displacement instead of a target position. "
+                     "Hold Motion Hold to swing; release it to point. "
+                     "An empty Motion Hold binding allows continuous motion.")},
+             false);
+  AddSetting(&m_sensitivity_setting,
+             {_trans("Motion Sensitivity"), _trans("%"),
+              _trans("Sensitivity of relative swing input. Higher values need less travel. "
+                     "Does not affect the pointer or absolute swing input."),
+              nullptr, SettingVisibility::Advanced},
+             100, 1, 400);
+  AddSetting(&m_horizontal_sensitivity_setting,
+             {_trans("Horizontal Sensitivity"), _trans("%"),
+              _trans("Multiplier for left/right relative swing input."), nullptr,
+              SettingVisibility::Advanced},
+             100, 1, 400);
+  AddSetting(&m_vertical_sensitivity_setting,
+             {_trans("Vertical Sensitivity"), _trans("%"),
+              _trans("Multiplier for up/down relative swing input."), nullptr,
+              SettingVisibility::Advanced},
+             100, 1, 400);
 
   AddSetting(&m_distance_setting,
              {_trans("Distance"),
@@ -30,11 +56,9 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
               _trans("Distance of travel from neutral position.")},
              50, 1, 100);
 
-  // These speed settings are used to calculate a maximum jerk (change in acceleration).
-  // The calculation uses a travel distance of 1 meter.
+  // Speed limits the shared arm movement; Return Speed allows a slow return.
   // The maximum value of 40 m/s is the approximate speed of the head of a golf club.
   // Games seem to not even properly detect motions at this speed.
-  // Values result in an exponentially increasing jerk.
 
   AddSetting(&m_speed_setting,
              {_trans("Speed"),
@@ -86,6 +110,41 @@ Force::StateData Force::GetState(bool adjusted) const
   }
 
   return {float(state.x), float(state.y), float(z)};
+}
+
+void Force::SetRelativeInput(bool value)
+{
+  m_relative_setting.SetValue(value);
+}
+
+bool Force::IsRelativeInput() const
+{
+  return m_relative_setting.GetValue();
+}
+
+bool Force::IsMotionPressed() const
+{
+  return controls[6]->control_ref->GetExpression().empty() || controls[6]->GetState<bool>();
+}
+
+bool Force::IsRecenterPressed() const
+{
+  return controls[7]->GetState<bool>();
+}
+
+Force::StateData Force::GetRelativeState() const
+{
+  if (!IsMotionPressed())
+    return {};
+  // Displacements must not pass through the position gate, deadzone or unit-radius clamp.
+  return GetState(false) * StateData{float(m_horizontal_sensitivity_setting.GetValue() / 100),
+                                     float(m_vertical_sensitivity_setting.GetValue() / 100), 1};
+}
+
+ControlState Force::GetSensitivity() const
+{
+  // 1.6 degrees per displacement unit at 100%, independent of the bound device.
+  return m_sensitivity_setting.GetValue() / 100 * MathUtil::TAU / 225;
 }
 
 ControlState Force::GetGateRadiusAtAngle(double) const

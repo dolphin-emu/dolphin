@@ -80,7 +80,8 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
 
   const auto transformation =
-      GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);
+      GetRotationalMatrix(-m_tilt_state.angle) *
+      Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate());
 
   Common::Vec3 accel =
       transformation *
