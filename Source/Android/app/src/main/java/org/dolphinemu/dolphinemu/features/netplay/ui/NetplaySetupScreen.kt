@@ -9,13 +9,18 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -35,6 +41,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
@@ -55,6 +62,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -68,12 +77,15 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectSession
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionRole
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
+import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupError
 import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
+import org.dolphinemu.dolphinemu.ui.theme.defaultOutlinedBoxContentPadding
 
 private data class ErrorDialogState(val message: String) {
     val onDismissed = CompletableDeferred<Unit>()
@@ -83,11 +95,12 @@ private data class ErrorDialogState(val message: String) {
 fun NetplaySetupScreen(
     onBackClicked: () -> Unit,
     connecting: Boolean,
-    errors: Flow<String>,
+    errors: Flow<NetplaySetupError>,
     connectionRole: ConnectionRole,
     onConnectionRoleChanged: (ConnectionRole) -> Unit,
     nickname: String,
     onNicknameChanged: (String) -> Unit,
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
     ipAddress: String,
@@ -100,6 +113,8 @@ fun NetplaySetupScreen(
     onHostPortChanged: (String) -> Unit,
     useUpnp: Boolean,
     onUseUpnpChanged: (Boolean) -> Unit,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
     onHostClicked: () -> Unit,
     onConnectClicked: () -> Unit,
 ) {
@@ -131,40 +146,46 @@ fun NetplaySetupScreen(
             }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    if (
-                        localNetworkPermissionState != null &&
-                        !localNetworkPermissionState.status.isGranted &&
-                        !localNetworkPermissionState.status.shouldShowRationale
-                    ) {
-                        localNetworkPermissionState.launchPermissionRequest()
-                    } else {
-                        when (connectionRole) {
-                            ConnectionRole.Host -> onHostClicked()
-                            ConnectionRole.Connect -> onConnectClicked()
+            val isWifiDirectAndNotConnecting =
+                connectionRole == ConnectionRole.Connect && connectionType == ConnectionType.WifiDirect && !connecting
+            if (!isWifiDirectAndNotConnecting) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        if (
+                            localNetworkPermissionState != null &&
+                            !localNetworkPermissionState.status.isGranted &&
+                            !localNetworkPermissionState.status.shouldShowRationale
+                        ) {
+                            localNetworkPermissionState.launchPermissionRequest()
+                        } else {
+                            when (connectionRole) {
+                                ConnectionRole.Host -> onHostClicked()
+                                ConnectionRole.Connect -> onConnectClicked()
+                            }
                         }
+                    },
+                ) {
+                    if (connecting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(connectionRole.loadingLabelId))
+                    } else {
+                        Text(stringResource(connectionRole.labelId))
                     }
-                },
-            ) {
-                if (connecting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text(stringResource(connectionRole.loadingLabelId))
-                } else {
-                    Text(stringResource(connectionRole.labelId))
                 }
             }
         }
     ) { innerPadding ->
+        val context = LocalContext.current
+
         var activeErrorDialog by remember { mutableStateOf<ErrorDialogState?>(null) }
         LaunchedEffect(Unit) {
-            errors.collect { message ->
-                activeErrorDialog = ErrorDialogState(message)
+            errors.collect { error ->
+                activeErrorDialog = ErrorDialogState(error.message(context))
                 activeErrorDialog?.onDismissed?.await()
                 activeErrorDialog = null
             }
@@ -208,6 +229,7 @@ fun NetplaySetupScreen(
                 NetplaySetupContent(
                     nickname = nickname,
                     onNicknameChanged = onNicknameChanged,
+                    supportedConnectionTypes = supportedConnectionTypes,
                     connectionType = connectionType,
                     onConnectionTypeChanged = onConnectionTypeChanged,
                     ipAddress = ipAddress,
@@ -221,6 +243,8 @@ fun NetplaySetupScreen(
                     useUpnp = useUpnp,
                     onUseUpnpChanged = onUseUpnpChanged,
                     connectionRole = connectionRole,
+                    wifiDirectHosts = wifiDirectHosts,
+                    onWifiDirectHostClicked = onWifiDirectHostClicked,
                 )
             }
         }
@@ -231,6 +255,7 @@ fun NetplaySetupScreen(
 private fun NetplaySetupContent(
     nickname: String,
     onNicknameChanged: (String) -> Unit,
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
     ipAddress: String,
@@ -244,6 +269,8 @@ private fun NetplaySetupContent(
     useUpnp: Boolean,
     onUseUpnpChanged: (Boolean) -> Unit,
     connectionRole: ConnectionRole,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
 ) {
     OutlinedTextField(
         value = nickname,
@@ -256,6 +283,7 @@ private fun NetplaySetupContent(
     MenuSpacer()
 
     ConnectionTypePicker(
+        supportedConnectionTypes = supportedConnectionTypes,
         connectionType = connectionType,
         onConnectionTypeChanged = onConnectionTypeChanged,
     )
@@ -271,6 +299,8 @@ private fun NetplaySetupContent(
             onHostCodeChanged = onHostCodeChanged,
             port = connectPort,
             onPortChanged = onConnectPortChanged,
+            wifiDirectHosts = wifiDirectHosts,
+            onWifiDirectHostClicked = onWifiDirectHostClicked,
         )
 
         ConnectionRole.Host -> HostMenu(
@@ -289,10 +319,78 @@ private fun NetplaySetupContent(
 
 @Composable
 private fun ConnectionTypePicker(
+    supportedConnectionTypes: List<ConnectionType>,
     connectionType: ConnectionType,
     onConnectionTypeChanged: (ConnectionType) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.NEARBY_WIFI_DEVICES
+    } else {
+        Manifest.permission.ACCESS_FINE_LOCATION
+    }
+
+    var showPermissionSettingsDialog by remember { mutableStateOf(false) }
+
+    lateinit var permissionState: PermissionState
+    permissionState =
+        rememberPermissionState(permission) { granted ->
+            if (granted) {
+                onConnectionTypeChanged(ConnectionType.WifiDirect)
+            } else if (!permissionState.status.shouldShowRationale) {
+                showPermissionSettingsDialog = true
+            }
+        }
+
+    if (showPermissionSettingsDialog) {
+        val context = LocalContext.current
+        AlertDialog(
+            text = {
+                Text(
+                    text = stringResource(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            R.string.netplay_wifi_direct_nearby_devices_permission_denied
+                        } else {
+                            R.string.netplay_wifi_direct_location_permission_denied
+                        }
+                    ),
+                )
+            },
+            confirmButton = {
+                if (permissionState.status.shouldShowRationale) {
+                    TextButton(
+                        onClick = {
+                            showPermissionSettingsDialog = false
+                            permissionState.launchPermissionRequest()
+                        }
+                    ) {
+                        Text(stringResource(R.string.netplay_give_permission))
+                    }
+                } else {
+                    TextButton(
+                        onClick = {
+                            showPermissionSettingsDialog = false
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", context.packageName, null)
+                                )
+                            )
+                        }
+                    ) {
+                        Text(stringResource(R.string.settings))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionSettingsDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            onDismissRequest = { showPermissionSettingsDialog = false },
+        )
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -302,12 +400,16 @@ private fun ConnectionTypePicker(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            ConnectionType.all.forEach { connectionType ->
+            supportedConnectionTypes.forEach { connectionType ->
                 DropdownMenuItem(
                     text = { Text(stringResource(connectionType.labelId)) },
                     onClick = {
-                        onConnectionTypeChanged(connectionType)
                         expanded = false
+                        if (connectionType is ConnectionType.WifiDirect && !permissionState.status.isGranted) {
+                            permissionState.launchPermissionRequest()
+                        } else {
+                            onConnectionTypeChanged(connectionType)
+                        }
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
@@ -335,6 +437,8 @@ fun ConnectMenu(
     onHostCodeChanged: (String) -> Unit,
     port: String,
     onPortChanged: (String) -> Unit,
+    wifiDirectHosts: List<WifiDirectSession.Host>,
+    onWifiDirectHostClicked: (WifiDirectSession.Host) -> Unit,
 ) {
     when (connectionType) {
         ConnectionType.DirectConnection -> {
@@ -373,6 +477,55 @@ fun ConnectMenu(
             modifier = Modifier
                 .fillMaxWidth()
         )
+
+        ConnectionType.WifiDirect -> {
+            OutlinedBox(
+                label = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(12.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.netplay_wifi_direct_hosts_label))
+                    }
+                },
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier
+            ) {
+                if (wifiDirectHosts.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(144.dp)
+                    ) {
+                        wifiDirectHosts.forEach { host ->
+                            WifiDirectHost(
+                                hostName = host.name,
+                                gameName = host.game,
+                                playerCount = host.playerCount,
+                                onClick = { onWifiDirectHostClicked(host) }
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(144.dp)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.netplay_wifi_direct_hosts_searching),
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -505,6 +658,56 @@ private fun LocalNetworkPermissionInfo(
     }
 }
 
+@Composable
+private fun WifiDirectHost(
+    hostName: String,
+    gameName: String,
+    playerCount: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(defaultOutlinedBoxContentPadding)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            Text(
+                text = hostName,
+                maxLines = 1,
+                style = LocalTextStyle.current.copy(
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim = LineHeightStyle.Trim.LastLineBottom
+                    )
+                ),
+            )
+            Text(
+                text = gameName,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.secondary,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Row {
+            Icon(
+                imageVector = Icons.Default.Group,
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = playerCount,
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun NetplaySetupScreenPreview() {
@@ -517,6 +720,11 @@ private fun NetplaySetupScreenPreview() {
             onConnectionRoleChanged = {},
             nickname = "Preview nickname",
             onNicknameChanged = {},
+            supportedConnectionTypes = listOf(
+                ConnectionType.DirectConnection,
+                ConnectionType.TraversalServer,
+                ConnectionType.WifiDirect
+            ),
             connectionType = ConnectionType.DirectConnection,
             onConnectionTypeChanged = {},
             ipAddress = "127.0.0.1",
@@ -529,8 +737,33 @@ private fun NetplaySetupScreenPreview() {
             onHostPortChanged = {},
             useUpnp = false,
             onUseUpnpChanged = {},
+            wifiDirectHosts = emptyList(),
+            onWifiDirectHostClicked = {},
             onHostClicked = {},
             onConnectClicked = {},
         )
+    }
+}
+
+@Preview
+@Composable
+private fun WifiDirectHostsPreview() {
+    MaterialTheme {
+        Column(
+            modifier = Modifier.background(color = MaterialTheme.colorScheme.background)
+        ) {
+            WifiDirectHost(
+                hostName = "Host name",
+                gameName = "The game to be played 2",
+                playerCount = "2",
+                onClick = {},
+            )
+            WifiDirectHost(
+                hostName = "Ace",
+                gameName = "The legend of netplay",
+                playerCount = "1",
+                onClick = {},
+            )
+        }
     }
 }
