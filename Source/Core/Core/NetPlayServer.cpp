@@ -2339,15 +2339,15 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 // called from ---GUI--- thread
 std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
 {
-  char buf[16]{};
-  fmt::format_to_n(buf, sizeof(buf) - 1, ":{}", GetPort());
-
   auto lst = GetInterfaceListInternal();
   for (const auto& list_entry : lst)
   {
     if (list_entry.first == inter)
     {
-      return list_entry.second + buf;
+      if (list_entry.second.find(':') != std::string::npos)
+        return fmt::format("[{}]:{}", list_entry.second, GetPort());
+
+      return fmt::format("{}:{}", list_entry.second, GetPort());
     }
   }
   return "?";
@@ -2359,11 +2359,11 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)
   ULONG buffer_size = 0;
-  GetAdaptersAddresses(AF_INET, 0, nullptr, nullptr, &buffer_size);
+  GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, nullptr, &buffer_size);
 
   std::vector<char> buffer(buffer_size);
   auto* const adapters = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
-  const ULONG adapters_result = GetAdaptersAddresses(AF_INET, 0, nullptr, adapters, &buffer_size);
+  const ULONG adapters_result = GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, adapters, &buffer_size);
   if (adapters_result == NO_ERROR)
   {
     for (auto* adapter = adapters; adapter != nullptr; adapter = adapter->Next)
@@ -2371,14 +2371,36 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
       if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
         continue;
 
-      auto* const unicast = adapter->FirstUnicastAddress;
-      if (!unicast)
-        continue;
+      for (auto* unicast = adapter->FirstUnicastAddress; unicast != nullptr; unicast = unicast->Next)
+      {
+        const sockaddr* sa = unicast->Address.lpSockaddr;
+        if (!sa)
+          continue;
+        if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6)
+          continue;
 
-      char addr_str[INET_ADDRSTRLEN] = {};
-      inet_ntop(AF_INET, &reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr)->sin_addr,
-                addr_str, sizeof(addr_str));
-      result.emplace_back(WStringToUTF8(adapter->FriendlyName), addr_str);
+        char addr_str[INET6_ADDRSTRLEN] = {};
+        const void* addr_ptr = nullptr;
+        if (sa->sa_family == AF_INET)
+        {
+          const auto* const addr4 = reinterpret_cast<const sockaddr_in*>(sa);
+          if (ntohl(addr4->sin_addr.s_addr) == INADDR_LOOPBACK)
+            continue;
+          addr_ptr = &addr4->sin_addr;
+        }
+        else
+        {
+          const auto* const addr6 = reinterpret_cast<const sockaddr_in6*>(sa);
+          if (IN6_IS_ADDR_LOOPBACK(&addr6->sin6_addr))
+            continue;
+          addr_ptr = &addr6->sin6_addr;
+        }
+
+        if (!inet_ntop(sa->sa_family, addr_ptr, addr_str, sizeof(addr_str)))
+          continue;
+
+        result.emplace_back(WStringToUTF8(adapter->FriendlyName), addr_str);
+      }
     }
   }
   else
@@ -2399,12 +2421,26 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 
       if (sa == nullptr)
         continue;
-      if (sa->sa_family != AF_INET)
+      if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6)
         continue;
-      sockaddr_in* sai = (struct sockaddr_in*)sa;
-      if (ntohl(((struct sockaddr_in*)sa)->sin_addr.s_addr) == 0x7f000001)
-        continue;
-      const char* ip = inet_ntop(sa->sa_family, &sai->sin_addr, buf, sizeof(buf));
+
+      const void* addr_ptr = nullptr;
+      if (sa->sa_family == AF_INET)
+      {
+        const auto* const sai = reinterpret_cast<const sockaddr_in*>(sa);
+        if (ntohl(sai->sin_addr.s_addr) == INADDR_LOOPBACK)
+          continue;
+        addr_ptr = &sai->sin_addr;
+      }
+      else
+      {
+        const auto* const sai6 = reinterpret_cast<const sockaddr_in6*>(sa);
+        if (IN6_IS_ADDR_LOOPBACK(&sai6->sin6_addr))
+          continue;
+        addr_ptr = &sai6->sin6_addr;
+      }
+
+      const char* ip = inet_ntop(sa->sa_family, addr_ptr, buf, sizeof(buf));
       if (ip == nullptr)
         continue;
       result.emplace_back(std::make_pair(curifp->ifa_name, ip));
