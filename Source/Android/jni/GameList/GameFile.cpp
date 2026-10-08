@@ -16,6 +16,7 @@
 #include "UICommon/GameFile.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/GameList/TitleDatabase.h"
 
 static std::shared_ptr<const UICommon::GameFile>* GetPointer(JNIEnv* env, jobject obj)
 {
@@ -52,11 +53,19 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPlatform
   return static_cast<jint>(GetRef(env, obj)->GetPlatform());
 }
 
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(JNIEnv* env,
-                                                                                 jobject obj)
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(
+    JNIEnv* env, jobject obj, jobject j_title_database)
 {
-  return ToJString(env,
-                   GetRef(env, obj)->GetName(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+  const Core::TitleDatabase* title_database = TitleDatabaseFromJava(env, j_title_database);
+  if (title_database)
+  {
+    return ToJString(env, GetRef(env, obj)->GetName(*title_database));
+  }
+  else
+  {
+    return ToJString(env,
+                     GetRef(env, obj)->GetName(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+  }
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDescription(JNIEnv* env,
