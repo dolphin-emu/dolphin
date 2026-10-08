@@ -16,19 +16,7 @@
  * to define the implementation-defined types of PSA multi-part state objects.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H
@@ -50,25 +38,25 @@
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
     defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_MAC)
 typedef libtestdriver1_mbedtls_psa_mac_operation_t
-        mbedtls_transparent_test_driver_mac_operation_t;
+    mbedtls_transparent_test_driver_mac_operation_t;
 typedef libtestdriver1_mbedtls_psa_mac_operation_t
-        mbedtls_opaque_test_driver_mac_operation_t;
+    mbedtls_opaque_test_driver_mac_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_MAC_OPERATION_INIT \
-        LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
+    LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
 #define MBEDTLS_OPAQUE_TEST_DRIVER_MAC_OPERATION_INIT \
-        LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
+    LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
 
 #else
 typedef mbedtls_psa_mac_operation_t
-        mbedtls_transparent_test_driver_mac_operation_t;
+    mbedtls_transparent_test_driver_mac_operation_t;
 typedef mbedtls_psa_mac_operation_t
-        mbedtls_opaque_test_driver_mac_operation_t;
+    mbedtls_opaque_test_driver_mac_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_MAC_OPERATION_INIT \
-        MBEDTLS_PSA_MAC_OPERATION_INIT
+    MBEDTLS_PSA_MAC_OPERATION_INIT
 #define MBEDTLS_OPAQUE_TEST_DRIVER_MAC_OPERATION_INIT \
-        MBEDTLS_PSA_MAC_OPERATION_INIT
+    MBEDTLS_PSA_MAC_OPERATION_INIT
 
 #endif /* MBEDTLS_TEST_LIBTESTDRIVER1 */
 #endif /* PSA_CRYPTO_DRIVER_TEST */
