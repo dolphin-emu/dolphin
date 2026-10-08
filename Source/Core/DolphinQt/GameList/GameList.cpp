@@ -4,6 +4,9 @@
 #ifdef _WIN32
 #include <QCoreApplication>
 #include <shlobj.h>
+#ifdef __MINGW32__
+#include "Common/WILShim.h"
+#endif
 #include <wil/com.h>
 
 // This file uses some identifiers which are defined as macros in Windows headers.

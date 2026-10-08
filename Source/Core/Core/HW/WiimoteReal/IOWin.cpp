@@ -637,8 +637,15 @@ static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiim
     // For some reason, a Balance Board `BusReportedDeviceDesc` is "Nintendo RVL-CNT-01".
     const auto device_description =
         parent_inst
+#ifdef __MINGW32__
+            .and_then([&](auto&& devnode) {
+              return Common::GetDevNodeStringProperty(std::forward<decltype(devnode)>(devnode),
+                                                      &DEVPKEY_Device_BusReportedDeviceDesc);
+            })
+#else
             .and_then(std::bind_back(Common::GetDevNodeStringProperty,
                                      &DEVPKEY_Device_BusReportedDeviceDesc))
+#endif
             .transform(WStringToUTF8);
     DEBUG_LOG_FMT(WIIMOTE, " BusReportedDeviceDesc: {}", device_description.value_or("<error>"));
 
