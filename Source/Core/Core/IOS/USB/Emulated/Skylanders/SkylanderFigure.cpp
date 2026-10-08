@@ -9,10 +9,10 @@
 #include <string>
 
 #include <mbedtls/aes.h>
-#include <mbedtls/md5.h>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Random.h"
@@ -107,7 +107,7 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
 
     std::array<u8, BLOCK_SIZE> hash_out = {};
 
-    mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
+    Common::ComputeMD5(hash_in, hash_out.data());
 
     mbedtls_aes_context aes_context = {};
 
@@ -394,7 +394,7 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
 
     std::array<u8, BLOCK_SIZE> hash_out = {};
 
-    mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
+    Common::ComputeMD5(hash_in, hash_out.data());
 
     mbedtls_aes_context aes_context = {};
 

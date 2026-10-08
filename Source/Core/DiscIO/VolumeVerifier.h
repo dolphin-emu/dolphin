@@ -10,10 +10,9 @@
 #include <string>
 #include <vector>
 
-#include <mbedtls/md5.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
+#include "Common/Hash.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Volume.h"
@@ -175,7 +174,7 @@ private:
   Hashes<bool> m_hashes_to_calculate{};
   bool m_calculating_any_hash = false;
   u32 m_crc32_context = 0;
-  mbedtls_md5_context m_md5_context{};
+  std::unique_ptr<Common::MD5Context> m_md5_context;
   std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 
   u64 m_excess_bytes = 0;
