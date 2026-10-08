@@ -150,4 +150,13 @@ jclass GetAudioUtilsClass();
 jmethodID GetAudioUtilsGetSampleRate();
 jmethodID GetAudioUtilsGetFramesPerBuffer();
 
+jclass GetGCSaveFileClass();
+jmethodID GetGCSaveFileConstructor();
+
+jclass GetGCMemcardStatsClass();
+jmethodID GetGCMemcardStatsConstructor();
+
+jclass GetWiiSaveFileClass();
+jmethodID GetWiiSaveFileConstructor();
+
 }  // namespace IDCache
