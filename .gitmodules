@@ -2,10 +2,6 @@
 	path = Externals/FFmpeg-bin
 	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
 	shallow = true
-[submodule "Externals/libspng/libspng"]
-	path = Externals/libspng/libspng
-	url = https://github.com/randy408/libspng.git
-	shallow = true
 [submodule "Externals/cubeb/cubeb"]
 	path = Externals/cubeb/cubeb
 	url = https://github.com/mozilla/cubeb.git
