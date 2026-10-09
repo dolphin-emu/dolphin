@@ -150,4 +150,13 @@ jclass GetAudioUtilsClass();
 jmethodID GetAudioUtilsGetSampleRate();
 jmethodID GetAudioUtilsGetFramesPerBuffer();
 
+jclass GetObserverClass();
+jmethodID GetObserverOnChanged();
+
+jclass GetEventHookLifecycleObserverClass();
+jmethodID GetEventHookLifecycleObserverConstructor();
+
+jclass GetDoubleClass();
+jmethodID GetDoubleConstructor();
+
 }  // namespace IDCache
