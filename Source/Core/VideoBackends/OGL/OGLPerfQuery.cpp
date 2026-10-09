@@ -29,57 +29,11 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
-{
-  m_query->EnableQuery(group);
-}
-
-void PerfQuery::DisableQuery(PerfQueryGroup group)
-{
-  m_query->DisableQuery(group);
-}
-
-bool PerfQuery::IsFlushed() const
-{
-  return m_query_count.load(std::memory_order_relaxed) == 0;
-}
-
-// TODO: could selectively flush things, but I don't think that will do much
-void PerfQuery::FlushResults()
-{
-  m_query->FlushResults();
-}
-
 void PerfQuery::ResetQuery()
 {
   m_query_count.store(0, std::memory_order_relaxed);
   for (auto& result : m_results)
     result.store(0, std::memory_order_relaxed);
-}
-
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
-{
-  u32 result = 0;
-
-  if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
-  {
-    result = m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
-  {
-    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_BLEND_INPUT)
-  {
-    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed) +
-             m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_EFB_COPY_CLOCKS)
-  {
-    result = m_results[PQG_EFB_COPY_CLOCKS].load(std::memory_order_relaxed);
-  }
-
-  return result / 4;
 }
 
 // Implementations
