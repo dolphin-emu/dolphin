@@ -524,10 +524,16 @@ endif()
 
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
+    dolphin_fetchcontent_declare(
+      ext-win-ffmpeg
+      GIT_REPOSITORY https://github.com/dolphin-emu/ext-win-ffmpeg.git
+      GIT_TAG 9bc087fbca36ce5a85eb4fd73f0c73813593e5a2
+    )
+    FetchContent_MakeAvailable(ext-win-ffmpeg)
     if(_M_X86_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/x64)
     elseif(_M_ARM_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/ARM64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/ARM64)
     endif()
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
