@@ -34,10 +34,6 @@
 	path = Externals/fmt/fmt
 	url = https://github.com/fmtlib/fmt.git
 	shallow = true
-[submodule "Externals/lz4/lz4"]
-	path = Externals/lz4/lz4
-	url = https://github.com/lz4/lz4.git
-	shallow = true
 [submodule "Externals/enet/enet"]
 	path = Externals/enet/enet
 	url = https://github.com/lsalzman/enet.git
