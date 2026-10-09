@@ -26,10 +26,6 @@
 	path = Externals/libspng/libspng
 	url = https://github.com/randy408/libspng.git
 	shallow = true
-[submodule "Externals/VulkanMemoryAllocator"]
-	path = Externals/VulkanMemoryAllocator
-	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-	shallow = true
 [submodule "Externals/cubeb/cubeb"]
 	path = Externals/cubeb/cubeb
 	url = https://github.com/mozilla/cubeb.git
