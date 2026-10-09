@@ -637,6 +637,8 @@ dolphin_add_bundled_library(TinyGLTF Externals/tinygltf)
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
+  dolphin_add_bundled_library(VulkanMemoryAllocator Externals/VulkanMemoryAllocator)
+
   if(APPLE AND USE_BUNDLED_MOLTENVK)
     dolphin_add_bundled_library(MoltenVK Externals/MoltenVK)
   endif()
