@@ -98,10 +98,6 @@
 	path = Externals/SFML/SFML
 	url = https://github.com/SFML/SFML.git
 	shallow = true
-[submodule "Externals/zstd/zstd"]
-	path = Externals/zstd/zstd
-	url = https://github.com/facebook/zstd.git
-	shallow = true
 [submodule "Externals/miniupnpc/miniupnp"]
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
