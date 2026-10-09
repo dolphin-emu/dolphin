@@ -490,6 +490,7 @@ endif()
 if (WIN32)
   target_link_libraries(dolphin-emu
   PRIVATE
+    WIL::WIL
     gdi32.lib
     shell32.lib
     dwmapi.lib # Needed to set window decorations for dark theme

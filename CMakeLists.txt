@@ -742,7 +742,7 @@ else()
 endif()
 
 if (WIN32)
-  include_directories(Externals/wil/include)
+  dolphin_add_bundled_library(wil Externals/wil)
   include_directories(Externals/OpenAL/include)
 endif()
 
