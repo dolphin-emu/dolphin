@@ -50,10 +50,6 @@
 	path = Externals/hidapi/hidapi-src
 	url = https://github.com/libusb/hidapi.git
 	shallow = true
-[submodule "Externals/minizip-ng/minizip-ng"]
-	path = Externals/minizip-ng/minizip-ng
-	url = https://github.com/zlib-ng/minizip-ng.git
-	shallow = true
 [submodule "Externals/miniupnpc/miniupnp"]
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
