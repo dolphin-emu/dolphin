@@ -30,10 +30,6 @@
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
 	shallow = true
-[submodule "Externals/rcheevos/rcheevos"]
-	path = Externals/rcheevos/rcheevos
-	url = https://github.com/RetroAchievements/rcheevos.git
-	shallow = true
 [submodule "Externals/libadrenotools"]
 	path = Externals/libadrenotools
 	url = https://github.com/bylaws/libadrenotools.git
