@@ -66,10 +66,6 @@
 	path = Externals/minizip-ng/minizip-ng
 	url = https://github.com/zlib-ng/minizip-ng.git
 	shallow = true
-[submodule "Externals/SFML/SFML"]
-	path = Externals/SFML/SFML
-	url = https://github.com/SFML/SFML.git
-	shallow = true
 [submodule "Externals/miniupnpc/miniupnp"]
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
