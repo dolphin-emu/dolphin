@@ -167,12 +167,12 @@ Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
 
 ControlState Cursor::GetTotalYaw() const
 {
-  return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+  return MathUtil::DegreesToRadians(m_yaw_setting.GetValue());
 }
 
 ControlState Cursor::GetTotalPitch() const
 {
-  return m_pitch_setting.GetValue() * MathUtil::TAU / 360;
+  return MathUtil::DegreesToRadians(m_pitch_setting.GetValue());
 }
 
 ControlState Cursor::GetVerticalOffset() const

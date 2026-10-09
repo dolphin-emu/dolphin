@@ -257,7 +257,7 @@ Device::Device(hid_device* device) : m_device{device}
 
   // 16.384 (?) LSBs = 1 deg / s
   // final output in rads / s
-  constexpr auto gyro_scale = 16.384 * 360.0 / MathUtil::TAU;
+  constexpr auto gyro_scale = MathUtil::RadiansToDegrees(16.384);
   AddInput(new MotionInput("Gyro Pitch Up",   m_latest_input.gyro_pitch, gyro_scale));
   AddInput(new MotionInput("Gyro Pitch Down", m_latest_input.gyro_pitch, -gyro_scale));
   AddInput(new MotionInput("Gyro Roll Left",  m_latest_input.gyro_roll,  -gyro_scale));
