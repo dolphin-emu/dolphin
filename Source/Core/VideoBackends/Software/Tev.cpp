@@ -23,7 +23,7 @@
 
 static inline s16 Clamp255(s16 in)
 {
-  return std::clamp<s16>(in, 0, 255);
+  return MathUtil::SaturatingCast<u8>(in);
 }
 
 static inline s16 Clamp1024(s16 in)
