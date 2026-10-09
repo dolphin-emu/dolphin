@@ -4,7 +4,7 @@
 #define VMA_IMPLEMENTATION
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
-#if defined(ANDROID)
+#if defined(ANDROID) && _M_ARM_64
 #include <adrenotools/driver.h>
 #include <dlfcn.h>
 #endif

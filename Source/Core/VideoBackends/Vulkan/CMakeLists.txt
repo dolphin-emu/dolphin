@@ -55,12 +55,6 @@ if (ANDROID AND _M_ARM_64)
   )
 endif()
 
-# Only include the Vulkan headers when building the Vulkan backend
-target_include_directories(videovulkan
-PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
-)
-
 if(MSVC)
   # Add precompiled header
   target_link_libraries(videovulkan PRIVATE use_pch)

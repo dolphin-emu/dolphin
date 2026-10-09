@@ -14,10 +14,6 @@
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
 	shallow = true
-[submodule "Externals/libadrenotools"]
-	path = Externals/libadrenotools
-	url = https://github.com/bylaws/libadrenotools.git
-	shallow = true
 [submodule "Externals/curl/curl"]
 	path = Externals/curl/curl
 	url = https://github.com/curl/curl.git
