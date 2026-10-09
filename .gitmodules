@@ -14,10 +14,6 @@
 	path = Externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
 	shallow = true
-[submodule "Externals/spirv_cross/SPIRV-Cross"]
-	path = Externals/spirv_cross/SPIRV-Cross
-	url = https://github.com/KhronosGroup/SPIRV-Cross.git
-	shallow = true
 [submodule "SDL"]
 	path = Externals/SDL/SDL
 	url = https://github.com/libsdl-org/SDL.git
