@@ -1,5 +1,6 @@
 include(CheckCXXSourceCompiles)
 include(CheckCXXSymbolExists)
+include(FetchContent)
 
 # like add_library(new ALIAS old) but avoids add_library cannot create ALIAS target "new" because target "old" is imported but not globally visible. on older cmake
 # This can be replaced with a direct alias call once our minimum is cmake 3.18
@@ -191,3 +192,10 @@ function(dolphin_check_std_version LABEL VERSION_MACRO MIN_VERSION)
     message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
   endif()
 endfunction()
+
+macro(dolphin_fetchcontent_declare NAME)
+  FetchContent_Declare(${NAME}
+    SOURCE_DIR "${CMAKE_SOURCE_DIR}/.FetchContent/${NAME}"
+    ${ARGN}
+  )
+endmacro()
