@@ -22,10 +22,6 @@
 	path = Externals/enet/enet
 	url = https://github.com/lsalzman/enet.git
 	shallow = true
-[submodule "hidapi-src"]
-	path = Externals/hidapi/hidapi-src
-	url = https://github.com/libusb/hidapi.git
-	shallow = true
 [submodule "Externals/glslang/glslang"]
 	path = Externals/glslang/glslang
 	url = https://github.com/KhronosGroup/glslang.git
