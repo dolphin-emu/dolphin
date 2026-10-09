@@ -20,11 +20,11 @@
 
 #include <picojson.h>
 
-#include <rcheevos/include/rc_api_runtime.h>
-#include <rcheevos/include/rc_api_user.h>
-#include <rcheevos/include/rc_client.h>
-#include <rcheevos/include/rc_hash.h>
-#include <rcheevos/include/rc_runtime.h>
+#include <rc_api_runtime.h>
+#include <rc_api_user.h>
+#include <rc_client.h>
+#include <rc_hash.h>
+#include <rc_runtime.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -35,7 +35,7 @@
 #include "VideoCommon/Assets/CustomTextureData.h"
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-#include <rcheevos/include/rc_client_raintegration.h>
+#include <rc_client_raintegration.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 namespace Core
