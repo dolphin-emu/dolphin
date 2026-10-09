@@ -82,10 +82,6 @@
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 	shallow = true
-[submodule "Externals/watcher/watcher"]
-	path = Externals/watcher/watcher
-	url = https://github.com/e-dant/watcher.git
-	shallow = true
 [submodule "Externals/SFML/SFML"]
 	path = Externals/SFML/SFML
 	url = https://github.com/SFML/SFML.git
