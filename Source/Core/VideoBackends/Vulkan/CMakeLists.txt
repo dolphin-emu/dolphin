@@ -43,7 +43,7 @@ PUBLIC
   videocommon
 
 PRIVATE
-  xxhash::xxhash
+  xxHash::xxhash
 )
 
 if (ANDROID AND _M_ARM_64)

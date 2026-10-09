@@ -241,7 +241,7 @@ PUBLIC
 PRIVATE
   fmt::fmt
   spng::spng
-  xxhash::xxhash
+  xxHash::xxhash
   imgui
   implot
   glslang::SPIRV
