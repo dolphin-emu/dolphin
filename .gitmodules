@@ -1,4 +1,0 @@
-[submodule "Externals/bzip2/bzip2"]
-	path = Externals/bzip2/bzip2
-	url = https://gitlab.com/bzip2/bzip2.git
-	shallow = true
