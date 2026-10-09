@@ -815,14 +815,6 @@ if(ENABLE_TESTS)
   dolphin_find_optional_system_library_pkgconfig(GTEST
     gtest gtest::gtest Externals/gtest
   )
-  # dolphin_find_optional_system_library_pkgconfig() doesn't add an alias if it
-  # uses the bundled libraries, so we add one ourselves.
-  if (NOT TARGET gtest::gtest)
-    add_library(gtest::gtest ALIAS gtest)
-  endif()
-  # Force gtest to link the C runtime dynamically on Windows in order to avoid
-  # runtime mismatches.
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 else()
   message(STATUS "Unit tests are disabled")
 endif()
