@@ -1,7 +1,3 @@
-[submodule "Externals/cpp-ipc/cpp-ipc"]
-	path = Externals/cpp-ipc/cpp-ipc
-	url = https://github.com/mutouyun/cpp-ipc.git
-	shallow = true
 [submodule "Externals/bzip2/bzip2"]
 	path = Externals/bzip2/bzip2
 	url = https://gitlab.com/bzip2/bzip2.git
