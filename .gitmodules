@@ -1,7 +1,3 @@
-[submodule "Externals/cubeb/cubeb"]
-	path = Externals/cubeb/cubeb
-	url = https://github.com/mozilla/cubeb.git
-	shallow = true
 [submodule "Externals/cpp-ipc/cpp-ipc"]
 	path = Externals/cpp-ipc/cpp-ipc
 	url = https://github.com/mutouyun/cpp-ipc.git
