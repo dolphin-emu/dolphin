@@ -52,7 +52,5 @@ add_subdirectory(curl)
 
 if(UNIX AND NOT MBEDTLS_FOUND)
   # HACK: Manually link with the mbedtls libraries.
-  target_link_libraries(libcurl_static PRIVATE
-    MbedTLS::mbedtls
-    MbedTLS::mbedx509)
+  target_link_libraries(libcurl_static PRIVATE mbedtls2::mbedtls)
 endif()
