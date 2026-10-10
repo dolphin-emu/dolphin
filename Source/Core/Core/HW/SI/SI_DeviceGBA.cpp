@@ -3,6 +3,7 @@
 
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
+#include <chrono>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -201,8 +202,13 @@ void GBASockServer::Send(const u8* si_buffer)
   constexpr u64 GBA_CYCLES_PER_SECOND = 16777216;
   if (m_last_clock_slice > LONG_SLICE_CYCLES)
   {
-    Common::SleepCurrentThread(
-        static_cast<int>(m_last_clock_slice * 1000ull / GBA_CYCLES_PER_SECOND));
+    const auto gap = std::chrono::microseconds(m_last_clock_slice * 1000000ull / GBA_CYCLES_PER_SECOND);
+    const auto elapsed = std::chrono::steady_clock::now() - m_last_reply_time;
+    if (gap - elapsed >= std::chrono::milliseconds(1))
+    {
+      const auto sleep_ms = std::chrono::ceil<std::chrono::milliseconds>(gap - elapsed);
+      Common::SleepCurrentThread(static_cast<int>(sleep_ms.count()));
+    }
   }
 
   std::array<u8, SEND_MAX_SIZE> send_data;
@@ -217,6 +223,7 @@ void GBASockServer::Send(const u8* si_buffer)
   else
     status = m_client->send(send_data.data(), 1);
 
+  m_last_send_time = std::chrono::steady_clock::now();
   if (status == sf::Socket::Status::Disconnected)
     Disconnect();
 }
@@ -226,11 +233,15 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   if (!m_client)
     return 0;
 
+  const auto wait_start = std::chrono::steady_clock::now();
   {
     sf::SocketSelector selector;
     selector.add(*m_client);
     (void)selector.wait(sf::milliseconds(m_booted ? 1000 : 100));
   }
+  const auto now = std::chrono::steady_clock::now();
+  const auto waited = std::chrono::duration_cast<std::chrono::microseconds>(now - wait_start);
+  m_last_reply_time = waited > std::chrono::microseconds(500) ? now : m_last_send_time;
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;

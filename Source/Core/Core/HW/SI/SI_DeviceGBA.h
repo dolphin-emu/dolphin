@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <memory>
 
 #include <SFML/Network.hpp>
@@ -38,6 +39,8 @@ private:
 
   u64 m_last_time_slice = 0;
   u32 m_last_clock_slice = 0;
+  std::chrono::steady_clock::time_point m_last_send_time;
+  std::chrono::steady_clock::time_point m_last_reply_time;
   bool m_booted = false;
 };
 
