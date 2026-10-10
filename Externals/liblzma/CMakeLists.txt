@@ -206,7 +206,6 @@ set(LZMA_SRCS
 
 add_library(lzma STATIC ${LZMA_SRCS} ${LZMA_PUBLIC_HDRS})
 add_library(LibLZMA::LibLZMA ALIAS lzma)
-dolphin_disable_warnings(lzma)
 
 target_compile_definitions(lzma PUBLIC LZMA_API_STATIC)
 

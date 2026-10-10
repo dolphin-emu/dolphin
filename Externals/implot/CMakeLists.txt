@@ -4,15 +4,22 @@ if(NOT MSVC)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
+dolphin_fetchcontent_declare(
+  implot
+  GIT_REPOSITORY https://github.com/epezent/implot.git
+  GIT_TAG 4707b245fbcd69075b1a8a74fa8d2435561b3134 # v0.17
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(implot)
+
 set(SRCS
-  implot/implot.cpp
-  implot/implot_items.cpp
+  ${implot_SOURCE_DIR}/implot.cpp
+  ${implot_SOURCE_DIR}/implot_items.cpp
 )
 
 add_library(implot STATIC ${SRCS})
-dolphin_disable_warnings(implot)
 target_include_directories(implot
-  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/implot"
+  PUBLIC "${implot_SOURCE_DIR}"
   PRIVATE imgui
 )
 

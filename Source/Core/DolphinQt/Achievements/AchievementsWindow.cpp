@@ -6,7 +6,7 @@
 
 #include <mutex>
 
-#include <rcheevos/include/rc_error.h>
+#include <rc_error.h>
 
 #include <QDialogButtonBox>
 #include <QScrollArea>

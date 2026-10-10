@@ -1,3 +1,10 @@
+dolphin_fetchcontent_declare(
+  curl
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG cfbfb65047e85e6b08af65fe9cdbcf68e9ad496a # curl-8_15_0
+  GIT_SHALLOW TRUE
+)
+
 set(BUILD_CURL_EXE OFF)
 set(BUILD_EXAMPLES OFF)
 set(BUILD_LIBCURL_DOCS OFF)
@@ -48,7 +55,7 @@ if(ANDROID)
   set(CURL_CA_PATH "/system/etc/security/cacerts" CACHE STRING "")
 endif()
 
-add_subdirectory(curl)
+FetchContent_MakeAvailable(curl)
 
 if(UNIX AND NOT MBEDTLS_FOUND)
   # HACK: Manually link with the mbedtls libraries.

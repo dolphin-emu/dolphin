@@ -1,5 +1,13 @@
 project(bzip2 C)
 
+dolphin_fetchcontent_declare(
+  bzip2 
+  GIT_REPOSITORY https://gitlab.com/bzip2/bzip2.git
+  GIT_TAG 6a8690fc8d26c815e798c588f796eabe9d684cf0 # bzip2-1.0.8
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(bzip2)
+
 # TODO: Use bzip2 1.1.0's native support for CMake static builds once it releases.
 
 include(CheckTypeSize)
@@ -54,26 +62,25 @@ endif()
 #============================================================================
 
 set(BZIP2_PUBLIC_HDRS
-  bzip2/bzlib.h
+  ${bzip2_SOURCE_DIR}/bzlib.h
 )
 set(BZIP2_PRIVATE_HDRS
-  bzip2/bzlib_private.h
+  ${bzip2_SOURCE_DIR}/bzlib_private.h
 )
 set(BZIP2_SRCS
-  bzip2/blocksort.c
-  bzip2/huffman.c
-  bzip2/crctable.c
-  bzip2/randtable.c
-  bzip2/compress.c
-  bzip2/decompress.c
-  bzip2/bzlib.c
+  ${bzip2_SOURCE_DIR}/blocksort.c
+  ${bzip2_SOURCE_DIR}/huffman.c
+  ${bzip2_SOURCE_DIR}/crctable.c
+  ${bzip2_SOURCE_DIR}/randtable.c
+  ${bzip2_SOURCE_DIR}/compress.c
+  ${bzip2_SOURCE_DIR}/decompress.c
+  ${bzip2_SOURCE_DIR}/bzlib.c
 )
 
 add_library(bzip2 STATIC ${BZIP2_SRCS} ${BZIP2_PUBLIC_HDRS} ${BZIP2_PRIVATE_HDRS})
 add_library(BZip2::BZip2 ALIAS bzip2)
-dolphin_disable_warnings(bzip2)
 
 target_include_directories(bzip2
 PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2
+  ${bzip2_SOURCE_DIR}
 )

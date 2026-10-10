@@ -43,7 +43,7 @@
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
 #include <libloaderapi.h>
-#include <rcheevos/include/rc_client_raintegration.h>
+#include <rc_client_raintegration.h>
 #include <shlwapi.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 

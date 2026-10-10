@@ -823,12 +823,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
   target_link_options(core PUBLIC -Wl,-zwxneeded)
 endif()
 
-if(TARGET Hidapi::Hidapi)
+if(TARGET hidapi::hidapi)
   target_sources(core PRIVATE
     HW/WiimoteReal/IOhidapi.cpp
     HW/WiimoteReal/IOhidapi.h
   )
-  target_link_libraries(core PUBLIC Hidapi::Hidapi)
+  target_link_libraries(core PUBLIC hidapi::hidapi)
   target_compile_definitions(core PRIVATE -DHAVE_HIDAPI=1)
 endif()
 

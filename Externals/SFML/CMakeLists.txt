@@ -1,34 +1,19 @@
-set(SRC_NETWORK
-  SFML/src/SFML/Network/Http.cpp
-  SFML/src/SFML/Network/IpAddress.cpp
-  SFML/src/SFML/Network/Packet.cpp
-  SFML/src/SFML/Network/Socket.cpp
-  SFML/src/SFML/Network/SocketSelector.cpp
-  SFML/src/SFML/Network/TcpListener.cpp
-  SFML/src/SFML/Network/TcpSocket.cpp
-  SFML/src/SFML/Network/UdpSocket.cpp
+dolphin_fetchcontent_declare(
+  SFML
+  GIT_REPOSITORY https://github.com/SFML/SFML.git
+  GIT_TAG 0fa201c969e48ecc253581c5841ce73f44d42f49 # 3.0.2
+  GIT_SHALLOW TRUE
 )
 
-if(WIN32)
-  list(APPEND SRC_NETWORK SFML/src/SFML/Network/Win32/SocketImpl.cpp)
-else()
-  list(APPEND SRC_NETWORK SFML/src/SFML/Network/Unix/SocketImpl.cpp)
+set(BUILD_SHARED_LIBS OFF)
+set(SFML_BUILD_WINDOW OFF)
+set(SFML_BUILD_GRAPHICS OFF)
+set(SFML_BUILD_AUDIO OFF)
+set(SFML_BUILD_NETWORK ON)
+
+FetchContent_MakeAvailable(SFML)
+
+if(NOT MSVC)
+  target_compile_options(sfml-system PRIVATE -fexceptions)
+  target_compile_options(sfml-network PRIVATE -fexceptions)
 endif()
-
-set(SRC_SYSTEM
-  SFML/src/SFML/System/Err.cpp
-  SFML/include/SFML/System/String.hpp
-  SFML/src/SFML/System/String.cpp
-  SFML/src/SFML/System/Utils.cpp
-)
-
-add_library(sfml-network STATIC ${SRC_NETWORK})
-add_library(sfml-system STATIC ${SRC_SYSTEM})
-target_compile_features(sfml-network PUBLIC cxx_std_20)
-target_compile_features(sfml-system PUBLIC cxx_std_20)
-target_compile_definitions(sfml-system PUBLIC SFML_STATIC)
-target_include_directories(sfml-system PUBLIC SFML/include PRIVATE SFML/src)
-target_include_directories(sfml-network PUBLIC SFML/include PRIVATE SFML/src)
-target_link_libraries(sfml-network PUBLIC sfml-system)
-dolphin_disable_warnings(sfml-network)
-dolphin_disable_warnings(sfml-system)
