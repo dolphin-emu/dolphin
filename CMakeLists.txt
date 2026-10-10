@@ -7,7 +7,7 @@ cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0.0" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0.0" CACHE STRING "")
 
 # When we don't set a sysroot, AppleClang will put /usr/local/include at a higher
 # priority than -isystem paths, which can cause weird include issues in Externals
