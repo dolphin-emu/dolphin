@@ -3,18 +3,22 @@
 
 #include <jni.h>
 
+#include <vector>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HotkeyManager.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/HotkeyScheduler.h"
 #include "jni/Input/Control.h"
 #include "jni/Input/ControlGroup.h"
 #include "jni/Input/ControlReference.h"
@@ -189,6 +193,36 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
     JNIEnv* env, jclass, jint controller_index)
 {
   return EmulatedControllerToJava(env, Wiimote::GetConfig()->GetController(controller_index));
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getHotkeys(
+    JNIEnv* env, jclass)
+{
+  return EmulatedControllerToJava(env, HotkeyManagerEmu::GetConfig()->GetController(0));
+}
+
+JNIEXPORT jintArray JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSupportedHotkeyIndices(
+    JNIEnv* env, jclass)
+{
+  auto* const hotkeys =
+      static_cast<HotkeyManager*>(HotkeyManagerEmu::GetConfig()->GetController(0));
+  const std::vector<int>& supported = HotkeyScheduler::GetSupportedHotkeys();
+
+  std::vector<jint> indices;
+  indices.reserve(supported.size() * 2);
+  for (const int hotkey : supported)
+  {
+    const int group = hotkeys->FindGroupByID(hotkey);
+    indices.push_back(group);
+    indices.push_back(hotkeys->GetIndexForGroup(group, hotkey));
+  }
+
+  const jsize size = static_cast<jsize>(indices.size());
+  jintArray result = env->NewIntArray(size);
+  env->SetIntArrayRegion(result, 0, size, indices.data());
+  return result;
 }
 
 JNIEXPORT jobject JNICALL

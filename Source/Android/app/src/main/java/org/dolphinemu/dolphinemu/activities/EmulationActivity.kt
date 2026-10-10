@@ -42,6 +42,7 @@ import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
+import org.dolphinemu.dolphinemu.features.input.model.Hotkeys
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -319,6 +320,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         }
 
         DolphinSensorEventListener.setDeviceRotation(windowManager.defaultDisplay.rotation)
+
+        Hotkeys.setEnabled(true)
+    }
+
+    override fun onPause() {
+        Hotkeys.setEnabled(false)
+        super.onPause()
     }
 
     override fun onStop() {
