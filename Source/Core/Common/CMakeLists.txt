@@ -170,6 +170,7 @@ add_library(common
   Version.cpp
   Version.h
   WaitableFlag.h
+  WeakInstance.h
   WindowSystemInfo.h
   WorkQueueThread.h
 )
