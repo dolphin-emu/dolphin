@@ -204,6 +204,7 @@ private:
   std::array<bool, 4> m_config_wiimote_output_enabled{};
   bool m_config_gba_routing_enabled = false;
   std::array<bool, Config::GBA_SPEAKER_COUNT> m_config_gba_output_enabled{};
+  bool m_config_wiimote_enable_speaker;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

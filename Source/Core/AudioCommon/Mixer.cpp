@@ -268,6 +268,9 @@ void Mixer::PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samp
   if (!IsOutputSampleRateValid() || wiimote_index >= m_wiimote_speaker_mixers.size())
     return;
 
+  if (!m_config_wiimote_enable_speaker)
+    return;
+
   // WiimoteEmu produces host-endian mono samples.
 
   m_wiimote_speaker_mixers[wiimote_index].SetInputSampleRateDivisor(sample_rate_divisor);
@@ -448,6 +451,7 @@ void Mixer::RefreshConfig()
   m_config_gba_routing_enabled = Config::Get(Config::MAIN_GBA_AUDIO_ROUTING_ENABLED);
   for (std::size_t i = 0; i < m_config_gba_output_enabled.size(); ++i)
     m_config_gba_output_enabled[i] = Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]);
+  m_config_wiimote_enable_speaker = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)
