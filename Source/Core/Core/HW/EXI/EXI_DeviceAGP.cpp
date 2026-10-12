@@ -36,9 +36,8 @@ CEXIAgp::~CEXIAgp()
   std::string path;
   std::string filename;
   std::string ext;
-  std::string gbapath;
   SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
-  gbapath = path + filename;
+  std::string gbapath = path + filename;
 
   if (!gbapath.empty())
     SaveFileFromEEPROM(gbapath + ".sav");

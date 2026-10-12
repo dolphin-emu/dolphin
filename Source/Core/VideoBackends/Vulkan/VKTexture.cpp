@@ -381,7 +381,6 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
   const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
   const u32 upload_size = source_pitch * num_rows;
-  std::unique_ptr<StagingBuffer> temp_buffer;
   VkBuffer upload_buffer;
   VkDeviceSize upload_buffer_offset;
 
@@ -409,8 +408,8 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   else
   {
     // Create a temporary staging buffer that is destroyed after the image is copied.
-    temp_buffer = StagingBuffer::Create(STAGING_BUFFER_TYPE_UPLOAD, upload_size,
-                                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    std::unique_ptr<StagingBuffer> temp_buffer = StagingBuffer::Create(
+        STAGING_BUFFER_TYPE_UPLOAD, upload_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     if (!temp_buffer || !temp_buffer->Map())
     {
       PanicAlertFmt("Failed to allocate staging texture for large texture upload.");
