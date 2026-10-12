@@ -348,8 +348,8 @@ void Arm64GPRCache::ResetCRRegisters(BitSet8 regs)
 void Arm64GPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg,
                           IgnoreDiscardedRegisters ignore_discarded_registers)
 {
-  FlushRegisters(BitSet32(0xFFFFFFFF), mode, tmp_reg, ignore_discarded_registers);
-  FlushCRRegisters(BitSet8(0xFF), mode, tmp_reg, ignore_discarded_registers);
+  FlushRegisters(BitSet32::AllTrue(), mode, tmp_reg, ignore_discarded_registers);
+  FlushCRRegisters(BitSet8::AllTrue(), mode, tmp_reg, ignore_discarded_registers);
 }
 
 ARM64Reg Arm64GPRCache::BindForRead(size_t index)
