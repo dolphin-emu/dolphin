@@ -3,8 +3,15 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/HW/Triforce/IOPorts.h"
 #include "Core/HW/Triforce/SerialDevice.h"
+
+namespace ciface::Core
+{
+class SpringEffect;
+}
 
 namespace Triforce
 {
@@ -13,6 +20,9 @@ namespace Triforce
 class FZeroAXSteeringWheel final : public SerialDevice
 {
 public:
+  FZeroAXSteeringWheel();
+  ~FZeroAXSteeringWheel() override;
+
   void Update() override;
 
   bool IsInitializing() const;
@@ -22,11 +32,18 @@ public:
   void DoState(PointerWrap&) override;
 
 private:
+  void HandleConfigChange();
+
   void ProcessRequest(std::span<const u8>);
 
   u8 m_init_state = 0;
 
   s8 m_servo_position = 0;
+
+  std::unique_ptr<ciface::Core::SpringEffect> m_spring_effect;
+
+  const CPUThreadConfigCallback::ConfigChangedCallbackID m_config_changed_callback_id;
+  const Common::EventHook m_devices_changed_hook;
 };
 
 // Used for both FZeroAX and FZeroAXMonster.
