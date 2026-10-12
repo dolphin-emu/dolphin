@@ -382,7 +382,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      for (auto& [name, texture] : m_challenge_texture_map)
+      for (auto& texture : m_challenge_texture_map | std::views::values)
       {
         ImGui::Image(*texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
                                             static_cast<float>(texture->GetHeight()) * scale));
