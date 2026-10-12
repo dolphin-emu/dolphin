@@ -245,7 +245,7 @@ PRIVATE
   imgui
   implot
   glslang::SPIRV
-  tinygltf
+  tinygltf::tinygltf
 )
 
 if(_M_X86_64)
