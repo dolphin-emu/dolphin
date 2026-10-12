@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -61,17 +62,40 @@ void DVDThread::Stop()
 
 void DVDThread::DoState(PointerWrap& p)
 {
-  // Ensure all requests are completed with results Push'd to m_result_queue.
-  WaitUntilIdle();
+  std::vector<ReadRequest> requests;
 
-  // Move all results from result_queue to result_map because
-  // PointerWrap::Do supports std::map but not Common::WaitableSPSCQueue.
+  // Gather incomplete requests.
+  // The dvd thread request queue is then empty.
+  m_dvd_thread.GatherItems(
+      [&](ReadResult&& result) { requests.emplace_back(std::move(result.request)); });
+
+  // Move completed results to our map.
   // This won't affect the behavior of FinishRead.
-  ReadResult result;
-  while (m_result_queue.Pop(result))
-    m_result_map.emplace(result.first.id, std::move(result));
+  for (ReadResult result; m_result_queue.Pop(result);)
+    m_result_map.emplace(result.request.id, std::move(result));
 
-  p.Do(m_result_map);
+  // Copy the original request data from our completed result map.
+  for (const auto& result : m_result_map | std::views::values)
+    requests.emplace_back(result.request);
+
+  // All requests (complete and incomplete) are state saved without any result data.
+  p.Do(requests);
+
+  // If we are changing state, we need to rebuild our result map.
+  if (p.IsReadMode())
+    m_result_map.clear();
+
+  const std::size_t incomplete_request_count = requests.size() - m_result_map.size();
+
+  // Re-queue all the requests that don't have results in our map.
+  for (auto& request : std::span(requests).first(incomplete_request_count))
+  {
+    ReadResult async_request;
+    async_request.request = request;
+    async_request.realtime_started_us = Common::Timer::NowUs();
+    m_dvd_thread.Push(std::move(async_request));
+  }
+
   p.Do(m_next_id);
 
   // m_disc isn't savestated (because it points to files on the
@@ -88,16 +112,6 @@ void DVDThread::DoState(PointerWrap& p)
     else
       m_disc.reset();
   }
-
-  // TODO: Savestates can be smaller if the buffers of results aren't saved,
-  // but instead get re-read from the disc when loading the savestate.
-
-  // TODO: It would be possible to create a savestate faster by stopping
-  // the DVD thread regardless of whether there are pending requests.
-
-  // After loading a savestate, the debug log in FinishRead will report
-  // screwed up times for requests that were submitted before the savestate
-  // was made. Handling that properly may be more effort than it's worth.
 }
 
 void DVDThread::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
@@ -199,7 +213,8 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
 
   auto& core_timing = m_system.GetCoreTiming();
 
-  ReadRequest request;
+  ReadResult async_request;
+  ReadRequest& request = async_request.request;
 
   request.copy_to_ram = copy_to_ram;
   request.output_address = output_address;
@@ -212,9 +227,9 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
   request.id = id;
 
   request.time_started_ticks = core_timing.GetTicks();
-  request.realtime_started_us = Common::Timer::NowUs();
+  async_request.realtime_started_us = Common::Timer::NowUs();
 
-  m_dvd_thread.Push(std::move(request));
+  m_dvd_thread.Push(std::move(async_request));
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
@@ -236,8 +251,7 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   // When this function is called again later, it will check the map for
   // the wanted ReadResult before it starts searching through the queue.
   ReadResult result;
-  auto it = m_result_map.find(id);
-  if (it != m_result_map.end())
+  if (const auto it = m_result_map.find(id); it != m_result_map.end())
   {
     result = std::move(it->second);
     m_result_map.erase(it);
@@ -248,23 +262,22 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
     {
       m_result_queue.WaitForData();
       m_result_queue.Pop(result);
-      if (result.first.id == id)
+      if (result.request.id == id)
         break;
 
-      m_result_map.emplace(result.first.id, std::move(result));
+      m_result_map.emplace(result.request.id, std::move(result));
     }
   }
   // We have now obtained the right ReadResult.
-
-  const ReadRequest& request = result.first;
-  const std::vector<u8>& buffer = result.second;
+  const ReadRequest& request = result.request;
+  const auto& buffer = result.buffer;
 
   DEBUG_LOG_FMT(DVDINTERFACE,
                 "Disc has been read. Real time: {} us. "
                 "Real time including delay: {} us. "
                 "Emulated time including delay: {} us.",
-                request.realtime_done_us - request.realtime_started_us,
-                Common::Timer::NowUs() - request.realtime_started_us,
+                result.realtime_done_us - result.realtime_started_us,
+                Common::Timer::NowUs() - result.realtime_started_us,
                 (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
                     (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
@@ -293,16 +306,18 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
-void DVDThread::ProcessReadRequest(ReadRequest&& request)
+void DVDThread::ProcessReadRequest(ReadResult&& async_request)
 {
+  auto& request = async_request.request;
   m_file_logger.Log(*m_disc, request.partition, request.dvd_offset);
 
-  std::vector<u8> buffer(request.length);
+  Common::UniqueBuffer<u8> buffer(request.length);
   if (!m_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
-    buffer.resize(0);
+    buffer.reset();
 
-  request.realtime_done_us = Common::Timer::NowUs();
+  async_request.buffer = std::move(buffer);
+  async_request.realtime_done_us = Common::Timer::NowUs();
 
-  m_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
+  m_result_queue.Push(std::move(async_request));
 }
 }  // namespace DVD
