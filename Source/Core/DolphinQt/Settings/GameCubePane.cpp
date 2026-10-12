@@ -151,7 +151,7 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::EthernetXLink,
            EXIDeviceType::EthernetTapServer,
            EXIDeviceType::EthernetBuiltIn,
-#ifdef HAVE_CPPIPC
+#if defined(HAVE_CPPIPC) || defined(HAVE_ZMQ)
            EXIDeviceType::EthernetIPC,
 #endif
            EXIDeviceType::ModemTapServer,
