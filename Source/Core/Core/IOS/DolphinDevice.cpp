@@ -38,6 +38,20 @@ enum
 
 };
 
+bool IsDeterministicRequest(int request)
+{
+  switch (request)
+  {
+  case IOCTL_DOLPHIN_GET_VERSION:
+  case IOCTL_DOLPHIN_SET_SPEED_LIMIT:  // FYI: NetPlay will instantly overwrite this.
+  case IOCTL_DOLPHIN_GET_CPU_SPEED:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
@@ -268,8 +282,12 @@ DolphinDevice::DolphinDevice(EmulationKernel& ios, const std::string& device_nam
 
 std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
 {
-  if (Core::WantsDeterminism())
+  if (Core::WantsDeterminism() && !IsDeterministicRequest(request.request))
+  {
+    WARN_LOG_FMT(IOS, "WantsDeterminism causing IPC_EACCES for nondeterministic request: {:02x}",
+                 request.request);
     return IPCReply(IPC_EACCES);
+  }
 
   switch (request.request)
   {
