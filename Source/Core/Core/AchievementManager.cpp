@@ -70,15 +70,15 @@ void AchievementManager::Init(void* hwnd)
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryPeeker, Request);
     }
-    std::string host_url = Config::Get(Config::RA_HOST_URL);
-    if (!host_url.empty())
-      rc_client_set_host(m_client, host_url.c_str());
+    m_host_url = Config::Get(Config::RA_HOST_URL);
+    rc_client_set_host(m_client, m_host_url.c_str());
     rc_client_set_event_handler(m_client, EventHandler);
     rc_client_enable_logging(m_client, RC_CLIENT_LOG_LEVEL_VERBOSE,
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { SetHardcoreMode(); });
+    m_config_changed_callback_id =
+        Config::AddConfigChangedCallback([this] { HandleConfigChanged(); });
     SetHardcoreMode();
     m_queue.Reset("AchievementManagerQueue");
     m_image_queue.Reset("AchievementManagerImageQueue");
@@ -410,6 +410,20 @@ void AchievementManager::DoIdle()
 std::recursive_mutex& AchievementManager::GetLock()
 {
   return m_lock;
+}
+
+void AchievementManager::HandleConfigChanged()
+{
+  const std::string host_url = Config::Get(Config::RA_HOST_URL);
+  if (host_url != m_host_url)
+  {
+    m_host_url = host_url;
+    rc_client_set_host(m_client, m_host_url.c_str());
+    if (HasAPIToken())
+      Login("");
+  }
+
+  SetHardcoreMode();
 }
 
 void AchievementManager::SetHardcoreMode()
