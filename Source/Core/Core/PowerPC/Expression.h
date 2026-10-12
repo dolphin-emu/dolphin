@@ -95,6 +95,33 @@ private:
   bool m_has_computed_registers_used = false;
 };
 
+class MathExpression
+{
+public:
+  MathExpression();
+
+  std::optional<std::string> ModifyBracedBlocks(std::string& text);
+
+private:
+  enum class Type
+  {
+    varlist,
+    raw,
+    U8,
+    U16,
+    U32,
+    S8,
+    S16,
+    S32,
+    F32,
+  };
+
+  bool GetFunction(std::string& text, Type* type, std::string* function);
+  std::optional<std::string> ExpressionToHex(Type type, std::string_view expression);
+
+  ExprVarListPointer m_vars;
+};
+
 inline bool EvaluateCondition(Core::System& system, const std::optional<Expression>& condition)
 {
   return !condition || condition->Evaluate(system) != 0.0;
