@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -368,6 +369,11 @@ void MemChecks::Update()
     m_mem_breakpoints_set = HasAny();
   }
 
+  // We have to make sure there are no fastmem mappings for memory covered by memchecks, otherwise
+  // the JIT can access the memory without triggering the memcheck. We accomplish this by recreating
+  // fastmem mappings here. The code that creates the mappings calls into this class to find out
+  // what regions of memory to skip mapping.
+  m_system.GetMemory().UpdatePhysicalMappings();
   m_system.GetMMU().DBATUpdated();
 }
 
