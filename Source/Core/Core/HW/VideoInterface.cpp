@@ -43,10 +43,7 @@ VideoInterfaceManager::VideoInterfaceManager(Core::System& system) : m_system(sy
 {
 }
 
-VideoInterfaceManager::~VideoInterfaceManager()
-{
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
-}
+VideoInterfaceManager::~VideoInterfaceManager() = default;
 
 static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
     27000000,
@@ -183,6 +180,16 @@ void VideoInterfaceManager::Init()
 
   m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
+}
+
+void VideoInterfaceManager::Shutdown()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+
+  m_target_refresh_rate_numerator = 0;
+  m_target_refresh_rate_denominator = 1;
+  m_target_refresh_rate = 0;
+  m_target_refresh_rate_changed_event.Trigger(0);
 }
 
 void VideoInterfaceManager::RefreshConfig()
@@ -738,8 +745,14 @@ void VideoInterfaceManager::UpdateRefreshRate()
 {
   m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
-  m_target_refresh_rate =
+
+  const double target_refresh_rate =
       static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
+  if (m_target_refresh_rate != target_refresh_rate)
+  {
+    m_target_refresh_rate = target_refresh_rate;
+    m_target_refresh_rate_changed_event.Trigger(target_refresh_rate);
+  }
 }
 
 double VideoInterfaceManager::GetTargetRefreshRate() const
@@ -755,6 +768,12 @@ u32 VideoInterfaceManager::GetTargetRefreshRateNumerator() const
 u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 {
   return m_target_refresh_rate_denominator;
+}
+
+[[nodiscard]] Common::EventHook VideoInterfaceManager::RegisterTargetRefreshRateChangedCallback(
+    std::function<void(double)> callback)
+{
+  return m_target_refresh_rate_changed_event.Register(std::move(callback));
 }
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
