@@ -19,7 +19,7 @@ struct InterpreterOpInfo
 };
 
 // clang-format off
-constexpr std::array<InterpreterOpInfo, 125> s_opcodes
+constexpr std::array<InterpreterOpInfo, 126> s_opcodes
 {{
   {0x0000, 0xfffc, &Interpreter::nop},
 
@@ -28,6 +28,7 @@ constexpr std::array<InterpreterOpInfo, 125> s_opcodes
   {0x000c, 0xfffc, &Interpreter::subarn},
   {0x0010, 0xfff0, &Interpreter::addarn},
 
+  {0x0020, 0xffff, &Interpreter::swi},
   {0x0021, 0xffff, &Interpreter::halt},
 
   {0x02d0, 0xfff0, &Interpreter::ret},
