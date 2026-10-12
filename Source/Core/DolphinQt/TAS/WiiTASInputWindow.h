@@ -19,12 +19,8 @@ namespace WiimoteEmu
 {
 class Extension;
 class Wiimote;
+class BalanceBoard;
 }  // namespace WiimoteEmu
-
-namespace ControllerEmu
-{
-class Attachments;
-}
 
 class WiiTASInputWindow : public TASInputWindow
 {
@@ -40,7 +36,6 @@ public:
 
 private:
   WiimoteEmu::Wiimote* GetWiimote();
-  ControllerEmu::Attachments* GetAttachments();
   WiimoteEmu::Extension* GetExtension();
 
   void LoadExtensionAndMotionPlus();
@@ -98,4 +93,19 @@ private:
   AspectRatioWidget* m_nunchuk_stick_box;
   AspectRatioWidget* m_classic_left_stick_box;
   AspectRatioWidget* m_classic_right_stick_box;
+};
+
+class BalanceBoardTASInputWindow : public TASInputWindow
+{
+public:
+  explicit BalanceBoardTASInputWindow(QWidget* parent);
+
+private:
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
+
+  WiimoteEmu::BalanceBoard* GetBalanceBoard() const;
+
+  InputOverrider m_wiimote_overrider;
+  InputOverrider m_balance_board_overrider;
 };
