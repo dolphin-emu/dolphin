@@ -1,9 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "AudioCommon/SurroundDecoder.h"
+#include "AudioCommon/SurroundDecoder/SurroundDecoder.h"
+#include "AudioCommon/SurroundDecoder/FreeSurroundDecoder.h"
 
-#include <FreeSurround/FreeSurroundDecoder.h>
 #include <limits>
 
 namespace AudioCommon
@@ -14,8 +14,7 @@ constexpr size_t SURROUND_CHANNELS = 6;
 SurroundDecoder::SurroundDecoder(u32 sample_rate, u32 frame_block_size)
     : m_sample_rate(sample_rate), m_frame_block_size(frame_block_size)
 {
-  m_fsdecoder = std::make_unique<DPL2FSDecoder>();
-  m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
+  m_fsdecoder = std::make_unique<DPL2FSDecoder>(cs_5point1, m_frame_block_size, m_sample_rate);
 }
 
 SurroundDecoder::~SurroundDecoder() = default;
