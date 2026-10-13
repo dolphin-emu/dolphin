@@ -45,7 +45,18 @@ private:
   struct Func : FuncBase
   {
     explicit Func(F&& f) : func{std::forward<F>(f)} {}
-    result_type Invoke(Args... args) override { return func(std::forward<Args>(args)...); }
+    result_type Invoke(Args... args) override
+    {
+// TODO: Remove fallback when we can require Clang 17.
+#if defined(__cpp_lib_invoke_r) && (__cpp_lib_invoke_r >= 202106L)
+      return std::invoke_r<result_type>(func, std::forward<Args>(args)...);
+#else
+      if constexpr (std::is_void_v<result_type>)
+        func(std::forward<Args>(args)...);
+      else
+        return func(std::forward<Args>(args)...);
+#endif
+    }
     std::decay_t<F> func;
   };
 
