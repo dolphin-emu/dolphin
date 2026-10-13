@@ -89,8 +89,10 @@ void GPFifoManager::UpdateGatherPipe()
   auto& processor_interface = system.GetProcessorInterface();
 
   size_t pipe_count = GetGatherPipeCount();
-  size_t processed;
-  for (processed = 0; pipe_count >= GATHER_PIPE_SIZE; processed += GATHER_PIPE_SIZE)
+  // For performance reasons, we want this function to be called only in this condition.
+  DEBUG_ASSERT(pipe_count >= GATHER_PIPE_SIZE);
+  size_t processed = 0;
+  for (; pipe_count >= GATHER_PIPE_SIZE; processed += GATHER_PIPE_SIZE)
   {
     // copy the GatherPipe
     memory.CopyToEmu(processor_interface.m_fifo_cpu_write_pointer, m_gather_pipe + processed,
@@ -107,7 +109,12 @@ void GPFifoManager::UpdateGatherPipe()
   }
 
   // move back the spill bytes
-  memmove(m_gather_pipe, m_gather_pipe + processed, pipe_count);
+  // Copy a constant size (instead of pipe_count) so that the compiler can optimize it to only a few
+  // instructions. Using memcpy because MSVC often doesn't inline memmove.
+  // https://godbolt.org/z/9sfzaeEbe
+  // Since `processed >= GATHER_PIPE_SIZE` (see the DEBUG_ASSERT above), there's no overlap.
+  std::memcpy(m_gather_pipe, m_gather_pipe + processed, GATHER_PIPE_SIZE);
+
   SetGatherPipeCount(pipe_count);
 }
 
