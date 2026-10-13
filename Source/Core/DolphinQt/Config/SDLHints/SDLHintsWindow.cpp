@@ -7,6 +7,7 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
@@ -27,6 +28,8 @@ SDLHintsWindow::SDLHintsWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
 
   setWindowTitle(tr("SDL Controller Settings"));
+
+  adjustSize();
 }
 
 QSize SDLHintsWindow::sizeHint() const
@@ -120,12 +123,19 @@ void SDLHintsWindow::CreateMainLayout()
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, checked ? "1" : "0");
   });
 
+  auto* const dualsense_adaptive_triggers = new ConfigBool(
+      tr("Enable DualSense Adaptive Triggers"), Config::MAIN_INPUT_DUALSENSE_ADAPTIVE_TRIGGERS);
+  dualsense_adaptive_triggers->SetDescription(
+      tr("Use DualSense adaptive trigger effects to simulate GameCube controller trigger clicks."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+
   auto* const default_layout = new QVBoxLayout();
   default_layout->setContentsMargins(10, 10, 10, 10);
   default_layout->addWidget(m_directinput_detection);
   default_layout->addWidget(m_combine_joy_cons);
   default_layout->addWidget(m_horizontal_joy_cons);
   default_layout->addWidget(m_dualsense_player_led);
+  default_layout->addWidget(dualsense_adaptive_triggers);
   default_layout->addStretch(1);
 
   auto* const default_frame = new QFrame();
@@ -144,7 +154,7 @@ void SDLHintsWindow::CreateMainLayout()
   connect(m_tab_widget, &QTabWidget::currentChanged, this, &SDLHintsWindow::TabChanged);
 
   auto* const warning_text =
-      new QLabel(tr("Dolphin must be restarted for these changes to take effect."));
+      new QLabel(tr("Dolphin may need to be restarted for these changes to take effect."));
   warning_text->setWordWrap(true);
 
   // Create main layout
