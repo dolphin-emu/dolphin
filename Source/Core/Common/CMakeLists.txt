@@ -133,6 +133,7 @@ add_library(common
   Random.h
   RangeSet.h
   RangeSizeSet.h
+  Rational.h
   ScopeGuard.h
   SDCardUtil.cpp
   SDCardUtil.h
