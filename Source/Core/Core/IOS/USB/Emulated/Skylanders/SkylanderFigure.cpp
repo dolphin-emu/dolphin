@@ -8,7 +8,6 @@
 #include <span>
 #include <string>
 
-#include <mbedtls/aes.h>
 #include <mbedtls/md5.h>
 
 #include "Common/BitUtils.h"
@@ -53,10 +52,10 @@ void SkylanderFigure::PopulateKeys()
 }
 
 SkylanderFigure::SkylanderFigure(const std::string& file_path)
+    : m_sky_file{File::IOFile(file_path, "w+b")}
 {
-  m_sky_file = File::IOFile(file_path, "w+b");
-  m_data = {};
 }
+
 // Generate a AES key without the block filled in
 void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
 {
@@ -80,6 +79,7 @@ void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
 
   memcpy(dest, hash_in.data(), 0x56);
 }
+
 void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
 {
   std::array<u8, 0x56> hash_in = {};
@@ -109,24 +109,21 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
 
     mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
 
-    mbedtls_aes_context aes_context = {};
-
-    mbedtls_aes_setkey_enc(&aes_context, hash_out.data(), 128);
-
-    mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_ENCRYPT, current_block.data(),
-                          encrypted.data() + (i * BLOCK_SIZE));
+    Common::AES::CreateContextEncrypt(hash_out.data())
+        ->CryptIvZero(current_block.data(), encrypted.data() + (i * BLOCK_SIZE), BLOCK_SIZE);
   }
 
   memcpy(m_data.data(), encrypted.data(), FIGURE_SIZE);
 
   DEBUG_LOG_FMT(IOS_USB, "Encrypted skylander data: \n{}", HexDump(encrypted.data(), FIGURE_SIZE));
 }
-SkylanderFigure::SkylanderFigure(File::IOFile file)
+
+SkylanderFigure::SkylanderFigure(File::IOFile file) : m_sky_file{std::move(file)}
 {
-  m_sky_file = std::move(file);
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.ReadBytes(m_data.data(), m_data.size());
 }
+
 bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
                              std::optional<std::array<u8, 4>> requested_nuid)
 {
@@ -141,12 +138,12 @@ bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
 
   // Set the NUID of the figure
   if (requested_nuid)
-    std::memcpy(&m_data[0], requested_nuid->data(), 4);
+    std::memcpy(m_data.data(), requested_nuid->data(), 4);
   else
-    Common::Random::Generate(&m_data[0], 4);
+    Common::Random::Generate(m_data.data(), 4);
 
   // The BCC (Block Check Character)
-  m_data[4] = m_data[0] ^ m_data[1] ^ m_data[2] ^ m_data[3];
+  m_data[4] = u8(u32(m_data[0]) ^ m_data[1] ^ m_data[2] ^ m_data[3]);
 
   // ATQA
   m_data[5] = 0x81;
@@ -167,6 +164,7 @@ bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
   Save();
   return true;
 }
+
 void SkylanderFigure::Save()
 {
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
@@ -250,6 +248,7 @@ FigureData SkylanderFigure::GetData() const
 
   return figure_data;
 }
+
 void SkylanderFigure::SetData(FigureData* figure_data)
 {
   std::array<u8, FIGURE_SIZE> decrypted = {};
@@ -356,6 +355,7 @@ void SkylanderFigure::SetData(FigureData* figure_data)
 
   Save();
 }
+
 void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
 {
   std::array<u8, 0x56> hash_in = {};
@@ -396,26 +396,25 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
 
     mbedtls_md5_ret(hash_in.data(), 0x56, hash_out.data());
 
-    mbedtls_aes_context aes_context = {};
-
-    mbedtls_aes_setkey_dec(&aes_context, hash_out.data(), 128);
-
-    mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_DECRYPT, current_block.data(),
-                          decrypted.data() + (i * BLOCK_SIZE));
+    Common::AES::CreateContextDecrypt(hash_out.data())
+        ->CryptIvZero(current_block.data(), decrypted.data() + (i * BLOCK_SIZE), BLOCK_SIZE);
   }
 
   memcpy(dest->data(), decrypted.data(), FIGURE_SIZE);
 
   DEBUG_LOG_FMT(IOS_USB, "Decrypted skylander data: \n{}", HexDump(decrypted.data(), FIGURE_SIZE));
 }
+
 void SkylanderFigure::Close()
 {
   m_sky_file.Close();
 }
+
 void SkylanderFigure::SetBlock(u8 block, const u8* buf)
 {
   memcpy(m_data.data() + (block * BLOCK_SIZE), buf, BLOCK_SIZE);
 }
+
 bool SkylanderFigure::FileIsOpen() const
 {
   return m_sky_file.IsOpen();
