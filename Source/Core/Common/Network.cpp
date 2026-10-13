@@ -12,6 +12,7 @@
 #include <cstring>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #else
 #include <winsock2.h>
 #endif
@@ -235,6 +236,14 @@ std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject)
     return std::nullopt;
 
   return result;
+}
+
+std::optional<std::string> GetHostname()
+{
+  char buf[256]{};
+  if (gethostname(buf, sizeof(buf) - 1) != 0)
+    return std::nullopt;
+  return std::string(buf);
 }
 
 MACAddress GenerateMacAddress(const MACConsumer type)

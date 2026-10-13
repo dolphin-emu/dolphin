@@ -116,6 +116,8 @@ add_library(common
   MinizipUtil.h
   MsgHandler.cpp
   MsgHandler.h
+  MulticastDNS.cpp
+  MulticastDNS.h
   Mutex.h
   NandPaths.cpp
   NandPaths.h
