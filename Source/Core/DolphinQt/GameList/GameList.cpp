@@ -549,7 +549,16 @@ void GameList::ShowContextMenu(const QPoint&)
     }
 
     menu->addAction(tr("New Tag..."), this, &GameList::NewTag);
-    menu->addAction(tr("Remove Tag..."), this, &GameList::DeleteTag);
+
+    auto* const delete_tag_menu{new QtUtils::NonAutodismissibleMenu(tr("Delete Tag"), menu)};
+    menu->addMenu(delete_tag_menu);
+
+    for (const auto& tag : m_model.GetAllTags())
+    {
+      auto* tag_action = delete_tag_menu->addAction(tag);
+      connect(tag_action, &QAction::triggered,
+              [tag, model = &m_model] { emit model->DeleteTag(tag); });
+    }
 
     menu->addSeparator();
 
@@ -1141,18 +1150,6 @@ void GameList::NewTag()
     return;
 
   m_model.NewTag(tag);
-}
-
-void GameList::DeleteTag()
-{
-  const auto tag =
-      QInputDialog::getText(this, tr("Remove tag"), tr("Name of the tag to remove:"),
-                            QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
-
-  if (tag.isEmpty())
-    return;
-
-  m_model.DeleteTag(tag);
 }
 
 void GameList::SetSearchTerm(const QString& term)
