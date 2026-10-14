@@ -144,7 +144,6 @@ private:
 #elif defined(__APPLE__)
   vm_address_t m_shm_address = 0;
   vm_size_t m_shm_size = 0;
-  mem_entry_name_port_t m_shm_entry = MACH_PORT_NULL;
 
   vm_address_t m_region_address = 0;
   vm_size_t m_region_size = 0;

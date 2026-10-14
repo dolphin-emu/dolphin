@@ -328,20 +328,3 @@ static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n
                                                  "\tfloat4 " I_LINEPTPARAMS ";\n"
                                                  "\tint4 " I_TEXOFFSET ";\n"
                                                  "\tuint vs_expand;\n";
-
-constexpr std::string_view CUSTOM_PIXELSHADER_COLOR_FUNC = "customShaderColor";
-
-struct CustomPixelShader
-{
-  std::string custom_shader;
-  std::string material_uniform_block;
-
-  bool operator==(const CustomPixelShader& other) const = default;
-};
-
-struct CustomPixelShaderContents
-{
-  std::vector<CustomPixelShader> shaders;
-
-  bool operator==(const CustomPixelShaderContents& other) const = default;
-};

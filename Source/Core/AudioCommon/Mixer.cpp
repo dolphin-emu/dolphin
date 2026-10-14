@@ -176,8 +176,11 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
       m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
   }
   m_skylander_portal_mixer.Mix(samples, num_samples);
-  for (auto& mixer : m_gba_mixers)
-    mixer.Mix(samples, num_samples);
+  for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
+  {
+    if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
+      m_gba_mixers[i].Mix(samples, num_samples);
+  }
 
   return num_samples;
 }
@@ -317,6 +320,15 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   }
 }
 
+std::size_t Mixer::MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples)
+{
+  if (!samples || device_number >= m_gba_mixers.size())
+    return 0;
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_gba_mixers[device_number].Mix(samples, num_samples);
+  return num_samples;
+}
+
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
 {
   m_dma_mixer.SetInputSampleRateDivisor(rate_divisor);
@@ -433,6 +445,9 @@ void Mixer::RefreshConfig()
   m_config_wiimote_routing_enabled = Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
   for (std::size_t i = 0; i < m_config_wiimote_output_enabled.size(); ++i)
     m_config_wiimote_output_enabled[i] = Config::Get(Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
+  m_config_gba_routing_enabled = Config::Get(Config::MAIN_GBA_AUDIO_ROUTING_ENABLED);
+  for (std::size_t i = 0; i < m_config_gba_output_enabled.size(); ++i)
+    m_config_gba_output_enabled[i] = Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

@@ -1359,7 +1359,7 @@ class SettingsFragmentPresenter(
         )
         sl.add(
             IntSliderSetting(
-                context, mem2Size, R.string.main_mem2_size, 0, 64, 128, "MB", 1
+                context, mem2Size, R.string.main_mem2_size, 0, 64, 256, "MB", 1
             )
         )
 

@@ -10,12 +10,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/GCPadStatus.h"
 
-static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
-                                    PAD_BUTTON_RIGHT};
-
-static const u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_L,
-                                      PAD_TRIGGER_R, PAD_TRIGGER_Z, PAD_BUTTON_START};
-
 GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
 {
   using Translatability = ControllerEmu::Translatability;
@@ -67,15 +61,25 @@ GCPadStatus GBAPad::GetInput()
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
 
+  static constexpr u16 dpad_bitmasks[] = {
+      GBA_BUTTON_UP,
+      GBA_BUTTON_DOWN,
+      GBA_BUTTON_LEFT,
+      GBA_BUTTON_RIGHT,
+  };
+
+  static constexpr u16 button_bitmasks[] = {
+      GBA_BUTTON_B, GBA_BUTTON_A, GBA_BUTTON_L, GBA_BUTTON_R, GBA_BUTTON_SELECT, GBA_BUTTON_START,
+  };
+
   // Buttons
   m_buttons->GetState(&pad.button, button_bitmasks, m_input_override_function);
 
   // DPad
   m_dpad->GetState(&pad.button, dpad_bitmasks, m_input_override_function);
 
-  // Use X button as a reset signal
   if (m_reset_pending)
-    pad.button |= PAD_BUTTON_X;
+    pad.button |= PAD_STATUS_RESET_SIGNAL;
   m_reset_pending = false;
 
   return pad;

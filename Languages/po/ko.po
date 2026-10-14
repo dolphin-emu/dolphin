@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-22 20:35+0200\n"
+"POT-Creation-Date: 2026-09-21 20:15+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2025\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -328,7 +328,7 @@ msgstr "이 타이틀은 부팅될 수 없습니다."
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
-#: Source/Core/Core/Core.cpp:565
+#: Source/Core/Core/Core.cpp:562
 #, c++-format
 msgid ""
 "Failed to sync SD card with folder. All changes made this session will be "
@@ -1558,11 +1558,11 @@ msgid ""
 msgstr ""
 "게임이 다른 게임 저장과 함께 덮어썼습니다.  {0:#x}, {1:#x} 앞쪽에 데이터 오염"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:601
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:607
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT가 올바르지 않습니다. 돌핀이 종료됩니다."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:611
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:617
 #, c++-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT ({0}) does not match that of "
@@ -1571,7 +1571,7 @@ msgstr ""
 "경고: BAT ({0}) 에 의해 나타난 블록수가 파일 헤더 ({1}) 의 수와 일치하지 않습"
 "니다"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:654
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:660
 #, c++-format
 msgid ""
 "Failed to find new filename.\n"
@@ -2870,7 +2870,7 @@ msgstr ""
 "출력 파일 \"{0}\" 를 쓰지 못했습니다.\n"
 "타겟 드라이브에 충분한 여유 공간이 있는지 확인하세요."
 
-#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "Europe"
 msgstr "유럽"
 
@@ -16570,27 +16570,27 @@ msgstr "게임 하기"
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "East Asia"
 msgstr "동 아시아"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "China"
 msgstr "중국"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "North America"
 msgstr "북 아메리카"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "South America"
 msgstr "남 아메리카"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "Oceania"
 msgstr "오시애니아"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:255
+#: Source/Core/UICommon/NetPlayIndex.cpp:256
 msgid "Africa"
 msgstr "아프리카"
 

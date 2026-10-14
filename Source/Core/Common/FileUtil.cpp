@@ -740,6 +740,11 @@ std::string GetExePath()
   if (sysctl(name, 4, dolphin_exe_path.data(), &length, nullptr, 0) != 0)
     return {};
   return dolphin_exe_path;
+#elif defined(__OpenBSD__) && defined(HAVE_GETEXECPATH)
+  char dolphin_exe_path[PATH_MAX];
+  if (getexecpath(dolphin_exe_path, sizeof(dolphin_exe_path)) != 0)
+    return {};
+  return dolphin_exe_path;
 #else
   char dolphin_exe_path[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));

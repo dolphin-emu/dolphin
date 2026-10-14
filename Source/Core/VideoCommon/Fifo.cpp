@@ -54,9 +54,16 @@ void FifoManager::DoState(PointerWrap& p)
 {
   p.DoArray(m_video_buffer, FIFO_SIZE);
   u8* write_ptr = m_video_buffer_write_ptr;
-  p.DoPointer(write_ptr, m_video_buffer);
+  if (!p.DoPointer(write_ptr, m_video_buffer, FIFO_SIZE))
+    return;
   m_video_buffer_write_ptr = write_ptr;
-  p.DoPointer(m_video_buffer_read_ptr, m_video_buffer);
+  if (!p.DoPointer(m_video_buffer_read_ptr, m_video_buffer, FIFO_SIZE))
+    return;
+  if (p.IsReadMode() && m_video_buffer_read_ptr > write_ptr)
+  {
+    p.SetMeasureMode();
+    return;
+  }
   if (p.IsReadMode() && m_use_deterministic_gpu_thread)
   {
     // We're good and paused, right?

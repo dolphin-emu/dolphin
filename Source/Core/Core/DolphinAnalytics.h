@@ -141,8 +141,8 @@ public:
   struct PerformanceSample
   {
     double speed_ratio;  // See SystemTimers::GetEstimatedEmulationPerformance().
-    int num_prims;
-    int num_draw_calls;
+    u32 num_prims;
+    u32 num_draw_calls;
   };
   // Reports performance information. This method performs its own throttling / aggregation --
   // calling it does not guarantee when a report will actually be sent.

@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-22 20:35+0200\n"
+"POT-Creation-Date: 2026-09-21 20:15+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Aleksi, 2023-2026\n"
 "Language-Team: Finnish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -335,7 +335,7 @@ msgstr "Tätä julkaisua ei voi käynnistää."
 msgid "Emu Thread already running"
 msgstr "Emulaattorisäie on jo käynnissä"
 
-#: Source/Core/Core/Core.cpp:565
+#: Source/Core/Core/Core.cpp:562
 #, c++-format
 msgid ""
 "Failed to sync SD card with folder. All changes made this session will be "
@@ -1575,11 +1575,11 @@ msgstr ""
 "Peli ylikirjoitti toisen pelin tallennustiedoston. Datan vioittumista edessä "
 "{0:#x}, {1:#x}"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:601
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:607
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT on virheellinen. Dolphin sulkeutuu nyt"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:611
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:617
 #, c++-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT ({0}) does not match that of "
@@ -1588,7 +1588,7 @@ msgstr ""
 "Varoitus: BAT:n nimeämä lohkolukumäärä ({0}) ei vastaa ladatun tiedoston "
 "otsaketta ({1})"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:654
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:660
 #, c++-format
 msgid ""
 "Failed to find new filename.\n"
@@ -2639,7 +2639,7 @@ msgstr "Sisäinen LZO-virhe - purkaminen epäonnistui"
 #: Source/Core/Core/NetPlayCommon.cpp:222
 #: Source/Core/Core/NetPlayCommon.cpp:321
 msgid "LZO error - output is too large"
-msgstr ""
+msgstr "LZO-virhe – tuloskoko on liian suuri"
 
 #: Source/Core/Core/NetPlayCommon.cpp:228
 #, c++-format
@@ -2648,7 +2648,7 @@ msgstr "Virhe tiedoston kirjoituksessa: {0}"
 
 #: Source/Core/Core/NetPlayCommon.cpp:332
 msgid "LZO error - output size mismatch"
-msgstr ""
+msgstr "LZO-virhe – tuloskoko ei täsmä"
 
 #: Source/Core/Core/NetPlayServer.cpp:127
 msgid "Enet Didn't Initialize"
@@ -2921,7 +2921,7 @@ msgstr ""
 "Ulostulotiedoston \"{0}\" kirjoitus epäonnistui.\n"
 "Varmista, että kohdelevyllä on tarpeeksi vapaata tilaa."
 
-#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/DiscIO/Enums.cpp:23 Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "Europe"
 msgstr "Eurooppa"
 
@@ -3068,12 +3068,12 @@ msgstr "Tiedoston {0} kirjoittaminen epäonnistui"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:106
 msgid "Failed to connect to Redump.info"
-msgstr ""
+msgstr "Redump.info-palvelimeen yhdistäminen epäonnistui"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:213
 #: Source/Core/DiscIO/VolumeVerifier.cpp:312
 msgid "Failed to parse Redump.info data"
-msgstr ""
+msgstr "Redump.info-datan lukeminen epäonnistui"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:308
 #, c++-format
@@ -3384,6 +3384,8 @@ msgid ""
 "This is a good dump according to Redump.info, but Dolphin has found "
 "problems. This might be a bug in Dolphin."
 msgstr ""
+"Redump.info-palvelimen mukaan vedos on kunnossa, mutta Dolphin on "
+"tunnistanut siinä ongelmia. Kyseessä voi olla Dolphinin ohjelmointivirhe."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1391
 msgid "Dolphin is unable to verify unlicensed discs."
@@ -3520,11 +3522,11 @@ msgstr "Käytössä Qt %1"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:80
 msgid "Using SDL %1"
-msgstr ""
+msgstr "Käytössä SDL %1"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:82
 msgid "SDL disabled"
-msgstr ""
+msgstr "SDL ei ole käytössä"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:84
 msgid "Check for updates"
@@ -4309,7 +4311,7 @@ msgstr "&Poista koodi"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:112
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:352
 msgid "Disable All"
-msgstr ""
+msgstr "Poista kaikki käytöstä"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:137
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:317
@@ -4329,7 +4331,7 @@ msgstr "Näytä käytöstä poistetut koodit ensin"
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:174
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:354
 msgid "Enable All"
-msgstr ""
+msgstr "Ota kaikki käyttöön"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:213
 msgid "Clone and &Edit Code..."
@@ -6981,34 +6983,48 @@ msgid ""
 "is the bottleneck.<br><br>This setting is disabled when Arbitrary Mipmap "
 "Detection is enabled.<br><br>"
 msgstr ""
+"Purkaa tekstuurit grafiikkasuorittimella tavallisen suorittimen sijaan."
+"<br><br>Asetus voi parantaa suorituskykyä tietyissä tilanteissa, etenkin jos "
+"suorittimen teho on rajoittava tekijä.<br><br>Asetusta ei voi käyttää, jos "
+"mielivaltaisten mipmapien havainta on käytössä.<br><br>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
 msgid ""
 "<dolphin_emphasis>The %1 backend doesn't support GPU Texture Decoding.</"
 "dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>%1 ei tue tekstuurien purkua grafiikkasuorittimella.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:271
 msgid ""
 "<dolphin_emphasis>GPU Texture Decoding is currently disabled by Arbitrary "
 "Mipmap Detection.</dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Tekstuurien purku grafiikkasuorittimella ei ole "
+"mahdollista, koska mielivaltaisten mipmapien havainta on käytössä.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:285
 msgid ""
 "Disables bounding box emulation.<br><br>This may improve GPU performance "
 "significantly, but some games will break.<br><br>"
 msgstr ""
+"Poistaa rajoituslaatikon emuloinnin käytöstä.<br><br>Tämä voi parantaa "
+"grafiikkasuorittimen suorituskykyä huomattavasti, mutta jotkin pelit "
+"rikkoutuvat.<br><br>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:295
 msgid "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Ellet ole varma, jätä tämä valituksi.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:300
 msgid ""
 "<dolphin_emphasis>The %1 backend doesn't support Bounding Box emulation.</"
 "dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>%1 ei tue rajoituslaatikon emulointia.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:67
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:40
@@ -7945,7 +7961,7 @@ msgstr "SHA-1:"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:87
 msgid "Redump.info Status:"
-msgstr ""
+msgstr "Redump.info-tila:"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 msgid "Verify Integrity"
@@ -11795,11 +11811,11 @@ msgstr "&Huijauskoodien hallinta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:285
 msgid "&FIFO Player"
-msgstr ""
+msgstr "&FIFO-toistaja"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:287
 msgid "&Emulated USB Devices"
-msgstr ""
+msgstr "&Emuloitavat USB-laitteet"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:288
 msgid "&Skylanders Portal"
@@ -11827,7 +11843,7 @@ msgstr "Selaa &nettipeli-istuntoja..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "&Achievements"
-msgstr ""
+msgstr "&Saavutukset"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:305
 msgid "RetroAchievements Development"
@@ -11835,95 +11851,95 @@ msgstr "RetroAchivementsin kehitys"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:313
 msgid "Load &GameCube Main Menu"
-msgstr ""
+msgstr "Lataa &GameCuben päävalikko"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:315
 msgid "NTSC-&J"
-msgstr ""
+msgstr "NTSC-&J"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "NTSC-&U"
-msgstr ""
+msgstr "NTSC-&U"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "&PAL"
-msgstr ""
+msgstr "&PAL"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "&Triforce"
-msgstr ""
+msgstr "&Triforce"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:325
 msgid "&Memory Card Manager"
-msgstr ""
+msgstr "&Muistikorttien hallinta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:331
 msgid "Install &WAD..."
-msgstr ""
+msgstr "Asenna &WAD..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:332
 msgid "Manage &NAND"
-msgstr ""
+msgstr "&NAND-muistin hallinta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:333
 msgid "Import &BootMii NAND Backup..."
-msgstr ""
+msgstr "Tuo &BootMiin NAND-varmuuskopio..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Check &NAND..."
-msgstr ""
+msgstr "Tarkista &NAND-muisti..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:336
 msgid "Extract &Certificates from NAND"
-msgstr ""
+msgstr "Pura &varmenteet NAND-muistista"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:344
 msgid "Perform Online System &Update"
-msgstr ""
+msgstr "Tee verkkoyhteydellä &järjestelmäpäivitys"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:346
 msgid "&Current Region"
-msgstr ""
+msgstr "&Nykyinen alue"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:348
 msgid "&Europe"
-msgstr ""
+msgstr "&Eurooppa"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:350
 msgid "&Japan"
-msgstr ""
+msgstr "&Japani"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "&Korea"
-msgstr ""
+msgstr "&Korea"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:354
 msgid "&United States"
-msgstr ""
+msgstr "&Yhdysvallat"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:360
 msgid "Import &Wii Save..."
-msgstr ""
+msgstr "Tuo &Wii-tallennustiedosto..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:362
 msgid "Import &Wii Saves..."
-msgstr ""
+msgstr "Tuo &Wii-tallennustiedostoja..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:364
 msgid "Export All &Wii Saves"
-msgstr ""
+msgstr "Vie kaikki &Wii-tallennustiedostot"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:367
 msgid "&Connect Wii Remotes"
-msgstr ""
+msgstr "&Yhdistä Wii Remote"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:375
 msgid "Connect Wii Remote &%1"
-msgstr ""
+msgstr "Yhdistä Wii Remote &%1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:381
 msgid "Connect &Balance Board"
-msgstr ""
+msgstr "Yhdistä &tasapainolauta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:388
 msgid "&Emulation"
@@ -12401,7 +12417,7 @@ msgstr "RSO-moduulit"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1076
 msgid "Show &Demangled Names"
-msgstr ""
+msgstr "Näytä &tulkitut nimet"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1079
 msgid "&Load Symbol Map"
@@ -12449,11 +12465,11 @@ msgstr "&Muuta HLE-funktiot"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1137
 msgid "Load vWii &System Menu %1"
-msgstr ""
+msgstr "Lataa vWiin &järjestelmävalikko %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1138
 msgid "Load Wii &System Menu %1"
-msgstr ""
+msgstr "Lataa Wiin &järjestelmävalikko %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1196
 msgid "Select Title to Install to NAND"
@@ -13890,6 +13906,11 @@ msgid ""
 "information.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Asettaa emuloidun konsolin muistien määrät.<br><br><b>VAROITUS</b>: "
+"Asetusten muuttaminen tuottaa ongelmia monissa peleissä. Oletuksen Dolphin "
+"valitsee automaattisesti tarvittavan määrän pelin tietojen perusteella."
+"<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä valitsematta.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:284
 msgid "Custom RTC Options"
@@ -15191,7 +15212,7 @@ msgstr "Näytä projektiotilastot"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:105
 msgid "Show XFB Resolution"
-msgstr ""
+msgstr "Näytä ulkoisen kehyspuskurin kuvatarkkuus"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:142
 msgid ""
@@ -15393,6 +15414,9 @@ msgid ""
 "product of width and height.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Näyttää emuloidun ulkoisen kehyspuksurin pikselimääräisenä leveyden ja "
+"korkeuden tulona.<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä "
+"valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:49
 msgid "Select a Game"
@@ -16908,27 +16932,27 @@ msgstr "Peli käynnissä"
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "East Asia"
 msgstr "Itä-Aasia"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:253
+#: Source/Core/UICommon/NetPlayIndex.cpp:254
 msgid "China"
 msgstr "Kiina"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "North America"
 msgstr "Pohjois-Amerikka"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "South America"
 msgstr "Etelä-Amerikka"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:254
+#: Source/Core/UICommon/NetPlayIndex.cpp:255
 msgid "Oceania"
 msgstr "Oseania"
 
-#: Source/Core/UICommon/NetPlayIndex.cpp:255
+#: Source/Core/UICommon/NetPlayIndex.cpp:256
 msgid "Africa"
 msgstr "Afrikka"
 
