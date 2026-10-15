@@ -154,6 +154,10 @@ int main(int argc, char* argv[])
   {
     argc--;
   }
+
+  // Force the Vulkan loader to only search for drivers in the bundle. This ensures that
+  // system-level drivers aren't loaded.
+  setenv("VK_LOADER_SEARCH_ONLY_IN_BUNDLE", "1", true);
 #endif
 
 #ifdef __linux__
