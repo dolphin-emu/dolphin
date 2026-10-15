@@ -155,8 +155,8 @@ if(APPLE)
   option(POSTPROCESS_BUNDLE "Postprocess bundle for redistributability" OFF)
   # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
-  option(USE_BUNDLED_MOLTENVK "Build MoltenVK from Externals with Dolphin-specific patches" ON)
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
+  option(ENABLE_KOSMICKRISP "Enables the KosmicKrisp Vulkan driver." ON)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -634,13 +634,37 @@ if(WIN32 OR APPLE)
 endif()
 add_subdirectory(Externals/tinygltf)
 
+if(APPLE AND ENABLE_VULKAN)
+  find_package(Vulkan)
+
+  if(VULKAN_FOUND)
+    get_filename_component(VULKAN_ROOT_DIR "${Vulkan_INCLUDE_DIR}" DIRECTORY)
+
+    # Test if the MoltenVK icd exists to ensure that this is the LunarG SDK.
+    if(NOT EXISTS "${VULKAN_ROOT_DIR}/share/vulkan/icd.d/MoltenVK_icd.json")
+      message(FATAL_ERROR
+        "The found Vulkan SDK is not the LunarG SDK. Install the LunarG SDK and set VULKAN_SDK to its path.")
+    endif()
+  else()
+    message(WARNING "Could not find Vulkan SDK, disabling Vulkan support")
+    set(ENABLE_VULKAN OFF)
+  endif()
+endif()
+
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
-  if(APPLE AND USE_BUNDLED_MOLTENVK)
-    add_subdirectory(Externals/MoltenVK)
-  endif()
+  if(APPLE)
+    set(CMAKE_FIND_FRAMEWORK NEVER)
 
+    # Find Vulkan driver dylibs
+    find_library(MOLTENVK_LIBRARY NAMES libMoltenVK.dylib HINTS "${VULKAN_ROOT_DIR}/lib" REQUIRED)
+    if(ENABLE_KOSMICKRISP)
+      find_library(KOSMICKRISP_LIBRARY NAMES libvulkan_kosmickrisp.dylib HINTS "${VULKAN_ROOT_DIR}/lib")
+    endif()
+
+    unset(CMAKE_FIND_FRAMEWORK)
+  endif()
 
   if (ANDROID AND _M_ARM_64)
     add_subdirectory(Externals/libadrenotools)
