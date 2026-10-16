@@ -311,7 +311,7 @@ void BreakpointWidget::Update()
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::transparent);
 
-    const float icon_radius = static_cast<float>(image.height()) / 2.0f;
+    const float icon_radius = image.deviceIndependentSize().height() / 2.0f;
     const float gap_radius = icon_radius / 2.0f;
     const QPointF center(icon_radius, icon_radius);
 
