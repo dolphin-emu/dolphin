@@ -737,19 +737,20 @@ void IncPerfCounterQuadCount(PerfQueryType type)
 namespace SW
 {
 
-void SWEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
+void SWEFBInterface::ReinterpretPixelData(FramebufferManager* framebuffer_manager,
+                                          EFBReinterpretType convtype)
 {
 }
 
-void SWEFBInterface::PokeColor(u16 x, u16 y, u32 color)
+void SWEFBInterface::PokeColor(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 color)
 {
 }
 
-void SWEFBInterface::PokeDepth(u16 x, u16 y, u32 depth)
+void SWEFBInterface::PokeDepth(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 depth)
 {
 }
 
-u32 SWEFBInterface::PeekColorInternal(u16 x, u16 y)
+u32 SWEFBInterface::PeekColorInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y)
 {
   const u32 color = EfbInterface::GetColor(x, y);
 
@@ -759,7 +760,7 @@ u32 SWEFBInterface::PeekColorInternal(u16 x, u16 y)
   return value;
 }
 
-u32 SWEFBInterface::PeekDepthInternal(u16 x, u16 y)
+u32 SWEFBInterface::PeekDepthInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y)
 {
   return EfbInterface::GetDepth(x, y);
 }

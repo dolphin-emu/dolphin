@@ -56,6 +56,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/EFBInterface.h"
+#include "VideoCommon/FramebufferManager.h"
 
 namespace PowerPC
 {
@@ -148,18 +149,20 @@ static u32 EFB_Read(const u32 addr)
   const u32 x = (addr & 0xfff) >> 2;
   const u32 y = (addr >> 12) & 0x3ff;
 
+  FramebufferManager* framebuffer_manager = g_framebuffer_manager.get();
+
   if (addr & 0x00800000)
   {
     ERROR_LOG_FMT(MEMMAP, "Unimplemented Z+Color EFB read @ {:#010x}", addr);
   }
   else if (addr & 0x00400000)
   {
-    var = g_efb_interface->PeekDepth(x, y);
+    var = g_efb_interface->PeekDepth(framebuffer_manager, x, y);
     DEBUG_LOG_FMT(MEMMAP, "EFB Z Read @ {}, {}\t= {:#010x}", x, y, var);
   }
   else
   {
-    var = g_efb_interface->PeekColor(x, y);
+    var = g_efb_interface->PeekColor(framebuffer_manager, x, y);
     DEBUG_LOG_FMT(MEMMAP, "EFB Color Read @ {}, {}\t= {:#010x}", x, y, var);
   }
 
@@ -171,6 +174,8 @@ static void EFB_Write(u32 data, u32 addr)
   const u32 x = (addr & 0xfff) >> 2;
   const u32 y = (addr >> 12) & 0x3ff;
 
+  FramebufferManager* framebuffer_manager = g_framebuffer_manager.get();
+
   if (addr & 0x00800000)
   {
     // It's possible to do a z-tested write to EFB by writing a 64bit value to this address range.
@@ -179,12 +184,12 @@ static void EFB_Write(u32 data, u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    g_efb_interface->PokeDepth(x, y, data);
+    g_efb_interface->PokeDepth(framebuffer_manager, x, y, data);
     DEBUG_LOG_FMT(MEMMAP, "EFB Z Write {:08x} @ {}, {}", data, x, y);
   }
   else
   {
-    g_efb_interface->PokeColor(x, y, data);
+    g_efb_interface->PokeColor(framebuffer_manager, x, y, data);
     DEBUG_LOG_FMT(MEMMAP, "EFB Color Write {:08x} @ {}, {}", data, x, y);
   }
 }
