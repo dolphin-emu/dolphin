@@ -28,6 +28,7 @@ private:
   void CreateLayout();
   void CreateUI();
   void CreateInGame();
+  void CreateWebUI();
   void AddDescriptions();
   void ConnectLayout();
   void UpdateShowDebuggingCheckbox();

@@ -25,6 +25,24 @@ inline HookBase::~HookBase() = default;
 // If the handle outlives the HookableEvent, the link will be properly disconnected.
 using EventHook = std::unique_ptr<HookBase>;
 
+// A container to hold many EventHook objects.
+//
+// Usage:
+//
+// EventHookHolder event_hooks;
+// event_hooks << some_event.Register(some_handler) << some_event2.Register(some_handler2);
+//
+struct EventHookHolder
+{
+  std::vector<EventHook> event_hooks;
+
+  struct EventHookHolder& operator<<(EventHook hook)
+  {
+    event_hooks.emplace_back(std::move(hook));
+    return *this;
+  }
+};
+
 // A hookable event system.
 //
 // Define Events as:

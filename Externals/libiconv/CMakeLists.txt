@@ -13,5 +13,4 @@ target_include_directories(iconv
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/lib>
 )
 
-dolphin_disable_warnings(iconv)
 add_library(Iconv::Iconv ALIAS iconv)
