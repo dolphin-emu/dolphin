@@ -7,7 +7,6 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-#include <locale>
 #include <mbedtls/md.h>
 #include <mutex>
 #include <thread>
@@ -159,7 +158,8 @@ std::string MovieManager::GetRTCDisplay() const
   const tm gm_time = fmt::gmtime(current_time);
 
   // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(Common::GetEnvironmentLocale(), "Date/Time: {:%c}", gm_time);
+  // Using L for locale-dependent formatting.
+  return fmt::format(Common::GetEnvironmentLocale(), "Date/Time: {:L%c}", gm_time);
 }
 
 // NOTE: GPU Thread
