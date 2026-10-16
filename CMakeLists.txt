@@ -38,14 +38,14 @@ include(RemoveCompileFlag)
 # When using the Visual Studio generator, only show our targets and not the ones from Externals.
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
-if (MSVC)
+if(MSVC)
   set(CMAKE_C_STANDARD 99)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 set(COMPILER ${CMAKE_CXX_COMPILER_ID})
-if (COMPILER STREQUAL "GNU")
+if(COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
@@ -231,8 +231,8 @@ elseif(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
   check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
 else()
   message(FATAL_ERROR "You're building on an unsupported platform: "
-      "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
-      " Enable generic build if you really want a JIT-less binary.")
+    "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
+    " Enable generic build if you really want a JIT-less binary.")
 endif()
 
 if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
@@ -337,8 +337,8 @@ else()
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # GNU ar: Create thin archive files.
     # Requires binutils-2.19 or later.
-    set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_C_ARCHIVE_APPEND   "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_C_ARCHIVE_APPEND "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
     set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
     set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
   endif()
@@ -414,7 +414,7 @@ find_package(Threads)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
+    "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif()
 
 if(ENABLE_GPROF)
@@ -434,8 +434,8 @@ if(ENABLE_VTUNE)
   add_definitions(-DUSE_VTUNE)
   include_directories("${VTUNE_DIR}/include")
   set(VTUNE_LIBRARIES
-      "${VTUNE_DIR}/lib64/libjitprofiling.a"
-      "${VTUNE_DIR}/lib64/libittnotify.a"
+    "${VTUNE_DIR}/lib64/libjitprofiling.a"
+    "${VTUNE_DIR}/lib64/libittnotify.a"
   )
 endif()
 
@@ -493,7 +493,7 @@ include(CheckCXXSourceRuns)
 set(OpenGL_GL_PREFERENCE GLVND CACHE STRING "Linux-only: if GLVND, use the vendor-neutral GL libraries (default). If LEGACY, use the legacy ones (might be necessary to have optirun/primusrun work)")
 set_property(CACHE OpenGL_GL_PREFERENCE PROPERTY STRINGS GLVND LEGACY)
 find_package(OpenGL)
-if (OPENGL_GL)
+if(OPENGL_GL)
   include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
@@ -613,7 +613,7 @@ endif()
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
-if (_M_X86_64)
+if(_M_X86_64)
   add_subdirectory(Externals/Bochs_disasm)
 endif()
 add_subdirectory(Externals/cpp-optparse)
@@ -642,7 +642,7 @@ if(ENABLE_VULKAN)
   endif()
 
 
-  if (ANDROID AND _M_ARM_64)
+  if(ANDROID AND _M_ARM_64)
     add_subdirectory(Externals/libadrenotools)
   endif()
 endif()
@@ -690,7 +690,7 @@ dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/li
 message(STATUS "Using static FreeSurround from Externals")
 add_subdirectory(Externals/FreeSurround)
 
-if (APPLE OR WIN32)
+if(APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
   add_subdirectory(Externals/ed25519)
   include_directories(Externals/ed25519)
@@ -718,7 +718,9 @@ if(USE_UPNP)
   add_definitions(-DUSE_UPNP)
 endif()
 
-dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
+# Note: MbedTLS 2.x is largely not available on modern systems.
+# We require 2.x because 3.x removed necessary SSLv3 features.
+add_subdirectory(Externals/mbedtls2)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
 
@@ -744,7 +746,7 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
-if (WIN32)
+if(WIN32)
   include_directories(Externals/wil/include)
   include_directories(Externals/OpenAL/include)
 endif()
@@ -755,7 +757,7 @@ add_subdirectory(Externals/expr)
 
 add_subdirectory(Externals/FatFs)
 
-if (USE_RETRO_ACHIEVEMENTS)
+if(USE_RETRO_ACHIEVEMENTS)
   add_subdirectory(Externals/rcheevos)
 endif()
 
@@ -776,20 +778,20 @@ endif()
 file(REMOVE "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h")
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common)
-if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
   file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
 endif()
 
 if(APPLE)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
+  if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
     file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/VersionInfo.plist)
   endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Flatpak)
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml)
+  if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml)
     file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Flatpak/org.DolphinEmu.dolphin-emu.metainfo.xml)
   endif()
 endif()
@@ -817,7 +819,7 @@ if(ENABLE_TESTS)
   )
   # dolphin_find_optional_system_library_pkgconfig() doesn't add an alias if it
   # uses the bundled libraries, so we add one ourselves.
-  if (NOT TARGET gtest::gtest)
+  if(NOT TARGET gtest::gtest)
     add_library(gtest::gtest ALIAS gtest)
   endif()
   # Force gtest to link the C runtime dynamically on Windows in order to avoid
@@ -845,16 +847,16 @@ endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   # Install the application icon and menu item
   install(FILES Data/dolphin-emu.svg
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
   install(FILES Data/dolphin-emu.png
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps)
   install(FILES Data/dolphin-emu.desktop
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   # Install manpages
   install(FILES Data/dolphin-emu.6
-          DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
   install(FILES Data/dolphin-emu-nogui.6
-          DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
 endif()
 
 # packaging information
@@ -880,7 +882,7 @@ set(CPACK_DEBIAN_PACKAGE_SECTION "Games")
 
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
-set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.git")
+set(CPACK_SOURCE_IGNORE_FILES "\\\\.#;/#;.*~;\\\\.swp;/\\\\.git")
 list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
 
 # CPack must be included after the CPACK_* variables are set in order for those
