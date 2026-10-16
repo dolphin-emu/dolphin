@@ -378,12 +378,12 @@ void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat p
 
     if (new_format == PixelFormat::RGBA6_Z24)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager, EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
     else if (new_format == PixelFormat::RGB565_Z16)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager, EFBReinterpretType::RGB8ToRGB565);
       return;
     }
   }
@@ -393,12 +393,13 @@ void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat p
   {
     if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager, EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
     else if (new_format == PixelFormat::RGB565_Z16)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager,
+                                            EFBReinterpretType::RGBA6ToRGB565);
       return;
     }
   }
@@ -408,12 +409,13 @@ void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat p
   {
     if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager, EFBReinterpretType::RGB565ToRGB8);
       return;
     }
     else if (new_format == PixelFormat::RGBA6_Z24)
     {
-      g_efb_interface->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
+      g_efb_interface->ReinterpretPixelData(frame_buffer_manager,
+                                            EFBReinterpretType::RGB565ToRGBA6);
       return;
     }
   }
