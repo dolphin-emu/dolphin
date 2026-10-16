@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -77,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -114,6 +116,7 @@ import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
+import org.dolphinemu.dolphinemu.ui.theme.OutlinedBoxPaddingValues
 import org.dolphinemu.dolphinemu.ui.theme.PreviewTheme
 import org.dolphinemu.dolphinemu.ui.theme.ReadOnlyTextField
 import org.dolphinemu.dolphinemu.ui.theme.bottomFadeOverlay
@@ -153,6 +156,7 @@ fun NetplayScreen(
     controllerMapping: ControllerMapping,
     onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
     onWiiRemoteChanged: (port: Int, player: Player?) -> Unit,
+    wifiDirectGroupLost: Flow<Unit>,
 ) {
     val scrollState = rememberScrollState()
 
@@ -292,6 +296,11 @@ fun NetplayScreen(
 
         val currentTraversalError = traversalError
 
+        var showWifiDirectGroupLostDialog by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            wifiDirectGroupLost.collect { showWifiDirectGroupLostDialog = true }
+        }
+
         when {
             showConnectionLostDialog -> {
                 AlertDialog(
@@ -364,6 +373,18 @@ fun NetplayScreen(
                         onSkipDualCoreWarning()
                     },
                     onDismiss = { showDualCoreWarning = false },
+                )
+            }
+
+            showWifiDirectGroupLostDialog -> {
+                AlertDialog(
+                    text = { Text(stringResource(R.string.netplay_wifi_direct_group_lost)) },
+                    confirmButton = {
+                        TextButton(onClick = onBackClicked) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    },
+                    onDismissRequest = onBackClicked,
                 )
             }
         }
@@ -723,7 +744,7 @@ private fun Chat(
     OutlinedBox(
         onClick = { onShowBottomSheetChanged(true) },
         label = { Text(stringResource(R.string.netplay_chat_label)) },
-        fadeContentTop = true,
+        contentPadding = OutlinedBoxPaddingValues(top = 10.dp),
         modifier = modifier
     ) {
         LazyColumn(
@@ -734,6 +755,19 @@ private fun Chat(
         ) {
             messages()
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
     }
 }
 
@@ -851,7 +885,8 @@ private fun JoinAddressSection(
 
     @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        if (maxWidth > 392.dp) {
+        // Wifi direct text is too long to fit in the compact layout
+        if (maxWidth > 392.dp && selectedType != JoinInfoType.WIFI_DIRECT) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -943,6 +978,7 @@ private fun AddressRow(
         value = when (address) {
             is JoinAddress.Loading -> stringResource(R.string.netplay_address_loading)
             is JoinAddress.Loaded -> address.address
+            is JoinAddress.LoadedWifiDirect -> address.address
             is JoinAddress.Unknown -> stringResource(R.string.netplay_address_unknown)
         },
         label = stringResource(
@@ -962,6 +998,7 @@ private fun AddressRow(
 
             is JoinAddress.Unknown -> address.retry
             is JoinAddress.Loading -> null
+            is JoinAddress.LoadedWifiDirect -> null
         },
         textStyle = if (address is JoinAddress.Loading) {
             LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -984,10 +1021,28 @@ private fun AddressRow(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
                 )
+
+                is JoinAddress.LoadedWifiDirect -> Unit
             }
         },
         modifier = modifier,
     )
+
+    if (address is JoinAddress.LoadedWifiDirect) {
+        MenuSpacer()
+
+        ReadOnlyTextField(
+            value = address.network,
+            label = stringResource(R.string.netplay_network_label),
+        )
+
+        MenuSpacer()
+
+        ReadOnlyTextField(
+            value = address.passphrase,
+            label = stringResource(R.string.netplay_wifi_direct_passphrase),
+        )
+    }
 }
 
 @Composable
@@ -1705,6 +1760,7 @@ private fun PreviewNetplayScreen() {
         controllerMapping = ControllerMapping.emptyControllerMapping(),
         onGamecubePortChanged = { _, _ -> },
         onWiiRemoteChanged = { _, _ -> },
+        wifiDirectGroupLost = emptyFlow(),
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,

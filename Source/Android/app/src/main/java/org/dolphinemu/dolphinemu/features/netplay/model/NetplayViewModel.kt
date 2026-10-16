@@ -13,6 +13,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -20,6 +24,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.features.netplay.NetplaySession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectClientSession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectHostSession
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectManager
 import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping.Companion.emptyControllerMapping
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -32,7 +39,14 @@ import org.dolphinemu.dolphinemu.utils.NetworkHelper
 class NetplayViewModel(
     private val netplaySession: NetplaySession,
     private val networkHelper: NetworkHelper,
+    private val wifiDirectManager: WifiDirectManager = WifiDirectManager,
 ) : ViewModel() {
+
+    private val wifiDirectSession = wifiDirectManager.activeSession
+
+    private val wifiDirectClientSession: WifiDirectClientSession? = wifiDirectSession as? WifiDirectClientSession
+
+    private val wifiDirectHostSession: WifiDirectHostSession? = wifiDirectSession as? WifiDirectHostSession
 
     private val isTraversal = StringSetting.NETPLAY_TRAVERSAL_CHOICE.string == "traversal"
 
@@ -46,8 +60,13 @@ class NetplayViewModel(
                 if (isTraversal) {
                     put(JoinInfoType.ROOM_ID, JoinAddress.Loading)
                 }
+
                 put(JoinInfoType.EXTERNAL, JoinAddress.Loading)
                 put(JoinInfoType.LOCAL, getLocalIp())
+
+                if (wifiDirectHostSession != null) {
+                    put(JoinInfoType.WIFI_DIRECT, JoinAddress.Loading)
+                }
             }
         }
     )
@@ -95,6 +114,9 @@ class NetplayViewModel(
 
     val gameDigestProgress = netplaySession.gameDigestProgress
 
+    private val _wifiDirectGroupLost = Channel<Unit>(Channel.CONFLATED)
+    val wifiDirectGroupLost = _wifiDirectGroupLost.receiveAsFlow()
+
     init {
         if (netplaySession.isHosting) {
             setInitialGame()
@@ -103,6 +125,37 @@ class NetplayViewModel(
             } else {
                 fetchExternalIp()
             }
+        }
+
+        if (wifiDirectSession != null) {
+            viewModelScope.launch {
+                wifiDirectSession.isGroupActive.first { !it }
+                _wifiDirectGroupLost.send(Unit)
+            }
+        }
+
+        if (wifiDirectHostSession != null) {
+            val nickName = StringSetting.NETPLAY_NICKNAME.string
+
+            viewModelScope.launch {
+                _joinAddresses.value += JoinInfoType.WIFI_DIRECT to JoinAddress.LoadedWifiDirect(
+                    address = wifiDirectHostSession.ipAddress(),
+                    network = wifiDirectHostSession.networkName,
+                    passphrase = wifiDirectHostSession.passphrase,
+                )
+            }
+
+            combine(
+                game.filter { it.isNotEmpty() },
+                players.map { it.size }.distinctUntilChanged(),
+            ) { game, players ->
+                wifiDirectHostSession.setServiceInfo(
+                    hostName = nickName,
+                    playerCount = players,
+                    game = game,
+                )
+            }
+                .launchIn(viewModelScope)
         }
     }
 
@@ -247,6 +300,8 @@ class NetplayViewModel(
         // GlobalScope and allow the activity and view model to finish immediately.
         GlobalScope.launch {
             netplaySession.close()
+            wifiDirectClientSession?.clearGroupAndPeers()
+            wifiDirectHostSession?.close()
         }
     }
 

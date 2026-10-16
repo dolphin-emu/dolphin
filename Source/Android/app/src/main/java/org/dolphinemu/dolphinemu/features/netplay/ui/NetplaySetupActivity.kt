@@ -11,11 +11,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
+import org.dolphinemu.dolphinemu.features.netplay.WifiDirectManager
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupViewModel
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
@@ -31,7 +33,7 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
 
         val viewModel = ViewModelProvider(
             this,
-            NetplaySetupViewModel.Factory(NetplayManager)
+            NetplaySetupViewModel.Factory(NetplayManager, WifiDirectManager)
         )[NetplaySetupViewModel::class.java]
 
         viewModel.showNetplayScreen
@@ -41,16 +43,26 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
 
         setContent {
             DolphinTheme {
+                LifecycleStartEffect(Unit) {
+                    viewModel.onScreenVisible()
+                    onStopOrDispose {
+                        if (!isChangingConfigurations) {
+                            viewModel.onScreenHidden()
+                        }
+                    }
+                }
+
                 NetplaySetupScreen(
                     onBackClicked = { finish() },
                     connecting = viewModel.connecting.collectAsState().value,
                     errors = viewModel.errors,
-                    nickname = viewModel.nickname.collectAsState().value,
-                    onNicknameChanged = viewModel::setNickname,
-                    connectionType = viewModel.connectionType.collectAsState().value,
-                    onConnectionTypeChanged = viewModel::setConnectionType,
                     connectionRole = viewModel.connectionRole.collectAsState().value,
                     onConnectionRoleChanged = viewModel::setConnectionRole,
+                    nickname = viewModel.nickname.collectAsState().value,
+                    onNicknameChanged = viewModel::setNickname,
+                    supportedConnectionTypes = viewModel.supportedConnectionTypes,
+                    connectionType = viewModel.connectionType.collectAsState().value,
+                    onConnectionTypeChanged = viewModel::setConnectionType,
                     ipAddress = viewModel.ipAddress.collectAsState().value,
                     onIpAddressChanged = viewModel::setIpAddress,
                     connectPort = viewModel.connectPort.collectAsState().value,
@@ -61,6 +73,8 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
                     onHostPortChanged = viewModel::setHostPort,
                     useUpnp = viewModel.useUpnp.collectAsState().value,
                     onUseUpnpChanged = viewModel::setUseUpnp,
+                    wifiDirectHosts = viewModel.wifiDirectHosts.collectAsState().value,
+                    onWifiDirectHostClicked = viewModel::connect,
                     onHostClicked = viewModel::host,
                     onConnectClicked = viewModel::connect,
                 )

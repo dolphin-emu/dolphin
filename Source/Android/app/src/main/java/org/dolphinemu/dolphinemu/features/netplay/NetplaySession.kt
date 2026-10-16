@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.netplay
 import androidx.annotation.Keep
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -203,7 +204,7 @@ class NetplaySession(
         }
     }
 
-    suspend fun close() = withContext(Dispatchers.IO) {
+    suspend fun close() = withContext(NonCancellable + Dispatchers.IO) {
         closeBlocking()
     }
 
