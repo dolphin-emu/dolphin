@@ -266,6 +266,7 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.1.6            & 2022.06.20    & xperia64        & Accelerator documentation updates, fix register typo in ANDC and ORC descriptions        \\ \hline
 0.1.7            & 2025.04.21    & Tilka           & Fixed typos and complained about GFDL                                                    \\ \hline
 0.1.8            & 2025.07.27    & Tilka           & Fixed some bit pattern inconsistencies in the 'LDAX* opcodes                             \\ \hline
+0.1.9            & 2025.09.14    & Pokechu22       & Document memory pages and external interrupt; add a few more hyperlinks                  \\ \hline
 \end{tabular}
 \end{table}
 
@@ -417,6 +418,8 @@ There are no DSP instructions that write to IMEM; however, the \Opcode{ILRR} fam
 \end{tabular}
 \end{table}
 
+Per patent US6606689, column 14, lines 16-27, the DSP can read from IROM during a \nameref{sec:DMA} to IRAM, and can read from IRAM during a write DMA to IRAM, although simultaneous reads and writes to the same address produce a hardware conflict. Exact behavior is untested.
+
 \pagebreak{}
 
 \subsection{Data Memory}
@@ -435,6 +438,9 @@ It is possible to both read and write to DMEM, but coefficient data cannot be wr
 \begin{tabular}[c]{@{}l@{}}\texttt{0xFF00}\\ \\ \\ \\\\ \\ \\ \\  \texttt{0xFFFF}\end{tabular} & \texttt{IFX} \\ \hline
 \end{tabular}
 \end{table}
+
+Per patent US6606689, column 14, lines 28-55, data RAM is composed of 4 pages of 1024 (\texttt{0x400}) words, and data ROM is composed of a single 2048 (\texttt{0x800}) word page. Each page can be simultaneously read and written by one of the DSP's two data busses or by \nameref{sec:DMA}, but a page cannot be simultaneously written by two sources or read by two sources (behavior in this case is untested). \nameref{sec:Extended opcodes} such as \Opcode{'LD} and \Opcode{'LS} can be combined with DMA to have simultaneous transfers on up to 3 pages. Simultaneous reads or writes to an address being accessed by DMA produce a hardware conflict (exact behavior is untested).
+% TODO: The patent only specifies this for DMA; does this mean that the DSP itself can read and write to the same address using e.g. 'LS or 'SL? Do writes always happen after reads, or does the bus used matter?
 
 \pagebreak{}
 
@@ -584,7 +590,7 @@ This is an 8-bit register.  Writes to the upper 8 bits are ignored and those bit
 
 \section{Status register}
 
-Status register \Register{\$sr} reflects flags computed on accumulators after logical or arithmetic operations.
+Status register \Register{\$sr} reflects \hyperref[{sec:Flags}]{flags} computed on accumulators after logical or arithmetic operations.
 Furthermore, it also contains control bits to configure the flow of certain operations.
 
 \begin{table}[htb]
@@ -595,9 +601,9 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \texttt{15}  & \texttt{SU}   & Multiplication operands are signed (1 = unsigned)             \\ \hline
 \texttt{14}  & \texttt{SXM}  & Sign extension mode (1 = 40-bit, see \nameref{subsec:SET40})  \\ \hline
 \texttt{13}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0})           \\ \hline
-\texttt{12}  &               &                                                               \\ \hline
+\texttt{12}  & \texttt{EIE2} & External interrupt enable 2                                   \\ \hline
 \texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
-\texttt{10}  &               &                                                               \\ \hline
+\texttt{10}  &               & Unknown                                                       \\ \hline
 \texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
 \texttt{8}   &               & Unknown, always reads back as 0                               \\ \hline
 \texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
@@ -639,12 +645,17 @@ If \RegisterField{\$sr.AM} is equal 0 then the result of every multiply operatio
 Exception processing happens by setting the program counter to different exception vectors.
 At exception time, the exception program counter is stored at call stack \Register{\$st0} and status register \Register{\$sr} is stored at data stack \Register{\$st1}.
 
+Exceptions only trigger when \Register{\$sr.IE} is set, other than the external interrupt, which ignores \Register{\$sr.IE}. The external interrupt only triggers when both \Register{\$sr.EIE} and \Register{\$sr.EIE2} are set. \Register{\$sr.EIE2} is automatically cleared when entering an exception vector (and will be restored when the previous \Register{\$sr} value is popped from \Register{\$st1} by \Opcode{RTI}).
+
+The external interrupt triggers when bit 1 (\Value{0x0002}) of the DSP control register (\Value{0xcc00500a}, different from the config register) is set by the PowerPC CPU. That bit will remain set until the interrupt is processed by the DSP; it cannot be cleared on the PowerPC side by writing a zero.
+
 \textbf{Operation:}
 \begin{lstlisting}[basicstyle=\ttfamily]
 PUSH_STACK($st0);
 $st0 = $pc;
 PUSH_STACK($st1);
 $st1 = $sr;
+$sr.EIE2 = 0;
 $pc = exception_nr * 2;
 \end{lstlisting}
 
@@ -724,7 +735,7 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 
 \pagebreak{}
 
-\section{DMA}
+\section{DMA}\label{sec:DMA}
 
 The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
 
@@ -1115,9 +1126,9 @@ The logic zero flag is only set by \Opcode{ANDCF} and \Opcode{ANDF}.
 
 \pagebreak{}
 
-\section{Flags}
+\section{Flags}\label{sec:Flags}
 
-Most opcodes update flags in the status register (\Register{\$sr}) based on their result.  (Extended opcodes do not update flags.)
+Most opcodes update flags in the status register (\Register{\$sr}) based on their result.  (\nameref{sec:Extended opcodes} do not update flags.)
 
 Overflow (\texttt{O}) occurs when the result has wrapped around.  The expression $C = A + B$ has overflown if $A > 0$ and $B > 0$ but $C \le 0$ or if $A < 0$ and $B < 0$ but $C \ge 0$.  Any instruction that sets the \texttt{O} flag will also set the \texttt{OS} flag; when the \texttt{O} flag is set, \texttt{OS} is also set, but \texttt{OS} is not cleared when \texttt{O} is cleared.
 
@@ -4378,7 +4389,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
-\section{Extended opcodes}
+\section{Extended opcodes}\label{sec:Extended opcodes}
 
 Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that allow extending.
 Specifically, opcodes where the first nybble is 0, 1, or 2 cannot be extended.
