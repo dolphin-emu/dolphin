@@ -150,4 +150,8 @@ jclass GetAudioUtilsClass();
 jmethodID GetAudioUtilsGetSampleRate();
 jmethodID GetAudioUtilsGetFramesPerBuffer();
 
+jclass GetTitleDatabaseClass();
+jfieldID GetTitleDatabasePointer();
+jmethodID GetTitleDatabaseConstructor();
+
 }  // namespace IDCache
