@@ -706,6 +706,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
+  return;
+
   u32 a = inst.RA, b = inst.RB;
 
   // Check if the next instructions match a known looping pattern:
