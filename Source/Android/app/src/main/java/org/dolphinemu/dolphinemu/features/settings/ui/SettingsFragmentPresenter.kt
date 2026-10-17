@@ -303,6 +303,7 @@ class SettingsFragmentPresenter(
                 )
 
                 MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
+                MenuTag.HOTKEYS -> addHotkeySettings(sl)
                 MenuTag.WIIMOTE -> addWiimoteSettings(sl)
                 MenuTag.ENHANCEMENTS -> addEnhanceSettings(sl)
                 MenuTag.COLOR_CORRECTION -> addColorCorrectionSettings(sl)
@@ -352,6 +353,11 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.gcpad_settings, MenuTag.GCPAD_TYPE))
         if (settings!!.isWii) {
             sl.add(SubmenuSetting(context, R.string.wiimote_settings, MenuTag.WIIMOTE))
+        }
+
+        // Hotkeys live in Hotkeys.ini and are global, so there is nothing to edit per game.
+        if (gameId.isNullOrEmpty()) {
+            sl.add(SubmenuSetting(context, R.string.hotkey_settings, MenuTag.HOTKEYS))
         }
 
         sl.add(HeaderSetting(context, R.string.setting_clear_info, 0))
@@ -2501,6 +2507,33 @@ class SettingsFragmentPresenter(
                 R.string.stereoscopy_swap_eyes_description
             )
         )
+    }
+
+    /**
+     * Lists a subset of the hotkeys the native HotkeyScheduler dispatches.
+     */
+    private fun addHotkeySettings(sl: ArrayList<SettingsItem>) {
+        val hotkeys = EmulatedController.getHotkeys()
+
+        addControllerMetaSettings(sl, hotkeys)
+
+        // Flattened {group index, control index} pairs. Each control group gets a header the first
+        // time one of its hotkeys shows up.
+        val indices = EmulatedController.getSupportedHotkeyIndices()
+        var currentGroupIndex = -1
+        var i = 0
+        while (i < indices.size) {
+            val groupIndex = indices[i]
+            val group = hotkeys.getGroup(groupIndex)
+
+            if (groupIndex != currentGroupIndex) {
+                sl.add(HeaderSetting(group.getUiName(), ""))
+                currentGroupIndex = groupIndex
+            }
+
+            sl.add(InputMappingControlSetting(group.getControl(indices[i + 1]), hotkeys))
+            i += 2
+        }
     }
 
     private fun addGcPadSubSettings(

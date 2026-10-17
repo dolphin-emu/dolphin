@@ -71,6 +71,7 @@
     <string name="graphics_settings">Graphics Settings</string>
     <string name="gcpad_settings">GameCube Input</string>
     <string name="wiimote_settings">Wii Input</string>
+    <string name="hotkey_settings">Hotkeys</string>
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
