@@ -1720,16 +1720,28 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 timeout_b = s_media_buffer_32[4];
         const u32 timeout_c = s_media_buffer_32[5];
 
-        s_timeouts[0] = timeout_a;
-        s_timeouts[1] = timeout_b;
-        s_timeouts[2] = timeout_c;
+        s_timeouts[0] = timeout_a;  // connect timeout?
+        s_timeouts[1] = timeout_b;  // send timeout?
+        s_timeouts[2] = timeout_c;  // recv timeout?
 
         int ret = SOCKET_ERROR;
+
+        // Workaround for Linux/Windows socket timeout option.
+        constexpr auto socket_timeout = [](u32 timeout_ms) {
+#ifdef _WIN32
+          return static_cast<DWORD>(timeout_ms);
+#else
+          return timeval{.tv_sec = s32(timeout_ms / 1000),
+                         .tv_usec = s32(timeout_ms % 1000) * 1000};
+#endif
+        };
+        const auto timeval_b{socket_timeout(timeout_b)};
+        const auto timeval_c{socket_timeout(timeout_c)};
 
         if (host_socket != INVALID_SOCKET)
         {
           ret = setsockopt(host_socket, SOL_SOCKET, SO_SNDTIMEO,
-                           reinterpret_cast<const char*>(&timeout_b), sizeof(int));
+                           reinterpret_cast<const char*>(&timeval_b), sizeof(timeval_b));
           if (ret < 0)
           {
             ret = WSAGetLastError();
@@ -1737,13 +1749,23 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           else
           {
             ret = setsockopt(host_socket, SOL_SOCKET, SO_RCVTIMEO,
-                             reinterpret_cast<const char*>(&timeout_c), sizeof(int));
+                             reinterpret_cast<const char*>(&timeval_c), sizeof(timeval_c));
             if (ret < 0)
               ret = WSAGetLastError();
           }
 
-          INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ):{}", host_socket,
-                       int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
+          if (ret < 0)
+          {
+            ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                          "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ) failed with error {}: {}",
+                          host_socket, int(guest_socket), timeout_a, timeout_b, timeout_c, ret,
+                          Common::DecodeNetworkError(ret));
+          }
+          else
+          {
+            INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ):{}",
+                         host_socket, int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
+          }
         }
         else
         {
