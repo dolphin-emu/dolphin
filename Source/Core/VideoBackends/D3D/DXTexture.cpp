@@ -116,8 +116,11 @@ bool DXTexture::CreateSRV()
     return false;
   }
   const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
-      m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
-      m_config.levels, 0, m_config.layers);
+#ifndef __MINGW32__
+      m_texture.Get(),
+#endif
+      dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
+      m_config.layers);
   DEBUG_ASSERT(!m_srv);
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, &m_srv);
   if (FAILED(hr))

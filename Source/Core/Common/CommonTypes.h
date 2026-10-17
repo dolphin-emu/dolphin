@@ -12,6 +12,9 @@
 
 #ifdef _WIN32
 #include <tchar.h>
+#ifdef __MINGW32__
+#include <string>
+#endif
 #else
 // For using Windows lock code
 #define TCHAR char

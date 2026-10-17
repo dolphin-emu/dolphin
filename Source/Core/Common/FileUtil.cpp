@@ -34,6 +34,7 @@
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
+#include <share.h>
 #include <shellapi.h>
 #include <shlwapi.h>
 #else
