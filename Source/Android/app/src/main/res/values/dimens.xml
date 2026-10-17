@@ -9,6 +9,12 @@
     <dimen name="card_width">135dp</dimen>
     <dimen name="tv_settings_card_width">120dp</dimen>
     <dimen name="tv_settings_card_height">80dp</dimen>
+    <dimen name="gba_default_width">480dp</dimen>
+    <dimen name="gba_default_height">320dp</dimen>
+    <dimen name="gba_default_x">16dp</dimen>
+    <dimen name="gba_reset_offset">20dp</dimen>
+    <dimen name="gba_min_width">120dp</dimen>
+    <dimen name="gba_max_width">960dp</dimen>
 
     <dimen name="elevated_app_bar">3dp</dimen>
 </resources>
