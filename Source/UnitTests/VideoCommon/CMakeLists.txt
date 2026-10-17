@@ -1,1 +1,2 @@
+add_dolphin_test(TextureDecoderTest TextureDecoderTest.cpp)
 add_dolphin_test(VertexLoaderTest VertexLoaderTest.cpp)
