@@ -3,27 +3,43 @@
 
 #pragma once
 
-#include <algorithm>
-#include <functional>
+#include <forward_list>
+#include <list>
 #include <memory>
 #include <mutex>
-#include <vector>
+#include <utility>
 
+#include "Common/Functional.h"
 #include "Common/Logging/Log.h"
 
 namespace Common
 {
-struct HookBase
+
+template <typename... CallbackArgs>
+class HookableEvent;
+class HookHolder;
+
+class HookBase
 {
-  // A pure virtual destructor makes this class abstract to prevent accidental "slicing".
-  virtual ~HookBase() = 0;
+  friend HookHolder;
+
+public:
+  // Disables a connection.
+  virtual void Disconnect() = 0;
+
+  virtual bool IsConnected() const = 0;
+
+  virtual ~HookBase() = default;
+
+private:
+  virtual void ForgetHolder() = 0;
 };
-inline HookBase::~HookBase() = default;
 
 // EventHook is a handle a registered listener holds.
 // When the handle is destroyed, the HookableEvent will automatically remove the listener.
 // If the handle outlives the HookableEvent, the link will be properly disconnected.
-using EventHook = std::unique_ptr<HookBase>;
+using EventHook = std::shared_ptr<HookBase>;
+using WeakEventHook = std::weak_ptr<HookBase>;
 
 // A hookable event system.
 //
@@ -43,102 +59,270 @@ using EventHook = std::unique_ptr<HookBase>;
 //   my_lovely_event.Trigger("Hello world", 42);
 //
 
-template <typename... CallbackArgs>
-class HookableEvent
+// A container of EventHook objects.
+// If any held EventHook become disconnected the internal container is appropriately adjusted.
+//
+// HookableEvent<> event;
+// HookHolder holder;
+//
+// holder.Connect(event, [&] { fmt::print("triggered 1"); });
+//
+// WeakEventHook hook = holder.Connect(event, [&] { fmt::print("triggered 2"); });
+// holder.Disconnect(hook);
+//
+class HookHolder
 {
+  template <typename... CallbackArgs>
+  friend class HookableEvent;
+
 public:
-  using CallbackType = std::function<void(CallbackArgs...)>;
-
-  // Returns a handle that will unregister the listener when destroyed.
-  [[nodiscard]] EventHook Register(CallbackType callback)
+  // Registers an EventHook that is stored internally.
+  // Returns a WeakEventHook that can disconnect or extend the life of the hook.
+  template <typename... CallbackArgs>
+  WeakEventHook Connect(HookableEvent<CallbackArgs...>& event,
+                        HookableEvent<CallbackArgs...>::CallbackType callback)
   {
-    DEBUG_LOG_FMT(COMMON, "Registering event hook handler");
-    std::lock_guard lg(m_storage->listeners_mutex);
+    std::lock_guard lk{m_mutex};
 
-    auto& new_listener =
-        m_storage->listeners.emplace_back(std::make_unique<Listener>(std::move(callback)));
-
-    return std::make_unique<HookImpl>(m_storage, new_listener.get());
+    const auto it = m_hooks.emplace(m_hooks.end());
+    return *it = event.AddHook(std::move(callback), this, it);
   }
 
-  // Invokes all registered callbacks.
-  // Hooks added from within a callback will be invoked.
-  // Hooks removed from within a callback will be skipped,
-  //  but destruction of the hook's callback will be delayed until Trigger() completes.
-  void Trigger(const CallbackArgs&... args)
+  // These are just convenience functions to invoke EventHook::Disconnect()
+  void Disconnect(EventHook& conn) { conn->Disconnect(); }
+  void Disconnect(WeakEventHook& conn)
   {
-    std::lock_guard lg(m_storage->listeners_mutex);
-    m_storage->is_triggering = true;
+    if (auto c = conn.lock())
+      Disconnect(c);
+  }
 
-    // Avoiding an actual iterator because the container may be modified.
-    for (std::size_t i = 0; i != m_storage->listeners.size(); ++i)
+  std::size_t GetConnectionCount() const
+  {
+    std::lock_guard lk{m_mutex};
+    return m_hooks.size();
+  }
+
+  // Disconnect all held connections regardless of externally held EventHook.
+  void DisconnectAll()
+  {
+    for (std::unique_lock lk{m_mutex}; !m_hooks.empty(); lk.lock())
     {
-      auto& listener = m_storage->listeners[i];
-
-      if (listener->is_pending_removal)
-        continue;
-
-      std::invoke(listener->callback, args...);
+      const EventHook hook = std::move(m_hooks.back());
+      lk.unlock();  // Avoid deadlock from different lock orders.
+      hook->Disconnect();
     }
+  }
 
-    m_storage->is_triggering = false;
-    std::erase_if(m_storage->listeners, std::mem_fn(&Listener::is_pending_removal));
+  // Destruction only removes internal references.
+  // Any externally held EventHook can keep a connection alive.
+  ~HookHolder()
+  {
+    for (std::unique_lock lk{m_mutex}; !m_hooks.empty(); lk.lock())
+    {
+      const EventHook hook = std::move(m_hooks.back());
+      lk.unlock();  // Avoid deadlock from different lock orders.
+      hook->ForgetHolder();
+    }
   }
 
 private:
-  struct Listener
-  {
-    const CallbackType callback;
-    bool is_pending_removal{};
-  };
+  mutable std::mutex m_mutex;
 
-  struct Storage
-  {
-    std::recursive_mutex listeners_mutex;
-    std::vector<std::unique_ptr<Listener>> listeners;
-    bool is_triggering{};
-  };
+  using ConnectedHooks = std::list<EventHook>;
+  ConnectedHooks m_hooks;
 
-  struct HookImpl final : HookBase
+  void EraseHook(ConnectedHooks::iterator it)
   {
-    HookImpl(std::weak_ptr<Storage> storage, Listener* listener)
-        : weak_storage{std::move(storage)}, listener_ptr{listener}
+    const EventHook hook = std::move(*it);
+    std::lock_guard lk{m_mutex};
+    m_hooks.erase(it);
+  }
+};
+
+template <typename... CallbackArgs>
+class HookableEvent
+{
+  friend HookHolder;
+
+public:
+  HookableEvent() = default;
+
+  using CallbackType = Common::MoveOnlyFunction<void(CallbackArgs...)>;
+
+  [[nodiscard]] EventHook Register(HookableEvent::CallbackType callback)
+  {
+    return AddHook(std::move(callback));
+  }
+
+  // Currently *not* allowed to cause destruction of the HookableEvent itself.
+  void Trigger(CallbackArgs... args)
+  {
+    std::lock_guard lk{*m_mutex};
+
+    // Destruction from Trigger might be feasible if all state is moved into a `shared_ptr`.
+    TriggerState& trigger_state = m_trigger_states.emplace_front();
+    trigger_state.next = m_hooks.begin();
+    trigger_state.end = m_hooks.end();
+
+    while (trigger_state.next != trigger_state.end)
     {
+      auto& callback = (trigger_state.next++)->callback;
+      std::invoke(callback, args...);
     }
 
-    ~HookImpl() override
+    m_trigger_states.pop_front();
+  }
+
+  std::size_t GetConnectionCount() const
+  {
+    std::lock_guard lk{*m_mutex};
+    return m_hooks.size();
+  }
+
+  // Currently *not* allowed to cause destruction of the HookableEvent itself.
+  void DisconnectAll()
+  {
+    std::lock_guard lk{*m_mutex};
+
+    while (!m_hooks.empty())
+      m_hooks.back().hook->Disconnect();
+  }
+
+  HookableEvent(HookableEvent&&) = delete;
+  HookableEvent(const HookableEvent&) = delete;
+  HookableEvent& operator=(HookableEvent&&) = delete;
+  HookableEvent& operator=(const HookableEvent&) = delete;
+
+  ~HookableEvent() { DisconnectAll(); }
+
+private:
+  class Hook;
+
+  struct ConnectedHook
+  {
+    CallbackType callback;
+    Hook* const hook;
+  };
+
+  using ConnectedHooks = std::list<ConnectedHook>;
+  ConnectedHooks m_hooks;
+
+  // Member variable iterators so Add/Remove inside a Trigger call can adjust them.
+  struct TriggerState
+  {
+    ConnectedHooks::iterator next;
+    ConnectedHooks::iterator end;
+  };
+
+  // Multiple trigger states to handle recursive Trigger calls.
+  std::forward_list<TriggerState> m_trigger_states;
+
+  // The mutex is shared with all connected hooks.
+  std::shared_ptr<std::recursive_mutex> m_mutex{std::make_shared<std::recursive_mutex>()};
+
+  class Hook final : public HookBase
+  {
+    friend HookableEvent;
+
+  public:
+    void Disconnect() override
     {
-      const auto storage = weak_storage.lock();
-      if (storage == nullptr)
-      {
-        DEBUG_LOG_FMT(COMMON, "Handler outlived event hook");
-        return;
-      }
+      std::lock_guard lk{*m_mutex};
 
-      DEBUG_LOG_FMT(COMMON, "Removing event hook handler");
+      if (auto* holder = std::exchange(m_holder, nullptr))
+        holder->EraseHook(m_holder_it);
 
-      std::lock_guard lg(storage->listeners_mutex);
+      // In the case of the callback itself holding the EventHook, this could be our demise.
+      if (auto* event = std::exchange(m_event, nullptr))
+        event->RemoveHook(m_event_it);
+    }
 
-      if (storage->is_triggering)
+    bool IsConnected() const override
+    {
+      std::lock_guard lk{*m_mutex};
+      return m_event != nullptr;
+    }
+
+    ~Hook() override
+    {
+      std::lock_guard lk{*m_mutex};
+
+      // Reaching the destructor is only possible if a potential Holder has already forgoten us.
+      // We only need to inform the Event.
+      if (auto* event = std::exchange(m_event, nullptr))
+        event->RemoveHook(m_event_it);
+    }
+
+  private:
+    void ForgetHolder() override
+    {
+      std::lock_guard lk{*m_mutex};
+
+      if (auto* holder = std::exchange(m_holder, nullptr))
+        holder->EraseHook(m_holder_it);
+    }
+
+    HookableEvent* m_event{};
+    ConnectedHooks::iterator m_event_it;
+
+    HookHolder* m_holder{};
+    HookHolder::ConnectedHooks::iterator m_holder_it;
+
+    // Shared with the event and all other connected hooks.
+    std::shared_ptr<std::recursive_mutex> m_mutex;
+  };
+
+  EventHook AddHook(CallbackType callback, HookHolder* holder = {},
+                    HookHolder::ConnectedHooks::iterator holder_it = {})
+  {
+    DEBUG_LOG_FMT(COMMON, "Registering event hook handler");
+
+    std::lock_guard lk{*m_mutex};
+
+    auto hook = std::make_shared<Hook>();
+    auto it = m_hooks.emplace(m_hooks.end(), std::move(callback), hook.get());
+
+    hook->m_event = this;
+    hook->m_event_it = it;
+
+    hook->m_holder = holder;
+    hook->m_holder_it = holder_it;
+
+    hook->m_mutex = m_mutex;
+
+    // Trigger states about to reach .end() are adjusted to not include the new item.
+    for (auto& trigger_state : m_trigger_states)
+    {
+      if (trigger_state.end == m_hooks.end())
       {
-        // Just mark our listener for removal.
-        // Trigger() will erase it for us.
-        listener_ptr->is_pending_removal = true;
-      }
-      else
-      {
-        // Remove our listener.
-        storage->listeners.erase(std::ranges::find_if(
-            storage->listeners, [&](auto& ptr) { return ptr.get() == listener_ptr; }));
+        if (trigger_state.next == trigger_state.end)
+          trigger_state.next = it;
+        trigger_state.end = it;
       }
     }
 
-    const std::weak_ptr<Storage> weak_storage;
-    Listener* const listener_ptr;  // "owned" by the above Storage.
-  };
+    return hook;
+  }
 
-  // shared_ptr storage allows hooks to forget their connection if they outlive the event itself.
-  std::shared_ptr<Storage> m_storage{std::make_shared<Storage>()};
+  void RemoveHook(ConnectedHooks::iterator it)
+  {
+    DEBUG_LOG_FMT(COMMON, "Removing event hook handler");
+
+    // Note: The mutex is already held from the only caller.
+
+    // Trigger states about to reach the removed item are adjusted to the very next item.
+    const auto next = std::next(it);
+    for (auto& trigger_state : m_trigger_states)
+    {
+      if (trigger_state.next == it)
+      {
+        if (trigger_state.end == it)
+          trigger_state.end = next;
+        trigger_state.next = next;
+      }
+    }
+    m_hooks.erase(it);
+  }
 };
 
 }  // namespace Common
