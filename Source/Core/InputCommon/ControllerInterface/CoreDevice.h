@@ -104,6 +104,8 @@ public:
     virtual bool IsChild(const Input*) const { return false; }
   };
 
+  // Relative inputs report displacement since the previous update, not an absolute
+  // position in [0, 1]. Displacements may exceed 1 without being clamped.
   class RelativeInput : public Input
   {
   public:
