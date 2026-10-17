@@ -10,7 +10,6 @@ set(SRCS
 )
 
 add_library(implot STATIC ${SRCS})
-dolphin_disable_warnings(implot)
 target_include_directories(implot
   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/implot"
   PRIVATE imgui
