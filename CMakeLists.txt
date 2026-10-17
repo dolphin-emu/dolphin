@@ -30,7 +30,7 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(CheckSymbolExists)
 include(DolphinCompileDefinitions)
-include(DolphinDisableWarningsMSVC)
+include(DolphinDisableWarnings)
 include(DolphinLibraryTools)
 include(GNUInstallDirs)
 include(RemoveCompileFlag)
@@ -524,10 +524,16 @@ endif()
 
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
+    dolphin_fetchcontent_declare(
+      ext-win-ffmpeg
+      GIT_REPOSITORY https://github.com/dolphin-emu/ext-win-ffmpeg.git
+      GIT_TAG 9bc087fbca36ce5a85eb4fd73f0c73813593e5a2
+    )
+    FetchContent_MakeAvailable(ext-win-ffmpeg)
     if(_M_X86_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/x64)
     elseif(_M_ARM_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/ARM64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/ARM64)
     endif()
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
@@ -614,36 +620,39 @@ endif()
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 if (_M_X86_64)
-  add_subdirectory(Externals/Bochs_disasm)
+  dolphin_add_bundled_library(Bochs_disasm Externals/Bochs_disasm)
 endif()
-add_subdirectory(Externals/cpp-optparse)
+dolphin_add_bundled_library(cpp-optparse Externals/cpp-optparse)
 
 dolphin_find_optional_system_library_pkgconfig(FMT
   fmt>=10.1 fmt::fmt Externals/fmt
 )
 
-add_subdirectory(Externals/imgui)
-add_subdirectory(Externals/implot)
+dolphin_add_bundled_library(ImGui Externals/imgui)
+dolphin_add_bundled_library(ImPlot Externals/implot)
 
 dolphin_find_optional_system_library(glslang Externals/glslang DOLPHIN_TRY_VERSIONS 15 16)
 
 # SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
 # video backends, and on Apple devices for the Metal video backend.
 if(WIN32 OR APPLE)
-  add_subdirectory(Externals/spirv_cross)
+  dolphin_add_bundled_library(SPIRV-Cross Externals/spirv_cross)
 endif()
-add_subdirectory(Externals/tinygltf)
+dolphin_add_bundled_library(TinyGLTF Externals/tinygltf)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
+  dolphin_add_bundled_library(Vulkan-Headers Externals/Vulkan-Headers)
+  dolphin_add_bundled_library(VulkanMemoryAllocator Externals/VulkanMemoryAllocator)
+
   if(APPLE AND USE_BUNDLED_MOLTENVK)
-    add_subdirectory(Externals/MoltenVK)
+    dolphin_add_bundled_library(MoltenVK Externals/MoltenVK)
   endif()
 
 
   if (ANDROID AND _M_ARM_64)
-    add_subdirectory(Externals/libadrenotools)
+    dolphin_add_bundled_library(libadrenotools Externals/libadrenotools)
   endif()
 endif()
 
@@ -663,7 +672,7 @@ dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
 dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.18 enet::enet Externals/enet)
 
-dolphin_find_optional_system_library_pkgconfig(xxhash libxxhash>=0.8.2 xxhash::xxhash Externals/xxhash)
+dolphin_find_optional_system_library_pkgconfig(xxHash libxxhash>=0.8.2 xxHash::xxhash Externals/xxhash)
 
 dolphin_find_optional_system_library(BZip2 Externals/bzip2)
 
@@ -685,14 +694,12 @@ dolphin_find_optional_system_library_pkgconfig(lz4 liblz4>=1.8 LZ4::LZ4 External
 
 dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/libspng)
 
-# Using static FreeSurround from Externals
 # There is no system FreeSurround library.
-message(STATUS "Using static FreeSurround from Externals")
-add_subdirectory(Externals/FreeSurround)
+dolphin_add_bundled_library(FreeSurround Externals/FreeSurround)
 
 if (APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
-  add_subdirectory(Externals/ed25519)
+  dolphin_add_bundled_library(ed25519 Externals/ed25519)
   include_directories(Externals/ed25519)
 endif()
 
@@ -727,8 +734,7 @@ if(NOT ANDROID)
 endif()
 
 if(USE_DISCORD_PRESENCE)
-  message(STATUS "Using static DiscordRPC from Externals")
-  add_subdirectory(Externals/discord-rpc EXCLUDE_FROM_ALL)
+  dolphin_add_bundled_library(DiscordRPC Externals/discord-rpc)
   include_directories(Externals/discord-rpc/include)
 endif()
 
@@ -745,25 +751,25 @@ else()
 endif()
 
 if (WIN32)
-  include_directories(Externals/wil/include)
+  dolphin_add_bundled_library(wil Externals/wil)
   include_directories(Externals/OpenAL/include)
 endif()
 
 include_directories(Externals/picojson)
 
-add_subdirectory(Externals/expr)
+dolphin_add_bundled_library(expr Externals/expr)
 
-add_subdirectory(Externals/FatFs)
+dolphin_add_bundled_library(FatFs Externals/FatFs)
 
 if (USE_RETRO_ACHIEVEMENTS)
-  add_subdirectory(Externals/rcheevos)
+  dolphin_add_bundled_library(rcheevos Externals/rcheevos)
 endif()
 
-add_subdirectory(Externals/watcher)
+dolphin_add_bundled_library(watcher Externals/watcher)
 
 # Any other platform or BSD is currently unsupported by cpp-ipc
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  add_subdirectory(Externals/cpp-ipc)
+  dolphin_add_bundled_library(cpp-ipc Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
 endif()
 
@@ -815,14 +821,6 @@ if(ENABLE_TESTS)
   dolphin_find_optional_system_library_pkgconfig(GTEST
     gtest gtest::gtest Externals/gtest
   )
-  # dolphin_find_optional_system_library_pkgconfig() doesn't add an alias if it
-  # uses the bundled libraries, so we add one ourselves.
-  if (NOT TARGET gtest::gtest)
-    add_library(gtest::gtest ALIAS gtest)
-  endif()
-  # Force gtest to link the C runtime dynamically on Windows in order to avoid
-  # runtime mismatches.
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 else()
   message(STATUS "Unit tests are disabled")
 endif()

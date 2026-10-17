@@ -1,7 +1,13 @@
+dolphin_fetchcontent_declare(
+  mgba
+  GIT_REPOSITORY https://github.com/mgba-emu/mgba.git
+  GIT_TAG 0b40863f64d0940f333fa1c638e75f86f8a26a33
+)
+
 set(LIBMGBA_ONLY ON)
 set(USE_LZMA ON)
-add_subdirectory(mgba EXCLUDE_FROM_ALL)
-dolphin_disable_warnings(mgba)
+
+FetchContent_MakeAvailable(mgba)
 
 target_compile_definitions(mgba PUBLIC HAVE_CRC32 ENABLE_VFS ENABLE_DIRECTORIES)
 target_link_libraries(mgba ZLIB::ZLIB)

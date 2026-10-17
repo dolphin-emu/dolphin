@@ -1,66 +1,71 @@
-add_library(rcheevos
-  rcheevos/include/rc_api_editor.h
-  rcheevos/include/rc_api_info.h
-  rcheevos/include/rc_api_request.h
-  rcheevos/include/rc_api_runtime.h
-  rcheevos/include/rc_api_user.h
-  rcheevos/include/rc_client.h
-  rcheevos/include/rc_client_raintegration.h
-  rcheevos/include/rc_consoles.h
-  rcheevos/include/rc_error.h
-  rcheevos/include/rc_export.h
-  rcheevos/include/rc_hash.h
-  rcheevos/include/rcheevos.h
-  rcheevos/include/rc_runtime.h
-  rcheevos/include/rc_runtime_types.h
-  rcheevos/include/rc_util.h
-  rcheevos/src/rapi/rc_api_common.c
-  rcheevos/src/rapi/rc_api_common.h
-  rcheevos/src/rapi/rc_api_editor.c
-  rcheevos/src/rapi/rc_api_info.c
-  rcheevos/src/rapi/rc_api_runtime.c
-  rcheevos/src/rapi/rc_api_user.c
-  rcheevos/src/rcheevos/alloc.c
-  rcheevos/src/rcheevos/condition.c
-  rcheevos/src/rcheevos/condset.c
-  rcheevos/src/rcheevos/consoleinfo.c
-  rcheevos/src/rcheevos/format.c
-  rcheevos/src/rcheevos/lboard.c
-  rcheevos/src/rcheevos/memref.c
-  rcheevos/src/rcheevos/operand.c
-  rcheevos/src/rcheevos/rc_internal.h
-  rcheevos/src/rcheevos/rc_validate.c
-  rcheevos/src/rcheevos/rc_validate.h
-  rcheevos/src/rcheevos/richpresence.c
-  rcheevos/src/rcheevos/runtime.c
-  rcheevos/src/rcheevos/runtime_progress.c
-  rcheevos/src/rcheevos/trigger.c
-  rcheevos/src/rcheevos/value.c
-  rcheevos/src/rhash/aes.c
-  rcheevos/src/rhash/aes.h
-  rcheevos/src/rhash/cdreader.c
-  rcheevos/src/rhash/hash.c
-  rcheevos/src/rhash/hash_disc.c
-  rcheevos/src/rhash/md5.c
-  rcheevos/src/rhash/md5.h
-  rcheevos/src/rhash/rc_hash_internal.h
-  rcheevos/src/rc_client.c
-  rcheevos/src/rc_client_external.c
-  rcheevos/src/rc_client_external.h
-  rcheevos/src/rc_client_external_versions.h
-  rcheevos/src/rc_client_internal.h
-  rcheevos/src/rc_client_raintegration.c
-  rcheevos/src/rc_client_raintegration_internal.h
-  rcheevos/src/rc_compat.c
-  rcheevos/src/rc_compat.h
-  rcheevos/src/rc_util.c
-  rcheevos/src/rc_version.c
-  rcheevos/src/rc_version.h
+dolphin_fetchcontent_declare(
+  rcheevos
+  GIT_REPOSITORY https://github.com/RetroAchievements/rcheevos.git
+  GIT_TAG 926e4608f8dca7989267c787bbefb3ab1c835ac5
 )
-dolphin_disable_warnings(rcheevos)
+FetchContent_MakeAvailable(rcheevos)
 
-target_include_directories(rcheevos PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include")
-target_include_directories(rcheevos INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(rcheevos
+  ${rcheevos_SOURCE_DIR}/include/rc_api_editor.h
+  ${rcheevos_SOURCE_DIR}/include/rc_api_info.h
+  ${rcheevos_SOURCE_DIR}/include/rc_api_request.h
+  ${rcheevos_SOURCE_DIR}/include/rc_api_runtime.h
+  ${rcheevos_SOURCE_DIR}/include/rc_api_user.h
+  ${rcheevos_SOURCE_DIR}/include/rc_client.h
+  ${rcheevos_SOURCE_DIR}/include/rc_client_raintegration.h
+  ${rcheevos_SOURCE_DIR}/include/rc_consoles.h
+  ${rcheevos_SOURCE_DIR}/include/rc_error.h
+  ${rcheevos_SOURCE_DIR}/include/rc_export.h
+  ${rcheevos_SOURCE_DIR}/include/rc_hash.h
+  ${rcheevos_SOURCE_DIR}/include/rcheevos.h
+  ${rcheevos_SOURCE_DIR}/include/rc_runtime.h
+  ${rcheevos_SOURCE_DIR}/include/rc_runtime_types.h
+  ${rcheevos_SOURCE_DIR}/include/rc_util.h
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_common.c
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_common.h
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_editor.c
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_info.c
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_runtime.c
+  ${rcheevos_SOURCE_DIR}/src/rapi/rc_api_user.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/alloc.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/condition.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/condset.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/consoleinfo.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/format.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/lboard.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/memref.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/operand.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/rc_internal.h
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/rc_validate.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/rc_validate.h
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/richpresence.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/runtime.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/runtime_progress.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/trigger.c
+  ${rcheevos_SOURCE_DIR}/src/rcheevos/value.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/aes.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/aes.h
+  ${rcheevos_SOURCE_DIR}/src/rhash/cdreader.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/hash.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/hash_disc.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/md5.c
+  ${rcheevos_SOURCE_DIR}/src/rhash/md5.h
+  ${rcheevos_SOURCE_DIR}/src/rhash/rc_hash_internal.h
+  ${rcheevos_SOURCE_DIR}/src/rc_client.c
+  ${rcheevos_SOURCE_DIR}/src/rc_client_external.c
+  ${rcheevos_SOURCE_DIR}/src/rc_client_external.h
+  ${rcheevos_SOURCE_DIR}/src/rc_client_external_versions.h
+  ${rcheevos_SOURCE_DIR}/src/rc_client_internal.h
+  ${rcheevos_SOURCE_DIR}/src/rc_client_raintegration.c
+  ${rcheevos_SOURCE_DIR}/src/rc_client_raintegration_internal.h
+  ${rcheevos_SOURCE_DIR}/src/rc_compat.c
+  ${rcheevos_SOURCE_DIR}/src/rc_compat.h
+  ${rcheevos_SOURCE_DIR}/src/rc_util.c
+  ${rcheevos_SOURCE_DIR}/src/rc_version.c
+  ${rcheevos_SOURCE_DIR}/src/rc_version.h
+)
+
+target_include_directories(rcheevos PUBLIC "${rcheevos_SOURCE_DIR}/include")
 target_compile_definitions(rcheevos PRIVATE "RC_DISABLE_LUA=1" "RCHEEVOS_URL_SSL")
 target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_HASH")
 target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_EXTERNAL")

@@ -1,3 +1,10 @@
+dolphin_fetchcontent_declare(
+  minizip-ng
+  GIT_REPOSITORY https://github.com/zlib-ng/minizip-ng.git
+  GIT_TAG 55db144e03027b43263e5ebcb599bf0878ba58de # 3.4.16
+  GIT_SHALLOW TRUE
+)
+
 set(MZ_COMPAT OFF)
 set(MZ_BUILD_TESTS OFF)
 set(MZ_BUILD_UNIT_TESTS OFF)
@@ -40,5 +47,4 @@ endif()
 set(CMAKE_DISABLE_FIND_PACKAGE_PkgConfig TRUE)
 set(PKGCONFIG_FOUND FALSE)
 
-add_subdirectory(minizip-ng)
-dolphin_disable_warnings(minizip-ng)
+FetchContent_MakeAvailable(minizip-ng)

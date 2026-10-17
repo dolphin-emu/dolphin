@@ -1,22 +1,25 @@
-project(hidapi)
+dolphin_fetchcontent_declare(
+  hidapi
+  GIT_REPOSITORY https://github.com/libusb/hidapi.git
+  GIT_TAG d6b2a974608dec3b76fb1e36c189f22b9cf3650c # hidapi-0.15.0
+  GIT_SHALLOW TRUE
+)
 
-add_library(hidapi STATIC hidapi-src/hidapi/hidapi.h)
-dolphin_disable_warnings(hidapi)
-target_include_directories(hidapi PUBLIC hidapi-src/hidapi)
+set(BUILD_SHARED_LIBS OFF)
+set(HIDAPI_USE_ICONV OFF CACHE BOOL "" FORCE)
 
-if(APPLE)
-  target_sources(hidapi PRIVATE hidapi-src/mac/hid.c)
-elseif(WIN32)
-  target_sources(hidapi PRIVATE hidapi-src/windows/hid.c)
-else()
-  find_package(LIBUDEV)
-  if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND LIBUDEV_FOUND)
-    target_sources(hidapi PRIVATE hidapi-src/linux/hid.c)
-    target_link_libraries(hidapi PRIVATE udev)
-  else()
-    target_sources(hidapi PRIVATE hidapi-src/libusb/hid.c)
-    target_link_libraries(hidapi PRIVATE LibUSB::LibUSB)
+if(LINUX)
+  find_package(LIBUDEV QUIET)
+  if(NOT LIBUDEV_FOUND)
+    set(HIDAPI_WITH_HIDRAW OFF)
   endif()
 endif()
 
-add_library(Hidapi::Hidapi ALIAS hidapi)
+if(TARGET LibUSB::LibUSB)
+  if(NOT TARGET usb-1.0)
+    add_library(usb-1.0 INTERFACE)
+    target_link_libraries(usb-1.0 INTERFACE LibUSB::LibUSB)
+  endif()
+endif()
+
+FetchContent_MakeAvailable(hidapi)

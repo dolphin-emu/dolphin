@@ -1,3 +1,10 @@
+dolphin_fetchcontent_declare(
+  SDL
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  GIT_TAG fa2c02bb6e21974a89ea9824bc53c9932abe5f9c # 3.4.16
+  GIT_SHALLOW TRUE
+)
+
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 set(SDL_TEST_LIBRARY OFF)
@@ -25,11 +32,4 @@ if(LibUSB_TYPE STREQUAL Bundled)
   set(SDL_HIDAPI_LIBUSB_SHARED OFF)
 endif()
 
-add_subdirectory(SDL)
-
-if (TARGET SDL3)
-  dolphin_disable_warnings(SDL3)
-endif()
-if (TARGET SDL3-static)
-  dolphin_disable_warnings(SDL3-static)
-endif()
+FetchContent_MakeAvailable(SDL)

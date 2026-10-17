@@ -81,6 +81,9 @@ if(WIN32)
     WASAPIStream.cpp
     WASAPIStream.h
   )
+  target_link_libraries(audiocommon PRIVATE
+    WIL::WIL
+  )
 endif()
 
 target_link_libraries(audiocommon

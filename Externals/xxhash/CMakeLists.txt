@@ -1,9 +1,11 @@
-project(xxhash C)
-
-add_library(xxhash STATIC xxHash/xxhash.c)
-dolphin_disable_warnings(xxhash)
-target_include_directories(xxhash
-PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/xxHash
+dolphin_fetchcontent_declare(xxhash
+  GIT_REPOSITORY https://github.com/Cyan4973/xxHash.git
+  GIT_TAG c87183a77d67f7d37e3d2d1b7eaac5e7c695e4f0 # v0.8.4
+  GIT_SHALLOW TRUE
+  SOURCE_SUBDIR build/cmake
 )
-add_library(xxhash::xxhash ALIAS xxhash)
+
+set(BUILD_SHARED_LIBS OFF)
+set(XXHASH_BUILD_XXHSUM OFF)
+
+FetchContent_MakeAvailable(xxhash)
