@@ -1370,16 +1370,16 @@ void MenuBar::CheckNAND()
     const QString user_cluster_message =
         tr("The user-accessible part of your NAND contains %1 blocks (%2 KiB) "
            "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
-            .arg(Common::AlignUp(result.used_clusters_user, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
-                 IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg(Common::DivideRoundingUp(result.used_clusters_user,
+                                          IOS::HLE::FS::CLUSTERS_PER_BLOCK))
             .arg((result.used_clusters_user * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
             .arg(IOS::HLE::FS::USER_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
             .arg((IOS::HLE::FS::USER_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);
     const QString system_cluster_message =
         tr("The system-reserved part of your NAND contains %1 blocks (%2 KiB) "
            "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
-            .arg(Common::AlignUp(result.used_clusters_system, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
-                 IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg(Common::DivideRoundingUp(result.used_clusters_system,
+                                          IOS::HLE::FS::CLUSTERS_PER_BLOCK))
             .arg((result.used_clusters_system * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
             .arg(IOS::HLE::FS::SYSTEM_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
             .arg((IOS::HLE::FS::SYSTEM_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);

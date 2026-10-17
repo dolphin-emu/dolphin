@@ -13,6 +13,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -68,7 +69,8 @@ CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
     m_jit.reset();
     return nullptr;
   }
-  m_jit->Init();
+  if (!m_jit->Init())
+    m_jit.reset();
   return m_jit.get();
 }
 
@@ -311,7 +313,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
   if (!m_jit)
     return;
 
-  std::unordered_set<u32>* exception_addresses = nullptr;
+  Common::LazyMemoryRegionBitSet* exception_addresses = nullptr;
 
   switch (type)
   {
@@ -327,7 +329,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  if (ppc_state.pc != 0 && !exception_addresses->contains(ppc_state.pc))
+  if (ppc_state.pc != 0 && !exception_addresses->TestBit(ppc_state.pc / sizeof(UGeckoInstruction)))
   {
     if (type == ExceptionType::FIFOWrite)
     {
@@ -341,11 +343,11 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(ppc_state.pc);
+    exception_addresses->SetBit(ppc_state.pc / sizeof(UGeckoInstruction));
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    m_jit->GetBlockCache()->InvalidateICache(ppc_state.pc, 4, true);
+    m_jit->GetBlockCache()->InvalidateICache(ppc_state.pc, sizeof(UGeckoInstruction), true);
   }
 }
 
