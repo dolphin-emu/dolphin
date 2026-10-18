@@ -134,3 +134,7 @@
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
 	shallow = true
+[submodule "Externals/mbedtls2/mbedtls"]
+	path = Externals/mbedtls2/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git
+	shallow = true
