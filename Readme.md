@@ -36,6 +36,11 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
+## Using real Wii Remotes on macOS
+
+See [Pairing a real Wii Remote on macOS](docs/WiiMote/PairingOnMacOS.md) for
+first-time Bluetooth pairing, reconnection, and troubleshooting instructions.
+
 ## Building
 
 You may find building instructions on the appropriate wiki page for your operating system:
