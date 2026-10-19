@@ -491,15 +491,6 @@ void Interpreter::dcbi(Interpreter& interpreter, UGeckoInstruction inst)
   }
 
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  if (!ppc_state.m_enable_dcache)
-  {
-    // Invalidate the JIT cache here as a heuristic to compensate for
-    // the lack of precise L1 icache emulation in the JIT. (Portable software
-    // should use icbi consistently, but games aren't portable.)
-    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
-    return;
-  }
-
   interpreter.m_mmu.InvalidateDCacheLine(address);
 }
 
@@ -507,15 +498,6 @@ void Interpreter::dcbst(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  if (!ppc_state.m_enable_dcache)
-  {
-    // Invalidate the JIT cache here as a heuristic to compensate for
-    // the lack of precise L1 icache emulation in the JIT. (Portable software
-    // should use icbi consistently, but games aren't portable.)
-    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
-    return;
-  }
-
   interpreter.m_mmu.StoreDCacheLine(address);
 }
 
