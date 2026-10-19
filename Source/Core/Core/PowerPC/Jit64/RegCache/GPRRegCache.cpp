@@ -3,13 +3,15 @@
 
 #include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
 
+#include <array>
+
 #include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;
 
-GPRRegCache::GPRRegCache(Jit64& jit) : RegCache{jit}
+GPRRegCache::GPRRegCache(Jit64& jit, XEmitter& emitter) : RegCache{jit, emitter}
 {
 }
 
@@ -32,9 +34,9 @@ s32 GPRRegCache::SImm32(preg_t preg) const
 
 OpArg GPRRegCache::R(preg_t preg) const
 {
-  if (m_regs[preg].IsInHostRegister())
+  if (m_state.m_guests_in_host_register[preg])
   {
-    return ::Gen::R(m_regs[preg].GetHostRegister());
+    return ::Gen::R(m_state.m_guests_host_register[preg]);
   }
   else if (m_jit.GetConstantPropagation().HasGPR(preg))
   {
@@ -42,21 +44,21 @@ OpArg GPRRegCache::R(preg_t preg) const
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} missing!", preg);
-    return m_regs[preg].GetDefaultLocation();
+    ASSERT_MSG(DYNA_REC, m_state.m_guests_in_ppc_state[preg], "GPR {} missing!", preg);
+    return GetPPCStateLocation(preg);
   }
 }
 
 void GPRRegCache::StoreRegister(preg_t preg, const OpArg& new_loc,
                                 IgnoreDiscardedRegisters ignore_discarded_registers)
 {
-  if (m_regs[preg].IsInHostRegister())
+  if (m_state.m_guests_in_host_register[preg])
   {
-    m_emitter->MOV(32, new_loc, ::Gen::R(m_regs[preg].GetHostRegister()));
+    m_emitter.MOV(32, new_loc, ::Gen::R(m_state.m_guests_host_register[preg]));
   }
   else if (m_jit.GetConstantPropagation().HasGPR(preg))
   {
-    m_emitter->MOV(32, new_loc, ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg)));
+    m_emitter.MOV(32, new_loc, ::Gen::Imm32(m_jit.GetConstantPropagation().GetGPR(preg)));
   }
   else
   {
@@ -70,13 +72,12 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   const JitCommon::ConstantPropagation& constant_propagation = m_jit.GetConstantPropagation();
   if (constant_propagation.HasGPR(preg))
   {
-    m_emitter->MOV(32, ::Gen::R(new_loc), ::Gen::Imm32(constant_propagation.GetGPR(preg)));
+    m_emitter.MOV(32, ::Gen::R(new_loc), ::Gen::Imm32(constant_propagation.GetGPR(preg)));
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} not in default location",
-               preg);
-    m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].GetDefaultLocation());
+    ASSERT_MSG(DYNA_REC, m_state.m_guests_in_ppc_state[preg], "GPR {} not in PPCState", preg);
+    m_emitter.MOV(32, ::Gen::R(new_loc), GetPPCStateLocation(preg));
   }
 }
 
@@ -85,23 +86,32 @@ void GPRRegCache::DiscardImm(preg_t preg)
   m_jit.GetConstantPropagation().ClearGPR(preg);
 }
 
-OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
+OpArg GPRRegCache::GetPPCStateLocation(preg_t preg) const
 {
   return PPCSTATE_GPR(preg);
 }
 
+static constexpr std::array<X64Reg, 11> ALLOCATION_ORDER = {
+#ifdef _WIN32
+    RSI, RDI, R13, R14, R15, R8,
+    R9,  R10, R11, R12, RCX
+#else
+    R12, R13, R14, R15, RSI, RDI,
+    R8,  R9,  R10, R11, RCX
+#endif
+};
+
 std::span<const X64Reg> GPRRegCache::GetAllocationOrder() const
 {
-  static constexpr X64Reg allocation_order[] = {
-#ifdef _WIN32
-      RSI, RDI, R13, R14, R15, R8,
-      R9,  R10, R11, R12, RCX
-#else
-      R12, R13, R14, R15, RSI, RDI,
-      R8,  R9,  R10, R11, RCX
-#endif
-  };
-  return allocation_order;
+  return ALLOCATION_ORDER;
+}
+
+BitSetHost GPRRegCache::GetAllocatableRegisters() const
+{
+  // Force loop unrolling
+  return [&]<std::size_t... Is>(std::index_sequence<Is...>) {
+    return BitSetHost(((1 << ALLOCATION_ORDER[Is]) | ...));
+  }(std::make_index_sequence<ALLOCATION_ORDER.size()>{});
 }
 
 void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
@@ -113,18 +123,18 @@ void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
   m_jit.GetConstantPropagation().SetGPR(preg, imm_value);
 }
 
-BitSet32 GPRRegCache::GetRegUtilization() const
+BitSetGuest GPRRegCache::GetRegUtilization() const
 {
   return m_jit.js.op->gprWillBeRead | m_jit.js.op->gprWillBeWritten;
 }
 
-BitSet32 GPRRegCache::CountRegsIn(preg_t preg, u32 lookahead) const
+BitSetGuest GPRRegCache::CountRegsIn(preg_t preg, u32 lookahead) const
 {
-  BitSet32 regs_used;
+  BitSetGuest regs_used;
 
   for (u32 i = 1; i < lookahead; i++)
   {
-    BitSet32 regs_in = m_jit.js.op[i].regsIn;
+    BitSetGuest regs_in = m_jit.js.op[i].regsIn;
     regs_used |= regs_in;
     if (regs_in[preg])
       return regs_used;

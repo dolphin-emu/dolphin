@@ -287,8 +287,8 @@ private:
   JitBlockCache blocks{*this};
   TrampolineCache trampolines{*this};
 
-  GPRRegCache gpr{*this};
-  FPURegCache fpr{*this};
+  GPRRegCache gpr{*this, *this};
+  FPURegCache fpr{*this, *this};
 
   JitCommon::ConstantPropagation m_constant_propagation;
 
