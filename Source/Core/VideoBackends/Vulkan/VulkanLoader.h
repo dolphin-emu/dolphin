@@ -9,6 +9,10 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
+#if defined(HAVE_DRM)
+#define VK_USE_PLATFORM_DISPLAY_KHR
+#endif
+
 #if defined(HAVE_X11)
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
