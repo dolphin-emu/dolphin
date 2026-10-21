@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import androidx.annotation.AttrRes
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -35,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,6 +47,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -54,6 +55,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
 import com.google.android.material.color.MaterialColors
 import androidx.appcompat.R as AppCompatR
 import com.google.android.material.R as MaterialR
@@ -192,16 +194,50 @@ fun DolphinScaffold(
 @Composable
 fun MenuSpacer() = Spacer(modifier = Modifier.height(16.dp))
 
+
+private fun Modifier.extend(
+    start: Dp = 0.dp,
+    top: Dp = 0.dp,
+    end: Dp = 0.dp,
+    bottom: Dp = 0.dp,
+) = layout { measurable, constraints ->
+    val startPx = start.roundToPx()
+    val topPx = top.roundToPx()
+    val extraWidth = startPx + end.roundToPx()
+    val extraHeight = topPx + bottom.roundToPx()
+
+    val placeable = measurable.measure(
+        constraints.offset(horizontal = extraWidth, vertical = extraHeight)
+    )
+    // Report the original size to the parent, but draw past each edge.
+    layout(placeable.width - extraWidth, placeable.height - extraHeight) {
+        placeable.placeRelative(-startPx, -topPx)
+    }
+}
+
+val defaultOutlinedBoxContentPadding = 16.dp
+
+@Stable
+fun OutlinedBoxPaddingValues(
+    start: Dp = defaultOutlinedBoxContentPadding,
+    top: Dp = defaultOutlinedBoxContentPadding,
+    end: Dp = defaultOutlinedBoxContentPadding,
+    bottom: Dp = defaultOutlinedBoxContentPadding,
+) = PaddingValues(start, top, end, bottom)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutlinedBox(
     label: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    fadeContentTop: Boolean = false,
+    contentPadding: PaddingValues = OutlinedBoxPaddingValues(),
     content: @Composable () -> Unit,
 ) {
     Box(
+        // Without this the outer Box uses min height from the modifier, but the
+        // DecorationBox that draws the outline still wraps content.
+        propagateMinConstraints = true,
         modifier = modifier
             .padding(top = 8.dp)
     ) {
@@ -212,32 +248,20 @@ fun OutlinedBox(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .extend(
+                            start = defaultOutlinedBoxContentPadding,
+                            top = defaultOutlinedBoxContentPadding,
+                            end = defaultOutlinedBoxContentPadding,
+                            bottom = defaultOutlinedBoxContentPadding,
+                        )
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .padding(contentPadding)
                 ) {
                     content()
-                    if (fadeContentTop) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(16.dp)
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.surface,
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
-                        )
-                    }
                 }
             },
             enabled = true,
             singleLine = false,
-            contentPadding = if (fadeContentTop) {
-                OutlinedTextFieldDefaults.contentPadding(top = 0.dp)
-            } else {
-                OutlinedTextFieldDefaults.contentPadding()
-            },
             visualTransformation = VisualTransformation.None,
             interactionSource = interactionSource,
             label = { label() },

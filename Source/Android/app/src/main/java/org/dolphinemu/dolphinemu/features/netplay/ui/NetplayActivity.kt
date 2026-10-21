@@ -37,7 +37,10 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
             return
         }
 
-        val viewModel = ViewModelProvider(this, NetplayViewModel.Factory(session, NetworkHelper))[NetplayViewModel::class.java]
+        val viewModel = ViewModelProvider(
+            this,
+            NetplayViewModel.Factory(session, NetworkHelper)
+        )[NetplayViewModel::class.java]
 
         viewModel.launchGame
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -76,6 +79,7 @@ class NetplayActivity : AppCompatActivity(), ThemeProvider {
                     controllerMapping = viewModel.controllerMapping.collectAsState().value,
                     onGamecubePortChanged = viewModel::setGamecubePort,
                     onWiiRemoteChanged = viewModel::setWiiRemote,
+                    wifiDirectGroupLost = viewModel.wifiDirectGroupLost,
                 )
             }
         }
