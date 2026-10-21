@@ -287,34 +287,48 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     break;
 
   case ColorFormat::RGBA6666:
-    //          RRRRRRGG GGGGBBBB BBAAAAAA
-    // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
+    // Load 32 bits. The actual color data is only 3 bytes, so we just load one extra byte and
+    // ignore it.
+    // BBAAAAAA GGGGBBBB RRRRRRGG xxxxxxxx
     LDUR(scratch3_reg, reg, offset - 1);
 
-    REV32(scratch3_reg, scratch3_reg);
+    // Byteswap to make blue and green bits sequential.
+    // xxxxxxxx RRRRRRGG GGGGBBBB BBAAAAAA
+    REV32(scratch2_reg, scratch3_reg);
 
-    // A
-    UBFM(scratch2_reg, scratch3_reg, 0, 5);
-    ORR(scratch2_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
-    ORR(scratch1_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 24));
+    // Isolate red bits.
+    // 00000000 00000000 RRRRRR00 00000000
+    AND(scratch1_reg, scratch3_reg, LogicalImm(0xFC00, GPRSize::B32));
+    // Isolate alpha bits.
+    // 00AAAAAA 00000000 00000000 00000000
+    AND(scratch3_reg, scratch3_reg, LogicalImm(0x3F000000, GPRSize::B32));
+    // Shift red bits into position.
+    // 00000000 00000000 00000000 RRRRRR00
+    LSR(scratch1_reg, scratch1_reg, 8);
+    // Shift alpha bits into position and combine with red bits.
+    // AAAAAA00 00000000 00000000 RRRRRR00
+    ORR(scratch1_reg, scratch1_reg, scratch3_reg, ArithOption(scratch3_reg, ShiftType::LSL, 2));
 
-    // B
-    UBFM(scratch2_reg, scratch3_reg, 6, 11);
-    ORR(scratch2_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
+    // Isolate blue bits.
+    // 00000000 00000000 0000BBBB BB000000
+    AND(scratch3_reg, scratch2_reg, LogicalImm(0xFC0, GPRSize::B32));
+    // Isolate green bits.
+    // 00000000 000000GG GGGG0000 00000000
+    AND(scratch2_reg, scratch2_reg, LogicalImm(0x3F000, GPRSize::B32));
+    // Shift blue bits so they are in the correct position relative to green.
+    // 000000BB BBBB00GG GGGG0000 00000000
+    ORR(scratch2_reg, scratch2_reg, scratch3_reg, ArithOption(scratch3_reg, ShiftType::LSL, 14));
+    // Shift both blue and green bits into position and combine with red and alpha.
+    // AAAAAA00 BBBBBB00 GGGGGG00 RRRRRR00
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 2));
 
-    // G
-    UBFM(scratch2_reg, scratch3_reg, 12, 17);
-    ORR(scratch2_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
+    // Isolate highest bits of each component.
+    // AA000000 BB000000 GG000000 RR000000
+    AND(scratch2_reg, scratch1_reg, LogicalImm(0xC0C0C0C0, GPRSize::B32));
 
-    // R
-    UBFM(scratch2_reg, scratch3_reg, 18, 23);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 4));
+    // Shift the highest bits of each component to form full bytes.
+    // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
 
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
