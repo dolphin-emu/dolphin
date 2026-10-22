@@ -954,6 +954,8 @@ void Presenter::Present(PresentInfo* present_info)
       m_onscreen_ui->DrawImGui();
   }
 
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
   // Present to the window system.
   {
     std::lock_guard<std::mutex> guard(m_swap_mutex);
@@ -962,7 +964,7 @@ void Presenter::Present(PresentInfo* present_info)
     {
       const auto present_time = GetUpdatedPresentationTime(present_info->intended_present_time);
 
-      Core::System::GetInstance().GetCoreTiming().SleepUntil(present_time);
+      core_timing.SleepUntil(present_time);
 
       // Perhaps in the future a more accurate time can be acquired from the various backends.
       present_info->actual_present_time = Clock::now();
@@ -970,6 +972,26 @@ void Presenter::Present(PresentInfo* present_info)
     }
 
     g_gfx->PresentBackbuffer();
+  }
+
+  if (present_info != nullptr)
+  {
+    // "Sync to Host Refresh Rate" throttle adjustment.
+    if (Config::Get(Config::MAIN_SYNC_TO_HOST_REFRESH_RATE) && Config::Get(Config::GFX_VSYNC))
+    {
+      const auto now = Clock::now();
+
+      // When we returned from V-Sync vs. when we actually wanted to display.
+      const auto presentation_discrepency = now - present_info->intended_present_time;
+
+      // FYI: NTSC ~59.94 vs 60 frame time difference is ~16.66 us.
+      constexpr DT MAX_ADJUSTMENT = std::chrono::microseconds{25};
+
+      const auto adjustment = std::clamp(presentation_discrepency, -MAX_ADJUSTMENT, MAX_ADJUSTMENT);
+
+      DEBUG_LOG_FMT(VIDEO, "Adjusting throttle reference: {:.2f} us.", DT_us(adjustment).count());
+      core_timing.AdjustThrottleReferenceTime(adjustment);
+    }
   }
 
   if (m_xfb_entry)
@@ -990,6 +1012,10 @@ TimePoint Presenter::GetUpdatedPresentationTime(TimePoint intended_presentation_
 {
   const auto now = Clock::now();
   const auto arrival_offset = std::min(now - intended_presentation_time, DT{});
+
+  // When SyncToHostRefreshRate is active we want to use the display's timing rather than our own.
+  if (Config::Get(Config::MAIN_SYNC_TO_HOST_REFRESH_RATE) && Config::Get(Config::GFX_VSYNC))
+    return now;
 
   if (!Config::Get(Config::MAIN_SMOOTH_EARLY_PRESENTATION))
   {
