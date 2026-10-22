@@ -41,6 +41,7 @@ public:
   explicit GBAPad(unsigned int index);
   GCPadStatus GetInput();
   void SetReset(bool reset);
+  void SetMultibootReset(bool reset);
 
   std::string GetName() const override;
 
@@ -64,6 +65,7 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
   bool m_reset_pending;
+  bool m_multiboot_reset_pending = false;
 
   const unsigned int m_index;
 };
