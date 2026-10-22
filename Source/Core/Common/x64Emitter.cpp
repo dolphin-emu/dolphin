@@ -978,6 +978,34 @@ void XEmitter::NOT(int bits, const OpArg& src)
   WriteMulDivType(bits, src, 2);
 }
 
+void XEmitter::WriteIncDecType(int bits, OpArg src, int opReg)
+{
+  ASSERT_MSG(DYNA_REC, !src.IsImm(), "WriteIncDecType - Imm argument");
+  CheckFlags();
+  if (bits == 16)
+    Write8(0x66);
+  src.WriteREX(this, bits, bits, 0);
+  if (bits == 8)
+  {
+    Write8(0xFE);
+  }
+  else
+  {
+    Write8(0xFF);
+  }
+  src.WriteRest(this, 0, (X64Reg)opReg);
+}
+
+void XEmitter::INC(int bits, const OpArg& src)
+{
+  WriteIncDecType(bits, src, 0);
+}
+
+void XEmitter::DEC(int bits, const OpArg& src)
+{
+  WriteIncDecType(bits, src, 1);
+}
+
 void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "WriteBitSearchType - Imm argument");
