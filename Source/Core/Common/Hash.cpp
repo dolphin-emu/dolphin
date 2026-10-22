@@ -9,6 +9,8 @@
 
 #include <zlib.h>
 
+#include <mbedtls/md5.h>
+
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
@@ -457,4 +459,34 @@ u32 ComputeCRC32(std::string_view data)
 {
   return ComputeCRC32(reinterpret_cast<const u8*>(data.data()), data.size());
 }
+
+struct MD5Context::Impl
+{
+  mbedtls_md5_context context;
+};
+
+MD5Context::MD5Context() : m_impl{std::make_unique<Impl>()}
+{
+  mbedtls_md5_init(&m_impl->context);
+  mbedtls_md5_starts_ret(&m_impl->context);
+}
+
+// FYI: mbedtls_md5_free is unnecessary. It just zeroes the struct.
+MD5Context::~MD5Context() = default;
+
+void MD5Context::Update(std::span<const u8> data)
+{
+  mbedtls_md5_update_ret(&m_impl->context, data.data(), data.size());
+}
+
+void MD5Context::Finish(u8* output)
+{
+  mbedtls_md5_finish_ret(&m_impl->context, output);
+}
+
+void ComputeMD5(std::span<const u8> input, u8* output)
+{
+  mbedtls_md5_ret(input.data(), input.size(), output);
+}
+
 }  // namespace Common
