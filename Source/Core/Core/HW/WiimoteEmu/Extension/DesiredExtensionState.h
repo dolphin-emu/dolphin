@@ -7,6 +7,7 @@
 
 #include "Common/BitUtils.h"
 
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -52,7 +53,8 @@ public:
                   ExtNumTypePair<ExtensionNumber::UDRAW_TABLET, UDrawTablet>,
                   ExtNumTypePair<ExtensionNumber::DRAWSOME_TABLET, DrawsomeTablet>,
                   ExtNumTypePair<ExtensionNumber::TATACON, TaTaCon>,
-                  ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>>::type;
+                  ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>,
+                  ExtNumTypePair<ExtensionNumber::BALANCE_BOARD, BalanceBoardExt>>::type;
 
   ExtensionData data = std::monostate{};
 };
