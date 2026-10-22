@@ -24,6 +24,7 @@ typedef SSIZE_T ssize_t;
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/Network.h"
 #include "Common/SocketContext.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -260,7 +261,7 @@ static bool IsDataAvailable()
   fd_set _fds, *fds = &_fds;
 
   FD_ZERO(fds);
-  FD_SET(s_sock, fds);
+  Common::Safe_FD_SET(s_sock, fds);
 
   t.tv_sec = 0;
   t.tv_usec = 20;
