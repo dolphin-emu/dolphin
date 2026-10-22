@@ -3,6 +3,7 @@
 
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
+#include <chrono>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -139,6 +140,7 @@ void GBASockServer::Disconnect()
 
 void GBASockServer::ClockSync(Core::System& system)
 {
+  m_last_clock_slice = 0;
   if (!m_clock_sync)
     if (!(m_clock_sync = GetNextClock()))
       return;
@@ -160,6 +162,7 @@ void GBASockServer::ClockSync(Core::System& system)
 
   time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
+  m_last_clock_slice = time_slice;
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;
   bytes[1] = (time_slice >> 16) & 0xff;
@@ -195,6 +198,19 @@ void GBASockServer::Send(const u8* si_buffer)
   if (!Connect())
     return;
 
+  constexpr u32 LONG_SLICE_CYCLES = 20000;
+  constexpr u64 GBA_CYCLES_PER_SECOND = 16777216;
+  if (m_last_clock_slice > LONG_SLICE_CYCLES)
+  {
+    const auto gap = std::chrono::microseconds(m_last_clock_slice * 1000000ull / GBA_CYCLES_PER_SECOND);
+    const auto elapsed = std::chrono::steady_clock::now() - m_last_reply_time;
+    if (gap - elapsed >= std::chrono::milliseconds(1))
+    {
+      const auto sleep_ms = std::chrono::ceil<std::chrono::milliseconds>(gap - elapsed);
+      Common::SleepCurrentThread(static_cast<int>(sleep_ms.count()));
+    }
+  }
+
   std::array<u8, SEND_MAX_SIZE> send_data;
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i];
@@ -207,6 +223,7 @@ void GBASockServer::Send(const u8* si_buffer)
   else
     status = m_client->send(send_data.data(), 1);
 
+  m_last_send_time = std::chrono::steady_clock::now();
   if (status == sf::Socket::Status::Disconnected)
     Disconnect();
 }
@@ -216,12 +233,15 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   if (!m_client)
     return 0;
 
-  if (m_booted)
+  const auto wait_start = std::chrono::steady_clock::now();
   {
     sf::SocketSelector selector;
     selector.add(*m_client);
-    (void)selector.wait(sf::milliseconds(1000));
+    (void)selector.wait(sf::milliseconds(m_booted ? 1000 : 100));
   }
+  const auto now = std::chrono::steady_clock::now();
+  const auto waited = std::chrono::duration_cast<std::chrono::microseconds>(now - wait_start);
+  m_last_reply_time = waited > std::chrono::microseconds(500) ? now : m_last_send_time;
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
