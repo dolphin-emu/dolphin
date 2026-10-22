@@ -183,6 +183,12 @@ class NetplayViewModel(
             controllerMapping.value.withWiiRemote(remoteNumber, player)
         )
     }
+    
+    fun computeGameDigest() = netplaySession.computeGameDigest()
+
+    fun computeSDCardDigest() = netplaySession.computeSDCardDigest()
+
+    fun abortGameDigest() = netplaySession.abortGameDigest()
 
     private fun getLocalIp(): JoinAddress {
         val localIp = networkHelper.getLocalIpString()
