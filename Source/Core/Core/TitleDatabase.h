@@ -33,6 +33,8 @@ public:
   // Get a description for a GameTDB ID (title name if available + GameTDB ID).
   std::string Describe(const std::string& gametdb_id, DiscIO::Language language) const;
 
+  const std::unordered_map<std::string, std::string>& GetUserTitleMap() const;
+
 private:
   void AddLazyMap(DiscIO::Language language, const std::string& language_code);
 
