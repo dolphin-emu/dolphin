@@ -334,6 +334,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
   const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
+  const u32 effective_address = em_address;
   if (em_address_start_page != em_address_end_page)
   {
     // The write crosses a page boundary. Break it up into two writes.
@@ -451,14 +452,18 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     //       (https://github.com/dolphin-emu/hwtests/pull/42)
     m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
-    const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
+    // Use the original effective address rather than the translated address to issue the underlying
+    // writes, so that W/I can be properly set for the effective address in use. Using the
+    // translated address would cause an uncached write to instead go through the cached write path,
+    // as wi defaults to false, and the W/I bits are stored in the translation data.
+    const u32 rotated_data = std::rotr(data, ((effective_address & 0x3) + size) * 8);
 
-    const u32 start_addr = Common::AlignDown(em_address, 8);
-    const u32 end_addr = Common::AlignUp(em_address + size, 8);
+    const u32 start_addr = Common::AlignDown(effective_address, 8);
+    const u32 end_addr = Common::AlignUp(effective_address + size, 8);
     for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
-      WriteToHardware<flag, true>(addr, rotated_data, 4);
-      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+      WriteToHardware<flag>(addr, rotated_data, 4);
+      WriteToHardware<flag>(addr + 4, rotated_data, 4);
     }
 
     return;
