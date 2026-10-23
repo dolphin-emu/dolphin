@@ -559,7 +559,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     }
   }
 
-  BitSet32 gprs_to_undirty = ~js.op->gprWillBeWritten & BitSet32(0xFFFFFFFFU << d);
+  const BitSet32 gprs_to_undirty = ~js.op->gprWillBeWritten;
 
   BitSet32 gprs_to_flush = ~(js.op->gprWillBeWritten | js.op->gprWillBeRead);
   if (a_is_addr_base_reg)
@@ -602,17 +602,26 @@ void JitArm64::lmw(UGeckoInstruction inst)
     else if (gprs_to_undirty[i])
     {
       BitSet32 gprs_to_undirty_this_time{};
-      if (i != 0 && gprs_to_undirty[i - 1])
+      if (i != 0 && js.gpa.store_pairs[i - 1])
+      {
+        // This is the second half of a pair. Store both registers using a single STP instruction.
         gprs_to_undirty_this_time = BitSet32{int(i - 1), int(i)};
-      else if (i == 31 || !gprs_to_undirty[i + 1])
+      }
+      else if (!js.gpa.store_pairs[i])
+      {
+        // This isn't the first half of a pair, and we also know from earlier that it isn't the
+        // second half of a pair. Just store the register on its own.
         gprs_to_undirty_this_time = BitSet32{int(i)};
+      }
       else
+      {
+        // This must be the first half of a pair. It will be flushed the next loop iteration.
         continue;
+      }
 
       gpr.FlushRegisters(gprs_to_undirty_this_time, FlushMode::Undirty, ARM64Reg::INVALID_REG);
       gpr.FlushRegisters(gprs_to_undirty_this_time & gprs_to_flush, FlushMode::Full,
                          ARM64Reg::INVALID_REG);
-      gprs_to_undirty &= ~gprs_to_undirty_this_time;
     }
   }
 
