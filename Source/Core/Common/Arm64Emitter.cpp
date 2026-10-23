@@ -16,6 +16,7 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
@@ -204,24 +205,9 @@ static const u32 Data1SrcEnc[][2] = {
     {0, 3},  // REV64
     {0, 4},  // CLZ
     {0, 5},  // CLS
-};
-
-// Data-Processing (2 source)
-static const u32 Data2SrcEnc[] = {
-    0x02,  // UDIV
-    0x03,  // SDIV
-    0x08,  // LSLV
-    0x09,  // LSRV
-    0x0A,  // ASRV
-    0x0B,  // RORV
-    0x10,  // CRC32B
-    0x11,  // CRC32H
-    0x12,  // CRC32W
-    0x14,  // CRC32CB
-    0x15,  // CRC32CH
-    0x16,  // CRC32CW
-    0x13,  // CRC32X (64bit Only)
-    0x17,  // XRC32CX (64bit Only)
+    {0, 6},  // CTZ
+    {0, 7},  // CNT
+    {0, 8},  // ABS
 };
 
 // Data-Processing (3 source)
@@ -409,12 +395,20 @@ void ARM64XEmitter::EncodeData1SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn)
           (Data1SrcEnc[instenc][1] << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
-void ARM64XEmitter::EncodeData2SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+void ARM64XEmitter::EncodeData2SrcInst(Data2SrcEnc instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   bool b64Bit = Is64Bit(Rd);
 
-  Write32((b64Bit << 31) | (0x0D6 << 21) | (DecodeReg(Rm) << 16) | (Data2SrcEnc[instenc] << 10) |
+  Write32((b64Bit << 31) | (0x0D6 << 21) | (DecodeReg(Rm) << 16) | (u32(instenc) << 10) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
+void ARM64XEmitter::EncodeDataCSSCImmInst(DataCSSCImm8Enc opc, ARM64Reg Rd, ARM64Reg Rn, u8 imm)
+{
+  bool b64Bit = Is64Bit(Rd);
+
+  Write32((b64Bit << 31) | (0x47 << 22) | (u32(opc) << 18) | (imm << 10) | (DecodeReg(Rn) << 5) |
+          DecodeReg(Rd));
 }
 
 void ARM64XEmitter::EncodeData3SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm,
@@ -1180,59 +1174,59 @@ void ARM64XEmitter::CLS(ARM64Reg Rd, ARM64Reg Rn)
 // Data-Processing 2 source
 void ARM64XEmitter::UDIV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(0, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::UDIV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::SDIV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(1, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::SDIV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::LSLV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(2, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::LSLV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::LSRV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(3, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::LSRV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::ASRV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(4, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::ASRV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::RORV(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(5, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::RORV, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32B(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(6, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32B, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32H(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(7, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32H, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32W(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(8, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32W, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32CB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(9, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32CB, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32CH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(10, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32CH, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32CW(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(11, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32CW, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32X(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(12, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32X, Rd, Rn, Rm);
 }
 void ARM64XEmitter::CRC32CX(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeData2SrcInst(13, Rd, Rn, Rm);
+  EncodeData2SrcInst(Data2SrcEnc::CRC32CX, Rd, Rn, Rm);
 }
 
 // Data-Processing 3 source
@@ -1773,6 +1767,74 @@ void ARM64XEmitter::ADR(ARM64Reg Rd, s32 imm)
 void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
 {
   EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
+}
+
+// Common Short Sequence Compression (CSSC) instructions
+void ARM64XEmitter::ABS(ARM64Reg Rd, ARM64Reg Rn)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData1SrcInst(8, Rd, Rn);
+}
+void ARM64XEmitter::CNT(ARM64Reg Rd, ARM64Reg Rn)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData1SrcInst(7, Rd, Rn);
+}
+void ARM64XEmitter::CTZ(ARM64Reg Rd, ARM64Reg Rn)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData1SrcInst(6, Rd, Rn);
+}
+void ARM64XEmitter::SMIN(ARM64Reg Rd, ARM64Reg Rn, s8 imm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeDataCSSCImmInst(DataCSSCImm8Enc::SMIN, Rd, Rn, static_cast<u8>(imm));
+}
+void ARM64XEmitter::SMIN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData2SrcInst(Data2SrcEnc::SMIN, Rd, Rn, Rm);
+}
+void ARM64XEmitter::SMAX(ARM64Reg Rd, ARM64Reg Rn, s8 imm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeDataCSSCImmInst(DataCSSCImm8Enc::SMAX, Rd, Rn, static_cast<u8>(imm));
+}
+void ARM64XEmitter::SMAX(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData2SrcInst(Data2SrcEnc::SMAX, Rd, Rn, Rm);
+}
+void ARM64XEmitter::UMIN(ARM64Reg Rd, ARM64Reg Rn, u8 imm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeDataCSSCImmInst(DataCSSCImm8Enc::UMIN, Rd, Rn, static_cast<u8>(imm));
+}
+void ARM64XEmitter::UMIN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData2SrcInst(Data2SrcEnc::UMIN, Rd, Rn, Rm);
+}
+void ARM64XEmitter::UMAX(ARM64Reg Rd, ARM64Reg Rn, u8 imm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeDataCSSCImmInst(DataCSSCImm8Enc::UMAX, Rd, Rn, static_cast<u8>(imm));
+}
+void ARM64XEmitter::UMAX(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  if (!cpu_info.bCSSC)
+    PanicAlertFmt("Trying to use CSSC on a system that doesn't support it. Bad programmer.");
+  EncodeData2SrcInst(Data2SrcEnc::UMAX, Rd, Rn, Rm);
 }
 
 // This is using a hand-rolled algorithm. The goal is zero memory allocations, not necessarily
