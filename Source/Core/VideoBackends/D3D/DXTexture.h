@@ -17,6 +17,224 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
+#ifdef __MINGW32__
+#include <cstring>
+#ifndef D3D11_MIN_DEPTH
+#define D3D11_MIN_DEPTH 0.0f
+#endif
+#ifndef D3D11_MAX_DEPTH
+#define D3D11_MAX_DEPTH 1.0f
+#endif
+
+struct CD3D11_RECT : public D3D11_RECT
+{
+  CD3D11_RECT(LONG l, LONG t, LONG r, LONG b)
+  {
+    left = l;
+    top = t;
+    right = r;
+    bottom = b;
+  }
+};
+
+struct CD3D11_VIEWPORT : public D3D11_VIEWPORT
+{
+  CD3D11_VIEWPORT(FLOAT x, FLOAT y, FLOAT w, FLOAT h, FLOAT minD = D3D11_MIN_DEPTH,
+                  FLOAT maxD = D3D11_MAX_DEPTH)
+  {
+    TopLeftX = x;
+    TopLeftY = y;
+    Width = w;
+    Height = h;
+    MinDepth = minD;
+    MaxDepth = maxD;
+  }
+};
+
+struct CD3D11_BOX : public D3D11_BOX
+{
+  CD3D11_BOX(UINT l, UINT t, UINT f, UINT r, UINT b, UINT ba)
+  {
+    left = l;
+    top = t;
+    front = f;
+    right = r;
+    bottom = b;
+    back = ba;
+  }
+};
+
+// UAV desc wrapper
+struct CD3D11_UNORDERED_ACCESS_VIEW_DESC : public D3D11_UNORDERED_ACCESS_VIEW_DESC
+{
+  CD3D11_UNORDERED_ACCESS_VIEW_DESC() {}
+
+  explicit CD3D11_UNORDERED_ACCESS_VIEW_DESC(const D3D11_UNORDERED_ACCESS_VIEW_DESC& o)
+      : D3D11_UNORDERED_ACCESS_VIEW_DESC(o)
+  {
+  }
+
+  // Generic initializer by dimension
+  CD3D11_UNORDERED_ACCESS_VIEW_DESC(DXGI_FORMAT fmt, D3D11_UAV_DIMENSION dim, UINT mipSlice = 0,
+                                    UINT firstArraySlice = 0, UINT arraySize = (UINT)-1)
+  {
+    std::memset(this, 0, sizeof(*this));
+    Format = fmt;
+    ViewDimension = dim;
+    switch (dim)
+    {
+    case D3D11_UAV_DIMENSION_BUFFER:
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE1D:
+      Texture1D.MipSlice = mipSlice;
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE1DARRAY:
+      Texture1DArray.MipSlice = mipSlice;
+      Texture1DArray.FirstArraySlice = firstArraySlice;
+      Texture1DArray.ArraySize = arraySize;
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE2D:
+      Texture2D.MipSlice = mipSlice;
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE2DARRAY:
+      Texture2DArray.MipSlice = mipSlice;
+      Texture2DArray.FirstArraySlice = firstArraySlice;
+      Texture2DArray.ArraySize = arraySize;
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE3D:
+      Texture3D.MipSlice = mipSlice;
+      Texture3D.WSize = arraySize;
+      break;
+    default:
+      break;
+    }
+  }
+
+  CD3D11_UNORDERED_ACCESS_VIEW_DESC(ID3D11Texture2D* pTex2D, D3D11_UAV_DIMENSION dim,
+                                    DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN, UINT mipSlice = 0,
+                                    UINT firstArraySlice = 0, UINT arraySize = (UINT)-1)
+  {
+    std::memset(this, 0, sizeof(*this));
+    ViewDimension = dim;
+
+    D3D11_TEXTURE2D_DESC tex{};
+    if (pTex2D)
+      pTex2D->GetDesc(&tex);
+
+    if (fmt == DXGI_FORMAT_UNKNOWN)
+      fmt = tex.Format;
+    if (arraySize == (UINT)-1 && (dim == D3D11_UAV_DIMENSION_TEXTURE2DARRAY))
+      arraySize = tex.ArraySize ? (tex.ArraySize - firstArraySlice) : 0;
+
+    Format = fmt;
+
+    switch (dim)
+    {
+    case D3D11_UAV_DIMENSION_TEXTURE2D:
+      Texture2D.MipSlice = mipSlice;
+      break;
+    case D3D11_UAV_DIMENSION_TEXTURE2DARRAY:
+      Texture2DArray.MipSlice = mipSlice;
+      Texture2DArray.FirstArraySlice = firstArraySlice;
+      Texture2DArray.ArraySize = arraySize;
+      break;
+    default:
+      break;
+    }
+  }
+};
+
+struct CD3D11_DEPTH_STENCIL_VIEW_DESC : public D3D11_DEPTH_STENCIL_VIEW_DESC
+{
+  CD3D11_DEPTH_STENCIL_VIEW_DESC() {}
+
+  explicit CD3D11_DEPTH_STENCIL_VIEW_DESC(const D3D11_DEPTH_STENCIL_VIEW_DESC& o)
+      : D3D11_DEPTH_STENCIL_VIEW_DESC(o)
+  {
+  }
+
+  CD3D11_DEPTH_STENCIL_VIEW_DESC(D3D11_DSV_DIMENSION viewDimension,
+                                 DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN, UINT mipSlice = 0,
+                                 UINT firstArraySlice = 0, UINT arraySize = (UINT)-1,
+                                 UINT flags = 0)
+  {
+    std::memset(this, 0, sizeof(*this));
+    Format = format;
+    ViewDimension = viewDimension;
+    Flags = flags;
+
+    switch (viewDimension)
+    {
+    case D3D11_DSV_DIMENSION_TEXTURE1D:
+      Texture1D.MipSlice = mipSlice;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE1DARRAY:
+      Texture1DArray.MipSlice = mipSlice;
+      Texture1DArray.FirstArraySlice = firstArraySlice;
+      Texture1DArray.ArraySize = arraySize;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2D:
+      Texture2D.MipSlice = mipSlice;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DARRAY:
+      Texture2DArray.MipSlice = mipSlice;
+      Texture2DArray.FirstArraySlice = firstArraySlice;
+      Texture2DArray.ArraySize = arraySize;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DMS:
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY:
+      Texture2DMSArray.FirstArraySlice = firstArraySlice;
+      Texture2DMSArray.ArraySize = arraySize;
+      break;
+    default:
+      break;
+    }
+  }
+
+  CD3D11_DEPTH_STENCIL_VIEW_DESC(ID3D11Texture2D* pTex2D, D3D11_DSV_DIMENSION viewDimension,
+                                 DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN, UINT mipSlice = 0,
+                                 UINT firstArraySlice = 0, UINT arraySize = (UINT)-1,
+                                 UINT flags = 0)
+  {
+    std::memset(this, 0, sizeof(*this));
+    ViewDimension = viewDimension;
+    Flags = flags;
+
+    D3D11_TEXTURE2D_DESC tex{};
+    if (pTex2D)
+      pTex2D->GetDesc(&tex);
+
+    if (format == DXGI_FORMAT_UNKNOWN)
+      format = tex.Format;
+    if (arraySize == (UINT)-1 && (viewDimension == D3D11_DSV_DIMENSION_TEXTURE2DARRAY))
+      arraySize = tex.ArraySize ? (tex.ArraySize - firstArraySlice) : 0;
+
+    Format = format;
+
+    switch (viewDimension)
+    {
+    case D3D11_DSV_DIMENSION_TEXTURE2D:
+      Texture2D.MipSlice = mipSlice;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DARRAY:
+      Texture2DArray.MipSlice = mipSlice;
+      Texture2DArray.FirstArraySlice = firstArraySlice;
+      Texture2DArray.ArraySize = arraySize;
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DMS:
+      break;
+    case D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY:
+      Texture2DMSArray.FirstArraySlice = firstArraySlice;
+      Texture2DMSArray.ArraySize = arraySize;
+      break;
+    default:
+      break;
+    }
+  }
+};
+#endif
+
 namespace DX11
 {
 class DXTexture final : public AbstractTexture

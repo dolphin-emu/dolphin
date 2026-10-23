@@ -34,6 +34,10 @@ if (NOT MSVC)
   endif()
 endif()
 
+if (MINGW)
+  set(CMAKE_CXX_STANDARD 23)
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC)
