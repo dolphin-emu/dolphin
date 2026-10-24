@@ -1039,7 +1039,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     crWillBeRead |= op.crIn;
     crWillBeWritten |= op.crOut;
 
-    if (strncmp(op.opinfo->opname, "stfd", 4))
+    // !stfd*
+    if (!(op.inst.OPCD == 54 || op.inst.OPCD == 55 ||
+          (op.inst.OPCD == 31 && (op.inst.SUBOP10 == 727 || op.inst.SUBOP10 == 759))))
       fprInXmm |= op.fregsIn;
 
     if (hle || breakpoint)
@@ -1096,12 +1098,16 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           bitexact_inputs[op.inst.FC] = true;
       }
 
-      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
+      if (op.opinfo->type == OpType::SingleFP ||
+          // frsp*
+          (op.inst.OPCD == 63 && op.inst.SUBOP10 == 12))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
-      else if (!strncmp(op.opinfo->opname, "lfs", 3))
+      // lfs*
+      else if (op.inst.OPCD == 48 || op.inst.OPCD == 49 ||
+               (op.inst.OPCD == 31 && (op.inst.SUBOP10 == 535 || op.inst.SUBOP10 == 567)))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
@@ -1122,7 +1128,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         fprIsDuplicated[op.fregOut] = false;
       }
 
-      if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      // mtfs*
+      if (op.inst.OPCD == 63 && (op.inst.SUBOP10 == 70 || op.inst.SUBOP10 == 38 ||
+                                 op.inst.SUBOP10 == 134 || op.inst.SUBOP10 == 711))
       {
         // Careful: changing the float mode in a block breaks the store-safe optimization,
         // since a previous float op might have had FTZ off while the later store has FTZ on.
@@ -1146,7 +1154,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
         fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
                                      op.opinfo->type == OpType::PS ||
-                                     !strncmp(op.opinfo->opname, "frsp", 4);
+                                     // frsp*
+                                     (op.inst.OPCD == 63 && op.inst.SUBOP10 == 12);
       }
     }
     op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
