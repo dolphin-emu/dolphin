@@ -4,18 +4,23 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 #include "VideoCommon/CPUCull.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoEvents.h"
 
+class AbstractFramebuffer;
 class DataReader;
+class FramebufferManager;
 class GeometryShaderManager;
 class NativeVertexFormat;
 class PixelShaderManager;
@@ -168,6 +173,29 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  struct SubmittedSampledTexture
+  {
+    RcTcacheEntry entry;
+    SamplerState sampler;
+    u32 index = 0;
+  };
+
+  struct SubmittedDrawCallData
+  {
+    const AbstractPipeline* pipeline = nullptr;
+    AbstractFramebuffer* frame_buffer = nullptr;
+    u32 base_index = 0;
+    u32 base_vertex = 0;
+    u32 index_size = 0;
+    u32 vertex_stride = 0;
+    PrimitiveType primitive_type = PrimitiveType::Points;
+    Common::SmallVector<SubmittedSampledTexture, 8> textures;
+  };
+
+  // Executes a previously captured draw call.
+  void DrawSubmittedDrawData(FramebufferManager* framebuffer_manager,
+                             const SubmittedDrawCallData& draw_call_data);
+
 protected:
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -178,6 +206,11 @@ protected:
   // Commits/uploads the current batch of vertices.
   virtual void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
                             u32* out_base_vertex, u32* out_base_index);
+
+  // Binds the buffers most recently committed, so that a draw can be issued against them.
+  // Separated from CommitBuffer so that draws can rebind the buffers if the draws
+  // are triggered independently
+  virtual void BindCommittedBuffer(u32 vertex_stride);
 
   // Uploads uniform buffers for GX draws.
   virtual void UploadUniforms();
@@ -220,9 +253,10 @@ private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
-  void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                      GeometryShaderManager& geometry_shader_manager, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
+  void ProcessEmulatedMesh(PixelShaderManager& pixel_shader_manager,
+                           GeometryShaderManager& geometry_shader_manager,
+                           const AbstractPipeline* pipeline,
+                           std::span<const SubmittedSampledTexture> sampled_textures);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
