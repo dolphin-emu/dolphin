@@ -142,7 +142,6 @@ public:
   void lmw(UGeckoInstruction inst);
   void stmw(UGeckoInstruction inst);
   void dcbx(UGeckoInstruction inst);
-  void dcbt(UGeckoInstruction inst);
   void dcbz(UGeckoInstruction inst);
   void eieio(UGeckoInstruction inst);
 
