@@ -8,11 +8,15 @@ set(ENABLE_CTEST OFF)
 set(ENABLE_EXCEPTIONS OFF)
 add_subdirectory(glslang)
 
-if (TARGET glslang)
+if(TARGET glslang)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(glslang INTERFACE "--system-header-prefix=glslang/")
+  else()
+    # Silence warnings on glslang by flagging it as a system include
+    set_target_properties(glslang PROPERTIES SYSTEM TRUE)
+  endif()
   target_include_directories(glslang
-  # Silence warnings on glslang by flagging it as a system include
-  SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/glslang>
+  INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/glslang/Public>
   PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
