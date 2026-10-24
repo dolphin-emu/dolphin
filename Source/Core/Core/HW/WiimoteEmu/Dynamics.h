@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
@@ -46,6 +48,10 @@ struct IMUCursorState
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
+  // Filtered Swing coordinate rates (two angular axes and forward translation).
+  Common::Vec3 input_velocity{};
+  float forward_offset = 0;
+
   MotionState() = default;
 };
 
@@ -77,7 +83,9 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
+Common::Quaternion GetSwingRotation(const MotionState& state);
+void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed,
+                  std::optional<Common::Vec2> point_angles = std::nullopt);
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
                   const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
