@@ -40,6 +40,7 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+#include "Core/AutoControllerAssignment.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -61,6 +62,7 @@ namespace UICommon
 {
 static Config::ConfigChangedCallbackID s_config_changed_callback_id;
 static Common::HookableEvent<> s_flush_unsaved_data_event_hook;
+static AutoControllerAssignment s_auto_controller_assignment;
 
 static void CreateDumpPath(std::string path)
 {
@@ -190,10 +192,15 @@ void InitControllers(const WindowSystemInfo& wsi)
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   HotkeyManagerEmu::Initialize();
   FreeLook::Initialize();
+
+  // Initialize automatic SDL controller assignment (if enabled in config).
+  s_auto_controller_assignment.Initialize();
 }
 
 void ShutdownControllers()
 {
+  s_auto_controller_assignment.Shutdown();
+
   Pad::Shutdown();
   Pad::ShutdownGBA();
   Keyboard::Shutdown();

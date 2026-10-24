@@ -483,10 +483,18 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
     pt_label->setEnabled(enable_passthrough);
 
   const int num_local_wiimotes = is_netplay ? NetPlay::NumLocalWiimotes() : 4;
+
+  // When Auto Controller Assignment is enabled, the emulated Wii Remote slots are
+  // managed automatically based on connected SDL controllers. The user must not be
+  // able to change the slot type manually, so grey out the slot selection combos.
+  // The Configure button is still allowed (see MappingWindow, where only the Device
+  // selection is disabled).
+  const bool auto_assignment = Config::Get(Config::MAIN_AUTO_CONTROLLER_ASSIGNMENT);
+
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
-    m_wiimote_boxes[i]->setEnabled(enable_emu_bt && !running_netplay);
+    m_wiimote_boxes[i]->setEnabled(enable_emu_bt && !running_netplay && !auto_assignment);
 
     const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
     m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote &&
