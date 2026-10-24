@@ -9,6 +9,8 @@ add_library(inputcommon
   InputConfig.h
   InputProfile.cpp
   InputProfile.h
+  Keyboard.cpp
+  Keyboard.h
   ControllerEmu/ControllerEmu.cpp
   ControllerEmu/ControllerEmu.h
   ControllerEmu/StickGate.cpp
