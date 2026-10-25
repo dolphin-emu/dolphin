@@ -284,6 +284,7 @@ void CPUManager::Break()
   // finish resulting in the CPU loop never terminating.
   SetStateLocked(State::Stepping);
   RunAdjacentSystems(false);
+  Core::NotifyStateChanged(Core::State::Paused);
 }
 
 void CPUManager::Continue()
