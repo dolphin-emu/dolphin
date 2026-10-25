@@ -4,8 +4,8 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 
 class PointerWrap;

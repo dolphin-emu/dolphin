@@ -8,6 +8,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/StringUtil.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetCache.h"
 #include "VideoCommon/AsyncShaderCompiler.h"

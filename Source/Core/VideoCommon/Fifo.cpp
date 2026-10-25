@@ -15,7 +15,6 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
@@ -30,7 +29,6 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace Fifo
 {
