@@ -1,0 +1,6 @@
+cputest.elf
+cputest-jit.elf
+cputest-jit-fprf.elf
+cputest-mmu.elf
+cputest-timing.elf
+fuzz.elf

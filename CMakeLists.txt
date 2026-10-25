@@ -229,6 +229,9 @@ elseif(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
   add_definitions(-D_M_ARM_64=1)
   # CRC instruction set is used in the CRC32 hash function
   check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
+elseif(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
+  set(_M_PPC_64 1)
+  add_definitions(-D_M_PPC_64=1)
 else()
   message(FATAL_ERROR "You're building on an unsupported platform: "
       "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
@@ -758,8 +761,9 @@ endif()
 
 dolphin_add_bundled_library(watcher Externals/watcher)
 
-# Any other platform or BSD is currently unsupported by cpp-ipc
-if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
+# Any other platform, BSD or processor is currently unsupported by cpp-ipc
+if((WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX") AND
+   CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x64|amd64|AMD64|i[3-6]86|aarch64|arm|ARM")
   dolphin_add_bundled_library(cpp-ipc Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
 endif()

@@ -49,6 +49,12 @@ struct CPUInfo
   // ARMv8 specific
   bool bAFP = false;  // Alternate floating-point behavior
 
+  // PowerPC specific
+  bool bVSX = false;
+  bool bISA_2_07 = false;  // POWER8
+  bool bISA_3_0 = false;   // POWER9
+  bool bISA_3_1 = false;   // Power10
+
   // Call Detect()
   explicit CPUInfo();
 

@@ -679,6 +679,25 @@ elseif(_M_ARM_64)
     PowerPC/JitArm64/JitArm64_Tables.cpp
     PowerPC/JitArmCommon/BackPatch.h
   )
+elseif(_M_PPC_64)
+  target_sources(core PRIVATE
+    PowerPC/JitPPC64/Jit.cpp
+    PowerPC/JitPPC64/Jit.h
+    PowerPC/JitPPC64/JitAsm.cpp
+    PowerPC/JitPPC64/JitPPC64Cache.cpp
+    PowerPC/JitPPC64/JitPPC64Cache.h
+    PowerPC/JitPPC64/JitPPC64_Branch.cpp
+    PowerPC/JitPPC64/JitPPC64_FloatingPoint.cpp
+    PowerPC/JitPPC64/JitPPC64_Integer.cpp
+    PowerPC/JitPPC64/JitPPC64_LoadStore.cpp
+    PowerPC/JitPPC64/JitPPC64_LoadStoreFloating.cpp
+    PowerPC/JitPPC64/JitPPC64_LoadStorePaired.cpp
+    PowerPC/JitPPC64/JitPPC64_Paired.cpp
+    PowerPC/JitPPC64/JitPPC64_RegCache.cpp
+    PowerPC/JitPPC64/JitPPC64_RegCache.h
+    PowerPC/JitPPC64/JitPPC64_SystemRegisters.cpp
+    PowerPC/JitPPC64/JitPPC64_Tables.cpp
+  )
 endif()
 
 target_link_libraries(core

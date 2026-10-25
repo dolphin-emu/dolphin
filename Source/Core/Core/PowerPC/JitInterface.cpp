@@ -28,6 +28,11 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #endif
 
+#ifdef _M_PPC_64
+#include "Common/CPUDetect.h"
+#include "Core/PowerPC/JitPPC64/Jit.h"
+#endif
+
 JitInterface::JitInterface(Core::System& system) : m_system(system)
 {
 }
@@ -57,6 +62,15 @@ CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
 #ifdef _M_ARM_64
   case PowerPC::CPUCore::JITARM64:
     m_jit = std::make_unique<JitArm64>(m_system);
+    break;
+#endif
+#ifdef _M_PPC_64
+  case PowerPC::CPUCore::JITPPC64:
+    // The JIT needs POWER8's instructions.
+    if (cpu_info.bISA_2_07 && cpu_info.bVSX)
+      m_jit = std::make_unique<JitPPC64>(m_system);
+    else
+      m_jit = std::make_unique<CachedInterpreter>(m_system);
     break;
 #endif
   case PowerPC::CPUCore::CachedInterpreter:

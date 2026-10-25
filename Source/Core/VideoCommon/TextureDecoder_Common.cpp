@@ -13,6 +13,10 @@
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
+
+#if defined(_M_PPC_64) && defined(__VSX__)
+#include <altivec.h>
+#endif
 #include "VideoCommon/TextureDecoder_Util.h"
 #include "VideoCommon/sfont.inc"
 
@@ -699,6 +703,117 @@ void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb,
   }
 }
 
+#if defined(_M_PPC_64) && defined(__VSX__)
+namespace
+{
+using U8x16 = __vector unsigned char;
+using S16x8 = __vector signed short;
+using S32x4 = __vector signed int;
+using F32x4 = __vector float;
+
+// Keeps the compiler from fusing a multiplication with the addition after it, which would round
+// differently from the generic code on hosts without fused multiply-add.
+inline F32x4 Unfused(F32x4 value)
+{
+  asm("" : "+wa"(value));
+  return value;
+}
+
+// Decodes XFB in blocks of 16 bytes, 4 color samples, into 8 RGBA pixels each. As the generic code,
+// in single precision, with each product rounded, and truncated to integers, which saturating packs
+// then clamp to bytes. Each lane is a sample, with its first and second pixels apart, so that the
+// products of U and V are computed once for both, and the last permutation interleaves them.
+[[gnu::always_inline]] inline void DecodeXFBBlocksBody(u8* dst, const u8* src, u32 blocks)
+{
+  constexpr u8 Z = 16;
+  const U8x16 zero = vec_splats(static_cast<unsigned char>(0));
+  const U8x16 y1_mask = {0, Z, Z, Z, 4, Z, Z, Z, 8, Z, Z, Z, 12, Z, Z, Z};
+  const U8x16 u_mask = {1, Z, Z, Z, 5, Z, Z, Z, 9, Z, Z, Z, 13, Z, Z, Z};
+  const U8x16 y2_mask = {2, Z, Z, Z, 6, Z, Z, Z, 10, Z, Z, Z, 14, Z, Z, Z};
+  const U8x16 v_mask = {3, Z, Z, Z, 7, Z, Z, Z, 11, Z, Z, Z, 15, Z, Z, Z};
+  // R, G and B of the first pixels in bytes 0-3 of their packs, of the second pixels in 4-7.
+  const U8x16 rgba_lo = {0, 8, 16, 24, 4, 12, 20, 24, 1, 9, 17, 24, 5, 13, 21, 24};
+  const U8x16 rgba_hi = {2, 10, 18, 24, 6, 14, 22, 24, 3, 11, 19, 24, 7, 15, 23, 24};
+  const S32x4 y_bias = vec_splats(16);
+  const S32x4 uv_bias = vec_splats(128);
+  const F32x4 k_y = vec_splats(1.164f);
+  const F32x4 k_rv = vec_splats(1.596f);
+  const F32x4 k_gu = vec_splats(0.392f);
+  const F32x4 k_gv = vec_splats(0.813f);
+  const F32x4 k_bu = vec_splats(2.017f);
+  const S16x8 alpha = vec_splats(static_cast<short>(255));
+
+  for (u32 i = 0; i < blocks; i++)
+  {
+    const U8x16 yuyv = vec_xl(0, src + 16 * i);
+    const auto to_float = [&](const U8x16& mask, const S32x4& bias) {
+      return vec_ctf(vec_sub(reinterpret_cast<S32x4>(vec_perm(yuyv, zero, mask)), bias), 0);
+    };
+    const F32x4 y1 = Unfused(vec_mul(k_y, to_float(y1_mask, y_bias)));
+    const F32x4 y2 = Unfused(vec_mul(k_y, to_float(y2_mask, y_bias)));
+    const F32x4 u = to_float(u_mask, uv_bias);
+    const F32x4 v = to_float(v_mask, uv_bias);
+    const F32x4 rv = Unfused(vec_mul(k_rv, v));
+    const F32x4 gu = Unfused(vec_mul(k_gu, u));
+    const F32x4 gv = Unfused(vec_mul(k_gv, v));
+    const F32x4 bu = Unfused(vec_mul(k_bu, u));
+
+    const S16x8 r = vec_packs(vec_cts(vec_add(y1, rv), 0), vec_cts(vec_add(y2, rv), 0));
+    const S16x8 g = vec_packs(vec_cts(vec_sub(vec_sub(y1, gu), gv), 0),
+                              vec_cts(vec_sub(vec_sub(y2, gu), gv), 0));
+    const S16x8 b = vec_packs(vec_cts(vec_add(y1, bu), 0), vec_cts(vec_add(y2, bu), 0));
+    const U8x16 rg = vec_packsu(r, g);
+    const U8x16 ba = vec_packsu(b, alpha);
+    vec_xst(vec_perm(rg, ba, rgba_lo), 0, dst + 32 * i);
+    vec_xst(vec_perm(rg, ba, rgba_hi), 16, dst + 32 * i);
+  }
+}
+
+void DecodeXFBBlocks(u8* dst, const u8* src, u32 blocks)
+{
+  DecodeXFBBlocksBody(dst, src, blocks);
+}
+
+#ifndef _ARCH_PWR9
+// The same, with POWER9's loads and stores, which need no swapping of doublewords, for builds
+// that don't target POWER9 already.
+[[gnu::target("cpu=power9")]] void DecodeXFBBlocksPOWER9(u8* dst, const u8* src, u32 blocks)
+{
+  DecodeXFBBlocksBody(dst, src, blocks);
+}
+#endif
+}  // namespace
+
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride)
+{
+  // Two pixels for each color sample, as the generic code.
+  const u32 samples = (width + 1) / 2;
+#ifdef _ARCH_PWR9
+  const auto decode = &DecodeXFBBlocks;
+#else
+  const auto decode =
+      __builtin_cpu_supports("arch_3_00") ? &DecodeXFBBlocksPOWER9 : &DecodeXFBBlocks;
+#endif
+  for (u32 y = 0; y < height; y++)
+  {
+    const u8* row = src + y * stride;
+    const u32 blocks = samples / 4;
+    decode(dst, row, blocks);
+    dst += 32 * blocks;
+    const u32 rest = samples % 4;
+    if (rest != 0)
+    {
+      // The last samples, through a block that they fill in part.
+      u8 block[16] = {};
+      u8 pixels[32];
+      std::memcpy(block, row + 16 * blocks, 4 * rest);
+      decode(pixels, block, 1);
+      std::memcpy(dst, pixels, 8 * rest);
+      dst += 8 * rest;
+    }
+  }
+}
+#else
 void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride)
 {
   const u8* src_ptr = src;
@@ -738,3 +853,4 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
     src_ptr += stride;
   }
 }
+#endif

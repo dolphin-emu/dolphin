@@ -22,6 +22,10 @@
 #endif
 #endif
 
+#if defined(_M_PPC_64) && defined(__CRYPTO__)
+#include <altivec.h>
+#endif
+
 namespace Common
 {
 u32 HashAdler32(const u8* data, size_t len)
@@ -96,7 +100,7 @@ static u64 fmix64(u64 k)
   return k;
 }
 
-static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
+[[maybe_unused]] static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
   const u8* data = (const u8*)src;
   const int nblocks = len / 16;
@@ -412,6 +416,58 @@ static u64 GetHash64_ARMv8_CRC32(const u8* src, u32 len, u32 samples)
   return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
 }
 
+#elif defined(_M_PPC_64) && defined(__CRYPTO__)
+
+// POWER8 and later have no CRC32 instruction, but have vpmsumd, a carry-less multiplication. This
+// folds the same 16-byte blocks that GetMurmurHash3 samples into four accumulators, as a CRC-64
+// (ECMA-182 polynomial) folds its input: each step multiplies an accumulator by x^128 modulo the
+// polynomial, and adds a block. The accumulators are then folded together and mixed down to 64
+// bits.
+static u64 GetHash64_PPC64_VPMSUM(const u8* src, u32 len, u32 samples)
+{
+  using Vec = __vector unsigned long long;
+
+  const u32 nblocks = len / 16;
+  u32 Step = (len / 8);
+  if (samples == 0)
+    samples = std::max(Step, 1u);
+  Step = Step / samples;
+  if (Step < 1)
+    Step = 1;
+
+  // x^128 and x^192 modulo the polynomial, for the low and high halves of an accumulator.
+  const Vec k = {0x05f5c3c7eb52fab6, 0x4eb938a7d257740e};
+  const auto fold = [&k](Vec a, Vec b) -> Vec { return __builtin_crypto_vpmsumd(a, k) ^ b; };
+  const auto block = [src](u32 i) -> Vec {
+    return vec_xl(0, reinterpret_cast<const unsigned long long*>(src + 16 * i));
+  };
+
+  Vec h[4] = {{len, 0}, {0, 0}, {0, 0}, {0, 0}};
+  u32 i = 0;
+  if (nblocks > Step * 3)
+  {
+    for (; i < nblocks - Step * 3; i += Step * 4)
+    {
+      h[0] = fold(h[0], block(i + Step * 0));
+      h[1] = fold(h[1], block(i + Step * 1));
+      h[2] = fold(h[2], block(i + Step * 2));
+      h[3] = fold(h[3], block(i + Step * 3));
+    }
+  }
+  for (; i < nblocks; i += Step)
+    h[0] = fold(h[0], block(i));
+
+  if (len & 15)
+  {
+    u64 tail[2] = {};
+    std::memcpy(tail, src + nblocks * 16, len & 15);
+    h[1] = fold(h[1], Vec{tail[0], tail[1]});
+  }
+
+  const Vec result = fold(fold(fold(h[0], h[1]), h[2]), h[3]);
+  return fmix64(result[0] ^ fmix64(result[1]));
+}
+
 #endif
 
 using TextureHashFunction = u64 (*)(const u8* src, u32 len, u32 samples);
@@ -430,7 +486,11 @@ static u64 SetHash64Function(const u8* src, u32 len, u32 samples)
   }
   else
   {
+#if defined(_M_PPC_64) && defined(__CRYPTO__)
+    s_texture_hash_func = &GetHash64_PPC64_VPMSUM;
+#else
     s_texture_hash_func = &GetMurmurHash3;
+#endif
   }
   return s_texture_hash_func(src, len, samples);
 }

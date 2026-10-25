@@ -16,6 +16,7 @@ public:
   {
     x86_64,
     aarch64,
+    ppc64le,
   };
 
   virtual ~HostDisassembler() = default;

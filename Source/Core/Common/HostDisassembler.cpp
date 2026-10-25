@@ -140,6 +140,8 @@ std::unique_ptr<HostDisassembler> HostDisassembler::Factory(Platform arch)
     return std::make_unique<HostDisassemblerLLVM>("x86_64-none-unknown");
   case Platform::aarch64:
     return std::make_unique<HostDisassemblerLLVM>("aarch64-none-unknown", "cortex-a57", 4);
+  case Platform::ppc64le:
+    return std::make_unique<HostDisassemblerLLVM>("powerpc64le-unknown-linux-gnu", "pwr8", 4);
 #elif defined(_M_X86_64)
   case Platform::x86_64:
     return std::make_unique<HostDisassemblerBochs>();

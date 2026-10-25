@@ -336,6 +336,16 @@ void MemoryManager::AddPageTableMapping(u32 logical_address, u32 translated_addr
   if (!m_is_fastmem_arena_initialized)
     return;
 
+  if (m_page_translations)
+  {
+    // RAM is at physical addresses below 0x08000000, mirrored.
+    const bool ram = (translated_address & 0xF8000000) == 0;
+    m_page_translations[logical_address / PowerPC::HW_PAGE_SIZE] =
+        ram ? (translated_address & m_ram_mask) | PAGE_TRANSLATION_READABLE |
+                  (writeable ? PAGE_TRANSLATION_WRITEABLE : 0) :
+              0;
+  }
+
   switch (m_host_page_type)
   {
   case HostPageType::SmallPages:
@@ -447,6 +457,12 @@ void MemoryManager::AddHostPageTableMapping(u32 logical_address, u32 translated_
 
 void MemoryManager::RemovePageTableMappings(const std::set<u32>& mappings)
 {
+  if (m_page_translations)
+  {
+    for (u32 logical_address : mappings)
+      m_page_translations[logical_address / PowerPC::HW_PAGE_SIZE] = 0;
+  }
+
   switch (m_host_page_type)
   {
   case HostPageType::SmallPages:
@@ -490,8 +506,30 @@ void MemoryManager::RemoveHostPageTableMapping(u32 logical_address)
   }
 }
 
+void MemoryManager::EnablePageTranslations()
+{
+  if (!m_page_translations)
+    m_page_translations = std::make_unique<u32[]>(0x1'0000'0000 / PowerPC::HW_PAGE_SIZE);
+}
+
+void MemoryManager::ClearPageTranslations()
+{
+  if (!m_page_translations)
+    return;
+  // Every page with a translation is in RAM, which it's mapped to, by itself or in a group of
+  // m_large_readable_pages.
+  for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
+    m_page_translations[logical_address / PowerPC::HW_PAGE_SIZE] = 0;
+  for (const auto& [logical_address, entries] : m_large_readable_pages)
+  {
+    std::fill_n(&m_page_translations[logical_address / PowerPC::HW_PAGE_SIZE],
+                m_guest_pages_per_host_page, 0);
+  }
+}
+
 void MemoryManager::RemoveAllPageTableMappings()
 {
+  ClearPageTranslations();
   for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
@@ -572,6 +610,8 @@ void MemoryManager::ShutdownFastmemArena()
 {
   if (!m_is_fastmem_arena_initialized)
     return;
+
+  ClearPageTranslations();
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {

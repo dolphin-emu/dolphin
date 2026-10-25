@@ -27,6 +27,8 @@
 #include "VideoCommon/VertexLoaderX64.h"
 #elif defined(_M_ARM_64)
 #include "VideoCommon/VertexLoaderARM64.h"
+#elif defined(_M_PPC_64)
+#include "VideoCommon/VertexLoaderPPC64.h"
 #endif
 
 // a hacky implementation to compare two vertex loaders
@@ -248,6 +250,8 @@ std::unique_ptr<VertexLoaderBase> VertexLoaderBase::CreateVertexLoader(const TVt
   native_loader = std::make_unique<VertexLoaderX64>(vtx_desc, vtx_attr);
 #elif defined(_M_ARM_64)
   native_loader = std::make_unique<VertexLoaderARM64>(vtx_desc, vtx_attr);
+#elif defined(_M_PPC_64)
+  native_loader = std::make_unique<VertexLoaderPPC64>(vtx_desc, vtx_attr);
 #endif
 
   // Use the software loader as a fallback

@@ -6,6 +6,7 @@
 #include <memory>
 #include <tuple>
 #include <unordered_set>
+#include <vector>
 
 #include <gtest/gtest.h>  // NOLINT
 
@@ -13,6 +14,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
@@ -1078,4 +1080,60 @@ static void PrintTo(const CoordComponentCount& t, std::ostream* os)
 static void PrintTo(const NormalComponentCount& t, std::ostream* os)
 {
   *os << fmt::to_string(t);
+}
+
+// Each color format, direct and indexed, through the native loader and the software loader, which
+// must agree.
+class VertexLoaderColorFormatTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<std::tuple<ColorFormat, VertexComponentFormat>>
+{
+};
+INSTANTIATE_TEST_SUITE_P(
+    AllCombinations, VertexLoaderColorFormatTest,
+    ::testing::Combine(::testing::Values(ColorFormat::RGB565, ColorFormat::RGB888,
+                                         ColorFormat::RGB888x, ColorFormat::RGBA4444,
+                                         ColorFormat::RGBA6666, ColorFormat::RGBA8888),
+                       ::testing::Values(VertexComponentFormat::Direct,
+                                         VertexComponentFormat::Index8,
+                                         VertexComponentFormat::Index16)));
+
+TEST_P(VertexLoaderColorFormatTest, MatchesSoftwareLoader)
+{
+  const auto [format, addr] = GetParam();
+
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_desc.low.Color0 = addr;
+  m_vtx_desc.low.Color1 = addr;
+  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp = format;
+  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp = format;
+
+  // Random vertices, and random color arrays, with strides that leave colors unaligned.
+  u32 state = 1;
+  for (size_t i = 0; i < 64 * 1024; i++)
+  {
+    state = state * 1103515245 + 12345;
+    input_memory[i] = static_cast<u8>(state >> 16);
+  }
+  VertexLoaderManager::cached_arraybases[CPArray::Color0] = input_memory + 0x8000;
+  g_main_cp_state.array_strides[CPArray::Color0] = 3;
+  VertexLoaderManager::cached_arraybases[CPArray::Color1] = input_memory + 0xA001;
+  g_main_cp_state.array_strides[CPArray::Color1] = 5;
+
+  VertexLoader software(m_vtx_desc, m_vtx_attr);
+  m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
+  ASSERT_EQ(software.m_vertex_size, m_loader->m_vertex_size);
+  ASSERT_EQ(software.m_native_vtx_decl.stride, m_loader->m_native_vtx_decl.stride);
+
+  // Some formats read the byte before a color, so start after the first byte.
+  constexpr int count = 100;
+  const size_t size = count * software.m_native_vtx_decl.stride;
+  std::vector<u8> expected(size), actual(size);
+  EXPECT_EQ(software.RunVertices(input_memory + 1, expected.data(), count), count);
+  EXPECT_EQ(m_loader->RunVertices(input_memory + 1, actual.data(), count), count);
+  EXPECT_EQ(expected, actual);
 }

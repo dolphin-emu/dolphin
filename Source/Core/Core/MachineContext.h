@@ -133,6 +133,12 @@ typedef mcontext_t SContext;
 #define CTX_LR regs[30]
 #define CTX_SP sp
 #define CTX_PC pc
+#elif _M_PPC_64
+// Indices are PT_NIP and PT_LNK from <asm/ptrace.h>
+#define CTX_REG(x) gp_regs[x]
+#define CTX_LR gp_regs[36]
+#define CTX_SP gp_regs[1]
+#define CTX_PC gp_regs[32]
 #else
 #error No context definition for architecture
 #endif

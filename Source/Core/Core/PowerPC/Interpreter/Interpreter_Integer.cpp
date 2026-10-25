@@ -471,7 +471,7 @@ void Interpreter::addmex(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 result = a + b + carry;
 
   ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, carry - 1));
+  ppc_state.SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
 
   if (inst.OE)
     ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
@@ -663,7 +663,7 @@ void Interpreter::subfmex(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 result = a + b + carry;
 
   ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, carry - 1));
+  ppc_state.SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
 
   if (inst.OE)
     ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));

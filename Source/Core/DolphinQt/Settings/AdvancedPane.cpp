@@ -45,6 +45,7 @@ static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
     {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler for x86-64 (recommended)")},
     {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Recompiler for ARM64 (recommended)")},
+    {PowerPC::CPUCore::JITPPC64, QT_TR_NOOP("JIT Recompiler for PPC64 (experimental)")},
 };
 
 AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
