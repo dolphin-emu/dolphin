@@ -4,6 +4,7 @@
 #include "VideoCommon/FrameDumper.h"
 
 #include "Common/Assert.h"
+#include "Common/FFmpegLoader.h"
 #include "Common/FileUtil.h"
 #include "Common/Image.h"
 
@@ -43,6 +44,14 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
                                    const MathUtil::Rectangle<int>& target_rect, u64 ticks,
                                    int frame_number)
 {
+#if defined(DYNAMICALLY_LOAD_FFMPEG)
+  if (!Common::LoadSharedFFmpeg())
+  {
+    PanicAlertFmtT("Failed to load FFmpeg. Frame dumping is unavailable.");
+    return;
+  }
+#endif
+
   int source_width = src_rect.GetWidth();
   int source_height = src_rect.GetHeight();
   int target_width = target_rect.GetWidth();

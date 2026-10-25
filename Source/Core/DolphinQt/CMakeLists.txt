@@ -438,6 +438,8 @@ add_executable(dolphin-emu
 if (WIN32)
   target_sources(dolphin-emu PRIVATE
     Styles/Dark/dark.qrc
+    QtUtils/FFmpegDownloader.cpp
+    QtUtils/FFmpegDownloader.h
   )
 endif()
 
