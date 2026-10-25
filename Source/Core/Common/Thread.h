@@ -12,13 +12,6 @@
 // Don't include Common.h here as it will break LogManager
 #include "Common/CommonTypes.h"
 
-// This may not be defined outside _WIN32
-#ifndef _WIN32
-#ifndef INFINITE
-#define INFINITE 0xffffffff
-#endif
-#endif
-
 namespace Common
 {
 int CurrentThreadId();
