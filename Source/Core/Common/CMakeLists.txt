@@ -65,6 +65,8 @@ add_library(common
   Event.h
   FatFsUtil.cpp
   FatFsUtil.h
+  FFmpegLoader.cpp
+  FFmpegLoader.h
   FileSearch.cpp
   FileSearch.h
   FilesystemWatcher.cpp
@@ -399,4 +401,27 @@ endif()
 if(MSVC)
   # Add precompiled header
   target_link_libraries(common PRIVATE use_pch)
+endif()
+
+if(FFmpeg_FOUND)
+  if(DYNAMICALLY_LOAD_FFMPEG)
+    target_include_directories(common PUBLIC
+      ${FFmpeg_INCLUDES}
+    )
+  else()
+    target_link_libraries(common PUBLIC
+      FFmpeg::avcodec
+      FFmpeg::avformat
+      FFmpeg::avutil
+      FFmpeg::swscale
+    )
+    if(APPLE)
+      target_link_libraries(common PUBLIC
+        ${COREMEDIA_LIBRARY}
+        ${VIDEOTOOLBOX_LIBRARY}
+        ${COREVIDEO_LIBRARY}
+        ${AUDIOTOOLBOX_LIBRARY}
+      )
+    endif()
+  endif()
 endif()
