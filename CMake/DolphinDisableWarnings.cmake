@@ -3,13 +3,23 @@ function(dolphin_disable_warnings target)
     # MSVC warns with D9025 if multiple contradicting warning flags co-exist
     get_target_property(target_flags ${target} COMPILE_OPTIONS)
     if(target_flags)
+      # This should match /external:W0, /Wall, /w, /wd4326, /Wv:17, but not /Work
+      set(warn_re "/(external:)?[Ww](([0-4Xvdeo]|all)[0-9:-]*)?")
+      # This should match /W4 in $<$<CONFIG:Debug>:/W4>, only /W4 in $<IF:$<CONFIG:Debug>,/F,/W4>, nothing in $<$<CONFIG:Debug>:/I:C:/Work>
+      set(expres_re "(,|>:)(${warn_re})([,>])")
       set(new_flags)
       foreach(flag IN LISTS target_flags)
-        # This should match /external:W0, /Wall, $<IF:$<CONFIG:Debug>,/W0,/W4>, but not $<IF:$<CONFIG:Debug>,/I:C:/Users/will,/I:C:/Workspace2>
-        # Note: This will also match $<IF:$<CONFIG:Debug>,/I:C:/library,/W4>, but this is *very* unlikely to ever come up
-        if(NOT flag MATCHES "^(\\$<.+,)?\/(external:)?[Ww]([0-4Xvdeo]|all|$)")
-          list(APPEND new_flags "${flag}")
+        if("${flag}" MATCHES "^${warn_re}$")
+          continue()
         endif()
+
+        if("${flag}" MATCHES "^\\$<")
+          while("${flag}" MATCHES "${expres_re}")
+            string(REGEX REPLACE "${expres_re}" "\\1\\${CMAKE_MATCH_COUNT}" flag "${flag}")
+          endwhile()
+        endif()
+
+        list(APPEND new_flags "${flag}")
       endforeach()
       set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "${new_flags}")
     endif()
