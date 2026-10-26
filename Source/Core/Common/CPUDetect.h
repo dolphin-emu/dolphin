@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 enum class CPUVendor
 {
   Intel,
@@ -48,6 +50,21 @@ struct CPUInfo
 
   // ARMv8 specific
   bool bAFP = false;  // Alternate floating-point behavior
+
+#if defined(_M_X86_64)
+  // TPAUSE, UMONITOR, and UMWAIT instructions.
+  bool bWAITPKG = false;
+  // MONITORX and MWAITX instructions.
+  bool bMONITORX = false;
+  // Time Stamp Counter rate is invariant across all P-states and C-states.
+  bool bInvariantTSC = false;
+  // CPUID-sourced TSC rate. Zero when not provided.
+  u32 tsc_mhz{};
+
+  // Returns CPUID-sourced or a measured TSC frequency in MHz when it is invariant.
+  // Returns 0 otherwise.
+  u32 GetInvariantTSCMHz() const;
+#endif
 
   // Call Detect()
   explicit CPUInfo();

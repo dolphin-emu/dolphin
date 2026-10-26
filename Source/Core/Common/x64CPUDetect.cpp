@@ -16,7 +16,10 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #ifdef _WIN32
 #include "Common/MsgHandler.h"
@@ -87,6 +90,33 @@ static void WarnIfRunningUnderEmulation()
 }
 
 #endif  // ifdef _WIN32
+
+namespace
+{
+std::atomic<u32> g_measured_tsc_mhz = 0;
+
+u64 MeasureTSCFrequency()
+{
+  using clock = std::chrono::high_resolution_clock;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+  _mm_lfence();
+  const u64 start_tsc = __rdtsc();
+  const auto start_time = clock::now();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+  _mm_lfence();
+  const u64 end_tsc = __rdtsc();
+  const auto end_time = clock::now();
+
+  const u64 ticks = end_tsc - start_tsc;
+  const auto duration = end_time - start_time;
+
+  return ticks * clock::period::den / clock::period::num / duration.count();
+}
+}  // namespace
 
 struct CPUIDResult
 {
@@ -206,6 +236,31 @@ void CPUInfo::Detect()
         bBMI2 = true;
       if ((info.ebx >> 29) & 1)
         bSHA1 = bSHA2 = true;
+      bWAITPKG = Common::ExtractBit<5>(info.ecx);
+    }
+
+    u32 base_mhz = 0;
+    if (func_id_max >= 0x16)
+    {
+      info = cpuid(0x16);
+      base_mhz = info.eax;
+    }
+
+    if (func_id_max >= 0x15)
+    {
+      info = cpuid(0x15);
+      if (info.eax && info.ebx)
+      {
+        if (info.ecx)
+        {
+          tsc_mhz = u32(u64(info.ecx) * info.ebx / info.eax / 1'000'000);
+        }
+        else
+        {
+          // Where 15h_ecx is zero and 16h_eax is non-zero the TSC frequency is the base frequency.
+          tsc_mhz = base_mhz;
+        }
+      }
     }
   }
 
@@ -231,6 +286,12 @@ void CPUInfo::Detect()
       bLZCNT = true;
     if ((info.ecx >> 16) & 1)
       bFMA4 = true;
+    bMONITORX = Common::ExtractBit<29>(info.ecx);
+  }
+  if (ext_func_id_max >= 0x80000007)
+  {
+    info = cpuid(0x80000007);
+    bInvariantTSC = Common::ExtractBit<8>(info.edx);
   }
 
   // Computed flags
@@ -240,6 +301,35 @@ void CPUInfo::Detect()
 
   model_name = ReplaceAll(model_name, ",", "_");
   cpu_id = ReplaceAll(cpu_id, ",", "_");
+
+  // Measure the TSC frequency when it's invariant but CPUID doesn't provide it.
+  if (tsc_mhz == 0 && bInvariantTSC)
+  {
+    static std::jthread s_measure_tsc_once{[] {
+      const u64 tsc_hz = MeasureTSCFrequency();
+      const u32 tsc_mhz = (tsc_hz + 500'000) / 1'000'000;
+
+      INFO_LOG_FMT(COMMON, "Measured TSC: {} Hz. Rounding to {} MHz", tsc_hz, tsc_mhz);
+
+      g_measured_tsc_mhz.store(tsc_mhz, std::memory_order_relaxed);
+      g_measured_tsc_mhz.notify_all();
+    }};
+  }
+}
+
+u32 CPUInfo::GetInvariantTSCMHz() const
+{
+  // Not invariant. TSC is not useful.
+  if (!bInvariantTSC)
+    return 0;
+
+  // CPUID-provided TSC frequency.
+  if (tsc_mhz != 0)
+    return tsc_mhz;
+
+  // Wait for the measured result to be ready.
+  g_measured_tsc_mhz.wait(0, std::memory_order_relaxed);
+  return g_measured_tsc_mhz.load(std::memory_order_relaxed);
 }
 
 std::string CPUInfo::Summarize()
