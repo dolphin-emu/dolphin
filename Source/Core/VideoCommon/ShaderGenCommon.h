@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <functional>
 #include <iterator>
 #include <string>
@@ -16,7 +15,6 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
-#include "Common/StringUtil.h"
 #include "Common/TypeUtils.h"
 
 #include "VideoCommon/AbstractShader.h"

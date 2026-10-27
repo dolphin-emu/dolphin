@@ -4,7 +4,6 @@
 #include "VideoCommon/PerformanceTracker.h"
 
 #include <algorithm>
-#include <cmath>
 #include <iomanip>
 #include <utility>
 

@@ -3,7 +3,6 @@
 
 #include "VideoCommon/Statistics.h"
 
-#include <cstring>
 #include <utility>
 
 #include <imgui.h>

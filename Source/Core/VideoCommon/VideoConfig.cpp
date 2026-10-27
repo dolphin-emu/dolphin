@@ -15,7 +15,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Movie.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"

@@ -11,7 +11,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"

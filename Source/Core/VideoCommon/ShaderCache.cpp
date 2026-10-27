@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <fmt/format.h>
+#include <imgui.h>
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
@@ -13,7 +14,6 @@
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
@@ -25,7 +25,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include <imgui.h>
+#include "TextureConversionShader.h"
 
 std::unique_ptr<VideoCommon::ShaderCache> g_shader_cache;
 
