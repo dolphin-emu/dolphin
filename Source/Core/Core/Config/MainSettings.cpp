@@ -152,6 +152,16 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
   return *infos[slot];
 }
 
+const std::array<Info<std::string>, 2> MAIN_EXI_MIC_MICROPHONE{
+    Info<std::string>{{System::Main, "Core", "ExiMic1Microphone"}, ""},
+    Info<std::string>{{System::Main, "Core", "ExiMic2Microphone"}, ""}};
+const std::array<Info<bool>, 2> MAIN_EXI_MIC_MUTED{
+    Info<bool>{{System::Main, "Core", "ExiMic1Muted"}, false},
+    Info<bool>{{System::Main, "Core", "ExiMic2Muted"}, false}};
+const std::array<Info<s16>, 2> MAIN_EXI_MIC_VOLUME_MODIFIER{
+    Info<s16>{{System::Main, "Core", "ExiMic1VolumeModifier"}, 0},
+    Info<s16>{{System::Main, "Core", "ExiMic2VolumeModifier"}, 0}};
+
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};

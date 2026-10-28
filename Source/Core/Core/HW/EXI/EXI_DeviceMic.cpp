@@ -5,10 +5,12 @@
 
 #include <mutex>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
@@ -57,20 +59,35 @@ namespace
 class MicrophoneGameCube : public AudioCommon::Microphone
 {
 public:
-  explicit MicrophoneGameCube(const GameCubeMicState& sampler)
-      : Microphone(sampler, "GameCube Microphone"), m_sampler(sampler),
-        m_buff_size_samples(sampler.GetBufferSizeSamples())
+  explicit MicrophoneGameCube(const GameCubeMicState& sampler, int index)
+      : Microphone(sampler, fmt::format("GameCube Microphone {}", index)), m_sampler(sampler),
+        m_buff_size_samples(sampler.GetBufferSizeSamples()), m_index(index)
   {
+    ASSERT_MSG(EXPANSIONINTERFACE, index == 0 || index == 1, "Invalid GameCube microphone port {}",
+               index);
   }
 
   bool GetOverflowBit() { return m_overflow_bit_set.exchange(false, std::memory_order_relaxed); }
 
 private:
 #ifdef HAVE_CUBEB
-  std::string GetInputDeviceId() const override { return {}; }
-  std::string GetCubebStreamName() const override { return "Dolphin Emulated GameCube Microphone"; }
-  s16 GetVolumeModifier() const override { return 0; }
+  std::string GetInputDeviceId() const override
+  {
+    return Config::Get(Config::MAIN_EXI_MIC_MICROPHONE[m_index]);
+  }
+
+  std::string GetCubebStreamName() const override
+  {
+    return fmt::format("Dolphin Emulated GameCube Microphone {}", m_index);
+  }
+
+  s16 GetVolumeModifier() const override
+  {
+    return Config::Get(Config::MAIN_EXI_MIC_VOLUME_MODIFIER[m_index]);
+  }
+
   bool AreSamplesByteSwapped() const override { return true; }
+
   void OnOverflow() override
   {
     m_samples_avail = 0;
@@ -78,12 +95,18 @@ private:
   }
 #endif
 
-  bool IsMicrophoneMuted() const override { return false; }
+  bool IsMicrophoneMuted() const override
+  {
+    return Config::Get(Config::MAIN_EXI_MIC_MUTED[m_index]);
+  }
+
   u32 GetBufferSizeSamples() const override { return m_buff_size_samples; }
+
   u32 GetStreamSize() const override { return m_buff_size_samples * 500; }
 
   const GameCubeMicState& m_sampler;
   const u32 m_buff_size_samples;
+  const int m_index;
   std::atomic_bool m_overflow_bit_set{false};
 };
 }  // namespace
@@ -96,7 +119,7 @@ private:
 // in the background.
 CEXIMic::CEXIMic(Core::System& system, int index) : IEXIDevice(system), m_slot(index)
 {
-  m_microphone = std::make_unique<MicrophoneGameCube>(m_sampler);
+  m_microphone = std::make_unique<MicrophoneGameCube>(m_sampler, index);
   m_microphone->Initialize();
 }
 
@@ -202,7 +225,7 @@ void CEXIMic::TransferByte(u8& byte)
 
       INFO_LOG_FMT(EXPANSIONINTERFACE, "Microphone sampling on (rate={}, samples={})",
                    m_sample_rate, m_buff_size_samples);
-      m_microphone = std::make_unique<MicrophoneGameCube>(m_sampler);
+      m_microphone = std::make_unique<MicrophoneGameCube>(m_sampler, m_slot);
       m_microphone->Initialize();
     }
     else if (was_active && !m_sampler.IsSampleOn())
