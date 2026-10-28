@@ -254,9 +254,16 @@ static bool CheckKgslPresent()
   return access(KgslPath, F_OK) == 0;
 }
 
+static bool CheckKbasePresent()
+{
+  constexpr auto KbasePath{"/dev/mali0"};
+
+  return access(KbasePath, F_OK) == 0;
+}
+
 bool SupportsCustomDriver()
 {
-  return android_get_device_api_level() >= 28 && CheckKgslPresent();
+  return android_get_device_api_level() >= 28 && (CheckKgslPresent() || CheckKbasePresent());
 }
 #endif
 
