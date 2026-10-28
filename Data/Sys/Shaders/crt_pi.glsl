@@ -223,12 +223,17 @@ void main()
     vec2 tc;
     float scanLineWeight;
 
+    // There's no IR variable, so this guesses the IR, but may be off for some games.
+    float calc_ir = ceil(SourceSize.y / 500);
+    float texcoord_native_y = texcoordInPixels.y / calc_ir;
+    float scanline_delta = texcoord_native_y - (floor(texcoord_native_y) + 0.5);
+
     if (OptionEnabled(SHARPER))
     {
         vec2 tempCoord       = floor(texcoordInPixels) + 0.5;
         vec2 coord           = tempCoord * SourceSize.zw;
         vec2 deltas          = texcoordInPixels - tempCoord;
-        scanLineWeight = CalcScanLine(deltas.y);
+        scanLineWeight = CalcScanLine(scanline_delta);
     
         vec2 signs = sign(deltas);
     
@@ -244,7 +249,7 @@ void main()
         float tempCoord       = floor(texcoordInPixels.y) + 0.5;
         float coord           = tempCoord * SourceSize.w;
         float deltas          = texcoordInPixels.y - tempCoord;
-        scanLineWeight  = CalcScanLine(deltas);
+        scanLineWeight = CalcScanLine(scanline_delta);
     
         float signs = sign(deltas);
     
