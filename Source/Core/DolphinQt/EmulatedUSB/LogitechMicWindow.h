@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
 class ConfigBool;
-class QComboBox;
+class QVBoxLayout;
 
 class LogitechMicWindow final : public QWidget
 {
@@ -27,5 +26,4 @@ private:
   void OnInputDeviceChange(std::size_t index);
 
   std::array<ConfigBool*, Config::EMULATED_LOGITECH_MIC_COUNT> m_mic_enabled_checkboxes;
-  std::array<QComboBox*, 4> m_mic_device_comboboxes;
 };
