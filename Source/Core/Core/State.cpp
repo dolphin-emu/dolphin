@@ -23,8 +23,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/LocaleUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -325,9 +325,11 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
   return result;
 }
 
-static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f)
+static bool CompressBufferToFile(std::span<const u8> raw_buffer, File::DirectIOFile& f)
 {
   u64 total_bytes_compressed = 0;
+
+  u64 expected_offset = f.Tell();
 
   while (true)
   {
@@ -347,13 +349,16 @@ static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f
     }
 
     // The size of the data to write is 'compressed_len'
-    f.WriteArray(&compressed_len, 1);
-    f.WriteBytes(compressed_buffer.get(), compressed_len);
+    f.Write(Common::AsU8Span(compressed_len));
+    f.Write(reinterpret_cast<const u8*>(compressed_buffer.get()), compressed_len);
+    expected_offset += sizeof(compressed_len) + compressed_len;
 
     total_bytes_compressed += bytes_to_compress;
     if (total_bytes_compressed == raw_buffer.size())
-      break;
+      return expected_offset == f.Tell();
   }
+
+  return false;
 }
 
 static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t uncompressed_size)
@@ -368,7 +373,7 @@ static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t un
   // If more fields are added to StateExtendedHeader, set them here.
 }
 
-static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
+static bool WriteHeadersToFile(size_t uncompressed_size, File::DirectIOFile& f)
 {
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.legacy_header.game_id,
@@ -382,11 +387,10 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   StateExtendedHeader extended_header{};
   CreateExtendedHeader(extended_header, uncompressed_size);
 
-  f.WriteArray(&header.legacy_header, 1);
-  f.WriteArray(&header.version_header, 1);
-  f.WriteString(header.version_string);
-
-  f.WriteArray(&extended_header.base_header, 1);
+  return f.Write(Common::AsU8Span(header.legacy_header)) &&
+         f.Write(Common::AsU8Span(header.version_header)) &&
+         f.Write(Common::AsU8Span(header.version_string)) &&
+         f.Write(Common::AsU8Span(extended_header.base_header));
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
@@ -407,21 +411,18 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
     ++temp_counter;
   } while (File::Exists(temp_filename));
 
-  File::IOFile f(temp_filename, "wb");
-  if (!f)
+  File::DirectIOFile f(temp_filename, File::AccessMode::Write);
+  if (!f.IsOpen())
   {
     Core::DisplayMessage("Failed to create state file", 2000);
     return;
   }
 
-  WriteHeadersToFile(buffer.size(), f);
+  const bool wrote_headers = WriteHeadersToFile(buffer.size(), f);
+  const bool wrote_data =
+      s_use_compression ? CompressBufferToFile(buffer, f) : f.Write(buffer.data(), buffer.size());
 
-  if (s_use_compression)
-    CompressBufferToFile(buffer, f);
-  else
-    f.WriteBytes(buffer.data(), buffer.size());
-
-  if (!f.IsGood())
+  if (!wrote_headers || !wrote_data)
     Core::DisplayMessage("Failed to write state file", 2000);
 
   const std::string last_state_filename = File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav";
@@ -505,14 +506,14 @@ void SaveAs(Core::System& system, std::string filename)
       });
 }
 
-static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
+static bool GetVersionFromLZO(StateHeader& header, File::DirectIOFile& f)
 {
   // Just read the first block, since it will contain the full revision string
   lzo_uint32 cur_len = 0;  // size of compressed bytes
   lzo_uint new_len = 0;    // size of uncompressed bytes
   Common::UniqueBuffer<u8> buffer(header.legacy_header.lzo_size);
 
-  if (!f.ReadArray(&cur_len, 1) || !f.ReadBytes(out, cur_len))
+  if (!f.Read(Common::AsWritableU8Span(cur_len)) || !f.Read(out, cur_len))
     return false;
 
   const int res = lzo1x_decompress(out, cur_len, buffer.data(), &new_len, nullptr);
@@ -555,7 +556,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   return true;
 }
 
-static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
+static bool ReadStateHeaderFromFile(StateHeader& header, File::DirectIOFile& f,
                                     bool get_version_header = true)
 {
   if (!f.IsOpen())
@@ -564,7 +565,7 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
     return false;
   }
 
-  if (!f.ReadArray(&header.legacy_header, 1))
+  if (!f.Read(Common::AsWritableU8Span(header.legacy_header)))
   {
     Core::DisplayMessage("Failed to read state legacy header", 2000);
     return false;
@@ -583,14 +584,14 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
   }
   else
   {
-    if (!f.ReadArray(&header.version_header, 1))
+    if (!f.Read(Common::AsWritableU8Span(header.version_header)))
     {
       Core::DisplayMessage("Failed to read state version header", 2000);
       return false;
     }
 
     std::string version_buffer(header.version_header.version_string_length, '\0');
-    if (!f.ReadBytes(version_buffer.data(), version_buffer.size()))
+    if (!f.Read(Common::AsWritableU8Span(version_buffer)))
     {
       Core::DisplayMessage("Failed to read state version string", 2000);
       return false;
@@ -604,7 +605,7 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
 
 static bool ReadHeader(const std::string& filename, StateHeader& header)
 {
-  File::IOFile f(filename, "rb");
+  File::DirectIOFile f(filename, File::AccessMode::Read);
   constexpr bool get_version_header = false;
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
@@ -637,7 +638,7 @@ u64 GetUnixTimeOfSlot(u32 slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::IOFile& f)
+static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::DirectIOFile& f)
 {
   raw_buffer.reset(size);
 
@@ -645,7 +646,7 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
   while (true)
   {
     s32 compressed_data_len = 0;
-    if (!f.ReadArray(&compressed_data_len, 1))
+    if (!f.Read(Common::AsWritableU8Span(compressed_data_len)))
     {
       PanicAlertFmt("Could not read state data length");
       return false;
@@ -658,7 +659,7 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
     }
 
     Common::UniqueBuffer<char> compressed_data(compressed_data_len);
-    if (!f.ReadBytes(compressed_data.get(), compressed_data_len))
+    if (!f.Read(reinterpret_cast<u8*>(compressed_data.get()), compressed_data_len))
     {
       PanicAlertFmt("Could not read state data");
       return false;
@@ -743,15 +744,14 @@ static bool ValidateHeaders(const StateHeader& header)
 
 static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<u8>& ret_data)
 {
-  File::IOFile f;
-  f.Open(filename, "rb");
+  File::DirectIOFile f{filename, File::AccessMode::Read};
 
   StateHeader header;
   if (!ReadStateHeaderFromFile(header, f) || !ValidateHeaders(header))
     return;
 
   StateExtendedHeader extended_header;
-  if (!f.ReadArray(&extended_header.base_header, 1))
+  if (!f.Read(Common::AsWritableU8Span(extended_header.base_header)))
   {
     PanicAlertFmt("Unable to read state header");
     return;
@@ -792,7 +792,7 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
     const auto size = static_cast<size_t>(file_size - header_len);
     buffer.reset(size);
 
-    if (!f.ReadBytes(buffer.data(), size))
+    if (!f.Read(buffer.data(), size))
     {
       PanicAlertFmt("Error reading bytes: {0}", size);
       return;
