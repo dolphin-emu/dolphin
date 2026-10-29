@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <thread>
 
 #include <fmt/format.h>
@@ -24,6 +25,9 @@
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
@@ -37,7 +41,10 @@
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -140,6 +147,119 @@ static void HandleFrameStepHotkeys()
   }
 }
 
+// Qt already reads the keyboard, so skip ports mapped to it. Only the platform's keyboard and mouse
+// device has DEFAULT_DEVICE_SORT_PRIORITY. Bindings that name the keyboard while another device is
+// the default (e.g. `XInput2/0/Virtual core pointer:Up`) are not detected.
+static bool IsMappedToKeyboard(const ControllerEmu::EmulatedController& controller)
+{
+  ciface::Core::DeviceQualifier qualifier;
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    qualifier = controller.GetDefaultDevice();
+  }
+  const std::shared_ptr<ciface::Core::Device> device = g_controller_interface.FindDevice(qualifier);
+  return device != nullptr &&
+         device->GetSortPriority() == ciface::Core::Device::DEFAULT_DEVICE_SORT_PRIORITY;
+}
+
+// The D-pad, then the main stick. Up or down wins a diagonal.
+static int GetGameListDirection(const GCPadStatus& pad)
+{
+  constexpr int STICK_THRESHOLD = 64;
+
+  if (pad.button & PAD_BUTTON_UP)
+    return Qt::Key_Up;
+  if (pad.button & PAD_BUTTON_DOWN)
+    return Qt::Key_Down;
+  if (pad.button & PAD_BUTTON_LEFT)
+    return Qt::Key_Left;
+  if (pad.button & PAD_BUTTON_RIGHT)
+    return Qt::Key_Right;
+
+  const int x = pad.stickX - GCPadStatus::MAIN_STICK_CENTER_X;
+  const int y = pad.stickY - GCPadStatus::MAIN_STICK_CENTER_Y;
+  if (y >= STICK_THRESHOLD)
+    return Qt::Key_Up;
+  if (y <= -STICK_THRESHOLD)
+    return Qt::Key_Down;
+  if (x <= -STICK_THRESHOLD)
+    return Qt::Key_Left;
+  if (x >= STICK_THRESHOLD)
+    return Qt::Key_Right;
+  return 0;
+}
+
+// Nothing when the port is empty or mapped to the keyboard.
+static std::optional<GCPadStatus> ReadGameListController(int channel)
+{
+  switch (Config::Get(Config::GetInfoForSIDevice(channel)))
+  {
+  case SerialInterface::SIDEVICE_GC_CONTROLLER:
+  {
+    if (IsMappedToKeyboard(*Pad::GetConfig()->GetController(channel)))
+      return std::nullopt;
+    const GCPadStatus pad = Pad::GetStatus(channel);
+    return pad.isConnected ? std::optional(pad) : std::nullopt;
+  }
+  default:
+    return std::nullopt;
+  }
+}
+
+void HotkeyScheduler::CheckGameListController()
+{
+  bool connected = false;
+  int direction = 0;
+  bool a = false;
+  if (HotkeyManagerEmu::IsEnabled() && Core::IsUninitialized(Core::System::GetInstance()))
+  {
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    {
+      const std::optional<GCPadStatus> pad = ReadGameListController(i);
+      if (!pad)
+        continue;
+      connected = true;
+      if (direction == 0)
+        direction = GetGameListDirection(*pad);
+      a |= (pad->button & PAD_BUTTON_A) != 0;
+    }
+  }
+
+  if (!connected)
+  {
+    // Ignore what is held on the next poll, so a button held as a game exits does nothing.
+    m_game_list_synced = false;
+    return;
+  }
+
+  // Not a tick count: SleepCurrentThread(5) can take ~16 ms on Windows.
+  constexpr auto REPEAT_DELAY = std::chrono::milliseconds(300);
+  constexpr auto REPEAT_INTERVAL = std::chrono::milliseconds(150);
+  const auto now = std::chrono::steady_clock::now();
+  if (!m_game_list_synced)
+  {
+    m_game_list_repeat_time = std::chrono::steady_clock::time_point::max();
+  }
+  else
+  {
+    if (a && !m_game_list_a)
+      emit GameListKey(Qt::Key_Return);
+    if (direction != 0 && direction != m_game_list_direction)
+    {
+      emit GameListKey(direction);
+      m_game_list_repeat_time = now + REPEAT_DELAY;
+    }
+    else if (direction != 0 && now >= m_game_list_repeat_time)
+    {
+      emit GameListKey(direction);
+      m_game_list_repeat_time = now + REPEAT_INTERVAL;
+    }
+  }
+  m_game_list_synced = true;
+  m_game_list_direction = direction;
+  m_game_list_a = a;
+}
+
 void HotkeyScheduler::Run()
 {
   Common::SetCurrentThreadName("HotkeyScheduler");
@@ -154,6 +274,8 @@ void HotkeyScheduler::Run()
 
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
     g_controller_interface.UpdateInput();
+
+    CheckGameListController();
 
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
