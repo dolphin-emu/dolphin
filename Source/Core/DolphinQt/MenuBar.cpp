@@ -163,7 +163,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Symbols
   m_symbols->setEnabled(running);
 
-  UpdateStateSlotMenu();
   UpdateToolsMenu(state);
 
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -400,7 +399,6 @@ void MenuBar::AddEmulationMenu()
   AddStateLoadMenu(emu_menu);
   AddStateSaveMenu(emu_menu);
   AddStateSlotMenu(emu_menu);
-  UpdateStateSlotMenu();
 
   for (QMenu* menu : {m_state_load_menu, m_state_save_menu, m_state_slot_menu})
     connect(menu, &QMenu::aboutToShow, this, &MenuBar::UpdateStateSlotMenu);
