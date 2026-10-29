@@ -43,6 +43,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -201,6 +202,8 @@ static std::optional<GCPadStatus> ReadGameListController(int channel)
     const GCPadStatus pad = Pad::GetStatus(channel);
     return pad.isConnected ? std::optional(pad) : std::nullopt;
   }
+  case SerialInterface::SIDEVICE_WIIU_ADAPTER:
+    return GCAdapter::Peek(channel);
   default:
     return std::nullopt;
   }
