@@ -119,8 +119,6 @@ private:
 // in the background.
 CEXIMic::CEXIMic(Core::System& system, int index) : IEXIDevice(system), m_slot(index)
 {
-  m_microphone = std::make_unique<MicrophoneGameCube>(m_sampler, index);
-  m_microphone->Initialize();
 }
 
 CEXIMic::~CEXIMic() = default;
