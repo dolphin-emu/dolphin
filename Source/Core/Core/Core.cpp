@@ -10,6 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <stop_token>
 #include <utility>
 #include <variant>
 
@@ -445,10 +446,12 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   using GuardType = Common::ScopeGuard<Common::MoveOnlyFunction<void()>>;
   using ReturnType = std::unique_ptr<GuardType>;
 
+  auto& async_requests = *AsyncRequests::GetInstance();
+
   const auto init_video = [&] {
     DeclareAsGPUThread();
 
-    AsyncRequests::GetInstance()->SetPassthrough(!system.IsDualCoreMode());
+    async_requests.SetPassthrough(!system.IsDualCoreMode());
 
     // Must happen on the proper thread for some video backends, e.g. OpenGL.
     return g_video_backend->Initialize(wsi);
@@ -466,7 +469,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
     std::promise<bool> init_from_thread;
 
     // Spawn the GPU thread.
-    std::thread gpu_thread{[&] {
+    std::jthread gpu_thread{[&, deinit_video](std::stop_token stoken) {
       Common::SetCurrentThreadName("Video thread");
 
       const bool is_init = init_video();
@@ -475,24 +478,29 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
       if (!is_init)
         return;
 
-      system.GetFifo().RunGpuLoop();
+      auto& fifo = system.GetFifo();
+
+      const std::stop_callback exit_loop{
+          stoken, [&] {
+            INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
+            fifo.ExitGpuLoop();
+          }};
+
+      fifo.RunGpuLoop();
       INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
 
       deinit_video();
+      INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GPU thread stopped."));
     }};
 
     if (init_from_thread.get_future().get())
     {
-      // Return a scope guard that signals the GPU thread to stop then joins it.
-      return std::make_unique<GuardType>([&, gpu_thread = std::move(gpu_thread)]() mutable {
-        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
-        system.GetFifo().ExitGpuLoop();
-        gpu_thread.join();
-        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GPU thread stopped."));
-      });
-    }
+      // Ensure we've entered the GPU loop to avoid ExitGpuLoop racing before RunGpuLoop.
+      async_requests.PushBlockingEvent([] {});
 
-    gpu_thread.join();
+      // Return a scope guard that signals the GPU thread to stop then joins it.
+      return std::make_unique<GuardType>([gpu_thread = std::move(gpu_thread)] {});
+    }
   }
   else  // SingleCore mode
   {
