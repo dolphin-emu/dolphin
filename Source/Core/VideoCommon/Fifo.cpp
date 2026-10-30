@@ -103,6 +103,8 @@ void FifoManager::Init()
   if (m_system.IsDualCoreMode())
     m_gpu_mainloop.Prepare();
   m_sync_ticks.store(0);
+
+  m_syncing_suspended = false;
 }
 
 void FifoManager::Shutdown()
