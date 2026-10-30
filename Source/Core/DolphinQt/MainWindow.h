@@ -166,6 +166,7 @@ private:
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
+  void SetRenderWidgetInputSuspended(bool suspended);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();
@@ -245,6 +246,7 @@ private:
   GameCount* m_game_count;
   RenderWidget* m_render_widget = nullptr;
   bool m_rendering_to_main;
+  bool m_render_input_suspended = false;
   bool m_stop_confirm_showing = false;
   bool m_stop_requested = false;
   bool m_exit_requested = false;

@@ -116,6 +116,23 @@ static void RunWithGPUThreadInactive(const std::function<void()>& f)
   }
 }
 
+void Host::RunWithPresentationPaused(const std::function<void()>& f)
+{
+  if (!g_gfx)
+  {
+    f();
+    return;
+  }
+
+  RunWithGPUThreadInactive([&f] {
+    // Presents can still be queued on the Vulkan submission thread, so wait for them to complete.
+    // Other backends don't have the problem, and can't be flushed from this thread.
+    if (g_backend_info.api_type == APIType::Vulkan)
+      g_gfx->WaitForGPUIdle();
+    f();
+  });
+}
+
 bool Host::GetRenderFocus()
 {
 #ifdef _WIN32
@@ -185,10 +202,14 @@ void Host::SetTASInputFocus(const bool focus)
   m_tas_input_focus = focus;
 }
 
-void Host::ResizeSurface(int new_width, int new_height)
+void Host::ResizeSurface(int new_width, int new_height, float scale)
 {
+  g_controller_interface.SetRenderSurfaceSize(new_width, new_height, scale);
   if (g_presenter)
+  {
+    g_presenter->SetRequestedSurfaceSize(new_width, new_height);
     g_presenter->ResizeSurface();
+  }
 }
 
 std::vector<std::string> Host_GetPreferredLocales()
