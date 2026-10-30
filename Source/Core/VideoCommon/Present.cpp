@@ -594,9 +594,11 @@ void Presenter::ChangeSurface(void* new_surface_handle)
   m_surface_changed.Set();
 }
 
-void Presenter::ResizeSurface()
+void Presenter::ResizeSurface(int width, int height)
 {
   std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_surface_width = width;
+  m_new_surface_height = height;
   m_surface_resized.Set();
 }
 
@@ -605,6 +607,12 @@ void* Presenter::GetNewSurfaceHandle()
   void* handle = m_new_surface_handle;
   m_new_surface_handle = nullptr;
   return handle;
+}
+
+std::pair<int, int> Presenter::GetNewSurfaceSize()
+{
+  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  return {m_new_surface_width, m_new_surface_height};
 }
 
 u32 Presenter::AutoIntegralScale() const

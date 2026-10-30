@@ -340,8 +340,9 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_presenter->GetBackbufferWidth(), 1);
-    size.height = std::max(g_presenter->GetBackbufferHeight(), 1);
+    // The surface doesn't know its size (Wayland), so use the size the window reported.
+    size.width = std::max(m_wsi.render_surface_width, 1);
+    size.height = std::max(m_wsi.render_surface_height, 1);
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);
@@ -539,6 +540,16 @@ VkResult SwapChain::AcquireNextImage()
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 
   return res;
+}
+
+void SwapChain::SetSurfaceSize(int width, int height)
+{
+  // Zero means the window hasn't reported a size since startup, so keep the initial one.
+  if (width <= 0 || height <= 0)
+    return;
+
+  m_wsi.render_surface_width = width;
+  m_wsi.render_surface_height = height;
 }
 
 bool SwapChain::ResizeSwapChain()
