@@ -319,6 +319,16 @@ if(ENABLE_WAYLAND AND Wayland_FOUND AND ENABLE_EGL AND EGL_FOUND)
   )
 endif()
 
+if(ENABLE_WAYLAND AND Wayland_FOUND AND WaylandProtocols_FOUND)
+  target_sources(common PRIVATE
+    Wayland/Connection.cpp
+    Wayland/Connection.h
+    Wayland/ContentType.cpp
+    Wayland/ContentType.h
+  )
+  target_link_libraries(common PUBLIC Wayland::Client PRIVATE wayland_protocols)
+endif()
+
 if(WIN32)
   target_sources(common PRIVATE
     CompatPatches.cpp
