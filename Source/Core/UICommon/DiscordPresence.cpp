@@ -206,10 +206,12 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   if (s_using_custom_client)
     UpdateClientID(DEFAULT_CLIENT_ID);
 
-  const std::string& title =
-      current_game.empty() ? SConfig::GetInstance().GetTitleDescription() : current_game;
+  std::string title = current_game.empty() ? SConfig::GetInstance().GetTitleName() : current_game;
+  if (title.empty())
+    title = SConfig::GetInstance().GetTitleDescription();
+  const std::string game_id = SConfig::GetInstance().GetGameTDBID();
   std::string game_artwork =
-      SConfig::GetInstance().GetGameTDBID().empty() ? "" : ArtworkForGameId();
+      game_id.empty() ? "" : ArtworkForGameId();
 
   DiscordRichPresence discord_presence = {};
   if (game_artwork.empty())
@@ -225,6 +227,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
     discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
   }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
+  discord_presence.state = game_id.c_str();
   if (!title.empty())
   {
     discord_presence.status_display_type = DiscordStatusDisplayType_Details;
