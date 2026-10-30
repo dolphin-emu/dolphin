@@ -41,6 +41,11 @@ struct WindowSystemInfo
   // during video backend startup the surface pointer may change (MoltenVK).
   void* render_surface = nullptr;
 
+  // Size of the render surface in pixels, if known. Only needed where it cannot be queried from
+  // the surface handle (Wayland). Zero if unknown.
+  int render_surface_width = 0;
+  int render_surface_height = 0;
+
   // Scale of the render surface. For hidpi systems, this will be >1.
   float render_surface_scale = 1.0f;
 };

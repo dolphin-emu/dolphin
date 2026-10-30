@@ -12,9 +12,11 @@
 #include "VideoCommon/VideoCommon.h"
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <tuple>
+#include <utility>
 
 class AbstractTexture;
 struct SurfaceInfo;
@@ -97,6 +99,18 @@ public:
   bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
   void* GetNewSurfaceHandle();
 
+  // The size in pixels the host window last reported, for window systems where the size can't be
+  // queried from the surface handle (Wayland). Zero if unknown.
+  void SetRequestedSurfaceSize(u32 width, u32 height)
+  {
+    m_requested_surface_size.store(u64{width} << 32 | height, std::memory_order_relaxed);
+  }
+  std::pair<u32, u32> GetRequestedSurfaceSize() const
+  {
+    const u64 size = m_requested_surface_size.load(std::memory_order_relaxed);
+    return {static_cast<u32>(size >> 32), static_cast<u32>(size)};
+  }
+
   void SetKeyMap(const DolphinKeyMap& key_map);
 
   void SetKey(u32 key, bool is_down, const char* chars);
@@ -141,6 +155,7 @@ private:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
   void* m_new_surface_handle = nullptr;
+  std::atomic<u64> m_requested_surface_size{0};
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
 

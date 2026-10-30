@@ -340,8 +340,25 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_presenter->GetBackbufferWidth(), 1);
-    size.height = std::max(g_presenter->GetBackbufferHeight(), 1);
+    // The surface doesn't know its size (Wayland), so use the size the host window reported.
+    // (The presenter doesn't exist yet when the swap chain is first created.)
+    const auto [requested_width, requested_height] =
+        g_presenter ? g_presenter->GetRequestedSurfaceSize() : std::pair<u32, u32>{};
+    if (requested_width != 0 && requested_height != 0)
+    {
+      size.width = requested_width;
+      size.height = requested_height;
+    }
+    else if (m_wsi.render_surface_width > 0 && m_wsi.render_surface_height > 0)
+    {
+      size.width = m_wsi.render_surface_width;
+      size.height = m_wsi.render_surface_height;
+    }
+    else
+    {
+      size.width = g_presenter ? std::max(g_presenter->GetBackbufferWidth(), 1) : 1;
+      size.height = g_presenter ? std::max(g_presenter->GetBackbufferHeight(), 1) : 1;
+    }
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);
