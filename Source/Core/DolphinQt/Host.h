@@ -4,6 +4,7 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 
 #include <QObject>
 
@@ -33,7 +34,13 @@ public:
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void SetTASInputFocus(bool focus);
-  void ResizeSurface(int new_width, int new_height);
+  // Runs f with the video backend guaranteed not to present. Used while the window system object
+  // behind the render surface is destroyed and recreated, since presenting to a surface that no
+  // longer exists is a fatal error on Wayland. The new surface must be reported with
+  // SetRenderHandle before f returns, so that the backend switches to it before its next present.
+  void RunWithPresentationPaused(const std::function<void()>& f);
+  // The size is in pixels. Window systems that can't be queried for the size (Wayland) rely on it.
+  void ResizeSurface(int new_width, int new_height, float scale);
 
 signals:
   void RequestTitle(const QString& title);
