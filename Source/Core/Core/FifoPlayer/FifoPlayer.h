@@ -139,6 +139,8 @@ public:
 
   bool IsRunningWithFakeVideoInterfaceUpdates() const;
 
+  void HighlightObject(std::function<void()> draw);
+
 private:
   class CPUCore;
   friend class CPUCore;
