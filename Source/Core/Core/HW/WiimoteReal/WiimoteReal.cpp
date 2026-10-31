@@ -25,6 +25,7 @@
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
+#include "Core/HW/WiimoteReal/IOwmhci.h"
 #include "Core/System.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -667,6 +668,7 @@ void WiimoteScanner::ThreadFunc()
     m_backends.emplace_back(std::make_unique<WiimoteScannerAndroid>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerWindows>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerHidapi>());
+    m_backends.emplace_back(std::make_unique<WiimoteScannerWmhci>());
   }
 
   while (m_scan_thread_running.IsSet())
