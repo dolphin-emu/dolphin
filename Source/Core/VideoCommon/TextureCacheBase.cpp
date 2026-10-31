@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -1510,8 +1511,14 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   TexAddrCache::iterator iter = iter_range.first;
   TexAddrCache::iterator oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
-  TexAddrCache::iterator unconverted_copy = m_textures_by_address.end();
-  TexAddrCache::iterator unreinterpreted_copy = m_textures_by_address.end();
+  struct UnprocessedCopy
+  {
+    TexAddrCache::iterator iter;
+    bool needs_conversion;
+    bool needs_reinterpretation;
+    u32 negative_score;
+  };
+  std::optional<UnprocessedCopy> unprocessed_copy = std::nullopt;
 
   while (iter != iter_range.second)
   {
@@ -1528,52 +1535,59 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         entry->native_height == texture_info.GetRawHeight() &&
         entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
-      // EFB copies have slightly different rules as EFB copy formats have different
-      // meanings from texture formats.
+      // EFB copies have slightly different rules as EFB copy formats have different meanings from
+      // texture formats.
       if ((base_hash == entry->hash &&
            (!texture_info.GetPaletteSize() || g_backend_info.bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
+        bool needs_conversion = false;
+        bool needs_reintepretation = false;
+
         // The texture format in VRAM must match the format that the copy was created with. Some
         // formats are inherently compatible, as the channel and bit layout is identical (e.g.
         // I8/C8). Others have the same number of bits per texel, and can be reinterpreted on the
         // GPU (e.g. IA4 and I8 or RGB565 and RGBA5). The only known game which reinteprets texels
-        // in this manner is Spiderman Shattered Dimensions, where it creates a copy in B8 format,
+        // in this manner is Spider-Man: Shattered Dimensions, where it creates a copy in B8 format,
         // and sets it up as a IA4 texture.
         if (!IsCompatibleTextureFormat(entry->format.texfmt, texture_info.GetTextureFormat()))
         {
           // Can we reinterpret this in VRAM?
           if (CanReinterpretTextureOnGPU(entry->format.texfmt, texture_info.GetTextureFormat()))
           {
-            // Delay the conversion until afterwards, it's possible this texture has already been
-            // converted.
-            unreinterpreted_copy = iter++;
-            continue;
+            needs_reintepretation = true;
           }
           else
           {
-            // If the EFB copies are in a different format and are not reinterpretable, use the RAM
-            // copy.
+            // If the EFB copies are in a different format and are not reinterpretable, fallback to
+            // the RAM copy.
             ++iter;
             continue;
           }
         }
-        else
-        {
-          // Prefer the already-converted copy.
-          unconverted_copy = m_textures_by_address.end();
-        }
 
         // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
         // checking width/height/levels would have.
-        if (!texture_info.GetPaletteSize() || !g_backend_info.bSupportsPaletteConversion)
+        if (texture_info.GetPaletteSize() && g_backend_info.bSupportsPaletteConversion)
+          needs_conversion = true;
+
+        if (!needs_conversion && !needs_reintepretation)
           return entry;
 
-        // Note that we found an unconverted EFB copy, then continue.  We'll
-        // perform the conversion later.  Currently, we only convert EFB copies to
-        // palette textures; we could do other conversions if it proved to be
-        // beneficial.
-        unconverted_copy = iter;
+        // TODO: Not all conversions/reinterpretations are equal.
+        const u32 negative_score = needs_conversion + 2 * needs_reintepretation;
+        if (!unprocessed_copy.has_value() || negative_score < unprocessed_copy->negative_score)
+        {
+          // Annotate that we found an unprocessed EFB copy, then continue. It'll be processed
+          // later.
+          // We could do other types of conversions if it proved to be beneficial.
+          unprocessed_copy = {
+              .iter = iter,
+              .needs_conversion = needs_conversion,
+              .needs_reinterpretation = needs_reintepretation,
+              .negative_score = negative_score,
+          };
+        }
       }
       else
       {
@@ -1619,40 +1633,29 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     ++iter;
   }
 
-  if (unreinterpreted_copy != m_textures_by_address.end())
+  if (unprocessed_copy.has_value())
   {
-    auto decoded_entry =
-        CreateReinterpretEntry(unreinterpreted_copy->second, texture_info.GetTextureFormat());
-    RenderReinterpretEntry(decoded_entry, unreinterpreted_copy->second->texture.get(),
-                           unreinterpreted_copy->second->format.texfmt,
-                           decoded_entry->format.texfmt);
+    auto old_entry = unprocessed_copy->iter->second;
 
-    // It's possible to combine reinterpreted textures + palettes.
-    if (unreinterpreted_copy == unconverted_copy && decoded_entry)
+    if (unprocessed_copy->needs_reinterpretation)
     {
-      auto existing_entry = decoded_entry;
-      u32 texel_buffer_offset = 0;
-      std::tie(decoded_entry, texel_buffer_offset) =
-          CreatePaletteEntryWithOffset(decoded_entry, texture_info.GetTlutAddress());
-      RenderPaletteEntry(texel_buffer_offset, decoded_entry, existing_entry->texture.get(),
+      auto decoded_entry = CreateReinterpretEntry(old_entry, texture_info.GetTextureFormat());
+      RenderReinterpretEntry(decoded_entry, old_entry->texture.get(), old_entry->format.texfmt,
+                             decoded_entry->format.texfmt);
+      old_entry = decoded_entry;
+    }
+
+    if (unprocessed_copy->needs_conversion && old_entry)
+    {
+      auto [decoded_entry, texel_buffer_offset] =
+          CreatePaletteEntryWithOffset(old_entry, texture_info.GetTlutAddress());
+      RenderPaletteEntry(texel_buffer_offset, decoded_entry, old_entry->texture.get(),
                          texture_info.GetTlutFormat());
+      old_entry = decoded_entry;
     }
 
-    if (decoded_entry)
-      return decoded_entry;
-  }
-
-  if (unconverted_copy != m_textures_by_address.end())
-  {
-    const auto [decoded_entry, texel_buffer_offset] =
-        CreatePaletteEntryWithOffset(unconverted_copy->second, texture_info.GetTlutAddress());
-    RenderPaletteEntry(texel_buffer_offset, decoded_entry, unconverted_copy->second->texture.get(),
-                       texture_info.GetTlutFormat());
-
-    if (decoded_entry)
-    {
-      return decoded_entry;
-    }
+    if (old_entry)
+      return old_entry;
   }
 
   // Search the texture cache for normal textures by hash
