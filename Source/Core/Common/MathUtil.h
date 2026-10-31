@@ -175,4 +175,15 @@ constexpr int IntLog2(u64 val)
 {
   return 63 - std::countl_zero(val);
 }
+
+// Similar to operator<=> but negative signed values always compare less than unsigned values.
+constexpr auto Compare3Way(std::integral auto lhs, std::integral auto rhs)
+{
+  if (std::cmp_less(lhs, rhs))
+    return std::strong_ordering::less;
+  if (std::cmp_less(rhs, lhs))
+    return std::strong_ordering::greater;
+  return std::strong_ordering::equal;
+}
+
 }  // namespace MathUtil
