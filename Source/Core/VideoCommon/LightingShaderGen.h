@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <string_view>
 #include "Common/CommonTypes.h"
 
 class ShaderCode;
@@ -23,18 +22,41 @@ class ShaderCode;
 #define LIGHT_DIR "{}[{}].dir"
 #define LIGHT_DIR_PARAMS(index) (I_LIGHTS), (index)
 
+enum class MatSource : u8;
+enum class AmbSource : u8;
+enum class AttenuationFunc : u8;
+enum class DiffuseFunc : u8;
+
+struct LightFunc
+{
+  MatSource matsource : 1;
+  bool enablelighting : 1;
+  AmbSource ambsource : 1;       // used if enablelighting is true
+  DiffuseFunc diffusefunc : 2;   // used if at least one light is enabled
+  AttenuationFunc attnfunc : 2;  // used if at least one light is enabled
+  u8 pad : 1;
+};
+
+static_assert(sizeof(LightFunc) == 1, "sizeof(LightFunc) must be 1 byte");
+
+struct LightChannel
+{
+  LightFunc func = {};
+  u8 mask = 0;
+};
+
+static_assert(sizeof(LightChannel) == 2, "sizeof(LightChannel) must be 2 bytes");
+
 /**
  * Common uid data used for shader generators that use lighting calculations.
  */
 struct LightingUidData
 {
-  u32 matsource : 4;       // 4x1 bit
-  u32 enablelighting : 4;  // 4x1 bit
-  u32 ambsource : 4;       // 4x1 bit
-  u32 diffusefunc : 8;     // 4x2 bits
-  u32 attnfunc : 8;        // 4x2 bits
-  u32 light_mask : 32;     // 4x8 bits
+  LightChannel color[2];
+  LightChannel alpha[2];
 };
+
+static_assert(sizeof(LightingUidData) == 8, "sizeof(LightingUidData) must be 8 bytes");
 
 constexpr char s_lighting_struct[] = "struct Light {\n"
                                      "\tint4 color;\n"

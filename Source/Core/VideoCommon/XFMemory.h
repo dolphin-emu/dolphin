@@ -120,7 +120,7 @@ struct fmt::formatter<SourceRow> : EnumFormatter<SourceRow::Tex7>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-enum class MatSource : u32
+enum class MatSource : u8
 {
   MatColorRegister = 0,
   Vertex = 1,
@@ -131,7 +131,7 @@ struct fmt::formatter<MatSource> : EnumFormatter<MatSource::Vertex>
   constexpr formatter() : EnumFormatter({"Material color register", "Vertex color"}) {}
 };
 
-enum class AmbSource : u32
+enum class AmbSource : u8
 {
   AmbColorRegister = 0,
   Vertex = 1,
@@ -143,7 +143,7 @@ struct fmt::formatter<AmbSource> : EnumFormatter<AmbSource::Vertex>
 };
 
 // Light diffuse attenuation function
-enum class DiffuseFunc : u32
+enum class DiffuseFunc : u8
 {
   None = 0,
   Sign = 1,
@@ -156,7 +156,7 @@ struct fmt::formatter<DiffuseFunc> : EnumFormatter<DiffuseFunc::Clamp>
 };
 
 // Light attenuation function
-enum class AttenuationFunc : u32
+enum class AttenuationFunc : u8
 {
   None = 0,  // No attenuation
   Spec = 1,  // Point light attenuation
@@ -242,12 +242,12 @@ enum
 
 union LitChannel
 {
-  BitField<0, 1, MatSource> matsource;
+  BitField<0, 1, MatSource, u32> matsource;
   BitField<1, 1, bool, u32> enablelighting;
   BitField<2, 4, u32> lightMask0_3;
-  BitField<6, 1, AmbSource> ambsource;
-  BitField<7, 2, DiffuseFunc> diffusefunc;
-  BitField<9, 2, AttenuationFunc> attnfunc;
+  BitField<6, 1, AmbSource, u32> ambsource;
+  BitField<7, 2, DiffuseFunc, u32> diffusefunc;
+  BitField<9, 2, AttenuationFunc, u32> attnfunc;
   BitField<11, 4, u32> lightMask4_7;
   u32 hex;
 
