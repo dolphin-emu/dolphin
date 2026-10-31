@@ -947,6 +947,12 @@ enum class BooleanSetting(
         "ProgressEnabled",
         false
     ),
+    ACHIEVEMENTS_HARDCORE_RESTORE(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "HardcoreRestore",
+        true
+    ),
     NETPLAY_USE_UPNP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "UseUPNP", false),
     NETPLAY_SKIP_DUAL_CORE_WARNING(Settings.FILE_DOLPHIN, Settings.SECTION_INI_NETPLAY, "SkipDualCoreWarning", false);
 
@@ -991,6 +997,10 @@ enum class BooleanSetting(
         }
         NativeConfig.setBoolean(layer, file, section, key, newValue)
     }
+
+    fun existsInLayer(layer: Int): Boolean = NativeConfig.exists(layer, file, section, key)
+
+    fun deleteFromLayer(layer: Int): Boolean = NativeConfig.deleteKey(layer, file, section, key)
 
     companion object {
         private val NOT_RUNTIME_EDITABLE_ARRAY = arrayOf(
