@@ -48,7 +48,8 @@ int CurrentThreadId()
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
-  SetThreadAffinityMask(thread, mask);
+  // Cast required for MINGW
+  SetThreadAffinityMask(reinterpret_cast<HANDLE>(thread), mask);
 }
 
 void SetCurrentThreadAffinity(u32 mask)
@@ -84,6 +85,7 @@ static void SetCurrentThreadNameViaException(const char* name)
   info.dwThreadID = static_cast<DWORD>(-1);
   info.dwFlags = 0;
 
+#if defined(_MSC_VER)
   __try
   {
     RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
@@ -91,6 +93,7 @@ static void SetCurrentThreadNameViaException(const char* name)
   __except (EXCEPTION_CONTINUE_EXECUTION)
   {
   }
+#endif
 }
 
 static void SetCurrentThreadNameViaApi(const char* name)

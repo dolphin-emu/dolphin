@@ -2,5 +2,5 @@
 //
 #include "resource.h"
 IDI_ICON1               ICON                    "..\\..\\..\\Installer\\Dolphin.ico"
-"dolphin"               ICON                    "..\\..\\..\\Installer\\Dolphin.ico"
+IDI_ICON2               ICON                    "..\\..\\..\\Installer\\Dolphin.ico"
 
