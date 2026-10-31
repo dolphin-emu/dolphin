@@ -10,6 +10,7 @@
 
 class QVBoxLayout;
 class QDialogButtonBox;
+class QCheckBox;
 
 class SkylanderModifyDialog : public QDialog
 {
@@ -20,6 +21,11 @@ private:
   void PopulateSkylanderOptions(QVBoxLayout* layout);
   bool PopulateTrophyOptions(QVBoxLayout* layout);
   void accept() override;
+  u32 ConvertSSAHeroicsToU32(std::span<QCheckBox* const> checkboxes);
+  u16 ConvertSkillsToU16(std::span<QCheckBox* const> checkboxes);
+  void ToggleAllSSAHeroics(std::span<QCheckBox* const> checkboxes);
+  void ToggleSSAHeroicsGroup(std::span<QCheckBox* const> checkboxes,
+                             const std::vector<u8>& indices);
 
   bool m_allow_close = false;
   u8 m_slot;
