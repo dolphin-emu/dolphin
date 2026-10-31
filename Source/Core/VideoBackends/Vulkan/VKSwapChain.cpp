@@ -84,6 +84,29 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
   }
 #endif
 
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  if (wsi.type == WindowSystemType::Wayland)
+  {
+    VkWaylandSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+        nullptr,                                            // const void*                    pNext
+        0,                                                  // VkWaylandSurfaceCreateFlagsKHR flags
+        static_cast<wl_display*>(wsi.display_connection),   // struct wl_display*            display
+        static_cast<wl_surface*>(wsi.render_surface)        // struct wl_surface*            surface
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateWaylandSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateWaylandSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if (wsi.type == WindowSystemType::Android)
   {
@@ -140,19 +163,29 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurf
 
 bool SwapChain::SelectSurfaceFormat()
 {
-  u32 format_count;
-  VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(),
-                                                      m_surface, &format_count, nullptr);
-  if (res != VK_SUCCESS || format_count == 0)
+  // The list of formats can change between the two calls (on Wayland it comes from the
+  // compositor), in which case the second call returns VK_INCOMPLETE and has to be redone.
+  std::vector<VkSurfaceFormatKHR> surface_formats;
+  VkResult res;
+  do
+  {
+    u32 format_count = 0;
+    res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
+                                               &format_count, nullptr);
+    if (res != VK_SUCCESS)
+      break;
+
+    surface_formats.resize(format_count);
+    res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
+                                               &format_count, surface_formats.data());
+    surface_formats.resize(format_count);
+  } while (res == VK_INCOMPLETE);
+
+  if (res != VK_SUCCESS || surface_formats.empty())
   {
     LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceFormatsKHR failed: ");
     return false;
   }
-
-  std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
-  res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                             &format_count, surface_formats.data());
-  ASSERT(res == VK_SUCCESS);
 
   // If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA8
   if (surface_formats[0].format == VK_FORMAT_UNDEFINED)
@@ -228,20 +261,28 @@ bool SwapChain::SelectSurfaceFormat()
 
 bool SwapChain::SelectPresentMode()
 {
+  // As with the surface formats, redo the query if the list changed between the two calls.
+  std::vector<VkPresentModeKHR> present_modes;
   VkResult res;
-  u32 mode_count;
-  res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                                  &mode_count, nullptr);
-  if (res != VK_SUCCESS || mode_count == 0)
+  do
   {
-    LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceFormatsKHR failed: ");
+    u32 mode_count = 0;
+    res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(),
+                                                    m_surface, &mode_count, nullptr);
+    if (res != VK_SUCCESS)
+      break;
+
+    present_modes.resize(mode_count);
+    res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(),
+                                                    m_surface, &mode_count, present_modes.data());
+    present_modes.resize(mode_count);
+  } while (res == VK_INCOMPLETE);
+
+  if (res != VK_SUCCESS || present_modes.empty())
+  {
+    LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfacePresentModesKHR failed: ");
     return false;
   }
-
-  std::vector<VkPresentModeKHR> present_modes(mode_count);
-  res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                                  &mode_count, present_modes.data());
-  ASSERT(res == VK_SUCCESS);
 
   // If vsync is enabled, use VK_PRESENT_MODE_FIFO_KHR.
   // This check should not fail with conforming drivers, as the FIFO present mode is mandated by
@@ -299,8 +340,25 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_presenter->GetBackbufferWidth(), 1);
-    size.height = std::max(g_presenter->GetBackbufferHeight(), 1);
+    // The surface doesn't know its size (Wayland), so use the size the host window reported.
+    // (The presenter doesn't exist yet when the swap chain is first created.)
+    const auto [requested_width, requested_height] =
+        g_presenter ? g_presenter->GetRequestedSurfaceSize() : std::pair<u32, u32>{};
+    if (requested_width != 0 && requested_height != 0)
+    {
+      size.width = requested_width;
+      size.height = requested_height;
+    }
+    else if (m_wsi.render_surface_width > 0 && m_wsi.render_surface_height > 0)
+    {
+      size.width = m_wsi.render_surface_width;
+      size.height = m_wsi.render_surface_height;
+    }
+    else
+    {
+      size.width = g_presenter ? std::max(g_presenter->GetBackbufferWidth(), 1) : 1;
+      size.height = g_presenter ? std::max(g_presenter->GetBackbufferHeight(), 1) : 1;
+    }
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);

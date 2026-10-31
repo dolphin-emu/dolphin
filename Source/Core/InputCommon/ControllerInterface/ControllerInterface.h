@@ -22,6 +22,9 @@
 #ifdef HAVE_X11
 #define CIFACE_USE_XLIB
 #endif
+#ifdef HAVE_WAYLAND_INPUT
+#define CIFACE_USE_WAYLAND
+#endif
 #if defined(__APPLE__)
 #define CIFACE_USE_OSX
 #endif
@@ -114,6 +117,14 @@ public:
 
   bool IsMouseCenteringRequested() const;
 
+  // The size of the render surface in pixels, and its scale (>1 on hidpi screens). Unlike
+  // the window system info, this is kept up to date when the window is resized.
+  void SetRenderSurfaceSize(int width, int height, float scale);
+
+  // The render surface size in scale independent units (pixels divided by scale), for backends
+  // whose pointer coordinates are in those units. Never smaller than 1x1.
+  Common::Vec2 GetRenderSurfaceLogicalSize() const;
+
   [[nodiscard]] Common::EventHook
   RegisterDevicesChangedCallback(Common::HookableEvent<>::CallbackType callback);
 
@@ -138,6 +149,9 @@ private:
   WindowSystemInfo m_wsi;
   std::atomic<float> m_aspect_ratio_adjustment = 1;
   std::atomic<bool> m_requested_mouse_centering = false;
+  std::atomic<int> m_render_surface_width = 0;
+  std::atomic<int> m_render_surface_height = 0;
+  std::atomic<float> m_render_surface_scale = 1.0f;
 
   std::vector<std::unique_ptr<ciface::InputBackend>> m_input_backends;
 };

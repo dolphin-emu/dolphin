@@ -17,6 +17,10 @@
 #include <QTimer>
 #include <QWindow>
 
+#ifdef HAVE_WAYLAND_PROTOCOLS
+#include "Common/Wayland/ContentType.h"
+#endif
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
@@ -35,6 +39,34 @@
 #include <windows.h>
 #include <dwmapi.h>
 #endif
+
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__HAIKU__)
+#include <qpa/qplatformnativeinterface.h>
+#endif
+
+namespace
+{
+bool IsWayland()
+{
+  return QGuiApplication::platformName().startsWith(QStringLiteral("wayland"));
+}
+
+// The handle the video backends and controller interface use to identify the render surface.
+// On most platforms this is the window id, but a Wayland window is identified by its wl_surface,
+// which is not what Qt calls the window id.
+void* GetRenderSurfaceHandle(QWidget* widget)
+{
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__HAIKU__)
+  if (IsWayland())
+  {
+    QWindow* const window = widget->windowHandle();
+    QPlatformNativeInterface* const pni = QGuiApplication::platformNativeInterface();
+    return (window && pni) ? pni->nativeResourceForWindow("surface", window) : nullptr;
+  }
+#endif
+  return reinterpret_cast<void*>(widget->winId());
+}
+}  // namespace
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -92,6 +124,15 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
   setAttribute(Qt::WA_PaintOnScreen);
+
+  if (IsWayland())
+  {
+    // By default Qt makes the ancestors of a native widget native too, and never reverts that. The
+    // game list container would then stay a subsurface after the first game, and a subsurface is
+    // drawn above everything on the main window's surface, including the grab area of the dock
+    // separators. Parent the render surface directly to the main window's surface instead.
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
+  }
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
@@ -212,7 +253,7 @@ void RenderWidget::showFullScreen()
 
   const auto dpr = screen->devicePixelRatio();
 
-  emit SizeChanged(width() * dpr, height() * dpr);
+  emit SizeChanged(width() * dpr, height() * dpr, dpr);
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
@@ -403,8 +444,28 @@ bool RenderWidget::event(QEvent* event)
     }
     break;
   case QEvent::WinIdChange:
-    emit HandleChanged(reinterpret_cast<void*>(winId()));
+  {
+    void* const handle = GetRenderSurfaceHandle(this);
+    // A wl_surface can't report its size, so a new one has to be told.
+    if (IsWayland())
+    {
+      const float dpr = devicePixelRatio();
+      emit SizeChanged(width() * dpr, height() * dpr, dpr);
+    }
+#ifdef HAVE_WAYLAND_PROTOCOLS
+    // Compositors use this to enable adaptive sync (VRR) for games, and to prefer low latency.
+    if (handle && IsWayland())
+    {
+      QWindow* const window_handle = windowHandle();
+      void* const display = QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", window_handle);
+      Common::Wayland::SetSurfaceContentTypeGame(static_cast<wl_display*>(display),
+                                                 static_cast<wl_surface*>(handle));
+    }
+#endif
+    emit HandleChanged(handle);
     break;
+  }
   case QEvent::Show:
     // Don't do if "stay on top" changed (or was true)
     if (Settings::Instance().GetLockCursor() &&
@@ -497,7 +558,7 @@ bool RenderWidget::event(QEvent* event)
       m_last_window_width = width;
       m_last_window_height = height;
       m_last_window_scale = dpr;
-      emit SizeChanged(width, height);
+      emit SizeChanged(width * dpr, height * dpr, dpr);
     }
     break;
   }

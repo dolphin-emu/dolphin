@@ -312,6 +312,23 @@ if(ENABLE_EGL AND EGL_FOUND)
   target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
 endif()
 
+if(ENABLE_WAYLAND AND Wayland_FOUND AND ENABLE_EGL AND EGL_FOUND)
+  target_sources(common PRIVATE
+    GL/GLInterface/EGLWayland.cpp
+    GL/GLInterface/EGLWayland.h
+  )
+endif()
+
+if(ENABLE_WAYLAND AND Wayland_FOUND AND WaylandProtocols_FOUND)
+  target_sources(common PRIVATE
+    Wayland/Connection.cpp
+    Wayland/Connection.h
+    Wayland/ContentType.cpp
+    Wayland/ContentType.h
+  )
+  target_link_libraries(common PUBLIC Wayland::Client PRIVATE wayland_protocols)
+endif()
+
 if(WIN32)
   target_sources(common PRIVATE
     CompatPatches.cpp

@@ -29,7 +29,7 @@ signals:
   void Closed();
   void HandleChanged(void* handle);
   void StateChanged(bool fullscreen);
-  void SizeChanged(int new_width, int new_height);
+  void SizeChanged(int new_width, int new_height, float scale);
   void FocusChanged(bool focus);
 
 private:

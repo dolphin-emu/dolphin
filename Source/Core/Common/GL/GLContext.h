@@ -37,6 +37,8 @@ public:
   virtual bool ClearCurrent();
 
   virtual void Update();
+  // Tells the context how big the window is, for window systems that can't be queried for it.
+  virtual void SetSurfaceSize(u32 width, u32 height);
   virtual void UpdateSurface(void* window_handle);
 
   virtual void Swap();

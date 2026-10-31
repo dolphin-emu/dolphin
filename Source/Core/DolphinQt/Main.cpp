@@ -24,6 +24,9 @@
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#ifdef HAVE_WAYLAND_PROTOCOLS
+#include "Common/Wayland/ContentType.h"
+#endif
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -164,19 +167,25 @@ int main(int argc, char* argv[])
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
   setenv("QT_XCB_NO_XI2", "1", true);
 #endif
-  // Dolphin currently doesn't work on Wayland (Only the UI does, games do not launch.) This makes
-  // XCB the default and forces it on if the platform is specified to be wayland, to prevent this
-  // from happening.
-  // For more information: https://bugs.dolphin-emu.org/issues/11807
+#if !HAVE_WAYLAND_INPUT
+  // If Dolphin was built without native Wayland input, force XCB (XWayland) when the platform is
+  // explicitly set to Wayland, as a Wayland window would not receive keyboard or mouse input.
   const char* current_qt_platform = getenv("QT_QPA_PLATFORM");
   const bool replace_qt_platform = current_qt_platform != nullptr &&
                                    Common::CaseInsensitiveContains(current_qt_platform, "wayland");
   setenv("QT_QPA_PLATFORM", "xcb", replace_qt_platform);
 #endif
+#endif
 
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
+#ifdef __linux__
+  // The render widget is native, which by default makes all of its siblings native too. On Wayland
+  // every native widget is a separate subsurface, which are not clipped to the window and swallow
+  // pointer input, breaking the dock separators and leaving stale content after a resize.
+  QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+#endif
 
   // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
@@ -307,6 +316,11 @@ int main(int argc, char* argv[])
 
     retval = app.exec();
   }
+
+#ifdef HAVE_WAYLAND_PROTOCOLS
+  // This can't wait for static destruction, which happens after Qt has closed the connection.
+  Common::Wayland::ShutdownContentType();
+#endif
 
   Core::Shutdown(Core::System::GetInstance());
   UICommon::Shutdown();

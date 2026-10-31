@@ -15,6 +15,9 @@
 #ifdef CIFACE_USE_XLIB
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 #endif
+#ifdef CIFACE_USE_WAYLAND
+#include "InputCommon/ControllerInterface/Wayland/Wayland.h"
+#endif
 #ifdef CIFACE_USE_OSX
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 #endif
@@ -55,6 +58,8 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   std::lock_guard lk_population(m_devices_population_mutex);
 
   m_wsi = wsi;
+  SetRenderSurfaceSize(wsi.render_surface_width, wsi.render_surface_height,
+                       wsi.render_surface_scale);
 
   m_populating_devices_counter = 1;
 
@@ -63,6 +68,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #endif
 #ifdef CIFACE_USE_XLIB
   m_input_backends.emplace_back(ciface::XInput2::CreateInputBackend(this));
+#endif
+#ifdef CIFACE_USE_WAYLAND
+  m_input_backends.emplace_back(ciface::Wayland::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_OSX
   m_input_backends.emplace_back(ciface::Quartz::CreateInputBackend(this));
@@ -402,6 +410,20 @@ void ControllerInterface::SetMouseCenteringRequested(bool center)
 bool ControllerInterface::IsMouseCenteringRequested() const
 {
   return m_requested_mouse_centering.load();
+}
+
+void ControllerInterface::SetRenderSurfaceSize(int width, int height, float scale)
+{
+  m_render_surface_width = width;
+  m_render_surface_height = height;
+  m_render_surface_scale = scale;
+}
+
+Common::Vec2 ControllerInterface::GetRenderSurfaceLogicalSize() const
+{
+  const float scale = std::max(m_render_surface_scale.load(), 0.01f);
+  return {std::max(m_render_surface_width.load() / scale, 1.0f),
+          std::max(m_render_surface_height.load() / scale, 1.0f)};
 }
 
 // Register a callback to be called when a device is added or removed (as from the input backends'

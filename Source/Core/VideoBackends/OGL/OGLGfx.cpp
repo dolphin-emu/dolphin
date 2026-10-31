@@ -457,11 +457,19 @@ void OGLGfx::WaitForGPUIdle()
   glFinish();
 }
 
+void OGLGfx::ApplyRequestedSurfaceSize()
+{
+  const auto [width, height] = g_presenter->GetRequestedSurfaceSize();
+  if (width != 0 && height != 0)
+    m_main_gl_context->SetSurfaceSize(width, height);
+}
+
 void OGLGfx::CheckForSurfaceChange()
 {
   if (!g_presenter->SurfaceChangedTestAndClear())
     return;
 
+  ApplyRequestedSurfaceSize();
   m_main_gl_context->UpdateSurface(g_presenter->GetNewSurfaceHandle());
 
   u32 width = m_main_gl_context->GetBackBufferWidth();
@@ -477,6 +485,7 @@ void OGLGfx::CheckForSurfaceResize()
   if (!g_presenter->SurfaceResizedTestAndClear())
     return;
 
+  ApplyRequestedSurfaceSize();
   m_main_gl_context->Update();
   u32 width = m_main_gl_context->GetBackBufferWidth();
   u32 height = m_main_gl_context->GetBackBufferHeight();

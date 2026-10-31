@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QStackedWidget>
 #include <QStyleHints>
 #include <QVBoxLayout>
@@ -168,7 +169,7 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::MacOS;
   else if (platform_name == QStringLiteral("xcb"))
     return WindowSystemType::X11;
-  else if (platform_name == QStringLiteral("wayland"))
+  else if (platform_name.startsWith(QStringLiteral("wayland")))
     return WindowSystemType::Wayland;
   else if (platform_name == QStringLiteral("haiku"))
     return WindowSystemType::Haiku;
@@ -198,6 +199,12 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   wsi.render_surface = wsi.render_window;
 #endif
   wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
+  if (wsi.type == WindowSystemType::Wayland && window)
+  {
+    // A wl_surface can't report its size.
+    wsi.render_surface_width = static_cast<int>(window->width() * wsi.render_surface_scale);
+    wsi.render_surface_height = static_cast<int>(window->height() * wsi.render_surface_scale);
+  }
 
   return wsi;
 }
@@ -1100,16 +1107,33 @@ void MainWindow::FullScreen()
   if (!was_fullscreen)
     m_render_widget_geometry = m_render_widget->saveGeometry();
 
-  HideRenderWidget(false);
-  SetFullScreenResolution(!was_fullscreen);
+  const auto change_window = [&] {
+    HideRenderWidget(false);
+    SetFullScreenResolution(!was_fullscreen);
 
-  if (was_fullscreen)
+    if (was_fullscreen)
+    {
+      ShowRenderWidget();
+    }
+    else
+    {
+      m_render_widget->showFullScreen();
+    }
+
+    // Make sure Qt has created the new surface (and the video backend has been told about it)
+    // before presenting resumes.
+    m_render_widget->winId();
+  };
+
+  if (GetWindowSystemType() == WindowSystemType::Wayland)
   {
-    ShowRenderWidget();
+    // The old wl_surface is destroyed when the window switches between a top-level window and an
+    // embedded one. The video backend must not present to it in the meantime.
+    Host::GetInstance()->RunWithPresentationPaused(change_window);
   }
   else
   {
-    m_render_widget->showFullScreen();
+    change_window();
   }
 }
 
@@ -1272,6 +1296,7 @@ void MainWindow::ShowRenderWidget()
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
+    m_render_input_suspended = false;
 
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
@@ -1296,9 +1321,18 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
   {
     // Remove the widget from the stack and reparent it to nullptr, so that it can draw
     // itself in a new window if it wants. Disconnect the title updates.
+    if (GetWindowSystemType() == WindowSystemType::Wayland)
+    {
+      // Qt would reuse the wl_surface of the embedded window for the top-level window, but a
+      // surface that has been a subsurface can't be given the xdg_toplevel role.
+      if (QWindow* const window = m_render_widget->windowHandle())
+        window->destroy();
+    }
+
     m_stack->removeWidget(m_render_widget);
     m_render_widget->setParent(nullptr);
     m_rendering_to_main = false;
+    m_render_input_suspended = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
@@ -1777,6 +1811,18 @@ void MainWindow::UpdateScreenSaverInhibition()
   UICommon::InhibitScreenSaver(inhibit);
 }
 
+void MainWindow::SetRenderWidgetInputSuspended(bool suspended)
+{
+  if (m_render_input_suspended == suspended)
+    return;
+
+  m_render_input_suspended = suspended;
+
+  // The change is applied by the render surface's next commit, which is its next present.
+  if (QWindow* const window = m_render_widget->windowHandle())
+    window->setFlag(Qt::WindowTransparentForInput, suspended);
+}
+
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::Close)
@@ -1786,6 +1832,39 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
 
     static_cast<QCloseEvent*>(event)->ignore();
     return true;
+  }
+
+  if (GetWindowSystemType() == WindowSystemType::Wayland)
+  {
+    QWindow* const main_window = windowHandle();
+
+    switch (event->type())
+    {
+    case QEvent::WinIdChange:
+      if (object == this && main_window)
+        main_window->installEventFilter(this);
+      break;
+    case QEvent::MouseButtonPress:
+      // A press that reaches the main window's surface didn't land on the render widget, so it
+      // belongs to something like a dock separator that is being dragged. If the pointer is then
+      // moved over the render widget's subsurface, some compositors (sway) move the pointer focus
+      // to it despite the held button. Qt then forgets the button and the drag stops, so don't
+      // let the render widget take the pointer until the button is released.
+      if (object == main_window && m_rendering_to_main)
+        SetRenderWidgetInputSuspended(true);
+      break;
+    case QEvent::MouseMove:
+      if (object == main_window && static_cast<QMouseEvent*>(event)->buttons() == Qt::NoButton)
+        SetRenderWidgetInputSuspended(false);
+      break;
+    case QEvent::MouseButtonRelease:
+    case QEvent::Leave:
+      if (object == main_window || object == m_render_widget)
+        SetRenderWidgetInputSuspended(false);
+      break;
+    default:
+      break;
+    }
   }
 
   return false;
