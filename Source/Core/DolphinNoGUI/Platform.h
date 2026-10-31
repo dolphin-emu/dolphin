@@ -30,6 +30,10 @@ public:
   // Request an immediate shutdown.
   void Stop();
 
+#if HAVE_DRM
+  static std::unique_ptr<Platform> CreateDRMPlatform();
+#endif
+
   static std::unique_ptr<Platform> CreateHeadlessPlatform();
 #ifdef HAVE_X11
   static std::unique_ptr<Platform> CreateX11Platform();
