@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 
 #include "Common/CommonTypes.h"
 
@@ -19,6 +20,10 @@ void SetAdapterCallback(std::function<void(void)> func);
 // Buttons have PAD_GET_ORIGIN set on new connection
 // Netplay and CSIDevice_GCAdapter make use of this.
 GCPadStatus Input(int chan);
+
+// Latest controller state for a connected controller in `chan`, without consuming the initial
+// neutral calibration reading ("origin") reserved for Input().
+std::optional<GCPadStatus> Peek(int chan);
 
 void Output(int chan, u8 rumble_command);
 bool IsDetected(const char** error_message);
