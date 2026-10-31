@@ -50,6 +50,11 @@ private:
 #endif
 };
 
+void SpinUntil(TimePoint target);
+
+// A high precision sleep that uses x86 TPAUSE or MWAITX when available. Spins otherwise.
+void HardwareSleepUntil(TimePoint target);
+
 // Similar to std::chrono::steady_clock except this clock
 // specifically does *not* count time while the system is suspended.
 class SteadyAwakeClock
