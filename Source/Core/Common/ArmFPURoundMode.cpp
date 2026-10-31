@@ -7,6 +7,8 @@
 #include <intrin.h>
 #endif
 
+#include <vector>
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -59,7 +61,7 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
   }
 
   // lookup table for FPSCR.RN-to-FPCR.RMode translation
-  constexpr u32 rounding_mode_table[] = {
+  const std::vector<u32> rounding_mode_table{
       (0 << 22),  // nearest
       (3 << 22),  // zero
       (1 << 22),  // +inf

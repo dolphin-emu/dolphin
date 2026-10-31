@@ -63,8 +63,8 @@ class BlockContext : public Context
 {
 protected:
   static constexpr size_t BLOCK_LEN = 64;
-  static constexpr u32 K[4]{0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6};
-  static constexpr u32 H[5]{0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0};
+  static constexpr std::array<u32, 4> K{0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6};
+  static constexpr std::array<u32, 5> H{0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0};
 
   virtual void ProcessBlock(const u8* msg) = 0;
   virtual Digest GetDigest() = 0;

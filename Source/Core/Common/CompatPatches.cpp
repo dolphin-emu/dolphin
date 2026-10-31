@@ -31,7 +31,7 @@ typedef struct _RTL_HEAP_PARAMETERS
   SIZE_T InitialCommit;
   SIZE_T InitialReserve;
   PRTL_HEAP_COMMIT_ROUTINE CommitRoutine;
-  SIZE_T Reserved[2];
+  std::array<SIZE_T, 2> Reserved{};
 } RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
 
 typedef PVOID (*RtlCreateHeap_t)(_In_ ULONG Flags, _In_opt_ PVOID HeapBase,
