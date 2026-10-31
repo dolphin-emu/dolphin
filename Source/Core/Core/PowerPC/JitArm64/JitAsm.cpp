@@ -622,7 +622,7 @@ void JitArm64::GenerateQuantizedLoads()
   BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 3};
   if (!jo.memcheck)
     gprs_to_push &= ~BitSet32{1};
-  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
+  BitSet32 fprs_to_push = ~BitSet32{0, 1};
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
@@ -834,7 +834,7 @@ void JitArm64::GenerateQuantizedStores()
     gprs_to_push &= ~BitSet32{2};
   if (!jo.fastmem)
     gprs_to_push &= ~BitSet32{3};
-  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
+  BitSet32 fprs_to_push = ~BitSet32{0, 1};
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
