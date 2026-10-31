@@ -169,3 +169,60 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
   m_file.WriteBytes(m_conv_buffer.data(), count * 4);
   m_audio_size += count * 4;
 }
+
+bool AudioCommon::LoadWavFile(const std::string& filename, std::vector<s16>* out_data,
+                              u32* out_sample_rate, u16* out_channels)
+{
+  File::IOFile file(filename, "rb");
+  if (!file)
+    return false;
+
+  char magic[4];
+  if (!file.ReadBytes(magic, 4) || strncmp(magic, "RIFF", 4) != 0)
+    return false;
+  file.Seek(4, File::SeekOrigin::Current);
+  if (!file.ReadBytes(magic, 4) || strncmp(magic, "WAVE", 4) != 0)
+    return false;
+
+  bool found_fmt = false;
+  bool found_data = false;
+
+  while (file.ReadBytes(magic, 4))
+  {
+    u32 chunk_size;
+    if (!file.ReadArray(&chunk_size, 1))
+      break;
+
+    if (strncmp(magic, "fmt ", 4) == 0)
+    {
+      u16 audio_format;
+      file.ReadArray(&audio_format, 1);
+      file.ReadArray(out_channels, 1);
+      file.ReadArray(out_sample_rate, 1);
+      file.Seek(6, File::SeekOrigin::Current);
+      u16 bits_per_sample;
+      file.ReadArray(&bits_per_sample, 1);
+
+      if (audio_format != 1 || bits_per_sample != 16)
+        return false;
+
+      if (chunk_size > 16)
+        file.Seek(chunk_size - 16, File::SeekOrigin::Current);
+      found_fmt = true;
+    }
+    else if (strncmp(magic, "data", 4) == 0)
+    {
+      out_data->resize(chunk_size / 2);
+      file.ReadArray(out_data->data(), out_data->size());
+      found_data = true;
+      if (chunk_size % 2 != 0)
+        file.Seek(1, File::SeekOrigin::Current);
+    }
+    else
+    {
+      file.Seek((chunk_size + 1) & ~1, File::SeekOrigin::Current);
+    }
+  }
+
+  return found_fmt && found_data;
+}

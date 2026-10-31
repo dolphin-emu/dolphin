@@ -176,6 +176,7 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
       m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
   }
   m_skylander_portal_mixer.Mix(samples, num_samples);
+  m_achievement_mixer.Mix(samples, num_samples);
   for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
   {
     if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
@@ -320,6 +321,18 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   }
 }
 
+void Mixer::PushAchievementSamples(const s16* samples, std::size_t num_samples)
+{
+  if (!IsOutputSampleRateValid())
+    return;
+
+  // AchievementManager pushes host-endian LR-ordered stereo samples.
+  for (std::size_t i = 0; i != num_samples; ++i)
+  {
+    m_achievement_mixer.PushSample(samples[i * 2], samples[i * 2 + 1]);
+  }
+}
+
 std::size_t Mixer::MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples)
 {
   if (!samples || device_number >= m_gba_mixers.size())
@@ -342,6 +355,12 @@ void Mixer::SetStreamInputSampleRateDivisor(u32 rate_divisor)
 void Mixer::SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate)
 {
   m_gba_mixers[device_number].SetInputSampleRateDivisor(GBA_SAMPLE_RATE_DIVIDEND / sample_rate);
+}
+
+void Mixer::SetAchievementSampleRate(u32 sample_rate)
+{
+  m_achievement_mixer.SetInputSampleRateDividend(sample_rate);
+  m_achievement_mixer.SetInputSampleRateDivisor(1);
 }
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
