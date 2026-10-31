@@ -197,7 +197,7 @@ struct Disc
 
   // Transforms an abstract XML-parsed patch set into a concrete one, with only the selected
   // patches applied and all placeholders replaced.
-  std::vector<Patch> GeneratePatches(const std::string& game_id) const;
+  std::vector<Patch> GeneratePatches(const std::string& game_id, u32 ng_id) const;
 };
 
 // Config format that remembers which patches are enabled/disabled for the next run.
