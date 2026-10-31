@@ -11,7 +11,7 @@
 #include <QString>
 #include <QVBoxLayout>
 
-#include <rcheevos/include/rc_client.h>
+#include <rc_client.h>
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"

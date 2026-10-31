@@ -524,10 +524,16 @@ endif()
 
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
+    dolphin_fetchcontent_declare(
+      ext-win-ffmpeg
+      GIT_REPOSITORY https://github.com/dolphin-emu/ext-win-ffmpeg.git
+      GIT_TAG 9bc087fbca36ce5a85eb4fd73f0c73813593e5a2
+    )
+    FetchContent_MakeAvailable(ext-win-ffmpeg)
     if(_M_X86_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/x64)
     elseif(_M_ARM_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/ARM64)
+      set(FFMPEG_DIR ${ext-win-ffmpeg_SOURCE_DIR}/ARM64)
     endif()
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
@@ -637,6 +643,9 @@ dolphin_add_bundled_library(TinyGLTF Externals/tinygltf)
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
+  dolphin_add_bundled_library(Vulkan-Headers Externals/Vulkan-Headers)
+  dolphin_add_bundled_library(VulkanMemoryAllocator Externals/VulkanMemoryAllocator)
+
   if(APPLE AND USE_BUNDLED_MOLTENVK)
     dolphin_add_bundled_library(MoltenVK Externals/MoltenVK)
   endif()
@@ -663,7 +672,7 @@ dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
 dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.18 enet::enet Externals/enet)
 
-dolphin_find_optional_system_library_pkgconfig(xxhash libxxhash>=0.8.2 xxhash::xxhash Externals/xxhash)
+dolphin_find_optional_system_library_pkgconfig(xxHash libxxhash>=0.8.2 xxHash::xxhash Externals/xxhash)
 
 dolphin_find_optional_system_library(BZip2 Externals/bzip2)
 
@@ -742,7 +751,7 @@ else()
 endif()
 
 if (WIN32)
-  include_directories(Externals/wil/include)
+  dolphin_add_bundled_library(wil Externals/wil)
   include_directories(Externals/OpenAL/include)
 endif()
 
@@ -812,14 +821,6 @@ if(ENABLE_TESTS)
   dolphin_find_optional_system_library_pkgconfig(GTEST
     gtest gtest::gtest Externals/gtest
   )
-  # dolphin_find_optional_system_library_pkgconfig() doesn't add an alias if it
-  # uses the bundled libraries, so we add one ourselves.
-  if (NOT TARGET gtest::gtest)
-    add_library(gtest::gtest ALIAS gtest)
-  endif()
-  # Force gtest to link the C runtime dynamically on Windows in order to avoid
-  # runtime mismatches.
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 else()
   message(STATUS "Unit tests are disabled")
 endif()

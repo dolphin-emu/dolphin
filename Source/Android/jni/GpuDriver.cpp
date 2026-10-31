@@ -13,11 +13,11 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#include <adrenotools/driver.h>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <jni.h>
 #include <unistd.h>
-#include "adrenotools/driver.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"

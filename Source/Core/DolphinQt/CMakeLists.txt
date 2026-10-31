@@ -1,6 +1,13 @@
 if (WIN32)
-  set(DOLPHIN_QT_X64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/x64")
-  set(DOLPHIN_QT_ARM64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/ARM64")
+  dolphin_fetchcontent_declare(
+    ext-win-qt
+    GIT_REPOSITORY https://github.com/dolphin-emu/ext-win-qt.git
+    GIT_TAG 306289108d29a4b31a5460f7b55d28fde7b96d1b
+  )
+  FetchContent_MakeAvailable(ext-win-qt)
+
+  set(DOLPHIN_QT_X64_ROOT "${ext-win-qt_SOURCE_DIR}/Qt6.8.3/x64")
+  set(DOLPHIN_QT_ARM64_ROOT "${ext-win-qt_SOURCE_DIR}/Qt6.8.3/ARM64")
 
   if(_M_ARM_64)
     set(DOLPHIN_QT_ROOT "${DOLPHIN_QT_ARM64_ROOT}")
@@ -453,7 +460,7 @@ PRIVATE
   -DQT_USE_QSTRINGBUILDER
   -DQT_NO_CAST_FROM_ASCII
   -DQT_NO_CAST_TO_ASCII
-  # This Qt version should match Externals/Qt.
+  # This Qt version should match ext-win-qt.
   # It disables deprecation warnings we can't fix yet.
   -DQT_WARN_DEPRECATED_UP_TO=0x060501
 )
@@ -490,6 +497,7 @@ endif()
 if (WIN32)
   target_link_libraries(dolphin-emu
   PRIVATE
+    WIL::WIL
     gdi32.lib
     shell32.lib
     dwmapi.lib # Needed to set window decorations for dark theme
