@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -75,4 +76,5 @@ private:
   CheatSearchFactoryWidget* m_cheat_search_new = nullptr;
 
   Common::EventHook m_VI_end_field_event;
+  std::atomic<bool> m_frame_end_update_queued = false;
 };
