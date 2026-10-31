@@ -44,6 +44,35 @@ enum class DeviceRemoval
   Keep,
 };
 
+// A "spring" force feedback effect used for wheel centering.
+class SpringEffect
+{
+public:
+  SpringEffect();
+  virtual ~SpringEffect();
+
+  SpringEffect(const SpringEffect&) = delete;
+  SpringEffect(SpringEffect&&) = delete;
+  SpringEffect& operator=(const SpringEffect&) = delete;
+  SpringEffect& operator=(SpringEffect&&) = delete;
+
+  virtual void SetForce(double gain, double center_position) = 0;
+};
+
+class FrictionEffect
+{
+public:
+  FrictionEffect();
+  virtual ~FrictionEffect();
+
+  FrictionEffect(const FrictionEffect&) = delete;
+  FrictionEffect(FrictionEffect&&) = delete;
+  FrictionEffect& operator=(const FrictionEffect&) = delete;
+  FrictionEffect& operator=(FrictionEffect&&) = delete;
+
+  virtual void SetForce(double gain) = 0;
+};
+
 class Device
 {
 public:
@@ -159,6 +188,9 @@ public:
 
   Input* FindInput(std::string_view name) const;
   Output* FindOutput(std::string_view name) const;
+
+  virtual std::unique_ptr<SpringEffect> CreateSpringEffect();
+  virtual std::unique_ptr<FrictionEffect> CreateFrictionEffect();
 
 protected:
   void AddInput(Input* const i);
