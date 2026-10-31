@@ -21,6 +21,7 @@
 #include <QWidget>
 
 #include "Common/Config/Config.h"
+#include "Common/FFmpegLoader.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
@@ -37,6 +38,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #ifdef _WIN32
+#include "DolphinQt/QtUtils/FFmpegDownloader.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #endif
 #include "DolphinQt/Resources.h"
@@ -187,6 +189,10 @@ int main(int argc, char* argv[])
 
 #ifdef _WIN32
   QtUtils::InstallWindowDecorationFilter(&app);
+
+#if defined(DYNAMICALLY_LOAD_FFMPEG)
+  Common::SetSharedFFmpegLoadFailureCallback(QtUtils::AskToDownloadFFmpeg);
+#endif
 
   FreeConsole();
 #endif

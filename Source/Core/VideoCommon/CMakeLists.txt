@@ -270,21 +270,6 @@ if(FFmpeg_FOUND)
   target_sources(videocommon PRIVATE
     FrameDumpFFMpeg.cpp
   )
-  target_link_libraries(videocommon PRIVATE
-    FFmpeg::avcodec
-    FFmpeg::avformat
-    FFmpeg::avutil
-    FFmpeg::swresample
-    FFmpeg::swscale
-  )
-  if(APPLE)
-    target_link_libraries(videocommon PRIVATE
-      ${COREMEDIA_LIBRARY}
-      ${VIDEOTOOLBOX_LIBRARY}
-      ${COREVIDEO_LIBRARY}
-      ${AUDIOTOOLBOX_LIBRARY}
-    )
-  endif()
 endif()
 
 if(MSVC)
