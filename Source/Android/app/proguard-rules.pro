@@ -13,7 +13,10 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
 
-# This is referenced in JNI_OnLoad.
--keep class androidx.core.util.Pair {
+# These are referenced in JNI_OnLoad.
+-keep,allowoptimization class androidx.core.util.Pair {
     <init>(java.lang.Object, java.lang.Object);
+}
+-keep,allowoptimization interface androidx.lifecycle.Observer {
+    public void onChanged(...);
 }
