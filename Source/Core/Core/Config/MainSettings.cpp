@@ -530,6 +530,8 @@ const Info<bool> MAIN_MOVIE_SHOW_OSD{{System::Main, "Movie", "ShowMovieWindow"},
 // Main.Input
 
 const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+const Info<bool> MAIN_INPUT_DUALSENSE_ADAPTIVE_TRIGGERS{
+    {System::Main, "Input", "DualSenseAdaptiveTriggers"}, false};
 
 // Main.SDL_Hints
 
