@@ -68,6 +68,7 @@ public:
   // This clear is "safe" in the sense that it's okay to run from
   // inside a JIT'ed block: it clears the instruction cache, but not
   // the JIT'ed code.
+  // It's required to exit to dispatcher immediately after calling this.
   void ClearSafe();
 
   // DolphinQt's JITWidget needs EraseSingleBlock. Nothing else (from outside of the Core) should

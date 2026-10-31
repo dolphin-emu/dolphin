@@ -274,13 +274,11 @@ bool JitBase::HandleStackFault()
   UnprotectStack();
   m_enable_blr_optimization = false;
 
-  // We're going to need to clear the whole cache to get rid of the bad
-  // CALLs, but we can't yet.  Fake the downcount so we're forced to the
-  // dispatcher (no block linking), and clear the cache so we're sent to
-  // Jit. In the case of Windows, we will also need to call _resetstkoflw()
-  // to reset the guard page.
+  // We're going to need to clear the whole cache to get rid of the bad CALLs, but we can't yet.
+  // Fake the downcount so we're forced to the dispatcher (and not to a linked block). In the case
+  // of Windows, we will also need to call _resetstkoflw() to reset the guard page.
   // Yeah, it's kind of gross.
-  GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
+  ClearCache(false);
   m_system.GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
 
@@ -300,12 +298,12 @@ void JitBase::CleanUpAfterStackFault()
   }
 }
 
-bool JitBase::CanMergeNextInstructions(int count) const
+bool JitBase::CanMergeNextInstructions(u32 count) const
 {
   if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
-  for (int i = 1; i <= count; i++)
+  for (u32 i = 1; i <= count; i++)
   {
     if (IsDebuggingEnabled() &&
         m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))

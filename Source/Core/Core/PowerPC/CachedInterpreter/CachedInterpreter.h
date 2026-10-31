@@ -36,14 +36,14 @@ public:
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
 
   void Run() override;
   void SingleStep() override;
 
   void Jit(u32 address) override;
   void Jit(u32 address, bool clear_cache_and_retry_on_failure);
-  bool DoJit(u32 address, JitBlock* b, u32 nextPC);
+  bool DoJit(JitBlock* b);
 
   void EraseSingleBlock(const JitBlock& block) override;
   std::vector<MemoryStats> GetMemoryStats() const override;

@@ -295,34 +295,33 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
   }
   FreeRanges();
 
-  const u32 nextPC =
-      analyzer.Analyze(em_address, &code_block, &m_code_buffer, m_code_buffer.size());
+  analyzer.Analyze(em_address, &code_block, &m_code_buffer, m_code_buffer.size());
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    m_ppc_state.npc = nextPC;
+    m_ppc_state.npc = em_address;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
-    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", em_address);
     return;
   }
 
   if (SetEmitterStateToFreeCodeRegion())
   {
-    JitBlock* b = m_block_cache.AllocateBlock(em_address);
-    b->normalEntry = b->near_begin = GetWritableCodePtr();
+    JitBlock b = m_block_cache.InitBlock(em_address);
+    b.normalEntry = b.near_begin = GetWritableCodePtr();
 
-    if (DoJit(em_address, b, nextPC))
+    if (DoJit(&b))
     {
       // Record what memory region was used so we know what to free if this block gets invalidated.
-      b->near_end = GetWritableCodePtr();
-      b->far_begin = b->far_end = nullptr;
+      b.near_end = GetWritableCodePtr();
+      b.far_begin = b.far_end = nullptr;
 
       // Mark the memory region that this code block uses in the RangeSizeSet.
-      if (b->near_begin != b->near_end)
-        m_free_ranges.erase(b->near_begin, b->near_end);
+      if (b.near_begin != b.near_end)
+        m_free_ranges.erase(b.near_begin, b.near_end);
 
-      m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+      m_block_cache.FinalizeBlock(std::move(b), jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
       LogGeneratedCode();
@@ -345,15 +344,14 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
   std::exit(-1);
 }
 
-bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool CachedInterpreter::DoJit(JitBlock* b)
 {
-  js.blockStart = em_address;
+  js.curBlock = b;
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
-  js.curBlock = b;
 
   auto& interpreter = m_system.GetInterpreter();
   auto& power_pc = m_system.GetPowerPC();
@@ -368,59 +366,62 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
     js.op = &op;
 
-    js.compilerPC = op.address;
-    js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     js.downcountAmount += op.opinfo->num_cycles;
     if (op.opinfo->flags & FL_LOADSTORE)
       ++js.numLoadStoreInst;
     if (op.opinfo->flags & FL_USE_FPU)
       ++js.numFloatingPointInst;
 
-    if (HandleFunctionHooking(js.compilerPC))
+    if (HandleFunctionHooking(op.address))
       break;
 
     if (!op.skip)
     {
-      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
-          breakpoints.IsAddressBreakPoint(js.compilerPC))
+      if (IsDebuggingEnabled() && !cpu.IsStepping() && breakpoints.IsAddressBreakPoint(op.address))
       {
-        Write(CheckBreakpoint, {power_pc, js.compilerPC, js.downcountAmount});
+        Write(CheckBreakpoint, {power_pc, op.address, js.downcountAmount});
       }
       if (!js.firstFPInstructionFound && (op.opinfo->flags & FL_USE_FPU) != 0)
       {
-        Write(CheckFPU, {power_pc, js.compilerPC, js.downcountAmount});
+        Write(CheckFPU, {power_pc, op.address, js.downcountAmount});
         js.firstFPInstructionFound = true;
       }
 
       // Instruction may cause a DSI Exception or Program Exception.
       if ((jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0) ||
-          (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op)))
+          (op.instructionContinues == PPCAnalyst::InstructionContinue::Always &&
+           ShouldHandleFPExceptionForInstruction(&op)))
       {
         const InterpretAndCheckExceptionsOperands operands = {
-            {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst},
+            {interpreter, Interpreter::GetInterpreterOp(op.inst), op.address, op.inst},
             power_pc,
             js.downcountAmount};
-        Write(op.canEndBlock ? CallbackCast(InterpretAndCheckExceptions<true>) :
-                               CallbackCast(InterpretAndCheckExceptions<false>),
+        // TODO: While all instructions that mess with PC may end the block, not all instructions
+        // that may end the block necessarily mess with the PC.
+        Write(op.instructionContinues != PPCAnalyst::InstructionContinue::Always ?
+                  CallbackCast(InterpretAndCheckExceptions<true>) :
+                  CallbackCast(InterpretAndCheckExceptions<false>),
               operands);
       }
       else
       {
         const InterpretOperands operands = {interpreter, Interpreter::GetInterpreterOp(op.inst),
-                                            js.compilerPC, op.inst};
-        Write(op.canEndBlock ? CallbackCast(Interpret<true>) : CallbackCast(Interpret<false>),
+                                            op.address, op.inst};
+        Write(op.instructionContinues != PPCAnalyst::InstructionContinue::Always ?
+                  CallbackCast(Interpret<true>) :
+                  CallbackCast(Interpret<false>),
               operands);
       }
 
       if (js.op->branchAction == PPCAnalyst::BranchAction::IdleLoop)
-        Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
-      if (op.canEndBlock)
+        Write(CheckIdle, {m_system.GetCoreTiming(), b->effectiveAddress});
+      if (op.instructionContinues != PPCAnalyst::InstructionContinue::Always)
         WriteEndBlock();
     }
   }
-  if (code_block.m_broken)
+  if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Always)
   {
-    Write(WriteBrokenBlockNPC, {nextPC});
+    Write(WriteBrokenBlockNPC, {js.op->address + 4});
     WriteEndBlock();
   }
 
@@ -455,11 +456,13 @@ std::size_t CachedInterpreter::DisassembleFarCode(const JitBlock& block, std::os
   return 0;
 }
 
-void CachedInterpreter::ClearCache()
+void CachedInterpreter::ClearCache(bool poison)
 {
   m_block_cache.Clear();
   m_block_cache.ClearRangesToFree();
-  ClearCodeSpace();
+  // If !poison, the cached interpreter doesn't have the same worries as the JIT: no block linking
+  // nor erased information that requires exiting immediately.
+  ClearCodeSpace(poison);
   ResetFreeMemoryRanges();
   RefreshConfig();
   Host_JitCacheInvalidation();

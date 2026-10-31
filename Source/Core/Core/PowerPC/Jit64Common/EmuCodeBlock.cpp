@@ -95,7 +95,7 @@ void EmuCodeBlock::FlushPCBeforeSlowAccess()
 {
   // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
   // interrupt checks, and printing accurate PC locations in debug logs.
-  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.op->address));
 }
 
 FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* bat_table)
@@ -352,7 +352,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
         .read = true,
         .signExtend = signExtend,
         .offsetAddedToAddress = offsetAddedToAddress,
-        .pc = js.compilerPC,
+        .pc = js.op->address,
         .registersInUse = registersInUse,
         .nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG,
         .offset = offset,
@@ -528,7 +528,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
         .accessSize = static_cast<u8>(accessSize >> 3),
         .read = false,
         .offsetAddedToAddress = false,
-        .pc = js.compilerPC,
+        .pc = js.op->address,
         .registersInUse = registersInUse,
         .nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG,
         .offset = offset,
