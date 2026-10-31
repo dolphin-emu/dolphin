@@ -146,21 +146,24 @@ void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_colo
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
-    if (g_backend_info.bSupportsGeometryShaders)
+    if (num_tex_inputs != 0 || num_color_inputs != 0)
     {
-      code.Write("VARYING_LOCATION(0) in VertexData {{\n");
-      for (u32 i = 0; i < num_tex_inputs; i++)
-        code.Write("  float3 v_tex{};\n", i);
-      for (u32 i = 0; i < num_color_inputs; i++)
-        code.Write("  float4 v_col{};\n", i);
-      code.Write("}};\n");
-    }
-    else
-    {
-      for (u32 i = 0; i < num_tex_inputs; i++)
-        code.Write("VARYING_LOCATION({}) in float3 v_tex{};\n", i, i);
-      for (u32 i = 0; i < num_color_inputs; i++)
-        code.Write("VARYING_LOCATION({}) in float4 v_col{};\n", num_tex_inputs + i, i);
+      if (g_backend_info.bSupportsGeometryShaders)
+      {
+        code.Write("VARYING_LOCATION(0) in VertexData {{\n");
+        for (u32 i = 0; i < num_tex_inputs; i++)
+          code.Write("  float3 v_tex{};\n", i);
+        for (u32 i = 0; i < num_color_inputs; i++)
+          code.Write("  float4 v_col{};\n", i);
+        code.Write("}};\n");
+      }
+      else
+      {
+        for (u32 i = 0; i < num_tex_inputs; i++)
+          code.Write("VARYING_LOCATION({}) in float3 v_tex{};\n", i, i);
+        for (u32 i = 0; i < num_color_inputs; i++)
+          code.Write("VARYING_LOCATION({}) in float4 v_col{};\n", num_tex_inputs + i, i);
+      }
     }
 
     code.Write("FRAGMENT_OUTPUT_LOCATION(0) out {} ocol0;\n", output_type);
@@ -628,6 +631,34 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
   }
 
   code.Write("}}\n");
+  return code.GetBuffer();
+}
+
+std::string GenerateTextureResizeShader()
+{
+  ShaderCode code;
+
+  EmitUniformBufferDeclaration(code);
+  code.Write("{{\n"
+             "  int src_width, src_height;\n"
+             "  int dst_width, dst_height;\n"
+             "}};\n");
+
+  EmitSamplerDeclarations(code, 0, 1, false);
+  EmitPixelMainDeclaration(code, 0, 0, "float4", "", true);
+
+  code.Write("{{\n");
+  code.Write("  int idx = int(frag_coord.x) + int(frag_coord.y) * dst_width;\n");
+  code.Write("  int src_size = src_width * src_height;\n");
+  code.Write("  if (idx >= src_size) {{\n");
+  code.Write("    // Unsafely assume that the garbage data is unused.");
+  code.Write("    ocol0 = float4(0.0f);\n");
+  code.Write("  }} else {{\n");
+  code.Write("    int src_x = idx % src_width;\n");
+  code.Write("    int src_y = idx / src_width;\n");
+  code.Write("    ocol0 = texelFetch(samp0, int3(src_x, src_y, 0), 0);\n");
+  code.Write("  }}\n");
+  code.Write("}}");
   return code.GetBuffer();
 }
 

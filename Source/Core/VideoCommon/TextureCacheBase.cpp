@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -386,6 +387,71 @@ void TextureCacheBase::RenderReinterpretEntry(const RcTcacheEntry& entry, Abstra
   g_gfx->SetPipeline(pipeline);
   g_gfx->SetTexture(0, texture);
   g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+  entry->texture->FinishedRendering();
+}
+
+RcTcacheEntry TextureCacheBase::CreateResizeEntry(const RcTcacheEntry& existing_entry,
+                                                  u32 new_native_width, u32 new_native_height,
+                                                  u64 base_hash, u64 full_hash)
+{
+  TextureConfig new_config = existing_entry->texture->GetConfig();
+  new_config.width = new_config.width * new_native_width / existing_entry->BlockAlignedWidth();
+  new_config.height = new_config.height * new_native_height / existing_entry->BlockAlignedHeight();
+
+  RcTcacheEntry resized_entry = AllocateCacheEntry(new_config);
+  if (!resized_entry)
+    return {};
+
+  resized_entry->SetDimensions(new_native_width, new_native_height, 1);
+  resized_entry->SetGeneralParameters(
+      existing_entry->addr, resized_entry->memory_stride * resized_entry->NumBlocksY(),
+      existing_entry->format, existing_entry->should_force_safe_hashing);
+  // If the new size if bigger, there's a bit of a contradiction: we assume that the extra data is
+  // unused, yet it will be part of the hash. But this is what GetTexture() wants.
+  resized_entry->SetHashes(base_hash, full_hash);
+  resized_entry->frameCount = existing_entry->frameCount;
+  // TODO REVIEW: Is this correct?
+  resized_entry->SetNotCopy();
+  resized_entry->is_efb_copy = existing_entry->is_efb_copy;
+  // If the new size if bigger, we are assuming that the extra data is unused, so we don't care if
+  // it overlaps.
+  resized_entry->may_have_overlapping_textures = existing_entry->may_have_overlapping_textures;
+
+  m_textures_by_address.emplace(resized_entry->addr, resized_entry);
+
+  return resized_entry;
+}
+
+void TextureCacheBase::RenderResizeEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
+                                         u32 old_width, u32 old_height)
+{
+  const AbstractPipeline* pipeline = g_shader_cache->GetTextureResizePipeline();
+  if (!pipeline)
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to obtain texture resize pipeline");
+    return;
+  }
+
+  g_gfx->BeginUtilityDrawing();
+  struct Uniforms
+  {
+    u32 src_width, src_height;
+    u32 dst_width, dst_height;
+  };
+  Uniforms uniforms = {
+      .src_width = old_width,
+      .src_height = old_height,
+      .dst_width = entry->GetWidth(),
+      .dst_height = entry->GetHeight(),
+  };
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+  g_gfx->SetAndDiscardFramebuffer(entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, texture);
+  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
   g_gfx->Draw(0, 3);
   g_gfx->EndUtilityDrawing();
   entry->texture->FinishedRendering();
@@ -1510,8 +1576,15 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   TexAddrCache::iterator iter = iter_range.first;
   TexAddrCache::iterator oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
-  TexAddrCache::iterator unconverted_copy = m_textures_by_address.end();
-  TexAddrCache::iterator unreinterpreted_copy = m_textures_by_address.end();
+  struct UnprocessedCopy
+  {
+    TexAddrCache::iterator iter;
+    bool needs_conversion;
+    bool needs_reinterpretation;
+    bool needs_resizing;
+    u32 negative_score;
+  };
+  std::optional<UnprocessedCopy> unprocessed_copy = std::nullopt;
 
   while (iter != iter_range.second)
   {
@@ -1523,57 +1596,103 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     // out a purple screen in XFB2Tex. Check for this here and convert them if necessary.
 
     // Do not load strided EFB copies, they are not meant to be used directly.
-    // Also do not directly load EFB copies, which were partly overwritten.
-    if (entry->IsEfbCopy() && entry->native_width == texture_info.GetRawWidth() &&
-        entry->native_height == texture_info.GetRawHeight() &&
-        entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
+    // Also do not directly load EFB copies which were partly overwritten.
+    if (entry->IsEfbCopy() && entry->memory_stride == entry->BytesPerRow() &&
+        !entry->may_have_overlapping_textures)
     {
-      // EFB copies have slightly different rules as EFB copy formats have different
-      // meanings from texture formats.
-      if ((base_hash == entry->hash &&
+      // TODO: Should the native width/height be compared with entry->BlockAlignedWidth/Height()
+      // instead?
+      bool is_incorrect_size = entry->native_width != texture_info.GetRawWidth() ||
+                               entry->native_height != texture_info.GetRawHeight();
+      u64 testing_base_hash = base_hash;
+      if (is_incorrect_size)
+      {
+        if (!g_ActiveConfig.bAllowIncorrectEFBSizeVRAM)
+        {
+          ++iter;
+          continue;
+        }
+        // Some games allocate a texture once, and then use it as a EFB target even for smaller
+        // sizes. Finally, they set the UV parameters to avoid using the garbage data.
+        //
+        // An example is Excite Truck, which uses a 640x448 texture for the shadow alpha, even in 2
+        // players where the EFB copy is 320x448 instead (318x448 in the car select screen):
+        // the resulting texture has the top-left quadrant as the even lines of the copy, the
+        // top-right quadrant as the odd lines of the copy, and the bottom half as garbage.
+        // It then sets the UV coordinates to only use the top-left quadrant (which "works",
+        // though it halves its vertical resolution).
+        //
+        // The reason why this is an option is because it's unsafely assuming that the game is
+        // indeed not using the garbage data.
+        //
+        // TODO: On hardware, does the texture cache hit textures of the wrong size? If not, than
+        // this should be done *after* searching in the texture cache.
+        // TODO: Are there games getting a EFB texture smaller than its actual size?
+        // TODO: Should we check texture_info.GetRawWidth() % entry->BlockAlignedWidth() == 0?
+        // (Maybe only when upscaling?)
+
+        // If the texture is bigger than the EFB entry, the expectation is that the excess bytes are
+        // unused. If it's smaller than the EFB entry, then it's gross to hash more than necessary,
+        // but there's no other way for the hashes to match.
+        testing_base_hash = Common::GetHash64(texture_info.GetData(), entry->size_in_bytes,
+                                              textureCacheSafetyColorSampleSize);
+      }
+
+      // EFB copies have slightly different rules as EFB copy formats have different meanings from
+      // texture formats.
+      if ((testing_base_hash == entry->hash &&
            (!texture_info.GetPaletteSize() || g_backend_info.bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
+        bool needs_conversion = false;
+        bool needs_reintepretation = false;
+
         // The texture format in VRAM must match the format that the copy was created with. Some
         // formats are inherently compatible, as the channel and bit layout is identical (e.g.
         // I8/C8). Others have the same number of bits per texel, and can be reinterpreted on the
         // GPU (e.g. IA4 and I8 or RGB565 and RGBA5). The only known game which reinteprets texels
-        // in this manner is Spiderman Shattered Dimensions, where it creates a copy in B8 format,
+        // in this manner is Spider-Man: Shattered Dimensions, where it creates a copy in B8 format,
         // and sets it up as a IA4 texture.
         if (!IsCompatibleTextureFormat(entry->format.texfmt, texture_info.GetTextureFormat()))
         {
           // Can we reinterpret this in VRAM?
           if (CanReinterpretTextureOnGPU(entry->format.texfmt, texture_info.GetTextureFormat()))
           {
-            // Delay the conversion until afterwards, it's possible this texture has already been
-            // converted.
-            unreinterpreted_copy = iter++;
-            continue;
+            needs_reintepretation = true;
           }
           else
           {
-            // If the EFB copies are in a different format and are not reinterpretable, use the RAM
-            // copy.
+            // If the EFB copies are in a different format and are not reinterpretable, fallback to
+            // the RAM copy.
             ++iter;
             continue;
           }
         }
-        else
-        {
-          // Prefer the already-converted copy.
-          unconverted_copy = m_textures_by_address.end();
-        }
 
         // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
         // checking width/height/levels would have.
-        if (!texture_info.GetPaletteSize() || !g_backend_info.bSupportsPaletteConversion)
+        if (texture_info.GetPaletteSize() && g_backend_info.bSupportsPaletteConversion)
+          needs_conversion = true;
+
+        if (!is_incorrect_size && !needs_conversion && !needs_reintepretation)
           return entry;
 
-        // Note that we found an unconverted EFB copy, then continue.  We'll
-        // perform the conversion later.  Currently, we only convert EFB copies to
-        // palette textures; we could do other conversions if it proved to be
-        // beneficial.
-        unconverted_copy = iter;
+        // TODO: Not all conversions/reinterpretations are equal.
+        const u32 negative_score =
+            needs_conversion + 2 * needs_reintepretation + 4 * is_incorrect_size;
+        if (!unprocessed_copy.has_value() || negative_score < unprocessed_copy->negative_score)
+        {
+          // Annotate that we found an unprocessed EFB copy, then continue. It'll be processed
+          // later.
+          // We could do other types of conversions if it proved to be beneficial.
+          unprocessed_copy = {
+              .iter = iter,
+              .needs_conversion = needs_conversion,
+              .needs_reinterpretation = needs_reintepretation,
+              .needs_resizing = is_incorrect_size,
+              .negative_score = negative_score,
+          };
+        }
       }
       else
       {
@@ -1619,40 +1738,38 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     ++iter;
   }
 
-  if (unreinterpreted_copy != m_textures_by_address.end())
+  if (unprocessed_copy.has_value())
   {
-    auto decoded_entry =
-        CreateReinterpretEntry(unreinterpreted_copy->second, texture_info.GetTextureFormat());
-    RenderReinterpretEntry(decoded_entry, unreinterpreted_copy->second->texture.get(),
-                           unreinterpreted_copy->second->format.texfmt,
-                           decoded_entry->format.texfmt);
+    auto old_entry = unprocessed_copy->iter->second;
 
-    // It's possible to combine reinterpreted textures + palettes.
-    if (unreinterpreted_copy == unconverted_copy && decoded_entry)
+    if (unprocessed_copy->needs_reinterpretation)
     {
-      auto existing_entry = decoded_entry;
-      u32 texel_buffer_offset = 0;
-      std::tie(decoded_entry, texel_buffer_offset) =
-          CreatePaletteEntryWithOffset(decoded_entry, texture_info.GetTlutAddress());
-      RenderPaletteEntry(texel_buffer_offset, decoded_entry, existing_entry->texture.get(),
+      auto decoded_entry = CreateReinterpretEntry(old_entry, texture_info.GetTextureFormat());
+      RenderReinterpretEntry(decoded_entry, old_entry->texture.get(), old_entry->format.texfmt,
+                             decoded_entry->format.texfmt);
+      old_entry = decoded_entry;
+    }
+
+    if (unprocessed_copy->needs_conversion && old_entry)
+    {
+      auto [decoded_entry, texel_buffer_offset] =
+          CreatePaletteEntryWithOffset(old_entry, texture_info.GetTlutAddress());
+      RenderPaletteEntry(texel_buffer_offset, decoded_entry, old_entry->texture.get(),
                          texture_info.GetTlutFormat());
+      old_entry = decoded_entry;
     }
 
-    if (decoded_entry)
-      return decoded_entry;
-  }
-
-  if (unconverted_copy != m_textures_by_address.end())
-  {
-    const auto [decoded_entry, texel_buffer_offset] =
-        CreatePaletteEntryWithOffset(unconverted_copy->second, texture_info.GetTlutAddress());
-    RenderPaletteEntry(texel_buffer_offset, decoded_entry, unconverted_copy->second->texture.get(),
-                       texture_info.GetTlutFormat());
-
-    if (decoded_entry)
+    if (unprocessed_copy->needs_resizing && old_entry)
     {
-      return decoded_entry;
+      auto decoded_entry = CreateResizeEntry(old_entry, texture_info.GetRawWidth(),
+                                             texture_info.GetRawHeight(), base_hash, full_hash);
+      RenderResizeEntry(decoded_entry, old_entry->texture.get(), old_entry->GetWidth(),
+                        old_entry->GetHeight());
+      old_entry = decoded_entry;
     }
+
+    if (old_entry)
+      return old_entry;
   }
 
   // Search the texture cache for normal textures by hash
@@ -3065,23 +3182,34 @@ u32 TCacheEntry::BytesPerRow() const
   return NumBlocksX() * bytes_per_block;
 }
 
-u32 TCacheEntry::NumBlocksX() const
+u32 TCacheEntry::BlockAlignedWidth() const
 {
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
-  const u32 actualWidth = Common::AlignUp(native_width, blockW);
+  return Common::AlignUp(native_width, blockW);
+}
 
-  return actualWidth / blockW;
+u32 TCacheEntry::NumBlocksX() const
+{
+  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
+
+  return BlockAlignedWidth() / blockW;
+}
+
+u32 TCacheEntry::BlockAlignedHeight() const
+{
+  const u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
+
+  // Round up source height to multiple of block size
+  return Common::AlignUp(native_height, blockH);
 }
 
 u32 TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
-  // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(native_height, blockH);
+  const u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
 
-  return actualHeight / blockH;
+  return BlockAlignedHeight() / blockH;
 }
 
 void TCacheEntry::SetXfbCopy(u32 stride)
