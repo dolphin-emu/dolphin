@@ -128,7 +128,10 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
 
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, static_cast<int>(vertex_data_size));
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, static_cast<int>(index_data_size));
+}
 
+void VertexManager::BindCommittedBuffer(u32 vertex_stride)
+{
   Gfx::GetInstance()->SetVertexBuffer(m_vertex_stream_buffer.GetGPUPointer(),
                                       m_vertex_srv.cpu_handle, vertex_stride,
                                       m_vertex_stream_buffer.GetSize());
