@@ -102,8 +102,8 @@ void OnConfigChanged()
 
   std::lock_guard lock(s_callbacks_lock);
 
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& callback : s_callbacks | std::views::values)
+    callback();
 }
 
 u64 GetConfigVersion()
@@ -117,8 +117,8 @@ void Load()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
-      layer.second->Load();
+    for (auto& layer : s_layers | std::views::values)
+      layer->Load();
   }
   OnConfigChanged();
 }
@@ -128,8 +128,8 @@ void Save()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
-      layer.second->Save();
+    for (auto& layer : s_layers | std::views::values)
+      layer->Save();
   }
   OnConfigChanged();
 }
