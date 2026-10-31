@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <ranges>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -60,6 +61,30 @@ ARM64Reg Arm64RegCache::GetReg()
   // We can't return anything reasonable in this case. Return INVALID_REG and watch the failure
   // happen
   ASSERT_MSG(DYNA_REC, 0, "All available registers are locked!");
+  return ARM64Reg::INVALID_REG;
+}
+
+ARM64Reg Arm64RegCache::GetRegWithPreference(Arm64Gen::ARM64Reg preferred)
+{
+  // In practice, the preferred register tends to be towards the end of m_host_registers,
+  // so we scan through m_host_registers backwards
+  for (auto& it : m_host_registers | std::views::reverse)
+  {
+    if (it.GetReg() == preferred)
+    {
+      if (it.IsLocked())
+      {
+        return GetReg();
+      }
+      else
+      {
+        it.Lock();
+        return it.GetReg();
+      }
+    }
+  }
+  ASSERT_MSG(DYNA_REC, false, "Preferred register {:#x} is not in register cache",
+             static_cast<int>(preferred));
   return ARM64Reg::INVALID_REG;
 }
 
