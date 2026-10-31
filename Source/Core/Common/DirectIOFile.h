@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <span>
 #include <string>
 
@@ -146,5 +147,130 @@ bool Rename(DirectIOFile& file, const std::string& source_path,
             const std::string& destination_path);
 // Note: Ditto, only Windows actually uses the file handle. Provide both.
 bool Delete(DirectIOFile& file, const std::string& filename);
+
+// UniqueLock / SharedLock operate similarly to std::unique_lock / std::shared_lock.
+// They provide mutual exclusion on files with other threads and processes.
+// The Lock instance *may* outlive the referenced DirectIOFile.
+//
+// Note: These locks are only advisory on POSIX (except maybe with SMB shares).
+// i.e. Holding a lock will only provide mutual exclusion with others that also hold a lock.
+// On Windows, holding a lock denies others read/write access to the file in general.
+//
+// Note: Duplicated handles (copied DirectIOFile) share underlying lock states.
+// *DO NOT* acquire a lock while a duplicated handle already holds a lock.
+// It will alter underlying OS lock states and break the functionality of these classes.
+//
+// Locks on newly created handles to the same file *will* provide proper mutual exclusion.
+//
+// If we end up needing mutual exclusion for duplicated handles (which may be useful)
+//  we can create a static map of TransferableSharedMutex for each file inode.
+
+class UniqueLock final
+{
+public:
+  UniqueLock() = default;
+  UniqueLock(DirectIOFile& file) : m_file{file}
+  {
+    if (m_file.IsOpen())
+      lock();
+  }
+  UniqueLock(DirectIOFile& file, std::try_to_lock_t) : m_file{file}
+  {
+    if (m_file.IsOpen())
+      try_lock();
+  }
+  UniqueLock(DirectIOFile& file, std::defer_lock_t) : m_file{file} {}
+
+  UniqueLock(const UniqueLock&) = delete;
+  UniqueLock& operator=(const UniqueLock&) = delete;
+
+  UniqueLock(UniqueLock&& other)
+  {
+    UniqueLock().swap(*this);
+    swap(other);
+  }
+  UniqueLock& operator=(UniqueLock&& other)
+  {
+    swap(other);
+    return *this;
+  }
+
+  ~UniqueLock()
+  {
+    if (m_owns_lock)
+      unlock();
+  }
+
+  void lock();
+  bool try_lock();
+  void unlock();
+
+  bool owns_lock() const { return m_owns_lock; }
+  explicit operator bool() const { return owns_lock(); }
+
+  void swap(UniqueLock& other)
+  {
+    std::swap(m_file, other.m_file);
+    std::swap(m_owns_lock, other.m_owns_lock);
+  }
+
+private:
+  DirectIOFile m_file;
+  bool m_owns_lock{};
+};
+
+class SharedLock final
+{
+public:
+  SharedLock() = default;
+  SharedLock(DirectIOFile& file) : m_file{file}
+  {
+    if (m_file.IsOpen())
+      lock_shared();
+  }
+  SharedLock(DirectIOFile& file, std::try_to_lock_t) : m_file{file}
+  {
+    if (m_file.IsOpen())
+      try_lock_shared();
+  }
+  SharedLock(DirectIOFile& file, std::defer_lock_t) : m_file{file} {}
+
+  SharedLock(const SharedLock&) = delete;
+  SharedLock& operator=(const SharedLock&) = delete;
+
+  SharedLock(SharedLock&& other)
+  {
+    SharedLock().swap(*this);
+    swap(other);
+  }
+  SharedLock& operator=(SharedLock&& other)
+  {
+    swap(other);
+    return *this;
+  }
+
+  ~SharedLock()
+  {
+    if (m_owns_lock)
+      unlock_shared();
+  }
+
+  void lock_shared();
+  bool try_lock_shared();
+  void unlock_shared();
+
+  bool owns_lock() const { return m_owns_lock; }
+  explicit operator bool() const { return owns_lock(); }
+
+  void swap(SharedLock& other)
+  {
+    std::swap(m_file, other.m_file);
+    std::swap(m_owns_lock, other.m_owns_lock);
+  }
+
+private:
+  DirectIOFile m_file;
+  bool m_owns_lock{};
+};
 
 }  // namespace File

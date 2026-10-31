@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <future>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
@@ -23,13 +24,12 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/LocaleUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Common/TimeUtil.h"
 #include "Common/TransferableSharedMutex.h"
 #include "Common/Version.h"
@@ -82,16 +82,21 @@ static u32 s_selected_slot = 1;
 
 // Shared locks are acquired for each state save task.
 // Tasks generally transition from: Calling thread -> CPU thread -> Compress/Write thread.
-// Holding an "exclusive" lock will:
-// 1. Ensure all previous save tasks have been completely written to the file system.
-// 2. Prevent new tasks from starting.
-static Common::TransferableSharedMutex s_state_saves_in_progress;
+// Holding an "exclusive" lock will ensure:
+// 1. All previously sent save tasks have reached the CPU thread.
+// 2. Exclusive locks on state files have already been acquired.
+// 3. Tasks for "compress and dump thread" worker have already been enqueued.
+// 4. New tasks cannot be started.
+static Common::TransferableSharedMutex s_state_save_task_starting;
 
 struct CompressAndDumpStateArgs
 {
-  Common::UniqueBuffer<u8> buffer;
+  std::future<Common::UniqueBuffer<u8>> buffer;
   std::string filename;
-  std::shared_lock<decltype(s_state_saves_in_progress)> task_lock;
+  File::DirectIOFile file;
+  File::UniqueLock file_lock;
+
+  bool PrepareFilesystem();
 };
 
 // Queue for compressing and writing savestates to disk.
@@ -127,13 +132,13 @@ static const std::map<u32, std::pair<std::string, std::string>> s_old_versions =
 
 static constexpr bool s_use_compression = true;
 
-// Acquired for tasks that will write state save data to the filesystem.
+// Created for tasks that will write state save data to the filesystem.
 // This allows for later waiting on completion of said tasks when necessary.
 // We want to maintain a proper order of async operations, e.g. Save, Save, GetInfoString.
-[[nodiscard]] static auto GetStateSaveTaskLock()
+struct SaveStateTask
 {
-  return std::shared_lock{s_state_saves_in_progress};
-}
+  std::shared_lock<decltype(s_state_save_task_starting)> starting_lock{s_state_save_task_starting};
+};
 
 static bool ReadHeader(const std::string& filename, StateHeader& header);
 
@@ -327,9 +332,11 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
   return result;
 }
 
-static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f)
+static bool CompressBufferToFile(std::span<const u8> raw_buffer, File::DirectIOFile& f)
 {
   u64 total_bytes_compressed = 0;
+
+  u64 expected_offset = f.Tell();
 
   while (true)
   {
@@ -349,13 +356,16 @@ static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f
     }
 
     // The size of the data to write is 'compressed_len'
-    f.WriteArray(&compressed_len, 1);
-    f.WriteBytes(compressed_buffer.get(), compressed_len);
+    f.Write(Common::AsU8Span(compressed_len));
+    f.Write(reinterpret_cast<const u8*>(compressed_buffer.get()), compressed_len);
+    expected_offset += sizeof(compressed_len) + compressed_len;
 
     total_bytes_compressed += bytes_to_compress;
     if (total_bytes_compressed == raw_buffer.size())
-      break;
+      return expected_offset == f.Tell();
   }
+
+  return false;
 }
 
 static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t uncompressed_size)
@@ -370,7 +380,7 @@ static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t un
   // If more fields are added to StateExtendedHeader, set them here.
 }
 
-static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
+static bool WriteHeadersToFile(size_t uncompressed_size, File::DirectIOFile& f)
 {
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.legacy_header.game_id,
@@ -384,47 +394,67 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   StateExtendedHeader extended_header{};
   CreateExtendedHeader(extended_header, uncompressed_size);
 
-  f.WriteArray(&header.legacy_header, 1);
-  f.WriteArray(&header.version_header, 1);
-  f.WriteString(header.version_string);
-
-  f.WriteArray(&extended_header.base_header, 1);
+  return f.Write(Common::AsU8Span(header.legacy_header)) &&
+         f.Write(Common::AsU8Span(header.version_header)) &&
+         f.Write(Common::AsU8Span(header.version_string)) &&
+         f.Write(Common::AsU8Span(extended_header.base_header));
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
-static void CompressAndDumpState(Core::System& system, const CompressAndDumpStateArgs& save_args)
+static void CompressAndDumpState(Core::System& system, CompressAndDumpStateArgs save_args)
 {
-  const auto& buffer = save_args.buffer;
+  const auto buffer = save_args.buffer.get();
+
+  if (buffer.empty())
+    return;
+
   const std::string& filename = save_args.filename;
 
-  // Find free temporary filename.
+  Core::DisplayMessage("Saving State...", 1000);
 
-  // TODO: The file exists check and the actual opening of the file should be atomic.
-  // This is only an issue for multiple instances of dolphin operating on the same user folder.
-  std::string temp_filename;
-  auto temp_counter = static_cast<size_t>(Common::CurrentThreadId());
-  do
-  {
-    temp_filename = fmt::format("{}{}.tmp", filename, temp_counter);
-    ++temp_counter;
-  } while (File::Exists(temp_filename));
+  auto& f = save_args.file;
 
-  File::IOFile f(temp_filename, "wb");
-  if (!f)
+  const bool wrote_headers = WriteHeadersToFile(buffer.size(), f);
+  const bool wrote_data =
+      s_use_compression ? CompressBufferToFile(buffer, f) : f.Write(buffer.data(), buffer.size());
+
+  if (!wrote_headers || !wrote_data)
   {
-    Core::DisplayMessage("Failed to create state file", 2000);
-    return;
+    OSD::AddMessage("Failed to write state file", OSD::Duration::NORMAL, OSD::Color::RED);
+
+    // Truncate/delete the file for any potential threads/proceses waiting on it.
+    File::Resize(save_args.file, 0);
+    File::Delete(save_args.file, save_args.filename);
   }
 
-  WriteHeadersToFile(buffer.size(), f);
+  const std::string dtmname = filename + ".dtm";
 
-  if (s_use_compression)
-    CompressBufferToFile(buffer, f);
-  else
-    f.WriteBytes(buffer.data(), buffer.size());
+  auto& movie = system.GetMovie();
+  if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
+    movie.SaveRecording(dtmname);
+  else if (!movie.IsMovieActive())
+    File::Delete(dtmname);
 
-  if (!f.IsGood())
-    Core::DisplayMessage("Failed to write state file", 2000);
+  const std::filesystem::path temp_path(StringToPath(filename));
+  Core::DisplayMessage(fmt::format("Saved State to {}", PathToString(temp_path.filename())), 2000);
+}
+
+bool CompressAndDumpStateArgs::PrepareFilesystem()
+{
+  // Open .tmp file next to real destinaion.
+  const std::string temp_filename{fmt::format("{}.tmp", filename)};
+  if (!file.Open(temp_filename, File::AccessMode::Write, File::OpenMode::Create))
+  {
+    // This should really only happen with a well-timed second Dolphin instance or prior crash.
+    const bool overwrite = PanicYesNoFmtT("Temporary state file already exists.\n\n{0}\n\n"
+                                          "Overwrite?",
+                                          temp_filename);
+    if (overwrite)
+      file.Open(temp_filename, File::AccessMode::Write);
+  }
+
+  if (!file.IsOpen())
+    return false;
 
   const std::string last_state_filename = File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav";
   const std::string last_state_dtmname = last_state_filename + ".dtm";
@@ -438,43 +468,59 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
     if (File::Exists(last_state_dtmname))
       File::Delete((last_state_dtmname));
 
-    if (!File::Rename(filename, last_state_filename))
+    File::DirectIOFile existing_file{filename, File::AccessMode::Write, File::OpenMode::Existing};
+    File::UniqueLock existing_lock{existing_file};
+
+    if (!File::Rename(existing_file, filename, last_state_filename))
     {
-      Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
+      OSD::AddMessage("Failed to move previous state to state undo backup", OSD::Duration::NORMAL,
+                      OSD::Color::RED);
     }
     else if (File::Exists(dtmname))
     {
       if (!File::Rename(dtmname, last_state_dtmname))
-        Core::DisplayMessage("Failed to move previous state's dtm to state undo backup", 1000);
+        OSD::AddMessage("Failed to move previous state's dtm to state undo backup",
+                        OSD::Duration::NORMAL, OSD::Color::RED);
     }
   }
 
-  auto& movie = system.GetMovie();
-  if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
-    movie.SaveRecording(dtmname);
-  else if (!movie.IsMovieActive())
-    File::Delete(dtmname);
+  // Acquire a file lock on the .tmp file.
+  file_lock = File::UniqueLock{file};
 
-  // Move written state to final location.
-  // TODO: This should also be atomic. This is possible on all systems, but needs a special
-  // implementation of IOFile on Windows.
-  if (!f.Close())
-    Core::DisplayMessage("Failed to close state file", 2000);
+  // After creating the .tmp file, backing up an existing state, and locking the .tmp file,
+  //  we can move the .tmp file to the final location.
+  // The lock will block other threads and dolphin instances until we've finished writing it.
 
-  if (!File::Rename(temp_filename, filename))
+  if (!File::Rename(file, temp_filename, filename))
   {
-    Core::DisplayMessage("Failed to rename state file", 2000);
+    OSD::AddMessage("Failed to rename temporary state file", OSD::Duration::NORMAL,
+                    OSD::Color::RED);
+    File::Delete(file, temp_filename);
+    return false;
   }
-  else
-  {
-    const std::filesystem::path temp_path(StringToPath(filename));
-    Core::DisplayMessage(fmt::format("Saved State to {}", PathToString(temp_path.filename())),
-                         2000);
-  }
+
+  return true;
 }
 
-static void SaveAsFromCore(Core::System& system, std::string filename)
+static void SaveAsFromCore(Core::System& system, std::string filename, SaveStateTask save_task)
 {
+  // Note: A promise is used so we can give our worker a job immediately,
+  // specifically so our FlushUnsavedDataCallback has a job to wait on.
+  std::promise<Common::UniqueBuffer<u8>> buffer_promise;
+
+  CompressAndDumpStateArgs dump_args{
+      .buffer = buffer_promise.get_future(),
+      .filename = std::move(filename),
+  };
+  if (!dump_args.PrepareFilesystem())
+  {
+    OSD::AddMessage("Unable to save.", OSD::Duration::NORMAL, OSD::Color::RED);
+    return;
+  }
+
+  s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
+  save_task.starting_lock.unlock();
+
   // Try with a buffer a bit larger than the previous state.
   // This will often avoid the "Measure" step.
   const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
@@ -484,37 +530,34 @@ static void SaveAsFromCore(Core::System& system, std::string filename)
   {
     // Adjust the oversized buffer down to the actual size.
     buffer.assign(buffer.extract().first, actual_size);
-
-    CompressAndDumpStateArgs dump_args{
-        .buffer = std::move(buffer),
-        .filename = std::move(filename),
-        .task_lock = GetStateSaveTaskLock(),
-    };
-    Core::DisplayMessage("Saving State...", 1000);
-    s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
   }
   else
   {
-    Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+    buffer.reset();
+    File::Delete(dump_args.file, dump_args.filename);
+    OSD::AddMessage("Unable to save: Internal DoState Error", OSD::Duration::NORMAL,
+                    OSD::Color::RED);
   }
+
+  buffer_promise.set_value(std::move(buffer));
 }
 
 void SaveAs(Core::System& system, std::string filename)
 {
   Core::RunOnCPUThread(
-      system, [&system, filename = std::move(filename), lock = GetStateSaveTaskLock()]() mutable {
-        SaveAsFromCore(system, std::move(filename));
+      system, [&system, filename = std::move(filename), save_task = SaveStateTask{}]() mutable {
+        SaveAsFromCore(system, std::move(filename), std::move(save_task));
       });
 }
 
-static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
+static bool GetVersionFromLZO(StateHeader& header, File::DirectIOFile& f)
 {
   // Just read the first block, since it will contain the full revision string
   lzo_uint32 cur_len = 0;  // size of compressed bytes
   lzo_uint new_len = 0;    // size of uncompressed bytes
   Common::UniqueBuffer<u8> buffer(header.legacy_header.lzo_size);
 
-  if (!f.ReadArray(&cur_len, 1) || !f.ReadBytes(out, cur_len))
+  if (!f.Read(Common::AsWritableU8Span(cur_len)) || !f.Read(out, cur_len))
     return false;
 
   const int res = lzo1x_decompress(out, cur_len, buffer.data(), &new_len, nullptr);
@@ -557,7 +600,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   return true;
 }
 
-static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
+static bool ReadStateHeaderFromFile(StateHeader& header, File::DirectIOFile& f,
                                     bool get_version_header = true)
 {
   if (!f.IsOpen())
@@ -566,7 +609,7 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
     return false;
   }
 
-  if (!f.ReadArray(&header.legacy_header, 1))
+  if (!f.Read(Common::AsWritableU8Span(header.legacy_header)))
   {
     Core::DisplayMessage("Failed to read state legacy header", 2000);
     return false;
@@ -585,14 +628,14 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
   }
   else
   {
-    if (!f.ReadArray(&header.version_header, 1))
+    if (!f.Read(Common::AsWritableU8Span(header.version_header)))
     {
       Core::DisplayMessage("Failed to read state version header", 2000);
       return false;
     }
 
     std::string version_buffer(header.version_header.version_string_length, '\0');
-    if (!f.ReadBytes(version_buffer.data(), version_buffer.size()))
+    if (!f.Read(Common::AsWritableU8Span(version_buffer)))
     {
       Core::DisplayMessage("Failed to read state version string", 2000);
       return false;
@@ -606,14 +649,16 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
 
 static bool ReadHeader(const std::string& filename, StateHeader& header)
 {
-  File::IOFile f(filename, "rb");
+  File::DirectIOFile f(filename, File::AccessMode::Read);
+  File::SharedLock lk{f};
+
   constexpr bool get_version_header = false;
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
 std::string GetInfoStringOfSlot(u32 slot, bool translate)
 {
-  std::lock_guard lk{s_state_saves_in_progress};
+  std::lock_guard lk{s_state_save_task_starting};
 
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
@@ -628,7 +673,7 @@ std::string GetInfoStringOfSlot(u32 slot, bool translate)
 
 u64 GetUnixTimeOfSlot(u32 slot)
 {
-  std::lock_guard lk{s_state_saves_in_progress};
+  std::lock_guard lk{s_state_save_task_starting};
 
   State::StateHeader header;
   if (!ReadHeader(MakeStateFilename(slot), header))
@@ -639,7 +684,7 @@ u64 GetUnixTimeOfSlot(u32 slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::IOFile& f)
+static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::DirectIOFile& f)
 {
   raw_buffer.reset(size);
 
@@ -647,7 +692,7 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
   while (true)
   {
     s32 compressed_data_len = 0;
-    if (!f.ReadArray(&compressed_data_len, 1))
+    if (!f.Read(Common::AsWritableU8Span(compressed_data_len)))
     {
       PanicAlertFmt("Could not read state data length");
       return false;
@@ -660,7 +705,7 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
     }
 
     Common::UniqueBuffer<char> compressed_data(compressed_data_len);
-    if (!f.ReadBytes(compressed_data.get(), compressed_data_len))
+    if (!f.Read(reinterpret_cast<u8*>(compressed_data.get()), compressed_data_len))
     {
       PanicAlertFmt("Could not read state data");
       return false;
@@ -745,15 +790,15 @@ static bool ValidateHeaders(const StateHeader& header)
 
 static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<u8>& ret_data)
 {
-  File::IOFile f;
-  f.Open(filename, "rb");
+  File::DirectIOFile f{filename, File::AccessMode::Read};
+  File::SharedLock lk{f};
 
   StateHeader header;
   if (!ReadStateHeaderFromFile(header, f) || !ValidateHeaders(header))
     return;
 
   StateExtendedHeader extended_header;
-  if (!f.ReadArray(&extended_header.base_header, 1))
+  if (!f.Read(Common::AsWritableU8Span(extended_header.base_header)))
   {
     PanicAlertFmt("Unable to read state header");
     return;
@@ -794,7 +839,7 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
     const auto size = static_cast<size_t>(file_size - header_len);
     buffer.reset(size);
 
-    if (!f.ReadBytes(buffer.data(), size))
+    if (!f.Read(buffer.data(), size))
     {
       PanicAlertFmt("Error reading bytes: {0}", size);
       return;
@@ -812,9 +857,6 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
 
 static void LoadAsFromCore(Core::System& system, std::string filename)
 {
-  // Ensure all data has reached the filesystem before trying to use it.
-  s_compress_and_dump_thread.WaitForCompletion();
-
   // Save temp buffer for undo load state
   auto& movie = system.GetMovie();
   if (!movie.IsJustStartingRecordingInputFromSaveState())
@@ -893,8 +935,9 @@ void Init(Core::System& system)
                                    std::bind_front(&CompressAndDumpState, std::ref(system)));
 
   s_flush_unsaved_data_hook = UICommon::AddFlushUnsavedDataCallback([] {
-    // Holding the lock for any amount of time means there are no pending state save tasks.
-    std::lock_guard lk{s_state_saves_in_progress};
+    // Holding the lock for any amount of time means tasks have reached the dump thread.
+    std::lock_guard lk{s_state_save_task_starting};
+    s_compress_and_dump_thread.WaitForCompletion();
   });
 }
 
@@ -977,7 +1020,7 @@ void LoadLastSaved(Core::System& system, int i)
 
 void SaveFirstSaved(Core::System& system)
 {
-  Core::RunOnCPUThread(system, [&system, lock = GetStateSaveTaskLock()] {
+  Core::RunOnCPUThread(system, [&system, save_task = SaveStateTask{}] mutable {
     // Data must reach the filesystem for up to date "UsedSlots".
     s_compress_and_dump_thread.WaitForCompletion();
 
@@ -990,7 +1033,7 @@ void SaveFirstSaved(Core::System& system)
       slot = used_slots.front().slot;
     }
 
-    SaveAsFromCore(system, MakeStateFilename(*slot));
+    SaveAsFromCore(system, MakeStateFilename(*slot), std::move(save_task));
   });
 }
 
