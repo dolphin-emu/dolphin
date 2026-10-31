@@ -210,8 +210,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   if (title.empty())
     title = SConfig::GetInstance().GetTitleDescription();
   const std::string game_id = SConfig::GetInstance().GetGameTDBID();
-  std::string game_artwork =
-      game_id.empty() ? "" : ArtworkForGameId();
+  std::string game_artwork = game_id.empty() ? "" : ArtworkForGameId();
 
   DiscordRichPresence discord_presence = {};
   if (game_artwork.empty())
