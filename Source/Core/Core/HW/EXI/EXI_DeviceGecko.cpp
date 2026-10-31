@@ -19,6 +19,7 @@
 
 namespace ExpansionInterface
 {
+u16 GeckoSockServer::initial_port;
 u16 GeckoSockServer::server_port;
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
@@ -54,8 +55,10 @@ void GeckoSockServer::GeckoConnectionWaiter()
   Common::SetCurrentThreadName("Gecko Connection Waiter");
 
   sf::TcpListener server;
-  server_port = 0xd6ec;  // "dolphin gecko"
-  for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); bind_tries++)
+  constexpr u16 initial_port = 0xd6ec;  // "dolphin gecko"
+  constexpr int port_retries = 10;
+  server_port = initial_port;
+  for (int bind_tries = 0; bind_tries <= port_retries && !server_running.IsSet(); bind_tries++)
   {
     server_running.Set(server.listen(server_port) == sf::Socket::Status::Done);
     if (!server_running.IsSet())
@@ -63,7 +66,13 @@ void GeckoSockServer::GeckoConnectionWaiter()
   }
 
   if (!server_running.IsSet())
+  {
+    const std::string message = fmt::format("USBGecko: Failed to bind to any port in range {}-{}",
+                                            initial_port, initial_port + port_retries);
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "{}", message);
+    Core::DisplayMessage(message, 5000);
     return;
+  }
 
   Core::DisplayMessage(fmt::format("USBGecko: Listening on TCP port {}", server_port), 5000);
 
