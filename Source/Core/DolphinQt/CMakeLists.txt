@@ -1,33 +1,121 @@
-if (WIN32)
-  set(DOLPHIN_QT_X64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/x64")
-  set(DOLPHIN_QT_ARM64_ROOT "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.8.3/ARM64")
-
-  if(_M_ARM_64)
-    set(DOLPHIN_QT_ROOT "${DOLPHIN_QT_ARM64_ROOT}")
-    set(DOLPHIN_QT_TARGET_SPEC "win32-arm64-msvc")
-  else()
-    set(DOLPHIN_QT_ROOT "${DOLPHIN_QT_X64_ROOT}")
-    set(DOLPHIN_QT_TARGET_SPEC "win32-msvc")
-  endif()
-
-  if(DOLPHIN_HOST STREQUAL "ARM64")
-    set(DOLPHIN_QT_HOST_ROOT "${DOLPHIN_QT_ARM64_ROOT}")
-  else()
-    set(DOLPHIN_QT_HOST_ROOT "${DOLPHIN_QT_X64_ROOT}")
-  endif()
-
-  list(APPEND CMAKE_PREFIX_PATH "${DOLPHIN_QT_ROOT}")
-endif()
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Widgets Svg)
+set(USE_SYSTEM_QT6 "${USE_SYSTEM_LIBS}" CACHE STRING "Use system Qt 6. ON/OFF/AUTO.")
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL 6.10.0)
-  # GuiPrivate is needed to #include qplatformnativeinterface.h in MainWindow.cpp with Qt 6.10+.
+include(FetchContent)
+set(QT_HASH_x64 "da3dd707b0c57dde4f77c5f11ce25a83459f849b167c926f263687b1c91e5a71")
+set(QT_HASH_ARM64 "e8e773ca54c4444fc7a11076461d28dd83e7b4f4e19218dc2d5669c1331f2c95")
+# TODO: This should point to dolphin-emu/ext-win-qt once merged.
+set(QT_REPO "https://github.com/JoshuaVandaele/ext-win-qt")
+set(QT_TAG test-12)
+
+function(fetch_qt ARCH)
+  if(NOT DEFINED QT_HASH_${ARCH})
+    message(FATAL_ERROR "Unsupported architecture: ${ARCH}")
+  endif()
+
+  string(TOLOWER ${ARCH} ARCH_LOWER)
+  FetchContent_Populate(
+      dolphin-qt-${ARCH_LOWER}
+      URL ${QT_REPO}/releases/download/${QT_TAG}/qt-windows-${ARCH_LOWER}.7z
+      URL_HASH SHA256=${QT_HASH_${ARCH}}
+  )
+  set(QT_INSTALL_DIR "${dolphin-qt-${ARCH_LOWER}_SOURCE_DIR}" PARENT_SCOPE)
+
+  if(ARCH STREQUAL DOLPHIN_HOST)
+    set(QT_HOST_PATH "${dolphin-qt-${ARCH_LOWER}_SOURCE_DIR}" PARENT_SCOPE)
+  else()
+    fetch_qt(${DOLPHIN_HOST})
+    set(QT_HOST_PATH "${QT_HOST_PATH}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(dolphin_use_bundled_qt6)
+  message(STATUS "Using bundled Qt 6")
+  if(WIN32)
+    if(_M_X86_64)
+      fetch_qt("x64")
+    elseif(_M_ARM_64)
+      fetch_qt("ARM64")
+    else()
+      message(FATAL_ERROR "Qt does not support generic builds on Windows!")
+    endif()
+  else()
+    FetchContent_Populate(
+      dolphin-qt
+      GIT_REPOSITORY ${QT_REPO}.git
+      GIT_TAG ${QT_TAG}
+      GIT_SHALLOW TRUE
+    )
+    if(NOT EXISTS "${dolphin-qt_SOURCE_DIR}/install/${CMAKE_SYSTEM_NAME}")
+      message(FATAL_ERROR "No pre-built binaries for ${CMAKE_SYSTEM_NAME} were found in ${dolphin-qt_SOURCE_DIR}/install. "
+        "Please build them first by following the instructions in ${dolphin-qt_SOURCE_DIR}/README.md.")
+    endif()
+
+    if(_M_ARM_64)
+      set(QT_INSTALL_DIR "${dolphin-qt_SOURCE_DIR}/install/${CMAKE_SYSTEM_NAME}/ARM64")
+    else()
+      set(QT_INSTALL_DIR "${dolphin-qt_SOURCE_DIR}/install/${CMAKE_SYSTEM_NAME}/x64")
+    endif()
+    set(QT_HOST_PATH "${dolphin-qt_SOURCE_DIR}/install/${CMAKE_SYSTEM_NAME}/${DOLPHIN_HOST}")
+  endif()
+
+  set(Qt6_DIR "${QT_INSTALL_DIR}/lib/cmake/Qt6" CACHE PATH "" FORCE)
+  if(NOT "${QT_INSTALL_DIR}" IN_LIST CMAKE_PREFIX_PATH)
+    list(PREPEND CMAKE_PREFIX_PATH "${QT_INSTALL_DIR}")
+  endif()
+
+  if(WIN32)
+    set(QT_TOOLS_DIR "${QT_HOST_PATH}/bin")
+  else()
+    set(QT_TOOLS_DIR "${QT_HOST_PATH}/libexec")
+  endif()
+
+  set(CMAKE_AUTOMOC_EXECUTABLE "${QT_TOOLS_DIR}/moc${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "" FORCE)
+  set(CMAKE_AUTORCC_EXECUTABLE "${QT_TOOLS_DIR}/rcc${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "" FORCE)
+  set(CMAKE_AUTOUIC_EXECUTABLE "${QT_TOOLS_DIR}/uic${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "" FORCE)
+
+  # We relax root path restrictions so cross-compiling can find host Qt tools.
+  set(OLD_CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ${CMAKE_FIND_ROOT_PATH_MODE_PACKAGE})
+  set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+  find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+  set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ${OLD_CMAKE_FIND_ROOT_PATH_MODE_PACKAGE})
+
+  add_definitions(-DUSE_STATIC_QT=1)
+  set(Qt6_FOUND ${Qt6_FOUND} PARENT_SCOPE)
+  set(Qt6_VERSION ${Qt6_VERSION} PARENT_SCOPE)
+  set(USE_STATIC_QT ON PARENT_SCOPE)
+endfunction()
+
+if(USE_SYSTEM_QT6 STREQUAL "ON")
+  find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+elseif(USE_SYSTEM_QT6 STREQUAL "OFF")
+  dolphin_use_bundled_qt6()
+else()
+  find_package(Qt6 QUIET COMPONENTS Core Gui Widgets Svg)
+  if(NOT Qt6_FOUND)
+    dolphin_use_bundled_qt6()
+  endif()
+endif()
+
+message(STATUS "Using Qt ${Qt6_VERSION}")
+
+if(NOT WIN32)
+  # GuiPrivate is needed to #include qplatformnativeinterface.h in MainWindow.cpp
   set(NEED_QT_GUI_PRIVATE_COMPONENT ON)
-  find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
+  if(Qt6_VERSION VERSION_GREATER_EQUAL 6.10.0)
+    find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
+  endif()
+endif()
+
+# UICommon uses Qt's D-Bus support, but it is processed before Qt is discovered
+# (it is added earlier in Source/Core). Qt is located here in DolphinQt, so wire
+# UICommon's D-Bus pieces into its target now that Qt6::DBus is available.
+if(UNIX AND NOT APPLE AND NOT ANDROID AND ENABLE_QT)
+  target_sources(uicommon PRIVATE ../UICommon/DBusUtils.cpp)
+  target_compile_definitions(uicommon PRIVATE -DHAVE_QTDBUS=1)
+  target_link_libraries(uicommon PUBLIC Qt6::DBus)
 endif()
 
 message(STATUS "Found Qt version ${Qt6_VERSION}")
@@ -480,6 +568,22 @@ if(ENABLE_SDL)
   )
 endif()
 
+if(USE_STATIC_QT)
+  set(qt_plugins
+    QMinimalIntegrationPlugin
+    QOffscreenIntegrationPlugin)
+  if(WIN32)
+    list(APPEND qt_plugins QWindowsIntegrationPlugin)
+  elseif(APPLE)
+    list(APPEND qt_plugins QCocoaIntegrationPlugin)
+  elseif(UNIX)
+    list(APPEND qt_plugins QXcbIntegrationPlugin)
+  endif()
+  foreach(qt_plugin IN LISTS qt_plugins)
+    target_link_libraries(dolphin-emu PRIVATE Qt6::${qt_plugin})
+  endforeach()
+endif()
+
 if (NEED_QT_GUI_PRIVATE_COMPONENT)
   target_link_libraries(dolphin-emu
   PRIVATE
@@ -541,14 +645,6 @@ if (NOT APPLE AND NOT ANDROID)
   )
 endif()
 if (WIN32)
-  # Symlink qt.conf
-  add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND}
-      -Dtarget="${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win"
-      -Dlink="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
-      -P="${CMAKE_SOURCE_DIR}/CMake/DolphinSymlinkOrCopy.cmake"
-  )
-
   if (ENABLE_AUTOUPDATE)
     # Symlink build_info.txt
     add_custom_command(TARGET dolphin-emu POST_BUILD
@@ -559,59 +655,12 @@ if (WIN32)
     )
   endif()
 
-
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
   set_target_properties(dolphin-emu PROPERTIES
     DEBUG_POSTFIX    D
     OUTPUT_NAME      Dolphin
     WIN32_EXECUTABLE TRUE
-  )
-  # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
-  get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
-  get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
-  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}" REQUIRED)
-  find_program(QTPATHS_EXE NAMES qtpaths6 qtpaths HINTS "${QT_BINARY_DIRECTORY}" REQUIRED)
-
-  # We don't use target_qt.conf/qtpaths.bat from a Qt build because they use absolute paths.
-  configure_file(
-    "target_qt.conf.in"
-    "${CMAKE_BINARY_DIR}/target_qt.conf"
-    @ONLY
-  )
-  configure_file(
-    "qtpaths.bat.in"
-    "${CMAKE_BINARY_DIR}/qtpaths.bat"
-    @ONLY
-  )
-  set(QTPATHS_SHIM "${CMAKE_BINARY_DIR}/qtpaths.bat")
-
-  # Note: We set the PATH for the duration of this command so that the
-  #       deployment application is able to locate the Qt libraries to copy.
-  #       if the necessary paths aren't already set beforehand.
-  #
-  #       For example, consider a hypothetical emulation project named Orca.
-  #       Orca supplies its own version of Qt instead of having developers actually
-  #       install the officially supported Qt libraries -- a method that would make
-  #       wrangling around with Qt through CMake much nicer and lessen the external
-  #       library maintenance burden of the project, but alas.
-  #
-  #       In this case, as Qt is not installed through the official binary, this also
-  #       means proper path variables will not be set up, thus the need to ensure they're
-  #       always set up.
-  #
-  add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
-            "${WINDEPLOYQT_EXE}" --qtpaths="${QTPATHS_SHIM}"
-                                 --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-                                 --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
-                                 $<IF:$<CONFIG:Debug>,--debug,--release>
-                                 --no-translations
-                                 --no-compiler-runtime
-                                 --no-system-d3d-compiler
-                                 --no-system-dxc-compiler
-                                 --no-opengl-sw
-                                 "$<TARGET_FILE:dolphin-emu>"
   )
 endif()
 
