@@ -10,6 +10,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/System.h"
@@ -56,6 +57,19 @@ enum
   UNK_180 = 0x180,
   UNK_1CC = 0x1cc,
   UNK_1D0 = 0x1d0,
+
+  VERSION = 0x214,
+
+  // Memory controller registers
+
+  MEM2_COLSEL = 0xB4210,
+  MEM2_ROWSEL = 0xB4212,
+  MEM2_BANKSEL = 0xB4214,
+  MEM2_RANKSEL = 0xB4216,
+
+  MEM2_COLMSK = 0xB4218,
+  MEM2_ROWMSK = 0xB421A,
+  MEM2_BANKMSK = 0xB421C,
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
@@ -129,6 +143,7 @@ void WiiIPC::Shutdown()
 
 void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
+  auto& memory = m_system.GetMemory();
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
   mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
@@ -256,6 +271,20 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Register some stubbed/unknown MMIOs required to make Wii games work.
   mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
   mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
+  // Sets the Hollywood version register to 0x11 (same as placed in lomem)
+  mmio->Register(base | VERSION, MMIO::Constant<u32>(0x00000011), MMIO::Nop<u32>());
+
+  const bool mem2_is_128 = memory.GetExRamSizeReal() == Memory::MEM2_SIZE_NDEV;
+
+  mmio->Register(base | MEM2_COLSEL, MMIO::Constant<u16>(6), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_ROWSEL, MMIO::Constant<u16>(4), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_BANKSEL, MMIO::Constant<u16>(2), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_RANKSEL, MMIO::Constant<u16>(mem2_is_128 ? 1 : 7), MMIO::Nop<u16>());
+
+  mmio->Register(base | MEM2_COLMSK, MMIO::Constant<u16>(0x1FF), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_ROWMSK, MMIO::Constant<u16>(0xFFF), MMIO::Nop<u16>());
+  mmio->Register(base | MEM2_BANKMSK, MMIO::Constant<u16>(7), MMIO::Nop<u16>());
+
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
