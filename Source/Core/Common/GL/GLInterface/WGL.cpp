@@ -219,7 +219,7 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
   {
     // Using GetModuleHandle here is okay, since we import functions from opengl32.dll, it's
     // guaranteed to be loaded.
-    HMODULE opengl_module = GetModuleHandle(TEXT("opengl32.dll"));
+    HMODULE opengl_module = GetModuleHandle(L"opengl32.dll");
     func = GetProcAddress(opengl_module, name.c_str());
   }
 
