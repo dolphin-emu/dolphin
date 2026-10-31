@@ -152,7 +152,7 @@ void GeckoSockServer::ClientThread()
     }  // unlock transfer
 
     if (did_nothing)
-      Common::YieldCPU();
+      Common::SleepCurrentThread(1);
   }
 
   client->disconnect();
