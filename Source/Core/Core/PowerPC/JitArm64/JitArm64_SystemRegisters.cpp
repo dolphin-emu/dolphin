@@ -415,9 +415,8 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     m_float_emit.FCVTS(Xresult, SC, RoundingMode::Z);
 
     LDP(IndexType::Signed, XA, XB, Xg, offsetof(CoreTiming::Globals, global_timer));
-    SXTW(XB, WB);
-    SUB(Xresult, XB, Xresult);
-    ADD(Xresult, Xresult, XA);
+    ADD(XA, XA, WB, ArithOption(WB, ExtendSpecifier::SXTW));
+    SUB(Xresult, XA, Xresult);
 
     // It might seem convenient to correct the timer for the block position here for even more
     // accurate timing, but as of currently, this can break games. If we end up reading a time
