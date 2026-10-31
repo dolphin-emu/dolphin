@@ -11,6 +11,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
+
 {
   using Translatability = ControllerEmu::Translatability;
 
@@ -82,6 +83,11 @@ GCPadStatus GBAPad::GetInput()
     pad.button |= PAD_STATUS_RESET_SIGNAL;
   m_reset_pending = false;
 
+  // Use Y button as a multiboot reset signal
+  if (m_multiboot_reset_pending)
+    pad.button |= PAD_BUTTON_Y;
+  m_multiboot_reset_pending = false;
+
   return pad;
 }
 
@@ -89,6 +95,12 @@ void GBAPad::SetReset(bool reset)
 {
   const auto lock = GetStateLock();
   m_reset_pending = reset;
+}
+
+void GBAPad::SetMultibootReset(bool reset)
+{
+  const auto lock = GetStateLock();
+  m_multiboot_reset_pending = reset;
 }
 
 void GBAPad::LoadDefaults(const ControllerInterface& ciface)

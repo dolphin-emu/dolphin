@@ -57,6 +57,11 @@ void SetGBAReset(int pad_num, bool reset)
   static_cast<GBAPad*>(s_config.GetController(pad_num))->SetReset(reset);
 }
 
+void SetGBAMultibootReset(int pad_num, bool reset)
+{
+  static_cast<GBAPad*>(s_config.GetController(pad_num))->SetMultibootReset(reset);
+}
+
 ControllerEmu::ControlGroup* GetGBAGroup(int pad_num, GBAPadGroup group)
 {
   return static_cast<GBAPad*>(s_config.GetController(pad_num))->GetGroup(group);

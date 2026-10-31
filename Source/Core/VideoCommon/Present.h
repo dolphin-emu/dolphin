@@ -109,6 +109,16 @@ public:
 
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
 
+  void SetTVLeftOffset(int sidebar_width) { m_tv_left_sidebar_width = sidebar_width; }
+  void SetTVRightOffset(int sidebar_width) { m_tv_right_sidebar_width = sidebar_width; }
+  void SetTVTopOffset(int sidebar_height) { m_tv_top_sidebar_height = sidebar_height; }
+  void SetTVBottomOffset(int sidebar_height) { m_tv_bottom_sidebar_height = sidebar_height; }
+
+  Common::EventHook RegisterOnTVSizeChanged(Common::HookableEvent<>::CallbackType callback)
+  {
+    return m_on_tv_size_changed.Register(std::move(callback));
+  }
+
 private:
   // Fetches the XFB texture from the texture cache.
   // Returns true the contents have changed since last time
@@ -137,6 +147,10 @@ private:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
+  int m_tv_left_sidebar_width = 0;
+  int m_tv_right_sidebar_width = 0;
+  int m_tv_top_sidebar_height = 0;
+  int m_tv_bottom_sidebar_height = 0;
   float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
@@ -179,6 +193,8 @@ private:
 
   Common::EventHook m_config_changed;
   Common::EventHook m_end_field_hook;
+
+  Common::HookableEvent<> m_on_tv_size_changed;
 
   // Updates state for the SmoothEarlyPresentation setting if enabled.
   // Returns the desired presentation time regardless.
