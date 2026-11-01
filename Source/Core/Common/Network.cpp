@@ -813,4 +813,17 @@ bool SetPlatformSocketOptions(int fd [[maybe_unused]])
   return true;
 }
 
+bool SetReuseAddressOnUnix(int fd [[maybe_unused]])
+{
+#if !defined(_WIN32)
+  int opt_reuse_addr = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt_reuse_addr, sizeof(opt_reuse_addr)) < 0)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to set SO_REUSEADDR on socket: {}", StrNetworkError());
+    return false;
+  }
+#endif
+  return true;
+}
+
 }  // namespace Common
