@@ -291,6 +291,11 @@ void WiiSocket::Update(bool read, bool write, bool except)
         memory.CopyFromEmu(&addr, ioctl.buffer_in + 8, sizeof(WiiSockAddrIn));
         sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
+        // Note: This will technically affect IOCTL_SO_GETSOCKOPT behavior.
+        // I don't expect this to be a problem, but HandleGetSockOptRequest could be adjusted.
+        if (IsTCP())
+          Common::SetReuseAddressOnUnix(fd);
+
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_BIND", false);
 
