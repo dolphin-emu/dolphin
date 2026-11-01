@@ -571,6 +571,8 @@ void Wiimote::DoState(PointerWrap& p)
 
   // Dynamics
   p.Do(m_swing_state);
+  p.Do(m_relative_swing_active);
+  p.Do(m_swing_input_active);
   p.Do(m_tilt_state);
   p.Do(m_point_state);
   p.Do(m_shake_state);

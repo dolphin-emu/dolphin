@@ -4,6 +4,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <optional>
@@ -196,6 +197,9 @@ void Wiimote::Reset()
 
   // Dynamics:
   m_swing_state = {};
+  m_relative_swing_active = false;
+  m_swing_input_active = false;
+  m_last_swing_update = {};
   m_tilt_state = {};
   m_point_state = {};
   m_shake_state = {};
@@ -834,9 +838,48 @@ void Wiimote::RefreshConfig()
 
 void Wiimote::StepDynamics()
 {
-  EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
+  const bool relative_swing = m_swing->IsRelativeInput();
+  const bool swing_input_active = relative_swing && m_swing->IsMotionPressed();
+  if (!swing_input_active || !m_swing_input_active)
+    EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
+  else
+    m_point_state.angular_velocity = {};
+
+  if (relative_swing != m_relative_swing_active)
+    m_swing_state = {};
+  if (relative_swing)
+  {
+    const auto now = std::chrono::steady_clock::now();
+    const bool stale = now - m_last_swing_update > std::chrono::milliseconds(250);
+    m_last_swing_update =
+        ControlReference::GetInputGate() ? now : std::chrono::steady_clock::time_point{};
+    if (!ControlReference::GetInputGate() ||
+        (swing_input_active && (stale || !m_swing_input_active)))
+    {
+      // Don't consume accumulated displacement after a pause, or the last pointing sample.
+      m_swing_state.input_velocity = {};
+      m_swing_state.angular_velocity = {};
+      m_swing_state.velocity = {};
+      m_swing_state.acceleration = {};
+    }
+    else
+    {
+      const auto point_angles =
+          swing_input_active ?
+              std::nullopt :
+              std::optional(Common::Vec2{-m_point_state.angle.z, m_point_state.angle.x});
+      EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ, point_angles);
+    }
+  }
+  else
+  {
+    m_last_swing_update = {};
+    EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
+  }
+  m_relative_swing_active = relative_swing;
+  m_swing_input_active = swing_input_active;
+
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);
@@ -855,21 +898,30 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 
 Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
 {
+  // Absolute pointing must not add a second rotation for the same input.
+  const auto point_velocity =
+      m_relative_swing_active ? Common::Vec3{} : m_point_state.angular_velocity;
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
-                             m_point_state.angular_velocity + extra_angular_velocity);
+                             point_velocity + extra_angular_velocity);
 }
 
-Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
+Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation,
+                                            bool include_swing_position) const
 {
-  // Includes positional and rotational effects of:
-  // Point, Swing, Tilt, Shake
-
+  const auto point_angle = m_relative_swing_active ? Common::Vec3{} : m_point_state.angle;
+  const auto point_position =
+      !m_relative_swing_active || !include_swing_position ? m_point_state.position : Common::Vec3{};
+  const auto swing_rotation =
+      Common::Matrix33::FromQuaternion(GetSwingRotation(m_swing_state).Conjugate());
+  // Includes Point (part of relative Swing's pose), Swing, Tilt and Shake.
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
          Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
-                                        GetRotationalMatrix(-m_point_state.angle) *
-                                        GetRotationalMatrix(-m_swing_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
+                                        GetRotationalMatrix(-point_angle) * swing_rotation) *
+         Common::Matrix44::Translate(-point_position -
+                                     ((!m_relative_swing_active || include_swing_position) ?
+                                          m_swing_state.position :
+                                          Common::Vec3{}));
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -963,9 +1015,11 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
+  // IR and motion sensors share one pose, including the return from a swing to pointing.
   return GetTransformation(Common::Matrix33::FromQuaternion(
-      m_imu_cursor_state.rotation *
-      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
+                               m_imu_cursor_state.rotation *
+                               Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)),
+                           false);
 }
 
 }  // namespace WiimoteEmu

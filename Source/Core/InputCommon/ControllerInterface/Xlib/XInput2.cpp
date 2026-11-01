@@ -239,6 +239,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   for (int i = 0; i < 32; i++)
     AddInput(new Button(i, &m_state.buttons));
 
+  AddCombinedInput("Mouse Side Button", {"Click 8", "Click 9"});
+
   // Mouse Cursor, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
@@ -252,12 +254,12 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   AddInput(new Axis(2, true, &m_state.axis.z));
 
   // Relative Mouse, X-/+, Y-/+ and Z-/+
-  AddInput(new RelativeMouse(0, false, &m_state.relative_mouse.x));
-  AddInput(new RelativeMouse(0, true, &m_state.relative_mouse.x));
-  AddInput(new RelativeMouse(1, false, &m_state.relative_mouse.y));
-  AddInput(new RelativeMouse(1, true, &m_state.relative_mouse.y));
-  AddInput(new RelativeMouse(2, false, &m_state.relative_mouse.z));
-  AddInput(new RelativeMouse(2, true, &m_state.relative_mouse.z));
+  AddInput(new RelativeMouse(0, false, &m_relative_mouse));
+  AddInput(new RelativeMouse(0, true, &m_relative_mouse));
+  AddInput(new RelativeMouse(1, false, &m_relative_mouse));
+  AddInput(new RelativeMouse(1, true, &m_relative_mouse));
+  AddInput(new RelativeMouse(2, false, &m_relative_mouse));
+  AddInput(new RelativeMouse(2, true, &m_relative_mouse));
 }
 
 KeyboardMouse::~KeyboardMouse()
@@ -385,9 +387,8 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
     XFreeEventData(m_display, &event.xcookie);
   }
 
-  m_state.relative_mouse.x = delta_x;
-  m_state.relative_mouse.y = delta_y;
-  m_state.relative_mouse.z = delta_z;
+  m_relative_mouse.Move({delta_x, delta_y, delta_z});
+  m_relative_mouse.Update();
 
   // apply axis smoothing
   m_state.axis.x *= MOUSE_AXIS_SMOOTHING;
@@ -504,8 +505,9 @@ KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
   name = fmt::format("Axis {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
-KeyboardMouse::RelativeMouse::RelativeMouse(u8 index, bool positive, const float* axis)
-    : m_axis(axis), m_index(index), m_positive(positive)
+KeyboardMouse::RelativeMouse::RelativeMouse(u8 index, bool positive,
+                                            const RelativeInputState<Common::Vec3>* state)
+    : m_state(*state), m_index(index), m_positive(positive)
 {
   name =
       fmt::format("RelativeMouse {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
@@ -518,6 +520,7 @@ ControlState KeyboardMouse::Axis::GetState() const
 
 ControlState KeyboardMouse::RelativeMouse::GetState() const
 {
-  return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
+  return std::max(0.0f, m_state.GetValue().data[m_index] /
+                            (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
 }
 }  // namespace ciface::XInput2

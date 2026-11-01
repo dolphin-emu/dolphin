@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <numeric>
 #include <optional>
 #include <string>
@@ -203,7 +204,8 @@ private:
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
   Common::Matrix44
-  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
+  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity(),
+                    bool include_swing_position = true) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
@@ -343,6 +345,9 @@ private:
 
   // Dynamics:
   MotionState m_swing_state;
+  bool m_relative_swing_active = false;
+  bool m_swing_input_active = false;
+  std::chrono::steady_clock::time_point m_last_swing_update{};
   RotationalState m_tilt_state;
   MotionState m_point_state;
   PositionalState m_shake_state;
