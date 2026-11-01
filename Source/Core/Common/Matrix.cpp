@@ -4,8 +4,7 @@
 #include "Common/Matrix.h"
 
 #include <cmath>
-
-#include "Common/MathUtil.h"
+#include <numbers>
 
 namespace
 {
@@ -136,7 +135,7 @@ Vec3 FromQuaternionToEuler(const Quaternion& q)
 
   const float sinp = 2 * (qw * qy - qz * qx);
   if (std::abs(sinp) >= 1)
-    result.y = std::copysign(MathUtil::PI / 2, sinp);  // use 90 degrees if out of range
+    result.y = std::copysign(std::numbers::pi / 2, sinp);  // use 90 degrees if out of range
   else
     result.y = std::asin(sinp);
 

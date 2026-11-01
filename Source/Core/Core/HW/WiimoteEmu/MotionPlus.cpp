@@ -62,7 +62,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
   const auto sign_fix = Common::Vec3(-1, +1, -1);
 
   // Adjust deg/s to rad/s.
-  constexpr auto scalar = float(MathUtil::TAU / 360);
+  constexpr auto scalar = MathUtil::DegreesToRadians(1.0f);
 
   return gyro.GetNormalizedValue(calibration.value) * sign_fix * Common::Vec3(calibration.degrees) *
          scalar;

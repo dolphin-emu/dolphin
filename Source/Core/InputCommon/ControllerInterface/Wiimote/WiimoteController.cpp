@@ -3,6 +3,8 @@
 
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
 
+#include <numbers>
+
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -1258,7 +1260,7 @@ void Device::UpdateOrientation()
   m_rotation_inputs =
       Common::Vec3{WiimoteEmu::GetPitch(m_orientation), WiimoteEmu::GetRoll(m_orientation),
                    WiimoteEmu::GetYaw(m_orientation)} /
-      float(MathUtil::PI);
+      std::numbers::pi_v<float>;
 }
 
 void Device::IRState::ProcessData(const DataReportManipulator& manipulator)

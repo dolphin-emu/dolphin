@@ -574,7 +574,7 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
   AddInput(new AccelerometerInput("Accel Backward", m_pad_data.accelerometer_z_g, -accel_scale));
 
   // Convert degrees per second to radians per second
-  constexpr auto gyro_scale = 360.0 / MathUtil::TAU;
+  constexpr auto gyro_scale = MathUtil::RadiansToDegrees(1.0);
 
   AddInput(new GyroInput("Gyro Pitch Up", m_pad_data.gyro_pitch_deg_s, gyro_scale));
   AddInput(new GyroInput("Gyro Pitch Down", m_pad_data.gyro_pitch_deg_s, -gyro_scale));

@@ -40,35 +40,33 @@ struct OutputVertexData
 
   void Lerp(float t, const OutputVertexData* a, const OutputVertexData* b)
   {
+    mvPosition = Common::Vec3::Lerp(a->mvPosition, b->mvPosition, Common::Vec3{1, 1, 1} * t);
+
 #define LINTERP(T, OUT, IN) (OUT) + ((IN - OUT) * T)
-
-#define LINTERP_INT(T, OUT, IN) (OUT) + (((IN - OUT) * T) >> 8)
-
-    mvPosition = LINTERP(t, a->mvPosition, b->mvPosition);
-
+    // We can't use Common::Vec4::Lerp here. If the game uses an oversized depth range, we hit an
+    // edge case which needs to be handled with this lerp formula. This is know to affect Samurai
+    // Warrior 3, which runs under the sw3-dt FifoCI test.
     projectedPosition.x = LINTERP(t, a->projectedPosition.x, b->projectedPosition.x);
     projectedPosition.y = LINTERP(t, a->projectedPosition.y, b->projectedPosition.y);
     projectedPosition.z = LINTERP(t, a->projectedPosition.z, b->projectedPosition.z);
     projectedPosition.w = LINTERP(t, a->projectedPosition.w, b->projectedPosition.w);
+#undef LINTERP
 
     for (std::size_t i = 0; i < normal.size(); ++i)
     {
-      normal[i] = LINTERP(t, a->normal[i], b->normal[i]);
+      normal[i] = Common::Vec3::Lerp(a->normal[i], b->normal[i], Common::Vec3{1, 1, 1} * t);
     }
 
-    const u16 t_int = static_cast<u16>(t * 256);
     for (std::size_t i = 0; i < color[0].size(); ++i)
     {
-      color[0][i] = LINTERP_INT(t_int, a->color[0][i], b->color[0][i]);
-      color[1][i] = LINTERP_INT(t_int, a->color[1][i], b->color[1][i]);
+      color[0][i] = static_cast<u8>(std::lerp(a->color[0][i], b->color[0][i], t));
+      color[1][i] = static_cast<u8>(std::lerp(a->color[1][i], b->color[1][i], t));
     }
 
     for (std::size_t i = 0; i < texCoords.size(); ++i)
     {
-      texCoords[i] = LINTERP(t, a->texCoords[i], b->texCoords[i]);
+      texCoords[i] =
+          Common::Vec3::Lerp(a->texCoords[i], b->texCoords[i], Common::Vec3{1, 1, 1} * t);
     }
-
-#undef LINTERP
-#undef LINTERP_INT
   }
 };

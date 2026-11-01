@@ -8,27 +8,24 @@
 #include <cmath>
 #include <concepts>
 #include <limits>
+#include <numbers>
 #include <type_traits>
 #include <utility>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
 namespace MathUtil
 {
-constexpr double TAU = 6.2831853071795865;
-constexpr double PI = TAU / 2;
+template <std::floating_point T>
+constexpr T TAU_v = std::numbers::pi_v<T> * 2;
+constexpr double TAU = TAU_v<double>;
 constexpr double GRAVITY_ACCELERATION = 9.80665;
 
 template <typename T>
 constexpr auto Sign(const T& val) -> decltype((T{} < val) - (val < T{}))
 {
   return (T{} < val) - (val < T{});
-}
-
-template <typename T, typename F>
-constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) * a)
-{
-  return x + (y - x) * a;
 }
 
 // Casts the specified value to a Dest. The value will be clamped to fit in the destination type.
@@ -56,23 +53,21 @@ constexpr Dest SaturatingCast(T value)
   return static_cast<Dest>(value);
 }
 
-template <typename T>
+template <std::integral T>
 constexpr bool IsPow2(T imm)
 {
-  return imm > 0 && (imm & (imm - 1)) == 0;
+  if constexpr (std::is_signed_v<T>)
+  {
+    if (imm <= 0)
+      return false;
+  }
+
+  return std::has_single_bit(static_cast<std::make_unsigned_t<T>>(imm));
 }
 
 constexpr u32 NextPowerOf2(u32 value)
 {
-  --value;
-  value |= value >> 1;
-  value |= value >> 2;
-  value |= value >> 4;
-  value |= value >> 8;
-  value |= value >> 16;
-  ++value;
-
-  return value;
+  return std::bit_ceil(value);
 }
 
 template <class T>
@@ -173,6 +168,20 @@ private:
 // Rounds down. 0 -> undefined
 constexpr int IntLog2(u64 val)
 {
-  return 63 - std::countl_zero(val);
+  DEBUG_ASSERT(val != 0);
+  return std::bit_width(val) - 1;
 }
+
+template <std::floating_point T>
+constexpr T DegreesToRadians(T degrees)
+{
+  return degrees * std::numbers::pi_v<T> / T(180);
+}
+
+template <std::floating_point T>
+constexpr T RadiansToDegrees(T radians)
+{
+  return radians / std::numbers::pi_v<T> * T(180);
+}
+
 }  // namespace MathUtil
