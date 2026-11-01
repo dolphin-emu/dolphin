@@ -13,6 +13,8 @@
 
 #include "Common/Assert.h"
 
+#include "Core/HW/GBAPad.h"
+#include "Core/HW/GBAPadEmu.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
@@ -145,6 +147,19 @@ const ControlsMap s_classic_controls_map = {{
      ControlID::CLASSIC_RIGHT_STICK_Y},
 }};
 
+static const ControlsMap s_gbapad_controls_map = {{
+    {{GBAPad::BUTTONS_GROUP, GBAPad::A_BUTTON}, ControlID::GBA_A_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::B_BUTTON}, ControlID::GBA_B_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::L_BUTTON}, ControlID::GBA_L_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::R_BUTTON}, ControlID::GBA_R_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::START_BUTTON}, ControlID::GBA_START_BUTTON},
+    {{GBAPad::BUTTONS_GROUP, GBAPad::SELECT_BUTTON}, ControlID::GBA_SELECT_BUTTON},
+    {{GBAPad::DPAD_GROUP, DIRECTION_UP}, ControlID::GBA_DPAD_UP},
+    {{GBAPad::DPAD_GROUP, DIRECTION_DOWN}, ControlID::GBA_DPAD_DOWN},
+    {{GBAPad::DPAD_GROUP, DIRECTION_LEFT}, ControlID::GBA_DPAD_LEFT},
+    {{GBAPad::DPAD_GROUP, DIRECTION_RIGHT}, ControlID::GBA_DPAD_RIGHT},
+}};
+
 ControllerEmu::InputOverrideFunction GetInputOverrideFunction(const ControlsMap& controls_map,
                                                               size_t i)
 {
@@ -175,6 +190,9 @@ void RegisterGameCubeInputOverrider(int controller_index)
   Pad::GetConfig()
       ->GetController(controller_index)
       ->SetInputOverrideFunction(GetInputOverrideFunction(s_gcpad_controls_map, controller_index));
+  Pad::GetGBAConfig()
+      ->GetController(controller_index)
+      ->SetInputOverrideFunction(GetInputOverrideFunction(s_gbapad_controls_map, controller_index));
 }
 
 void RegisterWiiInputOverrider(int controller_index)
@@ -198,8 +216,11 @@ void RegisterWiiInputOverrider(int controller_index)
 void UnregisterGameCubeInputOverrider(int controller_index)
 {
   Pad::GetConfig()->GetController(controller_index)->ClearInputOverrideFunction();
+  Pad::GetGBAConfig()->GetController(controller_index)->ClearInputOverrideFunction();
 
   for (size_t i = ControlID::FIRST_GC_CONTROL; i <= ControlID::LAST_GC_CONTROL; ++i)
+    s_state_arrays[controller_index][i].overriding = false;
+  for (size_t i = ControlID::FIRST_GBA_CONTROL; i <= ControlID::LAST_GBA_CONTROL; ++i)
     s_state_arrays[controller_index][i].overriding = false;
 }
 

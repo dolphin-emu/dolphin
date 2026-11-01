@@ -151,6 +151,10 @@ static jclass s_audio_utils_class;
 static jmethodID s_audio_utils_get_sample_rate;
 static jmethodID s_audio_utils_get_frames_per_buffer;
 
+static jclass s_gba_renderer_class;
+static jmethodID s_on_gba_frame_buffer;
+static jmethodID s_on_tv_size_changed;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -721,6 +725,21 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jclass GetGbaRendererClass()
+{
+  return s_gba_renderer_class;
+}
+
+jmethodID GetOnGbaFrameBuffer()
+{
+  return s_on_gba_frame_buffer;
+}
+
+jmethodID GetOnTvSizeChanged()
+{
+  return s_on_tv_size_changed;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -1015,6 +1034,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
 
+  const jclass gba_renderer_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/gba/GbaRenderer");
+  s_gba_renderer_class = reinterpret_cast<jclass>(env->NewGlobalRef(gba_renderer_class));
+  s_on_gba_frame_buffer =
+      env->GetStaticMethodID(gba_renderer_class, "onGbaFrameBuffer", "(ILjava/nio/ByteBuffer;)V");
+  s_on_tv_size_changed = env->GetStaticMethodID(gba_renderer_class, "onTvSizeChanged", "()V");
+  env->DeleteLocalRef(gba_renderer_class);
+
   return JNI_VERSION;
 }
 
@@ -1054,5 +1081,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_input_detector_class);
   env->DeleteGlobalRef(s_permission_handler_class);
   env->DeleteGlobalRef(s_audio_utils_class);
+  env->DeleteGlobalRef(s_gba_renderer_class);
 }
 }

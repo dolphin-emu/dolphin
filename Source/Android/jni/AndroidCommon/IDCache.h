@@ -150,4 +150,8 @@ jclass GetAudioUtilsClass();
 jmethodID GetAudioUtilsGetSampleRate();
 jmethodID GetAudioUtilsGetFramesPerBuffer();
 
+jclass GetGbaRendererClass();
+jmethodID GetOnGbaFrameBuffer();
+jmethodID GetOnTvSizeChanged();
+
 }  // namespace IDCache

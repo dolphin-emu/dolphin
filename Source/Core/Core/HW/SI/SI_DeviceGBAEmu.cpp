@@ -136,6 +136,13 @@ DataResponse CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   if (pad_status.button & GBAPad::PAD_STATUS_RESET_SIGNAL)
     m_core->Reset();
 
+  // Use Y button as a multiboot reset signal
+  if (pad_status.button & PadButton::PAD_BUTTON_Y)
+  {
+    m_core->Stop();
+    m_core->Start(m_system.GetCoreTiming().GetTicks());
+  }
+
   return DataResponse::NoData;
 }
 
