@@ -65,6 +65,10 @@ public:
   void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
   bool HasDisc() const;
 
+  // True when the inserted disc is read from an optical drive. This disables disc speed emulation,
+  // FinishRead never blocks the CPU thread and reads then complete when the host read finishes
+  bool IsHostPaced() const;
+
   bool HasWiiHashes() const;
   DiscIO::Platform GetDiscType() const;
   u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition);
@@ -112,10 +116,16 @@ private:
     // it's fine to re-use IDs of requests that have existed in the past.
     u64 id = 0;
 
-    // Only used for logging
+    // Used for logging, and for host-paced reads to match the emulated duration of the read to the
+    // real time the drive took
     u64 time_started_ticks = 0;
     u64 realtime_started_us = 0;
     u64 realtime_done_us = 0;
+
+    // Host-paced reads are completed by the DVD thread, no earlier than ticks_until_completion
+    // after time_started_ticks
+    bool host_paced = false;
+    s64 ticks_until_completion = 0;
   };
 
   void ProcessReadRequest(ReadRequest&& read_request);
@@ -132,6 +142,7 @@ private:
   std::map<u64, ReadResult> m_result_map;
 
   std::unique_ptr<DiscIO::Volume> m_disc;
+  bool m_host_paced = false;
 
   FileMonitor::FileLogger m_file_logger;
 

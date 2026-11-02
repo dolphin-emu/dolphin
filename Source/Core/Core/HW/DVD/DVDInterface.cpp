@@ -1611,6 +1611,15 @@ void DVDInterface::FinishExecutingCommand(ReplyType reply_type, DIInterruptType 
 void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
                                  u32 output_address, ReplyType reply_type)
 {
+  // Discs read from an optical drive are paced by the drive itself. The whole command becomes one
+  // request that completes when the physical read finishes, so the timing model below is ignored
+  auto& dvd_thread = m_system.GetDVDThread();
+  if (dvd_thread.IsHostPaced())
+  {
+    dvd_thread.StartReadToEmulatedRAM(output_address, offset, length, partition, reply_type, 0);
+    return;
+  }
+
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned
   // from the buffer. Data can be transferred from the buffer at up to 32 MiB/s.
@@ -1623,7 +1632,6 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
   auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
   const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-  auto& dvd_thread = m_system.GetDVDThread();
   const bool wii_disc = dvd_thread.GetDiscType() == DiscIO::Platform::WiiDisc;
 
   // Whether we have performed a seek.
