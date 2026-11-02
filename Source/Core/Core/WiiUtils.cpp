@@ -458,7 +458,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
 
   std::ostringstream stream;
   doc.save(stream);
-  const std::string request = stream.str();
+  const std::string request = std::move(stream).str();
 
   std::string base_url = Config::Get(Config::MAIN_WII_NUS_SHOP_URL);
   if (base_url.empty())
