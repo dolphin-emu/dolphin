@@ -856,7 +856,7 @@ void AchievementManager::DoState(PointerWrap& p)
   if (!p.IsReadMode())
     size = rc_client_progress_size(m_client);
   p.Do(size);
-  auto buffer = std::make_unique<u8[]>(size);
+  auto buffer = std::make_unique_for_overwrite<u8[]>(size);
   if (!p.IsReadMode())
   {
     int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
