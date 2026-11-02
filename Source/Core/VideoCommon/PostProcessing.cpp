@@ -762,7 +762,7 @@ void SetOutput(float4 color)
 #define OptionDisabled(x) ((x) == 0)
 
 )";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetFooter() const
@@ -804,7 +804,7 @@ static std::string GetVertexShaderBody()
   }
 
   ss << "}\n";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 bool PostProcessing::CompileVertexShader()
@@ -812,13 +812,14 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss_default;
   ss_default << GetUniformBufferHeader(false);
   ss_default << GetVertexShaderBody();
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, ss_default.str(), nullptr, "Default post-processing vertex shader");
+  m_default_vertex_shader =
+      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, std::move(ss_default).str(), nullptr,
+                                    "Default post-processing vertex shader");
 
   std::ostringstream ss;
   ss << GetUniformBufferHeader(true);
   ss << GetVertexShaderBody();
-  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), nullptr,
+  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, std::move(ss).str(), nullptr,
                                                   "Post-processing vertex shader");
 
   if (!m_default_vertex_shader || !m_vertex_shader)
