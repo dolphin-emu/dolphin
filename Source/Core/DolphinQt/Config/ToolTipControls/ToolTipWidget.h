@@ -6,6 +6,7 @@
 #include <optional>
 
 #include <QString>
+#include <QTimerEvent>
 
 #include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
 
@@ -57,12 +58,14 @@ private:
 
   void timerEvent(QTimerEvent* const event) override
   {
-    this->killTimer(*m_timer_id);
-    m_timer_id.reset();
+    if (m_timer_id == event->timerId())
+    {
+      this->killTimer(*m_timer_id);
+      m_timer_id.reset();
 
-    BalloonTip::ShowBalloon(m_title, m_description,
-                            this->parentWidget()->mapToGlobal(GetToolTipPosition()), this);
-
+      BalloonTip::ShowBalloon(m_title, m_description,
+                              this->parentWidget()->mapToGlobal(GetToolTipPosition()), this);
+    }
     Derived::timerEvent(event);
   }
 
