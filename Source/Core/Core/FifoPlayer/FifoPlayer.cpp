@@ -488,14 +488,17 @@ void FifoPlayer::WriteAllMemoryUpdates()
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
   auto& memory = m_system.GetMemory();
-  u8* mem = nullptr;
 
-  if (memUpdate.address & 0x10000000)
-    mem = &memory.GetEXRAM()[memUpdate.address & memory.GetExRamMask()];
-  else
-    mem = &memory.GetRAM()[memUpdate.address & memory.GetRamMask()];
+  const auto mem_span = memory.GetSpanForAddress(memUpdate.address);
 
-  std::ranges::copy(memUpdate.data, mem);
+  if (memUpdate.data.size() > mem_span.size())
+  {
+    ERROR_LOG_FMT(CORE, "WriteMemory overflow: address=0x{:08x} length={} span={}",
+                  memUpdate.address, memUpdate.data.size(), mem_span.size());
+    return;
+  }
+
+  std::ranges::copy(memUpdate.data, mem_span.data());
 }
 
 void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
