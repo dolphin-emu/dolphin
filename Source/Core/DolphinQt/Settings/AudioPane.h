@@ -67,6 +67,12 @@ private:
 
   QLabel* m_latency_label;
   ConfigSlider* m_latency_slider;
+
+#ifdef HAVE_CUBEB
+  QLabel* m_cubeb_backend_label;
+  ConfigStringChoice* m_cubeb_backend_combo;
+#endif
+
 #ifdef _WIN32
   QLabel* m_wasapi_device_label;
   ConfigStringChoice* m_wasapi_device_combo;
