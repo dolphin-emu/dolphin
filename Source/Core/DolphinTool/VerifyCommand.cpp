@@ -27,7 +27,7 @@ static std::string HashToHexString(const std::vector<u8>& hash)
   {
     ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
   }
-  return ss.str();
+  return std::move(ss).str();
 }
 
 static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
