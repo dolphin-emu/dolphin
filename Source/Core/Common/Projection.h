@@ -7,7 +7,7 @@ namespace Common::Projection
 {
 struct First
 {
-  // TODO C++23: static operator()
+  // TODO C++23 (GCC 13): static operator()
   template <class T>
   [[nodiscard]] constexpr auto&& operator()(T&& t) const noexcept
   {
@@ -17,7 +17,7 @@ struct First
 
 struct Second
 {
-  // TODO C++23: static operator()
+  // TODO C++23 (GCC 13): static operator()
   template <class T>
   [[nodiscard]] constexpr auto&& operator()(T&& t) const noexcept
   {
