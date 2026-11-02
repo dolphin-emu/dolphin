@@ -15,11 +15,13 @@
 #include <QMimeData>
 #include <QStackedWidget>
 #include <QStyleHints>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
 
 #include <fmt/format.h>
 
+#include <chrono>
 #include <future>
 #include <optional>
 #include <utility>
@@ -37,6 +39,8 @@
 
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/SCSIDevice.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
@@ -71,10 +75,12 @@
 
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/OpticalDiscBlob.h"
 #include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Achievements/AchievementsWindow.h"
+#include "DolphinQt/ChangeDiscDialog.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
@@ -106,6 +112,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/OpticalDiscProgressDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -524,6 +531,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
   connect(m_menu_bar, &MenuBar::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_menu_bar, &MenuBar::ChangeDisc, this, &MainWindow::ChangeDisc);
+  connect(m_menu_bar, &MenuBar::BootOpticalDisc, this, &MainWindow::BootOpticalDisc);
   connect(m_menu_bar, &MenuBar::OpenUserFolder, this, &MainWindow::OpenUserFolder);
   connect(m_menu_bar, &MenuBar::OpenConfigFolder, this, &MainWindow::OpenConfigFolder);
   connect(m_menu_bar, &MenuBar::OpenCacheFolder, this, &MainWindow::OpenCacheFolder);
@@ -824,17 +832,87 @@ QStringList MainWindow::PromptFileNames()
 
 void MainWindow::ChangeDisc()
 {
-  std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
+  // Without optical drive support, go straight to the file picker.
+  if (!Common::SCSIDevice::IsSupported())
+  {
+    std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
 
-  if (paths.empty())
+    if (paths.empty())
+      return;
+
+    m_system.GetDVDInterface().ChangeDisc(Core::CPUThreadGuard{m_system}, paths);
+    return;
+  }
+
+  // Get the kind of disc the emulated console currently has
+  std::optional<std::string> inserted_drive;
+  {
+    const Core::CPUThreadGuard guard(m_system);
+    inserted_drive = m_system.GetDVDInterface().GetInsertedOpticalDrive(guard);
+  }
+
+  ChangeDiscDialog dialog(
+      inserted_drive, [this] { return PromptFileNames(); }, [this] { EjectDisc(); }, this);
+  if (dialog.exec() != QDialog::Accepted)
     return;
 
-  m_system.GetDVDInterface().ChangeDisc(Core::CPUThreadGuard{m_system}, paths);
+  if (dialog.IsOpticalDiscSelected())
+  {
+    m_optical_drive = dialog.GetSelectedDrive();
+    DVD::DVDInterface& dvd_interface = m_system.GetDVDInterface();
+    dvd_interface.ChangeDisc(Core::CPUThreadGuard{m_system}, *m_optical_drive);
+
+    // The disc opens on a worker thread while emulation keeps running. Show the progress dialog
+    // until the disc is inserted, the change fails or is cancelled
+    OpticalDiscProgressDialog progress(*m_optical_drive,
+                                       OpticalDiscProgressDialog::Reason::DiscChange, this);
+    QTimer poll_timer;
+    connect(&poll_timer, &QTimer::timeout, &progress, [&progress, &dvd_interface] {
+      if (!dvd_interface.IsOpticalDiscChangePending())
+        progress.accept();
+    });
+    poll_timer.start(std::chrono::milliseconds{100});
+    if (progress.exec() == QDialog::Rejected)
+    {
+      dvd_interface.CancelOpticalDiscChange(Core::CPUThreadGuard{m_system});
+      m_optical_drive.reset();
+    }
+  }
+  else
+  {
+    m_optical_drive.reset();
+    m_system.GetDVDInterface().ChangeDisc(Core::CPUThreadGuard{m_system},
+                                          dialog.GetSelectedFiles());
+  }
 }
 
 void MainWindow::EjectDisc()
 {
   m_system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::User);
+
+  // A game running from an optical drive also has its physical disc stopped and ejected
+  if (m_optical_drive && !DiscIO::EjectOpticalDisc(*m_optical_drive))
+    WARN_LOG_FMT(DISCIO, "Failed to eject the disc in {}", *m_optical_drive);
+}
+
+void MainWindow::BootOpticalDisc(const QString& drive)
+{
+  // Opening the disc is not instant, as the drive may perform a spin-up and the disc header must be
+  // parsed, so it runs on a worker thread to avoid blocking the UI
+  OpticalDiscProgressDialog dialog(drive.toStdString(), OpticalDiscProgressDialog::Reason::Boot,
+                                   this);
+
+  std::future<std::unique_ptr<BootParameters>> result = std::async(std::launch::async, [&] {
+    std::unique_ptr<BootParameters> parameters = BootParameters::GenerateFromOpticalDrive(
+        drive.toStdString(), BootSessionData(), [&dialog] { return dialog.WasCanceled(); });
+    QueueOnObject(&dialog, [&dialog] { dialog.accept(); });
+    return parameters;
+  });
+  dialog.exec();
+
+  std::unique_ptr<BootParameters> parameters = result.get();
+  if (parameters && !dialog.WasCanceled())
+    StartGame(std::move(parameters));
 }
 
 void MainWindow::OpenUserFolder()
@@ -923,6 +1001,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
+  m_optical_drive.reset();
   HideRenderWidget(!m_exit_requested, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
@@ -1217,12 +1296,23 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   // We need the render widget before booting.
   ShowRenderWidget();
 
+  // Remember the optical drive this game boots from (if applicable), for later use with EjectDisc
+  // and ChangeDisc functions
+  m_optical_drive.reset();
+  if (parameters && std::holds_alternative<BootParameters::Disc>(parameters->parameters))
+  {
+    const std::string& path = std::get<BootParameters::Disc>(parameters->parameters).path;
+    if (Common::SCSIDevice::IsOpticalDrive(path))
+      m_optical_drive = path;
+  }
+
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(m_system, std::move(parameters),
                              ::GetWindowSystemInfo(m_render_widget->windowHandle())))
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     HideRenderWidget();
+    m_optical_drive.reset();
     return;
   }
 
