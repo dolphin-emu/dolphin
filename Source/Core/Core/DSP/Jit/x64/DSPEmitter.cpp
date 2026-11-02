@@ -115,7 +115,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
-  ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
+  ABI_CallFunction(CheckExceptionsThunk, &m_dsp_core);
   TEST(32, R(ABI_RETURN), R(ABI_RETURN));
   FixupBranch skip_return = J_CC(CC_Z, Jump::Short);
   MOV(32, R(EAX), Imm32(retval));
@@ -157,7 +157,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 
   m_gpr.PushRegs();
   ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for {:04x}", inst);
-  ABI_CallFunctionPC(FallbackThunk, &m_dsp_core.GetInterpreter(), inst);
+  ABI_CallFunction(FallbackThunk, &m_dsp_core.GetInterpreter(), inst);
   m_gpr.PopRegs();
 }
 
@@ -190,7 +190,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
     {
       // Fall back to interpreter
       m_gpr.PushRegs();
-      ABI_CallFunctionPC(FallbackExtThunk, &m_dsp_core.GetInterpreter(), inst);
+      ABI_CallFunction(FallbackExtThunk, &m_dsp_core.GetInterpreter(), inst);
       m_gpr.PopRegs();
       INFO_LOG_FMT(DSPLLE, "Instruction not JITed(ext part): {:04x}", inst);
       ext_is_jit = false;
@@ -217,7 +217,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       // need to call the online cleanup function because
       // the writeBackLog gets populated at runtime
       m_gpr.PushRegs();
-      ABI_CallFunctionP(ApplyWriteBackLogThunk, &m_dsp_core.GetInterpreter());
+      ABI_CallFunction(ApplyWriteBackLogThunk, &m_dsp_core.GetInterpreter());
       m_gpr.PopRegs();
     }
     else
@@ -420,8 +420,7 @@ void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
 const u8* DSPEmitter::CompileStub()
 {
   const u8* entryPoint = AlignCode16();
-  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(this)));
-  ABI_CallFunction(CompileCurrent);
+  ABI_CallFunction(CompileCurrent, this);
   XOR(32, R(EAX), R(EAX));  // Return 0 cycles executed
   JMP(m_return_dispatcher);
   return entryPoint;

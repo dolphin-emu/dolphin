@@ -57,6 +57,10 @@ public:
   class Iterator
   {
   public:
+    using value_type = int;
+    using difference_type = std::ptrdiff_t;
+
+    constexpr Iterator() = default;
     constexpr Iterator(const Iterator& other) : m_val(other.m_val), m_bit(other.m_bit) {}
     constexpr Iterator(IntTy val, int bit) : m_val(val), m_bit(bit) {}
     Iterator& operator=(Iterator other)
@@ -89,8 +93,8 @@ public:
     constexpr bool operator!=(Iterator other) const { return m_bit != other.m_bit; }
 
   private:
-    IntTy m_val;
-    int m_bit;
+    IntTy m_val = 0;
+    int m_bit = -1;
   };
 
   constexpr BitSet() = default;
