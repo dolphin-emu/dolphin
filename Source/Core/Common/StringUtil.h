@@ -328,9 +328,9 @@ std::string ThousandSeparate(I value, int spaces = 0)
   stream << std::setw(spaces) << value;
 
 #ifdef _WIN32
-  return WStringToUTF8(stream.str());
+  return WStringToUTF8(stream.view());
 #else
-  return stream.str();
+  return std::move(stream).str();
 #endif
 }
 
