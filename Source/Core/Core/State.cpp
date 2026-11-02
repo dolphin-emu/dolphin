@@ -511,13 +511,13 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
 {
   // Just read the first block, since it will contain the full revision string
   lzo_uint32 cur_len = 0;  // size of compressed bytes
-  lzo_uint new_len = 0;    // size of uncompressed bytes
-  Common::UniqueBuffer<u8> buffer(header.legacy_header.lzo_size);
+  Common::UniqueBuffer<u8> buffer(IN_LEN);
+  lzo_uint new_len = buffer.size();  // output buffer capacity
 
-  if (!f.ReadArray(&cur_len, 1) || !f.ReadBytes(out, cur_len))
+  if (!f.ReadArray(&cur_len, 1) || cur_len > OUT_LEN || !f.ReadBytes(out, cur_len))
     return false;
 
-  const int res = lzo1x_decompress(out, cur_len, buffer.data(), &new_len, nullptr);
+  const int res = lzo1x_decompress_safe(out, cur_len, buffer.data(), &new_len, nullptr);
   if (res != LZO_E_OK)
   {
     // This doesn't seem to happen anymore.
@@ -528,7 +528,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   }
 
   // Read in cookie and string length
-  if (buffer.size() >= sizeof(StateHeaderVersion))
+  if (new_len >= sizeof(StateHeaderVersion))
   {
     memcpy(&header.version_header, buffer.data(), sizeof(StateHeaderVersion));
   }
@@ -536,12 +536,12 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version cookie and version "
                    "string length ({0})",
-                   buffer.size());
+                   new_len);
     return false;
   }
 
   // Read in the string
-  if (buffer.size() >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
+  if (new_len >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
   {
     header.version_string.assign(
         reinterpret_cast<char*>(buffer.data() + sizeof(StateHeaderVersion)),
@@ -550,7 +550,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   else
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version string ({0} / {1})",
-                   header.version_header.version_string_length, buffer.size());
+                   header.version_header.version_string_length, new_len);
     return false;
   }
 
