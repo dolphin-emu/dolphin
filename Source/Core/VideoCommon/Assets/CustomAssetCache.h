@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <typeindex>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -50,8 +51,8 @@ public:
   T* CreateAsset(const CustomAssetLibrary::AssetID& asset_id,
                  std::shared_ptr<VideoCommon::CustomAssetLibrary> library, AssetListener* listener)
   {
-    const auto [it, added] =
-        m_asset_id_to_handle.try_emplace(asset_id, m_asset_handle_to_data.size());
+    const auto [it, added] = m_asset_id_to_handle[asset_id].try_emplace(
+        std::type_index(typeid(T)), m_asset_handle_to_data.size());
     if (added)
     {
       AssetData asset_data;
@@ -67,14 +68,6 @@ public:
     asset_data_from_handle.load_status = AssetData::LoadStatus::PendingReload;
 
     return static_cast<T*>(asset_data_from_handle.asset.get());
-  }
-
-  AssetData* GetAssetData(const CustomAssetLibrary::AssetID& asset_id)
-  {
-    const auto it_handle = m_asset_id_to_handle.find(asset_id);
-    if (it_handle == m_asset_id_to_handle.end())
-      return nullptr;
-    return &m_asset_handle_to_data[it_handle->second];
   }
 
   void Initialize();
@@ -182,7 +175,11 @@ private:
   AssetPriorityQueue m_pending_assets;
 
   std::map<std::size_t, AssetData> m_asset_handle_to_data;
-  std::map<CustomAssetLibrary::AssetID, std::size_t> m_asset_id_to_handle;
+
+  // We key on type to ensure the type always matches what is requested
+  // in 'CreateAsset'
+  std::map<CustomAssetLibrary::AssetID, std::map<std::type_index, std::size_t>>
+      m_asset_id_to_handle;
 
   // Memory used by currently "loaded" assets.
   u64 m_ram_used = 0;
