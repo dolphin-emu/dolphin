@@ -39,6 +39,8 @@ add_library(main SHARED
   RiivolutionPatches.cpp
   SkylanderConfig.cpp
   WiiUtils.cpp
+  GCMemcardManager.cpp
+  WiiSaveManager.cpp
 )
 
 target_link_libraries(main

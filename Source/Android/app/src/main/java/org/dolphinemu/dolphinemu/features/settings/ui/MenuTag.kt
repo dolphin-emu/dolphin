@@ -17,6 +17,7 @@ enum class MenuTag {
     CONFIG_ACHIEVEMENTS("config_achievements"),
     CONFIG_ADVANCED("config_advanced"),
     CONFIG_LOG("config_log"),
+    CONFIG_SAVE_FILE_MANAGER("config_save_file_manager"),
     DEBUG("debug"),
     GRAPHICS("graphics"),
     ENHANCEMENTS("enhancements"),
