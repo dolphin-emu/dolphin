@@ -205,7 +205,11 @@ static void DoState(Core::System& system, PointerWrap& p)
 
 static bool CheckIfStateLoadIsAllowed(Core::System& system)
 {
-  if (!Core::IsRunningOrStarting(system))
+  // TODO: If the user tries to load a state while starting, nothing happens, which is poor UX.
+  // In the past we called IsRunningOrStarting, but currently loading a state while starting would
+  // cause crashes due to nullptr dereferences. Would adding nullptr checks be better, or would it
+  // cause a bigger mess? (What about avoiding unique_ptr in the first place?)
+  if (!Core::IsRunning(system))
     return false;
 
   if (NetPlay::IsNetPlayRunning())
