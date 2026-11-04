@@ -20,6 +20,7 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -282,7 +283,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 
   auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
-    instance.Init(reinterpret_cast<void*>(winId()));
+    instance.Init(Host::GetInstance()->GetMainWindowHandle());
   else
     instance.Shutdown();
 }
