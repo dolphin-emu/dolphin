@@ -78,13 +78,13 @@ public:
 
   void SaveSettings();
 
-private:
-  LogManager();
-
   LogManager(const LogManager&) = delete;
   LogManager& operator=(const LogManager&) = delete;
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
+
+private:
+  LogManager();
 
   static std::string GetTimestamp();
   void SetEffectiveLogLevel();
