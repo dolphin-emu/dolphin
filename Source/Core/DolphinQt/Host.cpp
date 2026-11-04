@@ -76,6 +76,11 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
+void* Host::GetMainWindowHandle() const
+{
+  return m_main_window_handle;
+}
+
 static void RunWithGPUThreadInactive(const std::function<void()>& f)
 {
   // Potentially any thread which shows panic alerts can be blocked on this returning.

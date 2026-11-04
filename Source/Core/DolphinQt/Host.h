@@ -27,6 +27,7 @@ public:
   bool GetRenderFullscreen();
   bool GetGBAFocus();
   bool GetTASInputFocus() const;
+  void* GetMainWindowHandle() const;
 
   void SetMainWindowHandle(void* handle);
   void SetRenderHandle(void* handle);
