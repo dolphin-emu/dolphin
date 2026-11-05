@@ -21,23 +21,18 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override)
+Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override,
+                 const CheckType check_type)
     : m_parent(parent), m_update_track(std::move(update_track)),
-      m_hash_override(std::move(hash_override))
+      m_hash_override(std::move(hash_override)), m_check_type(check_type)
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
+  start();
 }
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Automatic);
-}
-
-void Updater::CheckForUpdate()
-{
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
-                                    AutoUpdateChecker::CheckType::Manual);
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override, m_check_type);
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
