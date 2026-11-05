@@ -18,6 +18,7 @@
 #include <string>
 
 #include <fcntl.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -28,6 +29,7 @@
 #endif
 
 #include "Common/FileUtil.h"
+#include "Common/UnixUtil.h"
 #endif
 
 #include "Common/Assert.h"
@@ -363,4 +365,136 @@ bool Delete(DirectIOFile& file, const std::string& filename)
 #endif
 }
 
+#if defined(_WIN32)
+static bool LockExHelper(DirectIOFile& file, u64 offset, u64 size, DWORD flags)
+{
+  ASSERT(file.IsOpen());
+  OVERLAPPED overlapped{};
+  overlapped.Offset = DWORD(offset);
+  overlapped.OffsetHigh = DWORD(offset >> 32);
+  return LockFileEx(file.GetHandle(), flags, 0, DWORD(size), DWORD(size >> 32), &overlapped) != 0;
+}
+static bool UnlockExHelper(DirectIOFile& file, u64 offset, u64 size)
+{
+  ASSERT(file.IsOpen());
+  OVERLAPPED overlapped{};
+  overlapped.Offset = DWORD(offset);
+  overlapped.OffsetHigh = DWORD(offset >> 32);
+  return UnlockFileEx(file.GetHandle(), 0, DWORD(size), DWORD(size >> 32), &overlapped) != 0;
+}
+#elif defined(__linux__)
+#define USE_OFD_LOCKS
+static bool FCNTLHelper(const DirectIOFile& file, int op, short lock_type)
+{
+  ASSERT(file.IsOpen());
+  const struct flock lk{
+      .l_type = lock_type,
+      .l_whence = SEEK_SET,
+  };
+  return UnixUtil::RetryOnEINTR(fcntl, file.GetHandle(), op, &lk) == 0;
+}
+#else
+static bool FLockHelper(const DirectIOFile& file, int op)
+{
+  ASSERT(file.IsOpen());
+  return UnixUtil::RetryOnEINTR(flock, file.GetHandle(), op) == 0;
+}
+#endif
+
+void UniqueLock::lock()
+{
+  ASSERT(!owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      LockExHelper(m_file, 0, u64(-1), LOCKFILE_EXCLUSIVE_LOCK);
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLKW, F_WRLCK);
+#else
+      FLockHelper(m_file, LOCK_EX);
+#endif
+  if (!success)
+    WARN_LOG_FMT(COMMON, "UniqueLock::lock() failed.");
+  m_owns_lock = true;
+}
+
+bool UniqueLock::try_lock()
+{
+  ASSERT(!owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      LockExHelper(m_file, 0, u64(-1), LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY);
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLK, F_WRLCK);
+#else
+      FLockHelper(m_file, LOCK_EX | LOCK_NB);
+#endif
+  m_owns_lock = success;
+  return success;
+}
+
+void UniqueLock::unlock()
+{
+  ASSERT(owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      UnlockExHelper(m_file, 0, u64(-1));
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLK, F_UNLCK);
+#else
+      FLockHelper(m_file, LOCK_UN);
+#endif
+  if (!success)
+    WARN_LOG_FMT(COMMON, "UniqueLock::unlock() failed.");
+  m_owns_lock = false;
+}
+
+void SharedLock::lock_shared()
+{
+  ASSERT(!owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      LockExHelper(m_file, 0, u64(-1), 0);
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLKW, F_RDLCK);
+#else
+      FLockHelper(m_file, LOCK_SH);
+#endif
+  if (!success)
+    WARN_LOG_FMT(COMMON, "SharedLock::lock_shared() failed.");
+  m_owns_lock = true;
+}
+
+bool SharedLock::try_lock_shared()
+{
+  ASSERT(!owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      LockExHelper(m_file, 0, u64(-1), LOCKFILE_FAIL_IMMEDIATELY);
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLK, F_RDLCK);
+#else
+      FLockHelper(m_file, LOCK_SH | LOCK_NB);
+#endif
+  m_owns_lock = success;
+  return success;
+}
+
+void SharedLock::unlock_shared()
+{
+  ASSERT(owns_lock());
+  const bool success =
+#if defined(_WIN32)
+      UnlockExHelper(m_file, 0, u64(-1));
+#elif defined(USE_OFD_LOCKS)
+      FCNTLHelper(m_file, F_OFD_SETLK, F_UNLCK);
+#else
+      FLockHelper(m_file, LOCK_UN);
+#endif
+  if (!success)
+    WARN_LOG_FMT(COMMON, "SharedLock::unlock_shared() failed.");
+  m_owns_lock = false;
+}
+
 }  // namespace File
+
+#undef USE_OFD_LOCKS

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <barrier>
 #include <latch>
 #include <thread>
 
@@ -411,4 +412,58 @@ TEST_F(FileUtilTest, DirectIOFile)
 
   file.Close();
   EXPECT_TRUE(file.Open(destination_path_2, File::AccessMode::Write, File::OpenMode::Always));
+}
+
+TEST_F(FileUtilTest, DirectIOFileLock)
+{
+  File::DirectIOFile file;
+  EXPECT_TRUE(file.Open(m_file_path, File::AccessMode::Write, File::OpenMode::Always));
+
+  // Exclusive lock in main thread.
+  File::UniqueLock main_lk{file};
+
+  static constexpr u32 MAGIC_NUMBER = 42;
+  EXPECT_TRUE(file.Write(Common::AsU8Span(MAGIC_NUMBER)));
+
+  constexpr u32 THREAD_COUNT = 10;
+
+  std::barrier barrier{THREAD_COUNT + 1};
+
+  const auto thread_func = [&barrier, this] {
+    File::DirectIOFile file;
+    EXPECT_TRUE(file.Open(m_file_path, File::AccessMode::Read, File::OpenMode::Existing));
+
+    {
+      // Trying to exclusive lock fails.
+      File::UniqueLock worker_lk{file, std::try_to_lock};
+      EXPECT_FALSE(worker_lk);
+    }
+
+    File::SharedLock worker_lk{file, std::defer_lock};
+
+    // Trying to shared lock fails.
+    EXPECT_FALSE(worker_lk.try_lock_shared());
+
+    barrier.arrive_and_wait();
+
+    // All the workers can `lock_shared` after the main thread `unlock`.
+    worker_lk.lock_shared();
+
+    u32 number{};
+    EXPECT_TRUE(file.Read(Common::AsWritableU8Span(number)));
+
+    EXPECT_EQ(number, MAGIC_NUMBER);
+
+    barrier.arrive_and_wait();
+  };
+
+  std::vector<std::jthread> threads;
+  for (u32 i = 0; i != THREAD_COUNT; ++i)
+    threads.emplace_back(thread_func);
+
+  barrier.arrive_and_wait();
+
+  main_lk.unlock();
+
+  barrier.arrive_and_wait();
 }
