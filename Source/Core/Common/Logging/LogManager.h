@@ -56,9 +56,9 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void Log(LogLevel level, LogType type, const char* file, int line, std::string_view message);
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+                       std::string_view message);
 
   // Use this function instead of LOGGER_VERBOSITY to determine which logs should be printed.
   LogLevel GetEffectiveLogLevel() const;
@@ -75,18 +75,18 @@ public:
   void RegisterListener(LogListener::LISTENER id, std::unique_ptr<LogListener> listener);
   void EnableListener(LogListener::LISTENER id, bool enable);
   bool IsListenerEnabled(LogListener::LISTENER id) const;
+  bool IsAnyListenerEnabled() const { return static_cast<bool>(m_listener_ids); }
 
   void SaveSettings();
-
-private:
-  LogManager();
 
   LogManager(const LogManager&) = delete;
   LogManager& operator=(const LogManager&) = delete;
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
 
-  static std::string GetTimestamp();
+private:
+  LogManager();
+
   void SetEffectiveLogLevel();
 
   std::atomic<LogLevel> m_effective_level;
@@ -94,6 +94,5 @@ private:
   EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<std::unique_ptr<LogListener>, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
-  size_t m_path_cutoff_point = 0;
 };
 }  // namespace Common::Log
