@@ -221,7 +221,7 @@ bool ResourcePack::Install(const std::string& path)
     }
 
     const size_t data_size = static_cast<size_t>(texture_info->uncompressed_size);
-    auto data = std::make_unique<u8[]>(data_size);
+    auto data = std::make_unique_for_overwrite<u8[]>(data_size);
     if (!Common::ReadFileFromZip(zip_reader, data.get(), data_size))
     {
       m_error = "Failed to read texture " + texture;
