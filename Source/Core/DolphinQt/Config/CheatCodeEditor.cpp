@@ -4,6 +4,7 @@
 #include "DolphinQt/Config/CheatCodeEditor.h"
 
 #include <regex>
+#include <sstream>
 
 #include <QDialogButtonBox>
 #include <QFontDatabase>
@@ -18,6 +19,7 @@
 #include "Core/ARDecrypt.h"
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/PowerPC/Expression.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -53,9 +55,7 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
   m_creator_edit->setText(QString::fromStdString(code->creator));
 
   m_code_edit->clear();
-
-  for (const auto& c : code->codes)
-    m_code_edit->append(QString::fromStdString(c.original_line));
+  m_code_edit->append(QString::fromStdString(code->raw_code));
 
   QString notes_string;
   for (const auto& line : code->notes)
@@ -210,24 +210,43 @@ bool CheatCodeEditor::AcceptGecko()
 
   std::vector<Gecko::GeckoCode::Code> entries;
 
-  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
+  std::string raw_code = m_code_edit->toPlainText().toStdString();
 
-  for (int i = 0; i < lines.size(); i++)
+  // Get name if it exists at the top of the code.
+  const std::string top_line(StripWhitespace(raw_code).substr(0, raw_code.find('\n')));
+  if (top_line.front() == u'$')
   {
-    QString line = lines[i];
+    if (name.isEmpty())
+      name = QString::fromStdString(top_line);
 
-    if (line.isEmpty())
+    raw_code = raw_code.substr(raw_code.find('\n') + 1);
+  }
+
+  // Do replacements
+  MathExpression expression;
+  auto code = expression.ModifyBracedBlocks(raw_code);
+  if (!code.has_value())
+  {
+    ModalMessageBox::critical(
+        this, tr("Error"),
+        tr("Failed to parse the code. Check the syntax of any expressions you may have used.\n "
+           "Check the ACTIONREPLAY log for more information."));
+    return false;
+  }
+
+  // Process code lines
+  std::istringstream stream(code.value());
+  std::string line;
+  int i = 0;
+
+  while (std::getline(stream, line))
+  {
+    i++;
+
+    if (line.empty())
       continue;
 
-    if (i == 0 && line[0] == u'$')
-    {
-      if (name.isEmpty())
-        name = line.right(line.size() - 1);
-
-      continue;
-    }
-
-    if (std::optional<Gecko::GeckoCode::Code> c = Gecko::DeserializeLine(line.toStdString()))
+    if (std::optional<Gecko::GeckoCode::Code> c = Gecko::DeserializeLine(line))
     {
       entries.push_back(*c);
     }
@@ -255,6 +274,7 @@ bool CheatCodeEditor::AcceptGecko()
   m_gecko_code->name = name.trimmed().toStdString();
   m_gecko_code->creator = m_creator_edit->text().trimmed().toStdString();
   m_gecko_code->codes = std::move(entries);
+  m_gecko_code->raw_code = raw_code;
   m_gecko_code->notes = SplitString(m_notes_edit->toPlainText().toStdString(), '\n');
   m_gecko_code->user_defined = true;
 
