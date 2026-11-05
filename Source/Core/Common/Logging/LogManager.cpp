@@ -197,7 +197,8 @@ void LogManager::Log(LogLevel level, LogType type, const char* file, int line,
   LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
 }
 
-std::string LogManager::GetTimestamp()
+void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+                                 std::string_view message)
 {
   // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log line,
   // so ensure they stay in sync
@@ -206,14 +207,9 @@ std::string LogManager::GetTimestamp()
   const auto now = std::chrono::system_clock::now();
   const auto now_s = std::chrono::floor<std::chrono::seconds>(now);
   const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(now);
-  return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
-}
 
-void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                                 std::string_view message)
-{
   const std::string msg =
-      fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,
+      fmt::format("{:%M:%S}:{:03} {}:{} {}[{}]: {}\n", now_s, (now_ms - now_s).count(), file, line,
                   LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
 
   for (const auto listener_id : m_listener_ids)

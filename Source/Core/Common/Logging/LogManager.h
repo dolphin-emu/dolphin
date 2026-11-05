@@ -87,7 +87,6 @@ public:
 private:
   LogManager();
 
-  static std::string GetTimestamp();
   void SetEffectiveLogLevel();
 
   std::atomic<LogLevel> m_effective_level;
