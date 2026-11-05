@@ -65,7 +65,7 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
   if (instance == nullptr)
     return;
 
-  if (!instance->IsEnabled(type, level))
+  if (!instance->IsEnabled(type, level) || !instance->IsAnyListenerEnabled())
     return;
 
   const auto message = fmt::vformat(format, args);
@@ -193,9 +193,6 @@ void LogManager::SaveSettings()
 
 void LogManager::Log(LogLevel level, LogType type, const char* file, int line, const char* message)
 {
-  if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
-    return;
-
   LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
 }
 
