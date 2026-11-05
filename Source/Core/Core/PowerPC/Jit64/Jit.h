@@ -272,6 +272,8 @@ public:
 
   void eieio(UGeckoInstruction inst);
 
+  void tlbie(UGeckoInstruction inst);
+
 private:
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 

@@ -287,7 +287,7 @@ constexpr std::array<JitArm64OpTemplate, 107> s_table31{{
     {310, &JitArm64::FallBackToInterpreter},  // eciwx
     {438, &JitArm64::FallBackToInterpreter},  // ecowx
     {854, &JitArm64::eieio},                  // eieio
-    {306, &JitArm64::FallBackToInterpreter},  // tlbie
+    {306, &JitArm64::tlbie},                  // tlbie
     {566, &JitArm64::DoNothing},              // tlbsync
 }};
 
