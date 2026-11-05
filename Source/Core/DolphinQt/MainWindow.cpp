@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
+#include <QScreen>
 #include <QStackedWidget>
 #include <QStyleHints>
 #include <QVBoxLayout>
@@ -924,6 +925,12 @@ void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
   HideRenderWidget(!m_exit_requested, m_exit_requested);
+
+  if (!m_pre_game_main_window_geometry.isEmpty())
+  {
+    restoreGeometry(m_pre_game_main_window_geometry);
+    m_pre_game_main_window_geometry.clear();
+  }
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -1105,7 +1112,7 @@ void MainWindow::FullScreen()
 
   if (was_fullscreen)
   {
-    ShowRenderWidget();
+    ShowRenderWidget(true);
   }
   else
   {
@@ -1263,13 +1270,28 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
 #endif
 }
 
-void MainWindow::ShowRenderWidget()
+void MainWindow::ShowRenderWidget(bool from_fullscreen)
 {
   SetFullScreenResolution(false);
   Host::GetInstance()->SetRenderFullscreen(false);
 
+  const int monitor_index = Config::Get(Config::MAIN_DISPLAY_MONITOR);
+  const QList<QScreen*> screens = QGuiApplication::screens();
+  QScreen* const target_screen = (monitor_index > 0 && monitor_index <= screens.size()) ?
+                                     screens[monitor_index - 1] :
+                                     QGuiApplication::primaryScreen();
+
   if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
   {
+    // Move the main window to the selected monitor if it isn't already there.
+    // Guard with isEmpty() so fullscreen toggles don't overwrite the saved geometry.
+    if (monitor_index > 0 && screen() != target_screen && m_pre_game_main_window_geometry.isEmpty())
+    {
+      m_pre_game_main_window_geometry = saveGeometry();
+      const QRect geo = target_screen->availableGeometry();
+      move(geo.x() + (geo.width() - width()) / 2, geo.y() + (geo.height() - height()) / 2);
+    }
+
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
 
@@ -1282,11 +1304,19 @@ void MainWindow::ShowRenderWidget()
   }
   else
   {
-    // Otherwise, just show it.
+    // Separate window: restore saved size and position. Only center on the selected monitor
+    // when first showing the window; skip when returning from fullscreen so the saved position
+    // is preserved.
     m_rendering_to_main = false;
 
     m_render_widget->showNormal();
     m_render_widget->restoreGeometry(m_render_widget_geometry);
+    if (monitor_index > 0 && !from_fullscreen)
+    {
+      const QRect geo = target_screen->availableGeometry();
+      m_render_widget->move(geo.x() + (geo.width() - m_render_widget->width()) / 2,
+                            geo.y() + (geo.height() - m_render_widget->height()) / 2);
+    }
   }
 }
 

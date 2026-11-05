@@ -206,6 +206,17 @@ void RenderWidget::HandleCursorTimer()
 
 void RenderWidget::showFullScreen()
 {
+  const int monitor_index = Config::Get(Config::MAIN_DISPLAY_MONITOR);
+  const QList<QScreen*> screens = QGuiApplication::screens();
+  QScreen* const target_screen = (monitor_index > 0 && monitor_index <= screens.size()) ?
+                                     screens[monitor_index - 1] :
+                                     QGuiApplication::primaryScreen();
+  if (monitor_index > 0)
+  {
+    const QRect geo = target_screen->geometry();
+    move(geo.x() + (geo.width() - width()) / 2, geo.y() + (geo.height() - height()) / 2);
+  }
+
   QWidget::showFullScreen();
 
   QScreen* screen = window()->windowHandle()->screen();
