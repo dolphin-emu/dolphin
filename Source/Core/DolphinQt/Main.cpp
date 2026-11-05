@@ -20,6 +20,19 @@
 #include <QPushButton>
 #include <QWidget>
 
+#ifdef USE_STATIC_QT
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin)
+Q_IMPORT_PLUGIN(QOffscreenIntegrationPlugin)
+#ifdef Q_OS_LINUX
+Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
+#elifdef Q_OS_WIN
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+#elifdef Q_OS_MACOS
+Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin)
+#endif
+#endif
+
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
