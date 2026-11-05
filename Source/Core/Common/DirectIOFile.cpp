@@ -103,7 +103,7 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
   else if (open_mode == OpenMode::Existing)
     creation_disposition = OPEN_EXISTING;
 
-  m_handle = CreateFile(UTF8ToTStr(path).c_str(), desired_access, share_mode, nullptr,
+  m_handle = CreateFile(UTF8ToWString(path).c_str(), desired_access, share_mode, nullptr,
                         creation_disposition, FILE_ATTRIBUTE_NORMAL, nullptr);
   if (!IsOpen())
     WARN_LOG_FMT(COMMON, "CreateFile: {}", Common::GetLastErrorString());
