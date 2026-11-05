@@ -129,7 +129,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
   {
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(self->fd, &rfds);
+    Common::Safe_FD_SET(self->fd, &rfds);
 
     struct timeval timeout;
     timeout.tv_sec = 0;
