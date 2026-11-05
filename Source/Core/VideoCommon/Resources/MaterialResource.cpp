@@ -91,6 +91,9 @@ void MaterialResource::ResetData()
 
 Resource::TaskComplete MaterialResource::CollectPrimaryData()
 {
+  if (!m_material_asset) [[unlikely]]
+    return Resource::TaskComplete::Error;
+
   const auto material_data = m_material_asset->GetData();
   if (!material_data) [[unlikely]]
   {
@@ -343,7 +346,8 @@ void MaterialResource::MarkAsActive()
   if (!m_current_data) [[unlikely]]
     return;
 
-  m_resource_context.asset_cache->MarkAssetActive(m_material_asset);
+  if (m_material_asset)
+    m_resource_context.asset_cache->MarkAssetActive(m_material_asset);
   for (const auto& texture_like_resource : m_current_data->m_texture_like_resources)
   {
     if (texture_like_resource)
@@ -357,7 +361,8 @@ void MaterialResource::MarkAsActive()
 
 void MaterialResource::MarkAsPending()
 {
-  m_resource_context.asset_cache->MarkAssetPending(m_material_asset);
+  if (m_material_asset)
+    m_resource_context.asset_cache->MarkAssetPending(m_material_asset);
 }
 
 void MaterialResource::CreateTextureData(Data* data)

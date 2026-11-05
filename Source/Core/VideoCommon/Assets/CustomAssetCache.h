@@ -7,9 +7,11 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <typeindex>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/Assets/AssetListener.h"
 #include "VideoCommon/Assets/CustomAsset.h"
@@ -50,19 +52,28 @@ public:
   T* CreateAsset(const CustomAssetLibrary::AssetID& asset_id,
                  std::shared_ptr<VideoCommon::CustomAssetLibrary> library, AssetListener* listener)
   {
-    const auto [it, added] =
-        m_asset_id_to_handle.try_emplace(asset_id, m_asset_handle_to_data.size());
+    const auto [it, added] = m_asset_id_to_handle.try_emplace(
+        asset_id,
+        std::pair<std::type_index, std::size_t>{typeid(T), m_asset_handle_to_data.size()});
     if (added)
     {
       AssetData asset_data;
-      asset_data.asset = std::make_unique<T>(std::move(library), asset_id, it->second);
+      asset_data.asset = std::make_unique<T>(std::move(library), asset_id, it->second.second);
       asset_data.load_request_time = {};
       asset_data.has_load_error = false;
 
-      m_asset_handle_to_data.insert_or_assign(it->second, std::move(asset_data));
+      m_asset_handle_to_data.insert_or_assign(it->second.second, std::move(asset_data));
+    }
+    else if (it->second.first != typeid(T))
+    {
+      ERROR_LOG_FMT(
+          VIDEO,
+          "Asset '{}' already exists in cache but with another type, check your configuration",
+          asset_id);
+      return nullptr;
     }
 
-    auto& asset_data_from_handle = m_asset_handle_to_data[it->second];
+    auto& asset_data_from_handle = m_asset_handle_to_data[it->second.second];
     asset_data_from_handle.listeners.push_back(listener);
     asset_data_from_handle.load_status = AssetData::LoadStatus::PendingReload;
 
@@ -74,7 +85,7 @@ public:
     const auto it_handle = m_asset_id_to_handle.find(asset_id);
     if (it_handle == m_asset_id_to_handle.end())
       return nullptr;
-    return &m_asset_handle_to_data[it_handle->second];
+    return &m_asset_handle_to_data[it_handle->second.second];
   }
 
   void Initialize();
@@ -182,7 +193,8 @@ private:
   AssetPriorityQueue m_pending_assets;
 
   std::map<std::size_t, AssetData> m_asset_handle_to_data;
-  std::map<CustomAssetLibrary::AssetID, std::size_t> m_asset_id_to_handle;
+  std::map<CustomAssetLibrary::AssetID, std::pair<std::type_index, std::size_t>>
+      m_asset_id_to_handle;
 
   // Memory used by currently "loaded" assets.
   u64 m_ram_used = 0;

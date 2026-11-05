@@ -26,6 +26,9 @@ CustomAsset::TimeType TextureDataResource::GetLoadTime() const
 
 Resource::TaskComplete TextureDataResource::CollectPrimaryData()
 {
+  if (!m_texture_asset) [[unlikely]]
+    return Resource::TaskComplete::Error;
+
   const auto last_load_time = m_texture_asset->GetLastLoadedTime();
   const auto asset = m_texture_asset->GetData();
   if (!asset)
@@ -38,11 +41,15 @@ Resource::TaskComplete TextureDataResource::CollectPrimaryData()
 
 void TextureDataResource::MarkAsActive()
 {
+  if (!m_texture_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetActive(m_texture_asset);
 }
 
 void TextureDataResource::MarkAsPending()
 {
+  if (!m_texture_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetPending(m_texture_asset);
 }
 }  // namespace VideoCommon
