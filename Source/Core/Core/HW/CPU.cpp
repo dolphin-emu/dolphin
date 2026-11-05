@@ -32,7 +32,11 @@ CPUManager::~CPUManager() = default;
 void CPUManager::Init(PowerPC::CPUCore cpu_core)
 {
   m_system.GetPowerPC().Init(cpu_core);
-  m_state = State::Stepping;
+
+  std::lock_guard state_lock(m_state_change_lock);
+  // A stop may have been requested while the core was booting, in which case don't overwrite it.
+  if (Core::GetState(m_system) != Core::State::Stopping)
+    m_state = State::Stepping;
 }
 
 void CPUManager::Shutdown()
