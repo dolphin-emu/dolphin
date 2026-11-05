@@ -69,7 +69,7 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
     return;
 
   const auto message = fmt::vformat(format, args);
-  instance->Log(level, type, file, line, message.c_str());
+  instance->Log(level, type, file, line, message);
 }
 
 static consteval size_t GetPathCutOffPoint()
@@ -191,7 +191,8 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(LogLevel level, LogType type, const char* file, int line, const char* message)
+void LogManager::Log(LogLevel level, LogType type, const char* file, int line,
+                     std::string_view message)
 {
   LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
 }
@@ -209,7 +210,7 @@ std::string LogManager::GetTimestamp()
 }
 
 void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                                 const char* message)
+                                 std::string_view message)
 {
   const std::string msg =
       fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,

@@ -56,9 +56,9 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void Log(LogLevel level, LogType type, const char* file, int line, std::string_view message);
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+                       std::string_view message);
 
   // Use this function instead of LOGGER_VERBOSITY to determine which logs should be printed.
   LogLevel GetEffectiveLogLevel() const;
