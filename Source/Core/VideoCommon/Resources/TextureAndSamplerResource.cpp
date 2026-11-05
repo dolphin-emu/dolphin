@@ -17,11 +17,15 @@ TextureAndSamplerResource::TextureAndSamplerResource(Resource::ResourceContext r
 
 void TextureAndSamplerResource::MarkAsActive()
 {
+  if (!m_texture_and_sampler_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetActive(m_texture_and_sampler_asset);
 }
 
 void TextureAndSamplerResource::MarkAsPending()
 {
+  if (!m_texture_and_sampler_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetPending(m_texture_and_sampler_asset);
 }
 
@@ -37,6 +41,9 @@ void TextureAndSamplerResource::ResetData()
 
 Resource::TaskComplete TextureAndSamplerResource::CollectPrimaryData()
 {
+  if (!m_texture_and_sampler_asset) [[unlikely]]
+    return Resource::TaskComplete::Error;
+
   m_load_data->m_texture_and_sampler_data = m_texture_and_sampler_asset->GetData();
   if (!m_load_data->m_texture_and_sampler_data)
     return Resource::TaskComplete::No;
