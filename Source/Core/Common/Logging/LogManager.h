@@ -75,6 +75,7 @@ public:
   void RegisterListener(LogListener::LISTENER id, std::unique_ptr<LogListener> listener);
   void EnableListener(LogListener::LISTENER id, bool enable);
   bool IsListenerEnabled(LogListener::LISTENER id) const;
+  bool IsAnyListenerEnabled() const { return static_cast<bool>(m_listener_ids); }
 
   void SaveSettings();
 
