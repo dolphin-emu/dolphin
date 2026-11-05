@@ -607,7 +607,7 @@ static std::string SaveUSBWhitelistToString(const std::set<USBUtils::DeviceInfo>
   std::ostringstream oss;
   for (const auto& device : devices)
     oss << device.ToString() << ',';
-  std::string devices_string = oss.str();
+  std::string devices_string = std::move(oss).str();
   if (!devices_string.empty())
     devices_string.pop_back();
   return devices_string;

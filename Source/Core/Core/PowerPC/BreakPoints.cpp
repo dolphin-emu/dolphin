@@ -77,7 +77,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       ss << "b";
     if (bp.condition)
       ss << "c " << bp.condition->GetText();
-    bp_strings.emplace_back(ss.str());
+    bp_strings.emplace_back(std::move(ss).str());
   }
 
   return bp_strings;
@@ -252,7 +252,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     if (mc.condition)
       ss << "c " << mc.condition->GetText();
 
-    mc_strings.emplace_back(ss.str());
+    mc_strings.emplace_back(std::move(ss).str());
   }
 
   return mc_strings;

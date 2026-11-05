@@ -473,7 +473,7 @@ std::string WriteConfigString(const Config& config)
 
   std::stringstream ss;
   doc.print(ss, "  ");
-  return ss.str();
+  return std::move(ss).str();
 }
 
 bool WriteConfigFile(const std::string& filename, const Config& config)
