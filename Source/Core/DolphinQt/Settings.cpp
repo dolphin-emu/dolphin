@@ -39,6 +39,7 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/Keyboard.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
@@ -987,8 +988,16 @@ bool Settings::IsUSBKeyboardConnected() const
 
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
-  if (IsUSBKeyboardConnected() != connected)
-    Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
+  if (IsUSBKeyboardConnected() == connected)
+    return;
+
+  Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
+  if (connected)
+    InputCommon::KeyboardContext::NotifyInit();
+  else
+    InputCommon::KeyboardContext::NotifyQuit();
+
+  emit USBKeyboardConnectionChanged(connected);
 }
 
 bool Settings::IsWiiSpeakMuted() const
