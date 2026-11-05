@@ -1050,7 +1050,7 @@ void WiiSockMan::UpdatePollCommands()
   if (pending_polls.empty())
     return;
 
-  const auto now = std::chrono::high_resolution_clock::now();
+  const auto now = Clock::now();
   const auto elapsed_d = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time);
   const auto elapsed = elapsed_d.count();
   last_time = now;

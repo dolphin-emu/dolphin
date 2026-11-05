@@ -300,7 +300,6 @@ private:
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last = 0;
   std::vector<PollCommand> pending_polls;
-  std::chrono::time_point<std::chrono::high_resolution_clock> last_time =
-      std::chrono::high_resolution_clock::now();
+  TimePoint last_time = Clock::now();
 };
 }  // namespace IOS::HLE
