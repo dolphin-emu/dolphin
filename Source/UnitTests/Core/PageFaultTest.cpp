@@ -31,15 +31,15 @@ public:
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {
-    m_pre_unprotect_time = std::chrono::high_resolution_clock::now();
+    m_pre_unprotect_time = Clock::now();
     Common::UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);
-    m_post_unprotect_time = std::chrono::high_resolution_clock::now();
+    m_post_unprotect_time = Clock::now();
     return true;
   }
 
   void* m_data = nullptr;
-  std::chrono::time_point<std::chrono::high_resolution_clock> m_pre_unprotect_time,
-      m_post_unprotect_time;
+  TimePoint m_pre_unprotect_time;
+  TimePoint m_post_unprotect_time;
 };
 
 #ifdef _MSC_VER
@@ -72,9 +72,9 @@ TEST(PageFault, PageFault)
   system.GetJitInterface().SetJit(std::move(unique_pfjit));
   pfjit.m_data = data;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start = Clock::now();
   perform_invalid_access(data);
-  auto end = std::chrono::high_resolution_clock::now();
+  auto end = Clock::now();
 
   auto difference_in_nanoseconds = [](auto diff_start, auto diff_end) {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(diff_end - diff_start).count();
