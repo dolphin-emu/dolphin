@@ -28,6 +28,7 @@
 #endif
 
 #include "Common/FileUtil.h"
+#include "Common/UnixUtil.h"
 #endif
 
 #include "Common/Assert.h"
@@ -360,6 +361,51 @@ bool Delete(DirectIOFile& file, const std::string& filename)
          0;
 #else
   return file.IsOpen() && Delete(filename, IfAbsentBehavior::NoConsoleWarning);
+#endif
+}
+
+bool Appender::Open(const std::string& path)
+{
+#if defined(_WIN32)
+  return m_file.Open(path, File::AccessMode::Write, File::OpenMode::Always);
+#else
+  DirectIOFile new_file;
+  if (!new_file.Open(path, File::AccessMode::Write, File::OpenMode::Always))
+    return false;
+
+  const int existing_flags = fcntl(new_file.GetHandle(), F_GETFL);
+  if (existing_flags == -1)
+    return false;
+
+  // Set `O_APPEND` flag.
+  if (fcntl(new_file.GetHandle(), F_SETFL, existing_flags | O_APPEND) == -1)
+    return false;
+
+  m_file = std::move(new_file);
+  return true;
+#endif
+}
+
+bool Appender::Write(std::string_view message)
+{
+#if defined(_WIN32)
+  // Writing to max offset is functionally equivalent to previously calling the CreateFile
+  // function using FILE_APPEND_DATA access.
+  OVERLAPPED overlapped{};
+  overlapped.Offset = -1;
+  overlapped.OffsetHigh = -1;
+
+  // If more than ~4GiB were to be provided, we'll do a partial write, then return false.
+  const auto bytes_to_write = MathUtil::SaturatingCast<DWORD>(message.size());
+
+  DWORD bytes_transferred{};
+  return (WriteFile(m_file.GetHandle(), message.data(), bytes_to_write, &bytes_transferred,
+                    &overlapped) != 0) &&
+         bytes_transferred == message.size();
+#else
+  // If a partial write were to happen, we return false.
+  return UnixUtil::RetryOnEINTR(write, m_file.GetHandle(), message.data(), message.size()) ==
+         ssize_t(message.size());
 #endif
 }
 

@@ -412,3 +412,77 @@ TEST_F(FileUtilTest, DirectIOFile)
   file.Close();
   EXPECT_TRUE(file.Open(destination_path_2, File::AccessMode::Write, File::OpenMode::Always));
 }
+
+TEST_F(FileUtilTest, Appender)
+{
+  using namespace std::string_view_literals;
+  using File::Appender;
+
+  const auto log_filename = m_file_path + ".log";
+
+  // Open works.
+  Appender log_file;
+  EXPECT_TRUE(log_file.Open(log_filename));
+  EXPECT_TRUE(log_file.IsOpen());
+
+  // Copy works.
+  Appender file_copy{log_file};
+  EXPECT_TRUE(file_copy.IsOpen());
+
+  // Close works.
+  EXPECT_TRUE(file_copy.Close());
+  EXPECT_FALSE(file_copy.IsOpen());
+
+  // Double close fails.
+  EXPECT_FALSE(file_copy.Close());
+
+  constexpr auto log_message = "All the writes should be atomic!\n"sv;
+
+  // Write when closed fails.
+  EXPECT_FALSE(file_copy.Write(log_message));
+
+  constexpr std::size_t thread_count = 5;
+  constexpr std::size_t log_count = 13;
+
+  // Concurrent writes work.
+  std::vector<std::jthread> threads;
+  for (std::size_t i = 0; i != thread_count; ++i)
+  {
+    threads.emplace_back([&] {
+      for (std::size_t x = 0; x != log_count; ++x)
+      {
+        // Concurrent write works.
+        EXPECT_TRUE(log_file.Write(log_message));
+
+        // Concurrent writes work even if you open the file elsewhere.
+        Appender log_file_dup{log_filename};
+        EXPECT_TRUE(log_file_dup.Write(log_message));
+      }
+    });
+  }
+
+  threads.clear();
+
+  log_file.Close();
+  EXPECT_FALSE(log_file.IsOpen());
+
+  // Correct final size.
+  constexpr std::size_t expected_log_size = log_count * thread_count * log_message.size() * 2;
+  EXPECT_EQ(File::GetSize(log_filename), expected_log_size);
+
+  std::array<char, log_message.size()> read_msg{};
+
+  // Correct contents.
+  File::DirectIOFile check_log{log_filename, File::AccessMode::Read};
+  for (std::size_t i = 0; i != expected_log_size / log_message.size(); ++i)
+  {
+    EXPECT_TRUE(check_log.Read(Common::AsWritableU8Span(read_msg)));
+    EXPECT_TRUE(std::ranges::equal(read_msg, log_message));
+  }
+
+  // Re-opening doesn't truncate.
+  EXPECT_TRUE(log_file.Open(log_filename));
+  EXPECT_TRUE(log_file.IsOpen());
+  EXPECT_TRUE(log_file.Close());
+  EXPECT_EQ(File::GetSize(log_filename), expected_log_size);
+}
