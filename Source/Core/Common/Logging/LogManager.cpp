@@ -19,7 +19,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 namespace Common::Log
 {
@@ -74,22 +73,17 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
   instance->Log(level, type, file, line, message.c_str());
 }
 
-static size_t DeterminePathCutOffPoint()
+static consteval size_t GetPathCutOffPoint()
 {
-  constexpr const char* pattern = "/source/core/";
-#ifdef _WIN32
-  constexpr const char* pattern2 = "\\source\\core\\";
+  constexpr std::string_view pattern =
+#if defined(_WIN32)
+      "Common\\Logging\\LogManager.cpp";
+#else
+      "Common/Logging/LogManager.cpp";
 #endif
-  std::string path = __FILE__;
-  Common::ToLower(&path);
-  size_t pos = path.find(pattern);
-#ifdef _WIN32
-  if (pos == std::string::npos)
-    pos = path.find(pattern2);
-#endif
-  if (pos != std::string::npos)
-    return pos + strlen(pattern);
-  return 0;
+  constexpr std::string_view filename = __FILE__;
+  static_assert(filename.ends_with(pattern));
+  return filename.length() - pattern.length();
 }
 
 LogManager::LogManager()
@@ -170,8 +164,6 @@ LogManager::LogManager()
         Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
 
-  m_path_cutoff_point = DeterminePathCutOffPoint();
-
   m_config_changed_callback_id =
       Config::AddConfigChangedCallback([this]() { SetEffectiveLogLevel(); });
 }
@@ -205,7 +197,7 @@ void LogManager::Log(LogLevel level, LogType type, const char* file, int line, c
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
 
-  LogWithFullPath(level, type, file + m_path_cutoff_point, line, message);
+  LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
 }
 
 std::string LogManager::GetTimestamp()

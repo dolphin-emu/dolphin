@@ -94,6 +94,5 @@ private:
   EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<std::unique_ptr<LogListener>, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
-  size_t m_path_cutoff_point = 0;
 };
 }  // namespace Common::Log
