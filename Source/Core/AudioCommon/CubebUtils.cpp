@@ -9,7 +9,9 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/Projection.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 
 #include <cubeb/cubeb.h>
 
@@ -67,8 +69,11 @@ std::shared_ptr<cubeb> GetContext()
     ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
   }
 
+  const auto backend_name_str = Config::Get(Config::MAIN_AUDIO_CUBEB_BACKEND);
+  const char* const backend_name = backend_name_str.empty() ? nullptr : backend_name_str.c_str();
+
   cubeb* ctx;
-  if (cubeb_init(&ctx, "Dolphin Emulator", nullptr) != CUBEB_OK)
+  if (cubeb_init(&ctx, "Dolphin Emulator", backend_name) != CUBEB_OK)
   {
     ERROR_LOG_FMT(AUDIO, "Error initializing cubeb library");
     return nullptr;
@@ -245,6 +250,45 @@ const void* GetOutputDeviceById(std::string_view id)
 
   cubeb_device_collection_destroy(cubeb_ctx.get(), &collection);
   return device_id;
+}
+
+std::vector<std::string_view> GetBackendNames()
+{
+  // Some tricks to only call `cubeb_get_backend_names` if it exists.
+  return [](auto... args) -> std::vector<std::string_view> {
+    if constexpr (requires { cubeb_get_backend_names(args...); })
+    {
+      const auto names = cubeb_get_backend_names(args...);
+      return {names.names, names.names + names.count};
+    }
+    else
+    {  // The included version of Cubeb lacks the `cubeb_get_backend_names` function.
+      return {};
+    }
+  }();
+}
+
+std::string_view GetCubebBackendDisplayName(std::string_view backend_name)
+{
+  static constexpr std::pair<const char*, const char*> name_map[] = {
+      {"pulse", "PulseAudio"},
+      {"pulse-rust", "PulseAudio (Rust)"},
+      {"jack", "JACK"},
+      {"alsa", "ALSA"},
+      {"audiounit", "AudioUnit"},
+      {"audiounit-rust", "AudioUnit (Rust)"},
+      {"wasapi", "WASAPI"},
+      {"winmm", "WinMM"},
+      {"sun", "Sun"},
+      {"opensl", "OpenSL"},
+      {"oss", "OSS"},
+      {"aaudio", "AAudio"},
+      {"audiotrack", "AudioTrack"},
+      {"kai", "KAI"},
+  };
+
+  const auto it = std::ranges::find(name_map, backend_name, Common::Projection::First{});
+  return (it != std::end(name_map)) ? it->second : backend_name;
 }
 
 CoInitSyncWorker::CoInitSyncWorker([[maybe_unused]] std::string worker_name)
