@@ -92,6 +92,9 @@ void MappingButton::AdvancedPressed()
 
   IOWindow io(m_mapping_window, m_mapping_window->GetController(), m_reference,
               m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+
+  connect(&io, &IOWindow::OnMappingChange, [this] { m_mapping_window->OnMappingChange(); });
+
   io.exec();
 
   ConfigChanged();
