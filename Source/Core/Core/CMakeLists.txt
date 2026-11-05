@@ -5,6 +5,8 @@ add_library(core
   ActionReplay.h
   ARDecrypt.cpp
   ARDecrypt.h
+  AutoControllerAssignment.cpp
+  AutoControllerAssignment.h
   Boot/AncastTypes.h
   Boot/Boot_BS2Emu.cpp
   Boot/Boot_WiiWAD.cpp
