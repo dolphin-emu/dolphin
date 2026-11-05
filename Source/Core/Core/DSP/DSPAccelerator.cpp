@@ -3,11 +3,10 @@
 
 #include "Core/DSP/DSPAccelerator.h"
 
-#include <algorithm>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 
 namespace DSP
 {
