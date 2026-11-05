@@ -3,6 +3,7 @@
 
 #include "Core/HW/DVD/DVDThread.h"
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <optional>
@@ -26,6 +27,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/System.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
@@ -57,6 +59,7 @@ void DVDThread::Stop()
   m_result_map.clear();
 
   m_disc.reset();
+  m_host_paced = false;
 }
 
 void DVDThread::DoState(PointerWrap& p)
@@ -84,9 +87,14 @@ void DVDThread::DoState(PointerWrap& p)
   if (had_disc != HasDisc())
   {
     if (had_disc)
+    {
       PanicAlertFmtT("An inserted disc was expected but not found.");
+    }
     else
+    {
       m_disc.reset();
+      m_host_paced = false;
+    }
   }
 
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
@@ -104,11 +112,18 @@ void DVDThread::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   WaitUntilIdle();
   m_disc = std::move(disc);
+
+  m_host_paced = m_disc && m_disc->GetBlobReader().GetBlobType() == DiscIO::BlobType::DRIVE;
 }
 
 bool DVDThread::HasDisc() const
 {
   return m_disc != nullptr;
+}
+
+bool DVDThread::IsHostPaced() const
+{
+  return m_host_paced;
 }
 
 bool DVDThread::HasWiiHashes() const
@@ -213,9 +228,14 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
 
   request.time_started_ticks = core_timing.GetTicks();
   request.realtime_started_us = Common::Timer::NowUs();
+  request.host_paced = m_host_paced;
+  request.ticks_until_completion = ticks_until_completion;
 
   m_dvd_thread.Push(std::move(request));
-  core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
+
+  // A host-paced read is completed by the DVD thread as soon as the drive returns the data
+  if (!m_host_paced)
+    core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
 void DVDThread::GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late)
@@ -256,6 +276,28 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   }
   // We have now obtained the right ReadResult.
 
+  // The DVD thread schedules a host-paced read only once its result is in the queue, so obtaining
+  // it never waits. Finish it no earlier in emulated time than the drive took in real time, nor
+  // before its requested completion time (as DTK reads use), so the emulated software sees the
+  // drive's real latency even when emulation runs slower than real time
+  if (result.first.host_paced)
+  {
+    const ReadRequest& pending = result.first;
+    const s64 ticks_per_us = m_system.GetSystemTimers().GetTicksPerSecond() / 1000000;
+    const s64 drive_ticks =
+        static_cast<s64>(pending.realtime_done_us - pending.realtime_started_us) * ticks_per_us;
+    const s64 elapsed_ticks =
+        static_cast<s64>(m_system.GetCoreTiming().GetTicks() - pending.time_started_ticks);
+    const s64 remaining_ticks =
+        std::max(drive_ticks, pending.ticks_until_completion) - elapsed_ticks;
+    if (remaining_ticks > 0)
+    {
+      m_result_map.emplace(id, std::move(result));
+      m_system.GetCoreTiming().ScheduleEvent(remaining_ticks, m_finish_read, id);
+      return;
+    }
+  }
+
   const ReadRequest& request = result.first;
   const std::vector<u8>& buffer = result.second;
 
@@ -270,10 +312,28 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
 
   auto& dvd_interface = m_system.GetDVDInterface();
   DVD::DIInterruptType interrupt;
-  if (buffer.size() != request.length)
+  if (buffer.size() != request.length && m_host_paced && dvd_interface.IsOpticalDiscRemoved())
   {
-    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+    // The disc was taken out of the optical drive itself. Instead of failing the read, report a
+    // medium not present error and eject the emulated disc
+    NOTICE_LOG_FMT(DVDINTERFACE, "The optical disc was removed from its drive, ejecting it");
+    dvd_interface.SetDriveError(DVD::DriveError::MediumNotPresent);
+    interrupt = DVD::DIInterruptType::DEINT;
+    dvd_interface.EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::User);
+  }
+  else if (buffer.size() != request.length)
+  {
+    if (m_host_paced)
+    {
+      // Skip panic alerts from unreadable areas when using a physical drive
+      ERROR_LOG_FMT(DVDINTERFACE, "The optical disc could not be read (at {:#x} - {:#x})",
+                    request.dvd_offset, request.dvd_offset + request.length);
+    }
+    else
+    {
+      PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
+                     request.dvd_offset + request.length);
+    }
 
     dvd_interface.SetDriveError(DVD::DriveError::ReadError);
     interrupt = DVD::DIInterruptType::DEINT;
@@ -303,6 +363,13 @@ void DVDThread::ProcessReadRequest(ReadRequest&& request)
 
   request.realtime_done_us = Common::Timer::NowUs();
 
+  const bool host_paced = request.host_paced;
+  const u64 id = request.id;
   m_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
+
+  // Finish a host-paced read as soon as the drive has returned the data; FinishRead adds any
+  // emulated time still missing
+  if (host_paced)
+    m_system.GetCoreTiming().ScheduleEvent(0, m_finish_read, id, CoreTiming::FromThread::NON_CPU);
 }
 }  // namespace DVD

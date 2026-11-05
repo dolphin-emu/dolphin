@@ -122,9 +122,9 @@ void GameConfigWidget::CreateWidgets()
       tr("Synchronizes the GPU and CPU threads to help prevent random freezes "
          "in Dual core mode. (ON = Compatible, OFF = Fast)"));
   m_emulate_disc_speed->SetDescription(
-      tr("Enable emulated disc speed. Disabling this can cause crashes "
-         "and other problems in some games. "
-         "(ON = Compatible, OFF = Unlocked)"));
+      tr("Enable emulated disc speed. Disabling this can cause crashes and other problems in some "
+         "games. This setting is ignored when booting from an optical disc. (ON = Compatible, OFF "
+         "= Unlocked)"));
 
   core_layout->addWidget(m_enable_dual_core, 0, 0);
   core_layout->addWidget(m_enable_mmu, 1, 0);

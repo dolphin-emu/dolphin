@@ -153,6 +153,7 @@ void GeneralPane::CreateBasic()
       tr("Loads the running game into memory in the background."
          "<br><br>This may improve performance with slow or high-latency storage."
          "<br>System memory requirements will be much higher with this setting enabled."
+         "<br><br>This setting is ignored when booting from an optical disc."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   m_checkbox_override_region_settings =
