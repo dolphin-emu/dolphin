@@ -57,16 +57,26 @@ void CheatsManager::OnStateChanged(Core::State state)
 
 void CheatsManager::OnFrameEnd()
 {
-  if (!isVisible())
+  if (m_frame_end_update_queued.exchange(true))
     return;
 
-  auto* const selected_cheat_search_widget =
-      qobject_cast<CheatSearchWidget*>(m_tab_widget->currentWidget());
-  if (selected_cheat_search_widget != nullptr)
-  {
-    selected_cheat_search_widget->UpdateTableVisibleCurrentValues(
-        CheatSearchWidget::UpdateSource::Auto);
-  }
+  QMetaObject::invokeMethod(
+      this,
+      [this] {
+        m_frame_end_update_queued = false;
+
+        if (!isVisible())
+          return;
+
+        auto* const selected_cheat_search_widget =
+            qobject_cast<CheatSearchWidget*>(m_tab_widget->currentWidget());
+        if (selected_cheat_search_widget != nullptr)
+        {
+          selected_cheat_search_widget->UpdateTableVisibleCurrentValues(
+              CheatSearchWidget::UpdateSource::Auto);
+        }
+      },
+      Qt::QueuedConnection);
 }
 
 void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
