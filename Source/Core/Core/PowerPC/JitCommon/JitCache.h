@@ -127,6 +127,9 @@ public:
 
   [[nodiscard]] virtual bool Init();
   void Shutdown();
+  // For performance reasons it does not call DestroyBlock for each block, thus blocks will not get
+  // unlinked. So, if this is called while inside the JIT, the caller needs to exit to dispatcher
+  // ASAP to avoid problems.
   void Clear();
   [[nodiscard]] bool Reset();
 
@@ -138,8 +141,8 @@ public:
   void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
   std::size_t GetBlockCount() const { return block_map.size(); }
 
-  JitBlock* AllocateBlock(u32 em_address);
-  void FinalizeBlock(JitBlock& block, bool block_link, const PPCAnalyst::CodeBlock& code_block,
+  JitBlock InitBlock(u32 em_address);
+  void FinalizeBlock(JitBlock&& b, bool block_link, const PPCAnalyst::CodeBlock& code_block,
                      const PPCAnalyst::CodeBuffer& code_buffer);
 
   // Look for the block in the slow but accurate way.

@@ -478,5 +478,5 @@ void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
   (this->*s_dyna_op_table[op.inst.OPCD])(op.inst);
 
-  PPCTables::CountInstructionCompile(op.opinfo, js.compilerPC);
+  PPCTables::CountInstructionCompile(op.opinfo, op.address);
 }

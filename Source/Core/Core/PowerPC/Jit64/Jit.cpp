@@ -17,6 +17,7 @@
 #include <windows.h>
 #endif
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/HostDisassembler.h"
@@ -24,6 +25,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
@@ -199,7 +201,6 @@ bool Jit64::BackPatch(SContext* ctx)
 
   js.generatingTrampoline = true;
   js.trampolineExceptionHandler = entry.exception_handler_at_loc;
-  js.compilerPC = entry.pc;
 
   // Generate the trampoline.
   const u8* trampoline = trampolines.GenerateTrampoline(entry);
@@ -273,7 +274,6 @@ bool Jit64::Init()
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   js.fastmemLoadStore = false;
-  js.compilerPC = 0;
 
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
@@ -314,18 +314,24 @@ bool Jit64::Init()
   return true;
 }
 
-void Jit64::ClearCache()
+void Jit64::ClearCache(bool poison)
 {
   blocks.Clear();
   blocks.ClearRangesToFree();
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
   m_const_pool.Clear();
-  ClearCodeSpace();
+  ClearCodeSpace(poison);
   Clear();
-  RefreshConfig();
-  asm_routines.Regenerate();
   ResetFreeMemoryRanges();
+  // If !poison, it's because the JIT has to exit to dispatcher immediately after, and the jump to
+  // it will not get modified, so the dispatcher must not change. While it could be rewritten
+  // exactly the same, why risk that?
+  if (poison)
+  {
+    RefreshConfig();
+    asm_routines.Regenerate();
+  }
   Host_JitCacheInvalidation();
 }
 
@@ -374,10 +380,20 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   fpr.Flush(BitSet32(0xFFFFFFFF), RegCache::FlushMode::Full,
             RegCache::IgnoreDiscardedRegisters::Yes);
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues != PPCAnalyst::InstructionContinue::Always)
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
-    MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
+    // TODO: While all instructions that mess with PC may end the block, not all instructions that
+    // may end the block necessarily mess with the PC.
+    MOV(32, PPCSTATE(pc), Imm32(js.op->address));
+    MOV(32, PPCSTATE(npc), Imm32(js.op->address + 4));
+
+    if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
+    {
+      // Set Interpreter::m_end_block to false (to check it for later), as the interpreter is
+      // designed to set it to true only in the functions and back to false only in its main loop.
+      MOV(64, R(RSCRATCH), ImmPtr(m_system.GetInterpreter().GetEndBlock_JIT()));
+      MOV(8, MatR(RSCRATCH), Imm8(0));
+    }
   }
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
@@ -396,23 +412,25 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   if (js.op->opinfo->flags & FL_SET_MSR)
     EmitUpdateMembase();
 
-  if (js.op->canEndBlock)
+  if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Never)
   {
-    if (js.isLastInstruction)
-    {
-      MOV(32, R(RSCRATCH), PPCSTATE(npc));
-      MOV(32, PPCSTATE(pc), R(RSCRATCH));
-      WriteExceptionExit();
-    }
-    else
-    {
-      MOV(32, R(RSCRATCH), PPCSTATE(npc));
-      CMP(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
-      FixupBranch c = J_CC(CC_Z);
-      MOV(32, PPCSTATE(pc), R(RSCRATCH));
-      WriteExceptionExit();
-      SetJumpTarget(c);
-    }
+    MOV(32, R(RSCRATCH), PPCSTATE(npc));
+    MOV(32, PPCSTATE(pc), R(RSCRATCH));
+    WriteExceptionExit();
+    js.wroteUnconditionalExit = true;
+  }
+  else if (js.op->instructionContinues == PPCAnalyst::InstructionContinue::Maybe)
+  {
+    // Check if we need to exit to dispatcher right now (e.g. a conditional branch was taken, or the
+    // block cache was cleared).
+    // TODO: Not all instructions with PPCAnalyst::InstructionContinue::Maybe mess with PC.
+    MOV(64, R(RSCRATCH), ImmPtr(m_system.GetInterpreter().GetEndBlock_JIT()));
+    CMP(8, MatR(RSCRATCH), Imm8(0));
+    FixupBranch dont_early_exit = J_CC(CC_Z);
+    MOV(32, R(RSCRATCH), PPCSTATE(npc));
+    MOV(32, PPCSTATE(pc), R(RSCRATCH));
+    WriteExceptionExit();
+    SetJumpTarget(dont_early_exit);
   }
   else if (ShouldHandleFPExceptionForInstruction(js.op))
   {
@@ -439,7 +457,7 @@ void Jit64::HLEFunction(u32 hook_index)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
+  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.op->address, hook_index, &m_system);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -591,7 +609,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   }
 }
 
-void Jit64::WriteExit(u32 destination, bool bl, u32 after)
+void Jit64::WriteExit(u32 destination, bool bl, u32 after, bool link)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -606,10 +624,10 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
-  JustWriteExit(destination, bl, after);
+  JustWriteExit(destination, bl, after, link);
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, bool link)
 {
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
@@ -648,7 +666,10 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     JMP(asm_routines.dispatcher_no_timing_check, true);
   }
 
-  b->linkData.push_back(linkData);
+  if (link)
+  {
+    b->linkData.push_back(linkData);
+  }
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
@@ -845,16 +866,16 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
+  analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    m_ppc_state.npc = nextPC;
+    m_ppc_state.npc = em_address;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
     m_system.GetJitInterface().UpdateMembase();
-    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", em_address);
     return;
   }
 
@@ -863,8 +884,8 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     u8* near_start = GetWritableCodePtr();
     u8* far_start = m_far_code.GetWritableCodePtr();
 
-    JitBlock* b = blocks.AllocateBlock(em_address);
-    if (DoJit(em_address, b, nextPC))
+    JitBlock b = blocks.InitBlock(em_address);
+    if (DoJit(&b))
     {
       // Code generation succeeded.
 
@@ -878,10 +899,10 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
       // Store the used memory regions in the block so we know what to mark as unused when the
       // block gets invalidated.
-      b->near_begin = near_start;
-      b->near_end = near_end;
-      b->far_begin = far_start;
-      b->far_end = far_end;
+      b.near_begin = near_start;
+      b.near_end = near_end;
+      b.far_begin = far_start;
+      b.far_end = far_end;
 
       if (!m_back_patch_info_temp.empty())
       {
@@ -890,7 +911,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
         m_back_patch_info.emplace(near_start, m_back_patch_info_temp);
       }
 
-      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+      blocks.FinalizeBlock(std::move(b), jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
       LogGeneratedCode();
@@ -937,11 +958,9 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
   return true;
 }
 
-bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool Jit64::DoJit(JitBlock* b)
 {
   js.firstFPInstructionFound = false;
-  js.isLastInstruction = false;
-  js.blockStart = em_address;
   js.fifoBytesSinceCheck = 0;
   js.mustCheckFifo = false;
   js.curBlock = b;
@@ -966,7 +985,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
-  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  MOV(32, PPCSTATE(pc), Imm32(b->effectiveAddress));
 #endif
 
   // Start up the register allocators
@@ -978,13 +997,14 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   js.downcountAmount = 0;
   js.skipInstructions = 0;
+  js.wroteUnconditionalExit = false;
   js.carryFlag = CarryFlag::InPPCState;
   js.constantGqrValid = BitSet8();
 
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (!js.pairedQuantizeAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+  if (!js.pairedQuantizeAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
     BitSet8 gqr_static = ComputeStaticGQRs(code_block);
@@ -992,7 +1012,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       SwitchToFarCode();
       const u8* target = GetCodePtr();
-      MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+      MOV(32, PPCSTATE(pc), Imm32(b->effectiveAddress));
       ABI_PushRegistersAndAdjustStack({}, 0);
       ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                          static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
@@ -1013,17 +1033,16 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (!js.noSpeculativeConstantsAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
+  if (!js.noSpeculativeConstantsAddresses.TestBit(b->effectiveAddress / sizeof(UGeckoInstruction)))
   {
     IntializeSpeculativeConstants();
   }
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions && !js.wroteUnconditionalExit; i++)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
-    js.compilerPC = op.address;
     js.op = &op;
     js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
@@ -1031,11 +1050,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->num_cycles;
     js.fastmemLoadStore = false;
     js.fixupExceptionHandler = false;
-
-    if (i == (code_block.m_num_instructions - 1))
-    {
-      js.isLastInstruction = true;
-    }
 
     if (i != 0)
     {
@@ -1276,7 +1290,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
-      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
+      const std::string ppc_inst =
+          Common::GekkoDisassembler::Disassemble(op.inst.hex, b->effectiveAddress);
       NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif
@@ -1284,11 +1299,13 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.skipInstructions = 0;
   }
 
-  if (code_block.m_broken)
+  DEBUG_ASSERT(js.wroteUnconditionalExit ||
+               js.op->instructionContinues != PPCAnalyst::InstructionContinue::Never);
+  if (!js.wroteUnconditionalExit)
   {
     gpr.Flush();
     fpr.Flush();
-    WriteExit(nextPC);
+    WriteExit(js.op->address + 4);
   }
 
   // When linking to an entry point immediately following it in memory, a JIT block's furthest
@@ -1378,7 +1395,7 @@ void Jit64::IntializeSpeculativeConstants()
       {
         SwitchToFarCode();
         target = GetCodePtr();
-        MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+        MOV(32, PPCSTATE(pc), Imm32(js.curBlock->effectiveAddress));
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                            static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
@@ -1426,6 +1443,7 @@ bool Jit64::HandleFunctionHooking(u32 address)
   MOV(32, R(RSCRATCH), PPCSTATE(npc));
   js.downcountAmount += js.st.numCycles;
   WriteExitDestInRSCRATCH();
+  js.wroteUnconditionalExit = true;
   return true;
 }
 

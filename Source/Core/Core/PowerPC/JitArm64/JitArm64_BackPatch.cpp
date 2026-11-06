@@ -318,7 +318,7 @@ void JitArm64::FlushPPCStateBeforeSlowAccess(ARM64Reg temp_gpr, ARM64Reg temp_fp
 {
   // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
   // interrupt checks, and printing accurate PC locations in debug logs.
-  MOVI2R(temp_gpr, js.compilerPC);
+  MOVI2R(temp_gpr, js.op->address);
   STR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(pc));
 
   // Register values can be used by memory watchpoint conditions.
