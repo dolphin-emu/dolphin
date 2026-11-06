@@ -68,7 +68,7 @@
 #include "UICommon/GameFile.h"
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-#include <rcheevos/include/rc_client_raintegration.h>
+#include <rc_client_raintegration.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
