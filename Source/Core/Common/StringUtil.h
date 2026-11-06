@@ -188,7 +188,7 @@ std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& 
 }
 }  // namespace Common
 
-std::vector<std::string> SplitString(const std::string& str, char delim);
+std::vector<std::string> SplitString(std::string_view sv, char delim);
 
 // Returns `nullopt` if subject does not contain exactly (Count - 1) delim.
 template <std::size_t Count>
