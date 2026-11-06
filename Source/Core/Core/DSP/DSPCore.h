@@ -224,10 +224,10 @@ enum : u16
 };
 
 // Exception vectors
-enum class ExceptionType
+enum class ExceptionType : u8
 {
   StackOverflow = 1,                  // 0x0002 stack under/over flow
-  EXP_2 = 2,                          // 0x0004
+  SoftwareInterrupt = 2,              // 0x0004 software interrupt (swi instruction)
   AcceleratorRawReadOverflow = 3,     // 0x0006 accelerator raw read address overflow
   AcceleratorRawWriteOverflow = 4,    // 0x0008 accelerator raw write address overflow
   AcceleratorSampleReadOverflow = 5,  // 0x000a accelerator sample reads address overflow

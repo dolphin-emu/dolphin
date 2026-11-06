@@ -155,6 +155,7 @@ public:
   void subax(UDSPInstruction opc);
   void subp(UDSPInstruction opc);
   void subr(UDSPInstruction opc);
+  void swi(UDSPInstruction opc);
   void tst(UDSPInstruction opc);
   void tstaxh(UDSPInstruction opc);
   void tstprod(UDSPInstruction opc);
