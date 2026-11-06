@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceModem.h"
+#include "Core/HW/EXI/EXI_DeviceWaikiki.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -55,6 +56,15 @@ u32 IEXIDevice::ImmRead(u32 size)
 
 void IEXIDevice::ImmReadWrite(u32& data, u32 size)
 {
+  u32 position = 0;
+  while (size--)
+  {
+    u32 shift = 24 - (position++ * 8);
+    u8 byte = data >> shift;
+    TransferByte(byte);
+    data &= ~(0xFF << shift);
+    data |= byte << shift;
+  }
 }
 
 void IEXIDevice::DMAWrite(u32 address, u32 size)
@@ -179,6 +189,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
 
   case EXIDeviceType::Baseboard:
     result = std::make_unique<CEXIBaseboard>(system);
+    break;
+
+  case EXIDeviceType::Waikiki:
+    result = std::make_unique<CEXIWaikiki>(system);
     break;
 
   case EXIDeviceType::None:
