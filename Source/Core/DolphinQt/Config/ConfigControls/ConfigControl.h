@@ -17,6 +17,8 @@ class Info;
 struct Location;
 }  // namespace Config
 
+class QShowEvent;
+
 template <class Derived>
 class ConfigControl : public Derived
 {
@@ -44,9 +46,7 @@ protected:
   void ConnectConfig()
   {
     Derived::connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
-      QFont bf = Derived::font();
-      bf.setBold(IsConfigLocal());
-      Derived::setFont(bf);
+      UpdateBoldness();
 
       // This isn't signal blocked because the UI may need to be updated.
       m_updating = true;
@@ -92,8 +92,14 @@ protected:
 
   virtual void OnConfigChanged() {}
 
-private:
-  bool IsConfigLocal() const
+  void UpdateBoldness()
+  {
+    QFont bf = Derived::font();
+    bf.setBold(ShouldLabelBeBold());
+    Derived::setFont(bf);
+  }
+
+  virtual bool ShouldLabelBeBold() const
   {
     if (m_layer != nullptr)
       return m_layer->Exists(m_location);
@@ -101,6 +107,17 @@ private:
       return Config::GetActiveLayerForConfig(m_location) != Config::LayerType::Base;
   }
 
+  void showEvent(QShowEvent* const event) override
+  {
+    // Call this here instead of in the constructor because virtual function calls are disabled in
+    // constructors, since base classes are constructed before derived classes and so the derived
+    // function would potentially use uninitialized data (as would be the case for
+    // ConfigRadioInt::UpdateBoldness).
+    UpdateBoldness();
+    Derived::showEvent(event);
+  }
+
+private:
   void mousePressEvent(QMouseEvent* event) override
   {
     if (m_layer != nullptr && event->button() == Qt::RightButton)
