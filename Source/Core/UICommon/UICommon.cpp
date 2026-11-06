@@ -554,4 +554,31 @@ std::string FormatSize(u64 bytes, int decimals)
                      Common::GetStringT(unit_symbols[unit]));
 }
 
+std::string GetCurrentPlatformName()
+{
+#ifdef __ANDROID__
+  return "Android";
+#elifdef __linux__
+  return "Linux";
+#elifdef _WIN32
+  return "Windows";
+#elifdef TARGET_OS_OSX
+  return "macOS";
+#elifdef TARGET_OS_IOS
+  return "iOS";
+#elifdef __FreeBSD__
+  return "FreeBSD";
+#elifdef __OpenBSD__
+  return "OpenBSD";
+#elifdef __NetBSD__
+  return "NetBSD";
+#elifdef __DragonFly__
+  return "DragonFly BSD";
+#elifdef __HAIKU__
+  return "Haiku";
+#else
+  return "Unknown";
+#endif
+}
+
 }  // namespace UICommon
