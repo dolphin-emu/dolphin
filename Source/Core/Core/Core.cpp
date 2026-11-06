@@ -30,7 +30,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/OneShotEvent.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -71,6 +70,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "Core/System.h"
+#include "Core/TimePlayed.h"
 #include "Core/WiiRoot.h"
 
 #ifdef USE_MEMORYWATCHER
@@ -379,6 +379,13 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
         CPUSetInitialExecutionState(system);
       }
     }
+  }
+
+  // Start the play time tracking thread.
+  std::jthread time_played_thread;
+  if (Config::Get(Config::MAIN_TIME_TRACKING))
+  {
+    time_played_thread = std::jthread(&TimePlayed::TimeTrackerThreadFunc);
   }
 
   // Enter CPU run loop. When we leave it - we are done.
@@ -885,7 +892,6 @@ void Callback_NewField(Core::System& system)
     {
       s_frame_step = false;
       system.GetCPU().Break();
-      NotifyStateChanged(Core::GetState(system));
     }
   }
 
