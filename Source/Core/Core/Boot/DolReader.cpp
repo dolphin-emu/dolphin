@@ -58,7 +58,7 @@ bool DolReader::Initialize(std::span<const u8> buffer)
     // we will do the same, and prepare data to be read later with aligned sizes
     // yes it can read too much, but thats how apploaders/IOS work
     // it will also cause the effect of the dol not loading once it is to be read out of bounds
-    const u64 section_size = Common::AlignUp(static_cast<u64>(m_dolheader.m_text_size[i]), 32);
+    const u64 section_size = Common::AlignDown(static_cast<u64>(m_dolheader.m_text_size[i]), 32);
     if (section_size != m_dolheader.m_text_size[i])
     {
       WARN_LOG_FMT(BOOT,
@@ -92,7 +92,7 @@ bool DolReader::Initialize(std::span<const u8> buffer)
     if (m_dolheader.m_data_size[i] == 0)
       continue;
 
-    const u64 section_size = Common::AlignUp(static_cast<u64>(m_dolheader.m_data_size[i]), 32);
+    const u64 section_size = Common::AlignDown(static_cast<u64>(m_dolheader.m_data_size[i]), 32);
     const u32 section_offset = m_dolheader.m_data_offset[i];
     if (section_size != m_dolheader.m_data_size[i])
     {
