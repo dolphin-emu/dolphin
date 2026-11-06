@@ -678,56 +678,30 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   if (!branch.ptr)
     return;
 
-  bool Not = false;
-  u32 inst = 0;
+  u32 inst = branch.instruction;
   s64 distance = (s64)(m_code - branch.ptr);
   distance >>= 2;
 
-  switch (branch.type)
+  if (((inst >> 26) & 0x1F) == 0x5)
   {
-  case FixupBranch::Type::CBNZ:
-    Not = true;
-    [[fallthrough]];
-  case FixupBranch::Type::CBZ:
-  {
-    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
-               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
-               distance);
-    const bool b64Bit = Is64Bit(branch.reg);
-    inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (MaskImm19(distance) << 5) |
-           DecodeReg(branch.reg);
+    // B (unconditional), BL
+    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
+               "Branch instruction {:08x}: Received too large distance: {}", inst, distance);
+    inst |= MaskImm26(distance);
   }
-  break;
-  case FixupBranch::Type::BConditional:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
-               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
-               distance);
-    inst = (0x2A << 25) | (MaskImm19(distance) << 5) | branch.cond;
-    break;
-  case FixupBranch::Type::TBNZ:
-    Not = true;
-    [[fallthrough]];
-  case FixupBranch::Type::TBZ:
+  else if ((inst & (1 << 26)) != 0)
   {
+    // B (conditional), CBZ, CBNZ
+    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
+               "Branch instruction {:08x}: Received too large distance: {}", inst, distance);
+    inst |= MaskImm19(distance) << 5;
+  }
+  else
+  {
+    // TBZ, TBNZ
     ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance),
-               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
-               distance);
-    inst = ((branch.bit & 0x20) << 26) | (0x1B << 25) | (Not << 24) | ((branch.bit & 0x1F) << 19) |
-           (MaskImm14(distance) << 5) | DecodeReg(branch.reg);
-  }
-  break;
-  case FixupBranch::Type::B:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
-               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
-               distance);
-    inst = (0x5 << 26) | MaskImm26(distance);
-    break;
-  case FixupBranch::Type::BL:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
-               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
-               distance);
-    inst = (0x25 << 26) | MaskImm26(distance);
-    break;
+               "Branch instruction {:08x}: Received too large distance: {}", inst, distance);
+    inst |= MaskImm14(distance) << 5;
   }
 
   std::memcpy(branch.ptr, &inst, sizeof(inst));
@@ -751,50 +725,43 @@ FixupBranch ARM64XEmitter::WriteFixupBranch()
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
 {
   FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::CBZ;
-  branch.reg = Rt;
+  branch.instruction = (Is64Bit(Rt) << 31) | (0x1A << 25) | DecodeReg(Rt);
   return branch;
 }
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 {
-  FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::CBNZ;
-  branch.reg = Rt;
+  FixupBranch branch = CBZ(Rt);
+  branch.instruction |= 1 << 24;
   return branch;
 }
 FixupBranch ARM64XEmitter::B(CCFlags cond)
 {
   FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::BConditional;
-  branch.cond = cond;
+  branch.instruction = (0x2A << 25) | cond;
   return branch;
 }
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 {
   FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::TBZ;
-  branch.reg = Rt;
-  branch.bit = bit;
+  branch.instruction = ((bit & 0x20) << 26) | (0x1B << 25) | ((bit & 0x1F) << 19) | DecodeReg(Rt);
   return branch;
 }
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::TBNZ;
-  branch.reg = Rt;
-  branch.bit = bit;
+  FixupBranch branch = TBZ(Rt, bit);
+  branch.instruction |= 1 << 24;
   return branch;
 }
 FixupBranch ARM64XEmitter::B()
 {
   FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::B;
+  branch.instruction = (0x5 << 26);
   return branch;
 }
 FixupBranch ARM64XEmitter::BL()
 {
   FixupBranch branch = WriteFixupBranch();
-  branch.type = FixupBranch::Type::BL;
+  branch.instruction = (0x25 << 26);
   return branch;
 }
 

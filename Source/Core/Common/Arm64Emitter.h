@@ -358,25 +358,8 @@ enum class GPRSize
 
 struct FixupBranch
 {
-  enum class Type : u32
-  {
-    CBZ,
-    CBNZ,
-    BConditional,
-    TBZ,
-    TBNZ,
-    B,
-    BL,
-  };
-
   u8* ptr;
-  Type type;
-  // Used with B.cond
-  CCFlags cond;
-  // Used with TBZ/TBNZ
-  u8 bit;
-  // Used with Test/Compare and Branch
-  ARM64Reg reg;
+  u32 instruction;
 };
 
 enum class PStateField
