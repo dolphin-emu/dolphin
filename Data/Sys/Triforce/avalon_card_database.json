@@ -1,0 +1,4412 @@
+{
+  "cards": [
+    {
+      "name_eng": "Bepa",
+      "name_jpn": "ビーパ",
+      "number": "1",
+      "attrib": "y",
+      "movement": "yyb",
+      "atk": 13,
+      "def": 12,
+      "entries": [
+        {
+          "index": 1
+        }
+      ]
+    },
+    {
+      "name_eng": "Mog-tang",
+      "name_jpn": "モグタン",
+      "number": "N1",
+      "attrib": "y",
+      "movement": "yyr",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 98
+        },
+        {
+          "index": 180
+        }
+      ]
+    },
+    {
+      "name_eng": "Piasu",
+      "name_jpn": "ピアス",
+      "number": "N2",
+      "attrib": "y",
+      "movement": "yyyr",
+      "atk": 18,
+      "def": 12,
+      "entries": [
+        {
+          "index": 99
+        },
+        {
+          "index": 181
+        }
+      ]
+    },
+    {
+      "name_eng": "Chariot",
+      "name_jpn": "チャリオ",
+      "number": "N3",
+      "attrib": "y",
+      "movement": "yybb",
+      "atk": 11,
+      "def": 11,
+      "entries": [
+        {
+          "index": 100
+        },
+        {
+          "index": 182
+        }
+      ]
+    },
+    {
+      "name_eng": "Pretty-Bell",
+      "name_jpn": "プリティベル",
+      "number": "C1",
+      "attrib": "y",
+      "movement": "yygg",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 101
+        },
+        {
+          "index": 183
+        }
+      ]
+    },
+    {
+      "name_eng": "Poison-spike",
+      "name_jpn": "ポイズンスパイク",
+      "number": "2",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 8,
+      "def": 16,
+      "entries": [
+        {
+          "index": 2
+        }
+      ]
+    },
+    {
+      "name_eng": "Araikupa",
+      "name_jpn": "アライクパ",
+      "number": "3",
+      "attrib": "y",
+      "movement": "yyyb",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 3
+        }
+      ]
+    },
+    {
+      "name_eng": "Paqu",
+      "name_jpn": "パクー",
+      "number": "N4",
+      "attrib": "y",
+      "movement": "yyg",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 102
+        },
+        {
+          "index": 184
+        }
+      ]
+    },
+    {
+      "name_eng": "Bull-horn",
+      "name_jpn": "ブルホーン",
+      "number": "C2",
+      "attrib": "y",
+      "movement": "yygg",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 103
+        },
+        {
+          "index": 185
+        }
+      ]
+    },
+    {
+      "name_eng": "Cyclone",
+      "name_jpn": "サイロン",
+      "number": "C3",
+      "attrib": "y",
+      "movement": "yybb",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "index": 104
+        },
+        {
+          "index": 186
+        }
+      ]
+    },
+    {
+      "name_eng": "Charo",
+      "name_jpn": "チャロ",
+      "number": "4",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 12,
+      "def": 14,
+      "entries": [
+        {
+          "index": 4
+        }
+      ]
+    },
+    {
+      "name_eng": "Mysterious-hole",
+      "name_jpn": "カルト・ホール",
+      "number": "C4",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 15,
+      "def": 17,
+      "entries": [
+        {
+          "index": 105
+        },
+        {
+          "table": 1,
+          "index": 29
+        }
+      ]
+    },
+    {
+      "name_eng": "Iguan",
+      "name_jpn": "イグアン",
+      "number": "N5",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 17,
+      "def": 11,
+      "entries": [
+        {
+          "index": 106
+        },
+        {
+          "index": 187
+        }
+      ]
+    },
+    {
+      "name_eng": "Big-bow",
+      "name_jpn": "ビッグボウ",
+      "number": "5",
+      "attrib": "y",
+      "movement": "yyr",
+      "atk": 17,
+      "def": 12,
+      "entries": [
+        {
+          "index": 5
+        }
+      ]
+    },
+    {
+      "name_eng": "Contractor",
+      "name_jpn": "契約の証",
+      "number": "C5",
+      "attrib": "y",
+      "movement": "yyb",
+      "atk": 16,
+      "def": 12,
+      "entries": [
+        {
+          "index": 107
+        },
+        {
+          "index": 188
+        }
+      ]
+    },
+    {
+      "name_eng": "Ghost",
+      "name_jpn": "ゴースト",
+      "number": "6",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 16,
+      "def": 10,
+      "entries": [
+        {
+          "index": 6
+        }
+      ]
+    },
+    {
+      "name_eng": "Drill-jack",
+      "name_jpn": "ドリルザーグ",
+      "number": "C6",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 18,
+      "def": 14,
+      "entries": [
+        {
+          "index": 108
+        },
+        {
+          "index": 189
+        }
+      ]
+    },
+    {
+      "name_eng": "Fiftiny",
+      "name_jpn": "フィフティニー",
+      "number": "N6",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "table": 1,
+          "index": 19
+        },
+        {
+          "table": 1,
+          "index": 30
+        }
+      ]
+    },
+    {
+      "name_eng": "Guru-gater",
+      "name_jpn": "グリゲーター",
+      "number": "N7",
+      "attrib": "y",
+      "movement": "yyb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 109
+        },
+        {
+          "index": 190
+        }
+      ]
+    },
+    {
+      "name_eng": "Life-roots",
+      "name_jpn": "ライフルーツ",
+      "number": "N8",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 16,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 20
+        },
+        {
+          "table": 1,
+          "index": 31
+        }
+      ]
+    },
+    {
+      "name_eng": "Dagon-knight",
+      "name_jpn": "ダゴナイト",
+      "number": "N9",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 14,
+      "def": 15,
+      "entries": [
+        {
+          "index": 110
+        },
+        {
+          "index": 191
+        }
+      ]
+    },
+    {
+      "name_eng": "Kerberos",
+      "name_jpn": "ケルベス",
+      "number": "C7",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 10,
+      "def": 16,
+      "entries": [
+        {
+          "index": 111
+        },
+        {
+          "index": 192
+        }
+      ]
+    },
+    {
+      "name_eng": "Magic-swordman",
+      "name_jpn": "魔法剣士",
+      "number": "7",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 17,
+      "def": 16,
+      "entries": [
+        {
+          "index": 7
+        }
+      ]
+    },
+    {
+      "name_eng": "Castle-cannon",
+      "name_jpn": "キャッスルカノン",
+      "number": "8",
+      "attrib": "y",
+      "movement": "yyyg",
+      "atk": 15,
+      "def": 18,
+      "entries": [
+        {
+          "index": 75
+        }
+      ]
+    },
+    {
+      "name_eng": "Blood-gus",
+      "name_jpn": "ブラッギス",
+      "number": "9",
+      "attrib": "y",
+      "movement": "yyb",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 8
+        }
+      ]
+    },
+    {
+      "name_eng": "The-door-of-despair",
+      "name_jpn": "絶望のトビラ",
+      "number": "10",
+      "attrib": "y",
+      "movement": "yyyy",
+      "atk": 14,
+      "def": 17,
+      "entries": [
+        {
+          "index": 9
+        }
+      ]
+    },
+    {
+      "name_eng": "Killer-lady",
+      "name_jpn": "キラーレディー",
+      "number": "11",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 17,
+      "def": 11,
+      "entries": [
+        {
+          "index": 10
+        }
+      ]
+    },
+    {
+      "name_eng": "Platinum",
+      "name_jpn": "プラテウム",
+      "number": "12",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 20,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 1
+        }
+      ]
+    },
+    {
+      "name_eng": "Diabolo",
+      "name_jpn": "暗黒魔王",
+      "number": "13",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 17,
+      "def": 10,
+      "entries": [
+        {
+          "index": 11
+        }
+      ]
+    },
+    {
+      "name_eng": "Infinity",
+      "name_jpn": "インフィニティー",
+      "number": "14",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 18,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 2
+        }
+      ]
+    },
+    {
+      "name_eng": "Jumpu",
+      "name_jpn": "ジャンプー",
+      "number": "15",
+      "attrib": "y",
+      "movement": "yyyb",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 12
+        }
+      ]
+    },
+    {
+      "name_eng": "AI",
+      "name_jpn": "ＡＩ",
+      "number": "16",
+      "attrib": "y",
+      "movement": "yyr",
+      "atk": 12,
+      "def": 13,
+      "entries": [
+        {
+          "index": 13
+        }
+      ]
+    },
+    {
+      "name_eng": "Own-lean",
+      "name_jpn": "オウリーン",
+      "number": "N10",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "index": 112
+        },
+        {
+          "index": 193
+        }
+      ]
+    },
+    {
+      "name_eng": "Straggler",
+      "name_jpn": "ストラグラー",
+      "number": "17",
+      "attrib": "y",
+      "movement": "yyrr",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "index": 14
+        }
+      ]
+    },
+    {
+      "name_eng": "Goddess",
+      "name_jpn": "女神",
+      "number": "18",
+      "attrib": "y",
+      "movement": "www",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "index": 15
+        }
+      ]
+    },
+    {
+      "name_eng": "Emperor",
+      "name_jpn": "エンペラー",
+      "number": "19",
+      "attrib": "b",
+      "movement": "bbr",
+      "atk": 14,
+      "def": 17,
+      "entries": [
+        {
+          "index": 16
+        }
+      ]
+    },
+    {
+      "name_eng": "Scale-eta",
+      "name_jpn": "スケールイータ",
+      "number": "N11",
+      "attrib": "b",
+      "movement": "bbby",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 113
+        },
+        {
+          "index": 194
+        }
+      ]
+    },
+    {
+      "name_eng": "Angel-pit-chu",
+      "name_jpn": "エンゼルピッチュ",
+      "number": "N12",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 114
+        },
+        {
+          "index": 195
+        }
+      ]
+    },
+    {
+      "name_eng": "Mermaid",
+      "name_jpn": "マーメイド",
+      "number": "20",
+      "attrib": "b",
+      "movement": "ww",
+      "atk": 17,
+      "def": 12,
+      "entries": [
+        {
+          "index": 17
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-tank",
+      "name_jpn": "シータンク",
+      "number": "21",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 15,
+      "def": 16,
+      "entries": [
+        {
+          "index": 18
+        }
+      ]
+    },
+    {
+      "name_eng": "Deep-seeker",
+      "name_jpn": "ディープシーカー",
+      "number": "22",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 13,
+      "def": 15,
+      "entries": [
+        {
+          "index": 76
+        }
+      ]
+    },
+    {
+      "name_eng": "Totto",
+      "name_jpn": "トットー",
+      "number": "N13",
+      "attrib": "b",
+      "movement": "bbr",
+      "atk": 12,
+      "def": 14,
+      "entries": [
+        {
+          "index": 115
+        },
+        {
+          "index": 196
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-worm",
+      "name_jpn": "シーワーム",
+      "number": "C8",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 14,
+      "def": 12,
+      "entries": [
+        {
+          "index": 116
+        },
+        {
+          "index": 197
+        }
+      ]
+    },
+    {
+      "name_eng": "Ann-chu",
+      "name_jpn": "アンチュ",
+      "number": "23",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 11,
+      "def": 17,
+      "entries": [
+        {
+          "index": 19
+        }
+      ]
+    },
+    {
+      "name_eng": "Metal-hearn",
+      "name_jpn": "メタル・ハーン",
+      "number": "C9",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 117
+        },
+        {
+          "table": 1,
+          "index": 32
+        }
+      ]
+    },
+    {
+      "name_eng": "Kelpie",
+      "name_jpn": "ケルピー",
+      "number": "24",
+      "attrib": "b",
+      "movement": "www",
+      "atk": 18,
+      "def": 16,
+      "entries": [
+        {
+          "table": 1,
+          "index": 3
+        }
+      ]
+    },
+    {
+      "name_eng": "Dagon",
+      "name_jpn": "ダゴン",
+      "number": "25",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 13,
+      "def": 17,
+      "entries": [
+        {
+          "index": 20
+        }
+      ]
+    },
+    {
+      "name_eng": "Ocean",
+      "name_jpn": "オオサン",
+      "number": "C10",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 13,
+      "def": 15,
+      "entries": [
+        {
+          "index": 118
+        },
+        {
+          "index": 198
+        }
+      ]
+    },
+    {
+      "name_eng": "Neon",
+      "name_jpn": "ネオン",
+      "number": "C11",
+      "attrib": "b",
+      "movement": "bbbg",
+      "atk": 17,
+      "def": 10,
+      "entries": [
+        {
+          "index": 119
+        },
+        {
+          "index": 199
+        }
+      ]
+    },
+    {
+      "name_eng": "Ziglla",
+      "name_jpn": "ジグラ",
+      "number": "N14",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 11,
+      "def": 11,
+      "entries": [
+        {
+          "index": 120
+        },
+        {
+          "index": 200
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-cutter",
+      "name_jpn": "シーカッター",
+      "number": "C12",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 121
+        },
+        {
+          "index": 201
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-mirror",
+      "name_jpn": "シーミラー",
+      "number": "26",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 13,
+      "def": 9,
+      "entries": [
+        {
+          "index": 21
+        }
+      ]
+    },
+    {
+      "name_eng": "Phantom-jelly",
+      "name_jpn": "ファントムゼリー",
+      "number": "27",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 22
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-zuwai",
+      "name_jpn": "レッドズワイ",
+      "number": "C13",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 18,
+      "def": 10,
+      "entries": [
+        {
+          "index": 122
+        },
+        {
+          "index": 202
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-Zag",
+      "name_jpn": "レッドザガ",
+      "number": "28",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 16,
+      "def": 11,
+      "entries": [
+        {
+          "index": 23
+        }
+      ]
+    },
+    {
+      "name_eng": "Blue-Zag",
+      "name_jpn": "ブルーザガ",
+      "number": "29",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 11,
+      "def": 16,
+      "entries": [
+        {
+          "index": 24
+        }
+      ]
+    },
+    {
+      "name_eng": "Octba",
+      "name_jpn": "オクトバ",
+      "number": "30",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 17,
+      "def": 16,
+      "entries": [
+        {
+          "index": 25
+        }
+      ]
+    },
+    {
+      "name_eng": "Salvage",
+      "name_jpn": "サルヴェージ",
+      "number": "N15",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 14,
+      "def": 16,
+      "entries": [
+        {
+          "index": 123
+        },
+        {
+          "index": 203
+        }
+      ]
+    },
+    {
+      "name_eng": "Serpent",
+      "name_jpn": "サーペント",
+      "number": "N16",
+      "attrib": "b",
+      "movement": "www",
+      "atk": 19,
+      "def": 16,
+      "entries": [
+        {
+          "table": 1,
+          "index": 21
+        },
+        {
+          "table": 1,
+          "index": 33
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-rodan",
+      "name_jpn": "シーラドン",
+      "number": "N17",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 12,
+      "def": 15,
+      "entries": [
+        {
+          "index": 124
+        },
+        {
+          "index": 204
+        }
+      ]
+    },
+    {
+      "name_eng": "Siren",
+      "name_jpn": "セイレーン",
+      "number": "31",
+      "attrib": "b",
+      "movement": "bby",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 26
+        }
+      ]
+    },
+    {
+      "name_eng": "Captain-anchor",
+      "name_jpn": "スカルマン",
+      "number": "32",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 27
+        }
+      ]
+    },
+    {
+      "name_eng": "Mega-jaw",
+      "name_jpn": "メガジョー",
+      "number": "33",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 28
+        }
+      ]
+    },
+    {
+      "name_eng": "Skull-ship",
+      "name_jpn": "スカルシップ",
+      "number": "N18",
+      "attrib": "b",
+      "movement": "ww",
+      "atk": 17,
+      "def": 14,
+      "entries": [
+        {
+          "index": 125
+        },
+        {
+          "index": 205
+        }
+      ]
+    },
+    {
+      "name_eng": "Neptune",
+      "name_jpn": "ネプチューン",
+      "number": "N19",
+      "attrib": "b",
+      "movement": "b",
+      "atk": 10,
+      "def": 7,
+      "entries": [
+        {
+          "table": 1,
+          "index": 22
+        },
+        {
+          "table": 1,
+          "index": 34
+        }
+      ]
+    },
+    {
+      "name_eng": "Mucho-goro",
+      "name_jpn": "ムチュゴロウ",
+      "number": "C14",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 11,
+      "def": 16,
+      "entries": [
+        {
+          "index": 126
+        },
+        {
+          "index": 206
+        }
+      ]
+    },
+    {
+      "name_eng": "Popon-turtle",
+      "name_jpn": "カメポポン",
+      "number": "34",
+      "attrib": "b",
+      "movement": "bbyy",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 29
+        }
+      ]
+    },
+    {
+      "name_eng": "Armor-toad",
+      "name_jpn": "アーマトード",
+      "number": "35",
+      "attrib": "b",
+      "movement": "bbg",
+      "atk": 12,
+      "def": 15,
+      "entries": [
+        {
+          "index": 30
+        }
+      ]
+    },
+    {
+      "name_eng": "Yado-caring",
+      "name_jpn": "ヤドカリン",
+      "number": "N20",
+      "attrib": "b",
+      "movement": "bbg",
+      "atk": 14,
+      "def": 12,
+      "entries": [
+        {
+          "index": 127
+        },
+        {
+          "index": 207
+        }
+      ]
+    },
+    {
+      "name_eng": "King-octba",
+      "name_jpn": "キングオクトバ",
+      "number": "36",
+      "attrib": "b",
+      "movement": "b",
+      "atk": 15,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 4
+        }
+      ]
+    },
+    {
+      "name_eng": "Kuma-goro",
+      "name_jpn": "クマゴロウ",
+      "number": "N21",
+      "attrib": "r",
+      "movement": "rrg",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 128
+        },
+        {
+          "index": 208
+        }
+      ]
+    },
+    {
+      "name_eng": "Army-ant",
+      "name_jpn": "アーミーアント",
+      "number": "37",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 12,
+      "def": 12,
+      "entries": [
+        {
+          "index": 31
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-jewel",
+      "name_jpn": "レッド・ジュエル",
+      "number": "C15",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 2,
+      "def": 2,
+      "entries": [
+        {
+          "index": 129
+        },
+        {
+          "index": 209
+        }
+      ]
+    },
+    {
+      "name_eng": "Mechani-monk",
+      "name_jpn": "メカニモンク",
+      "number": "38",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 9,
+      "def": 15,
+      "entries": [
+        {
+          "index": 32
+        },
+        {
+          "index": 95
+        }
+      ]
+    },
+    {
+      "name_eng": "Blade-tiger",
+      "name_jpn": "ブレードタイガー",
+      "number": "N22",
+      "attrib": "r",
+      "movement": "rrrb",
+      "atk": 18,
+      "def": 12,
+      "entries": [
+        {
+          "index": 130
+        },
+        {
+          "index": 210
+        }
+      ]
+    },
+    {
+      "name_eng": "Assassin",
+      "name_jpn": "アサシン",
+      "number": "39",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 11,
+      "def": 14,
+      "entries": [
+        {
+          "index": 33
+        }
+      ]
+    },
+    {
+      "name_eng": "Ferret",
+      "name_jpn": "フェレット",
+      "number": "40",
+      "attrib": "r",
+      "movement": "rrg",
+      "atk": 12,
+      "def": 13,
+      "entries": [
+        {
+          "index": 34
+        }
+      ]
+    },
+    {
+      "name_eng": "Valkyrie-uc",
+      "name_jpn": "バルキリー",
+      "number": "41",
+      "attrib": "r",
+      "movement": "rrry",
+      "atk": 13,
+      "def": 15,
+      "entries": [
+        {
+          "index": 35
+        }
+      ]
+    },
+    {
+      "name_eng": "Scorp",
+      "name_jpn": "スコルプ",
+      "number": "N23",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 14,
+      "def": 14,
+      "entries": [
+        {
+          "index": 131
+        },
+        {
+          "index": 211
+        }
+      ]
+    },
+    {
+      "name_eng": "Armor-dillo",
+      "name_jpn": "アーマジロ",
+      "number": "42",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 0,
+      "def": 18,
+      "entries": [
+        {
+          "index": 36
+        }
+      ]
+    },
+    {
+      "name_eng": "Black-king",
+      "name_jpn": "黒の王",
+      "number": "43",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 12,
+      "def": 19,
+      "entries": [
+        {
+          "index": 37
+        }
+      ]
+    },
+    {
+      "name_eng": "Gladiator",
+      "name_jpn": "グラディエーター",
+      "number": "44",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 11,
+      "def": 15,
+      "entries": [
+        {
+          "table": 1,
+          "index": 5
+        },
+        {
+          "table": 1,
+          "index": 12
+        }
+      ]
+    },
+    {
+      "name_eng": "Centaur-hell",
+      "name_jpn": "ケンタウルスヘル",
+      "number": "45",
+      "attrib": "r",
+      "movement": "rrgg",
+      "atk": 18,
+      "def": 16,
+      "entries": [
+        {
+          "index": 38
+        }
+      ]
+    },
+    {
+      "name_eng": "Spring-Rafflea",
+      "name_jpn": "ラフリア（春）",
+      "number": "C16",
+      "attrib": "r",
+      "movement": "rrbb",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 132
+        },
+        {
+          "index": 212
+        }
+      ]
+    },
+    {
+      "name_eng": "Winter-Rafflea",
+      "name_jpn": "ラフリア（冬）",
+      "number": "N24",
+      "attrib": "r",
+      "movement": "rrbb",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "index": 133
+        },
+        {
+          "index": 213
+        }
+      ]
+    },
+    {
+      "name_eng": "Jilla-crimson",
+      "name_jpn": "ジラクリムゾン",
+      "number": "C17",
+      "attrib": "r",
+      "movement": "rrrg",
+      "atk": 12,
+      "def": 16,
+      "entries": [
+        {
+          "index": 134
+        },
+        {
+          "index": 214
+        }
+      ]
+    },
+    {
+      "name_eng": "Jilla-cobalt",
+      "name_jpn": "ジラコバルト",
+      "number": "N25",
+      "attrib": "r",
+      "movement": "rrrb",
+      "atk": 10,
+      "def": 16,
+      "entries": [
+        {
+          "index": 135
+        },
+        {
+          "index": 215
+        }
+      ]
+    },
+    {
+      "name_eng": "Jilla-ochre",
+      "name_jpn": "ジラオーカー",
+      "number": "C18",
+      "attrib": "r",
+      "movement": "rrry",
+      "atk": 17,
+      "def": 14,
+      "entries": [
+        {
+          "index": 136
+        },
+        {
+          "index": 216
+        }
+      ]
+    },
+    {
+      "name_eng": "Bath-turtle",
+      "name_jpn": "バスタートル",
+      "number": "C19",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 17,
+      "def": 15,
+      "entries": [
+        {
+          "index": 137
+        },
+        {
+          "index": 217
+        }
+      ]
+    },
+    {
+      "name_eng": "Valkyrie-C",
+      "name_jpn": "バルキリークララ",
+      "number": "N26",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 13,
+      "def": 12,
+      "entries": [
+        {
+          "index": 138
+        },
+        {
+          "index": 218
+        }
+      ]
+    },
+    {
+      "name_eng": "Pearl-hound",
+      "name_jpn": "パールハウンド",
+      "number": "N27",
+      "attrib": "r",
+      "movement": "rrb",
+      "atk": 10,
+      "def": 16,
+      "entries": [
+        {
+          "index": 139
+        },
+        {
+          "index": 219
+        }
+      ]
+    },
+    {
+      "name_eng": "Sphinx",
+      "name_jpn": "スフィンクス",
+      "number": "46",
+      "attrib": "r",
+      "movement": "rrbb",
+      "atk": 15,
+      "def": 12,
+      "entries": [
+        {
+          "index": 39
+        }
+      ]
+    },
+    {
+      "name_eng": "Volcano",
+      "name_jpn": "ボルカノ",
+      "number": "C20",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 13,
+      "def": 12,
+      "entries": [
+        {
+          "index": 140
+        },
+        {
+          "index": 220
+        }
+      ]
+    },
+    {
+      "name_eng": "Chimera",
+      "name_jpn": "キマイラ",
+      "number": "47",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 11,
+      "def": 11,
+      "entries": [
+        {
+          "index": 40
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-eyes",
+      "name_jpn": "レッド・アイズ",
+      "number": "C21",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 141
+        },
+        {
+          "table": 1,
+          "index": 35
+        }
+      ]
+    },
+    {
+      "name_eng": "Ah",
+      "name_jpn": "阿",
+      "number": "48",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 41
+        }
+      ]
+    },
+    {
+      "name_eng": "Un",
+      "name_jpn": "云",
+      "number": "49",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "index": 42
+        }
+      ]
+    },
+    {
+      "name_eng": "Garuda",
+      "name_jpn": "ガルダ",
+      "number": "50",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "index": 77
+        }
+      ]
+    },
+    {
+      "name_eng": "Calibur-horn",
+      "name_jpn": "カリバーホーン",
+      "number": "51",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 9,
+      "def": 14,
+      "entries": [
+        {
+          "table": 1,
+          "index": 6
+        }
+      ]
+    },
+    {
+      "name_eng": "Stab-spoke",
+      "name_jpn": "スタッブスポーク",
+      "number": "N28",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "table": 1,
+          "index": 23
+        },
+        {
+          "table": 1,
+          "index": 36
+        }
+      ]
+    },
+    {
+      "name_eng": "N-key",
+      "name_jpn": "ン・キィー",
+      "number": "52",
+      "attrib": "r",
+      "movement": "rryy",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 43
+        }
+      ]
+    },
+    {
+      "name_eng": "Baby-dolla",
+      "name_jpn": "ベビドーラ",
+      "number": "N29",
+      "attrib": "r",
+      "movement": "rrb",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 142
+        },
+        {
+          "index": 221
+        }
+      ]
+    },
+    {
+      "name_eng": "Warrior",
+      "name_jpn": "ウォーリアー",
+      "number": "53",
+      "attrib": "r",
+      "movement": "rry",
+      "atk": 18,
+      "def": 12,
+      "entries": [
+        {
+          "index": 44
+        }
+      ]
+    },
+    {
+      "name_eng": "Naga",
+      "name_jpn": "ナーガ",
+      "number": "N30",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 16,
+      "def": 13,
+      "entries": [
+        {
+          "table": 1,
+          "index": 24
+        },
+        {
+          "table": 1,
+          "index": 37
+        }
+      ]
+    },
+    {
+      "name_eng": "Salamander",
+      "name_jpn": "サラマンダー",
+      "number": "54",
+      "attrib": "r",
+      "movement": "ww",
+      "atk": 14,
+      "def": 15,
+      "entries": [
+        {
+          "index": 45
+        }
+      ]
+    },
+    {
+      "name_eng": "Hakoris",
+      "name_jpn": "ハコリス",
+      "number": "N31",
+      "attrib": "g",
+      "movement": "ggy",
+      "atk": 14,
+      "def": 12,
+      "entries": [
+        {
+          "index": 143
+        },
+        {
+          "index": 222
+        }
+      ]
+    },
+    {
+      "name_eng": "Puck-ru",
+      "name_jpn": "パックル",
+      "number": "55",
+      "attrib": "g",
+      "movement": "ggr",
+      "atk": 14,
+      "def": 13,
+      "entries": [
+        {
+          "index": 46
+        }
+      ]
+    },
+    {
+      "name_eng": "Tower",
+      "name_jpn": "タワー",
+      "number": "56",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 13,
+      "def": 15,
+      "entries": [
+        {
+          "index": 47
+        }
+      ]
+    },
+    {
+      "name_eng": "Cinopi-II",
+      "name_jpn": "キノーピII世",
+      "number": "C22",
+      "attrib": "g",
+      "movement": "ggb",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 144
+        },
+        {
+          "index": 223
+        }
+      ]
+    },
+    {
+      "name_eng": "Ring-Ring",
+      "name_jpn": "リンリン",
+      "number": "57",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 0,
+      "def": 9,
+      "entries": [
+        {
+          "index": 48
+        }
+      ]
+    },
+    {
+      "name_eng": "Chai-ling",
+      "name_jpn": "チャイリン",
+      "number": "58",
+      "attrib": "g",
+      "movement": "ggbb",
+      "atk": 17,
+      "def": 15,
+      "entries": [
+        {
+          "index": 49
+        }
+      ]
+    },
+    {
+      "name_eng": "Night-cat",
+      "name_jpn": "ナイトキャット",
+      "number": "C23",
+      "attrib": "g",
+      "movement": "ggbb",
+      "atk": 14,
+      "def": 17,
+      "entries": [
+        {
+          "index": 145
+        },
+        {
+          "index": 224
+        }
+      ]
+    },
+    {
+      "name_eng": "Pick-ru",
+      "name_jpn": "ピックル",
+      "number": "59",
+      "attrib": "g",
+      "movement": "ggrr",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 50
+        }
+      ]
+    },
+    {
+      "name_eng": "Pan",
+      "name_jpn": "パン",
+      "number": "60",
+      "attrib": "g",
+      "movement": "ggyy",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 78
+        }
+      ]
+    },
+    {
+      "name_eng": "Pockllo",
+      "name_jpn": "ポッコロ",
+      "number": "C24",
+      "attrib": "g",
+      "movement": "gggb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 146
+        },
+        {
+          "index": 225
+        }
+      ]
+    },
+    {
+      "name_eng": "Rean",
+      "name_jpn": "リーン",
+      "number": "N32",
+      "attrib": "g",
+      "movement": "gggy",
+      "atk": 14,
+      "def": 16,
+      "entries": [
+        {
+          "index": 147
+        },
+        {
+          "index": 226
+        }
+      ]
+    },
+    {
+      "name_eng": "Rune",
+      "name_jpn": "ルーン",
+      "number": "61",
+      "attrib": "g",
+      "movement": "ggbb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 51
+        }
+      ]
+    },
+    {
+      "name_eng": "Kong-boss",
+      "name_jpn": "コングボス",
+      "number": "62",
+      "attrib": "g",
+      "movement": "ggy",
+      "atk": 14,
+      "def": 17,
+      "entries": [
+        {
+          "index": 52
+        }
+      ]
+    },
+    {
+      "name_eng": "Unicorne",
+      "name_jpn": "ユニコーン",
+      "number": "C25",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 10,
+      "def": 13,
+      "entries": [
+        {
+          "index": 148
+        },
+        {
+          "index": 227
+        }
+      ]
+    },
+    {
+      "name_eng": "Ritchie",
+      "name_jpn": "リッチー",
+      "number": "63",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "index": 53
+        }
+      ]
+    },
+    {
+      "name_eng": "Woodden",
+      "name_jpn": "ウッデン",
+      "number": "64",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "index": 54
+        }
+      ]
+    },
+    {
+      "name_eng": "Arachnophobia",
+      "name_jpn": "アラクノフォビア",
+      "number": "N33",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 18,
+      "def": 11,
+      "entries": [
+        {
+          "table": 1,
+          "index": 25
+        },
+        {
+          "table": 1,
+          "index": 38
+        }
+      ]
+    },
+    {
+      "name_eng": "Freeky",
+      "name_jpn": "フリィーキィー",
+      "number": "N34",
+      "attrib": "g",
+      "movement": "ggyy",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 149
+        },
+        {
+          "index": 228
+        }
+      ]
+    },
+    {
+      "name_eng": "Earth-worm",
+      "name_jpn": "ワーム",
+      "number": "C26",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 17,
+      "def": 14,
+      "entries": [
+        {
+          "index": 150
+        },
+        {
+          "index": 229
+        }
+      ]
+    },
+    {
+      "name_eng": "Kuwa-ga-dos",
+      "name_jpn": "クワガドス",
+      "number": "65",
+      "attrib": "g",
+      "movement": "g",
+      "atk": 1,
+      "def": 1,
+      "entries": [
+        {
+          "table": 1,
+          "index": 7
+        }
+      ]
+    },
+    {
+      "name_eng": "Dimensional-Soldier",
+      "name_jpn": "時空の歩兵",
+      "number": "C27",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 11,
+      "def": 18,
+      "entries": [
+        {
+          "table": 1,
+          "index": 26
+        },
+        {
+          "table": 1,
+          "index": 39
+        }
+      ]
+    },
+    {
+      "name_eng": "Ancient-Soldier",
+      "name_jpn": "古代の歩兵",
+      "number": "N35",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 17,
+      "def": 12,
+      "entries": [
+        {
+          "index": 151
+        },
+        {
+          "index": 230
+        }
+      ]
+    },
+    {
+      "name_eng": "Earthly-Soldier",
+      "name_jpn": "現世の歩兵",
+      "number": "N36",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 12,
+      "def": 17,
+      "entries": [
+        {
+          "index": 152
+        },
+        {
+          "index": 231
+        }
+      ]
+    },
+    {
+      "name_eng": "Future-Soldier",
+      "name_jpn": "未来の歩兵",
+      "number": "C28",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 18,
+      "def": 16,
+      "entries": [
+        {
+          "index": 153
+        },
+        {
+          "index": 232
+        }
+      ]
+    },
+    {
+      "name_eng": "Olloti",
+      "name_jpn": "オロチ",
+      "number": "N37",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 154
+        },
+        {
+          "index": 233
+        }
+      ]
+    },
+    {
+      "name_eng": "Ray-corn",
+      "name_jpn": "レイコーン",
+      "number": "66",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 14,
+      "def": 16,
+      "entries": [
+        {
+          "index": 55
+        }
+      ]
+    },
+    {
+      "name_eng": "Carmila",
+      "name_jpn": "カミーラ",
+      "number": "N38",
+      "attrib": "g",
+      "movement": "ww",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "index": 155
+        },
+        {
+          "index": 234
+        }
+      ]
+    },
+    {
+      "name_eng": "Oni-Bull",
+      "name_jpn": "鬼ブル",
+      "number": "67",
+      "attrib": "g",
+      "movement": "www",
+      "atk": 14,
+      "def": 14,
+      "entries": [
+        {
+          "index": 96
+        },
+        {
+          "table": 1,
+          "index": 8
+        }
+      ]
+    },
+    {
+      "name_eng": "Chaos-wall",
+      "name_jpn": "ケイオスウォール",
+      "number": "N39",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 18,
+      "def": 12,
+      "entries": [
+        {
+          "index": 156
+        },
+        {
+          "table": 1,
+          "index": 40
+        }
+      ]
+    },
+    {
+      "name_eng": "Count-Breathed",
+      "name_jpn": "ブレスト伯爵",
+      "number": "68",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 10,
+      "def": 17,
+      "entries": [
+        {
+          "index": 56
+        },
+        {
+          "table": 1,
+          "index": 13
+        }
+      ]
+    },
+    {
+      "name_eng": "Pino",
+      "name_jpn": "ピノ",
+      "number": "69",
+      "attrib": "g",
+      "movement": "ggrr",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 57
+        }
+      ]
+    },
+    {
+      "name_eng": "Low-tang",
+      "name_jpn": "ロータン",
+      "number": "N40",
+      "attrib": "g",
+      "movement": "ggb",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 157
+        },
+        {
+          "index": 235
+        }
+      ]
+    },
+    {
+      "name_eng": "Amazoness",
+      "name_jpn": "アマゾーネ",
+      "number": "70",
+      "attrib": "g",
+      "movement": "ggb",
+      "atk": 17,
+      "def": 12,
+      "entries": [
+        {
+          "index": 58
+        }
+      ]
+    },
+    {
+      "name_eng": "Kabu-tus",
+      "name_jpn": "カブトス",
+      "number": "71",
+      "attrib": "g",
+      "movement": "ww",
+      "atk": 15,
+      "def": 17,
+      "entries": [
+        {
+          "index": 59
+        }
+      ]
+    },
+    {
+      "name_eng": "Rex-saber",
+      "name_jpn": "レックスセーバー",
+      "number": "72",
+      "attrib": "g",
+      "movement": "gggr",
+      "atk": 17,
+      "def": 14,
+      "entries": [
+        {
+          "index": 60
+        }
+      ]
+    },
+    {
+      "name_eng": "Icarus-wings",
+      "name_jpn": "イカロスウイング",
+      "number": "73",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 61
+        }
+      ]
+    },
+    {
+      "name_eng": "Energy-boost",
+      "name_jpn": "女神の息吹",
+      "number": "74",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 79
+        }
+      ]
+    },
+    {
+      "name_eng": "Hellfire",
+      "name_jpn": "破壊の業火",
+      "number": "75",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 80
+        },
+        {
+          "table": 1,
+          "index": 14
+        }
+      ]
+    },
+    {
+      "name_eng": "Mage-parasite",
+      "name_jpn": "メイジパラサイト",
+      "number": "76",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 62
+        }
+      ]
+    },
+    {
+      "name_eng": "Challenge",
+      "name_jpn": "挑戦状",
+      "number": "N41",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 158
+        },
+        {
+          "index": 236
+        }
+      ]
+    },
+    {
+      "name_eng": "Anti-magic",
+      "name_jpn": "守護の光",
+      "number": "N42",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 237
+        },
+        {
+          "table": 1,
+          "index": 27
+        }
+      ]
+    },
+    {
+      "name_eng": "Death-pulse",
+      "name_jpn": "絶命の波動",
+      "number": "77",
+      "attrib": "m",
+      "entries": [
+        {
+          "table": 1,
+          "index": 10
+        }
+      ]
+    },
+    {
+      "name_eng": "Displace",
+      "name_jpn": "ディスプレイス",
+      "number": "78",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 63
+        }
+      ]
+    },
+    {
+      "name_eng": "Catasto",
+      "name_jpn": "天変地異",
+      "number": "79",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 64
+        }
+      ]
+    },
+    {
+      "name_eng": "Reflection",
+      "name_jpn": "魔法反射",
+      "number": "80",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 65
+        }
+      ]
+    },
+    {
+      "name_eng": "Undead-wall",
+      "name_jpn": "墓場の暗盾",
+      "number": "81",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 66
+        }
+      ]
+    },
+    {
+      "name_eng": "Revenge-strike",
+      "name_jpn": "破壊の報復",
+      "number": "82",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 97
+        },
+        {
+          "table": 1,
+          "index": 9
+        }
+      ]
+    },
+    {
+      "name_eng": "Mailed-fist",
+      "name_jpn": "威圧のオーラ",
+      "number": "83",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 74
+        }
+      ]
+    },
+    {
+      "name_eng": "Field-armor",
+      "name_jpn": "フィールドアーマ",
+      "number": "84",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 67
+        }
+      ]
+    },
+    {
+      "name_eng": "Card-breaker",
+      "name_jpn": "カードブレイク",
+      "number": "85",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 81
+        }
+      ]
+    },
+    {
+      "name_eng": "Meltdown",
+      "name_jpn": "メルトダウン",
+      "number": "86",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 82
+        },
+        {
+          "table": 1,
+          "index": 15
+        }
+      ]
+    },
+    {
+      "name_eng": "Buildup",
+      "name_jpn": "攻撃強化",
+      "number": "87",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 83
+        }
+      ]
+    },
+    {
+      "name_eng": "Desperate",
+      "name_jpn": "突進",
+      "number": "88",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 84
+        }
+      ]
+    },
+    {
+      "name_eng": "Daemon's-divide",
+      "name_jpn": "悪魔の天秤",
+      "number": "89",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 68
+        }
+      ]
+    },
+    {
+      "name_eng": "Unbreakable",
+      "name_jpn": "光の盾",
+      "number": "90",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 85
+        },
+        {
+          "table": 1,
+          "index": 16
+        }
+      ]
+    },
+    {
+      "name_eng": "Grabbing-of-the-dead",
+      "name_jpn": "死の鷲掴み",
+      "number": "91",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 69
+        }
+      ]
+    },
+    {
+      "name_eng": "Nightmare",
+      "name_jpn": "悪夢の戦い",
+      "number": "92",
+      "attrib": "s",
+      "entries": [
+        {
+          "table": 1,
+          "index": 11
+        }
+      ]
+    },
+    {
+      "name_eng": "Disappearance",
+      "name_jpn": "消滅",
+      "number": "93",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 86
+        }
+      ]
+    },
+    {
+      "name_eng": "Multiplication",
+      "name_jpn": "増殖",
+      "number": "94",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 70
+        }
+      ]
+    },
+    {
+      "name_eng": "Dodge-eye",
+      "name_jpn": "心眼",
+      "number": "95",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 87
+        }
+      ]
+    },
+    {
+      "name_eng": "Evil-property",
+      "name_jpn": "特性侵食",
+      "number": "96",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 71
+        },
+        {
+          "table": 1,
+          "index": 17
+        }
+      ]
+    },
+    {
+      "name_eng": "Trick-Taker",
+      "name_jpn": "かすめ取り",
+      "number": "97",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 88
+        },
+        {
+          "table": 1,
+          "index": 18
+        }
+      ]
+    },
+    {
+      "name_eng": "Lost-mist",
+      "name_jpn": "弱体化の霧",
+      "number": "98",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 89
+        }
+      ]
+    },
+    {
+      "name_eng": "Surprise",
+      "name_jpn": "目くらまし",
+      "number": "99",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 72
+        }
+      ]
+    },
+    {
+      "name_eng": "Containment",
+      "name_jpn": "封じ込め",
+      "number": "100",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 73
+        }
+      ]
+    },
+    {
+      "name_eng": "Centaur-heaven",
+      "name_jpn": "ヘブンタウルス",
+      "number": "Ex01",
+      "attrib": "y",
+      "movement": "yyrr",
+      "atk": 18,
+      "def": 16,
+      "entries": [
+        {
+          "index": 90
+        }
+      ]
+    },
+    {
+      "name_eng": "Albino",
+      "name_jpn": "アルビノ",
+      "number": "Ex02",
+      "attrib": "y",
+      "movement": "yybb",
+      "atk": 18,
+      "def": 13,
+      "entries": [
+        {
+          "index": 91
+        }
+      ]
+    },
+    {
+      "name_eng": "Black-beauty",
+      "name_jpn": "漆黒の美貌",
+      "number": "Ex03",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 17,
+      "def": 15,
+      "entries": [
+        {
+          "index": 92
+        }
+      ]
+    },
+    {
+      "name_eng": "Valkyrie-Zero",
+      "name_jpn": "ワルキューレゼロ",
+      "number": "Ex04",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 13,
+      "def": 14,
+      "entries": [
+        {
+          "index": 93
+        }
+      ]
+    },
+    {
+      "name_eng": "Kuwa-gus",
+      "name_jpn": "クワガス",
+      "number": "Ex05",
+      "attrib": "g",
+      "movement": "ww",
+      "atk": 15,
+      "def": 16,
+      "entries": [
+        {
+          "index": 94
+        }
+      ]
+    },
+    {
+      "name_eng": "Sexy-Bell",
+      "name_jpn": "セクシーベル",
+      "number": "Leg01",
+      "attrib": "y",
+      "movement": "yygg",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 159
+        }
+      ]
+    },
+    {
+      "name_eng": "Ms-bloody",
+      "name_jpn": "ミスブラッディー",
+      "number": "Leg02",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 18,
+      "def": 16,
+      "entries": [
+        {
+          "index": 160
+        }
+      ]
+    },
+    {
+      "name_eng": "Emperor(Fake-Love)",
+      "name_jpn": "エンペラー（絆）",
+      "number": "Ex07",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 161
+        }
+      ]
+    },
+    {
+      "name_eng": "Salamander-Maximum",
+      "name_jpn": "サラマンダーＭＸ",
+      "number": "Ex06",
+      "attrib": "r",
+      "movement": "ww",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 162
+        }
+      ]
+    },
+    {
+      "name_eng": "Knight-Breathed",
+      "name_jpn": "ブレストナイト",
+      "number": "Ex08",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 17,
+      "def": 11,
+      "entries": [
+        {
+          "index": 163
+        }
+      ]
+    },
+    {
+      "name_eng": "Celestial-robe",
+      "name_jpn": "天女の羽衣",
+      "number": "N43",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 164
+        },
+        {
+          "index": 238
+        }
+      ]
+    },
+    {
+      "name_eng": "Hand-of-thief",
+      "name_jpn": "盗賊の手",
+      "number": "N44",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 165
+        },
+        {
+          "index": 239
+        }
+      ]
+    },
+    {
+      "name_eng": "Revival",
+      "name_jpn": "死人召喚",
+      "number": "C29",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 166
+        },
+        {
+          "index": 240
+        }
+      ]
+    },
+    {
+      "name_eng": "Summon-the-soul",
+      "name_jpn": "転生の宴",
+      "number": "N45",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 167
+        },
+        {
+          "index": 241
+        }
+      ]
+    },
+    {
+      "name_eng": "Enormous-energy",
+      "name_jpn": "異形の力",
+      "number": "C30",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 168
+        },
+        {
+          "table": 1,
+          "index": 41
+        }
+      ]
+    },
+    {
+      "name_eng": "Latent-ability",
+      "name_jpn": "覚醒",
+      "number": "C31",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 169
+        },
+        {
+          "index": 242
+        }
+      ]
+    },
+    {
+      "name_eng": "Holy-protection",
+      "name_jpn": "聖女の加護",
+      "number": "N46",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 170
+        },
+        {
+          "index": 243
+        }
+      ]
+    },
+    {
+      "name_eng": "Clock-up",
+      "name_jpn": "刹那の見切り",
+      "number": "N47",
+      "attrib": "s",
+      "entries": [
+        {
+          "table": 1,
+          "index": 28
+        },
+        {
+          "table": 1,
+          "index": 42
+        }
+      ]
+    },
+    {
+      "name_eng": "Crest-of-paladin",
+      "name_jpn": "聖騎士の紋章",
+      "number": "C32",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 171
+        },
+        {
+          "index": 244
+        }
+      ]
+    },
+    {
+      "name_eng": "Evil-mirror",
+      "name_jpn": "魔鏡",
+      "number": "N48",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 172
+        },
+        {
+          "index": 245
+        }
+      ]
+    },
+    {
+      "name_eng": "Spell-bound",
+      "name_jpn": "道化師の呪い",
+      "number": "N49",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 173
+        },
+        {
+          "table": 1,
+          "index": 43
+        }
+      ]
+    },
+    {
+      "name_eng": "Swamp-of-death",
+      "name_jpn": "脆弱の沼",
+      "number": "N50",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 174
+        },
+        {
+          "index": 246
+        }
+      ]
+    },
+    {
+      "name_eng": "Black-emblem",
+      "name_jpn": "黒の称号",
+      "number": "C33",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 175
+        },
+        {
+          "index": 247
+        }
+      ]
+    },
+    {
+      "name_eng": "Vajram",
+      "name_jpn": "金剛杵",
+      "number": "C34",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 176
+        },
+        {
+          "index": 248
+        }
+      ]
+    },
+    {
+      "name_eng": "Oriental-magic",
+      "name_jpn": "硬気功",
+      "number": "N51",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 177
+        },
+        {
+          "index": 249
+        }
+      ]
+    },
+    {
+      "name_eng": "Desperation",
+      "name_jpn": "背水の陣",
+      "number": "N52",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 178
+        },
+        {
+          "index": 250
+        }
+      ]
+    },
+    {
+      "name_eng": "Undead-sword",
+      "name_jpn": "アンデッドソード",
+      "number": "C35",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 179
+        },
+        {
+          "index": 251
+        }
+      ]
+    },
+    {
+      "name_eng": "Jumphyny",
+      "name_jpn": "ジャンフィニー",
+      "number": "Ex09",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 16,
+      "def": 17,
+      "entries": [
+        {
+          "index": 252
+        }
+      ]
+    },
+    {
+      "name_eng": "Emperor(True-Love)",
+      "name_jpn": "エンペラー（愛）",
+      "number": "Ex10",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 253
+        }
+      ]
+    },
+    {
+      "name_eng": "The-Chaos",
+      "name_jpn": "千年の王（幻影）",
+      "number": "Ex11",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 10,
+      "def": 15,
+      "entries": [
+        {
+          "index": 254
+        }
+      ]
+    },
+    {
+      "name_eng": "Seraphy-Ruka",
+      "name_jpn": "セラフィー・ルカ",
+      "number": "E1",
+      "attrib": "y",
+      "movement": "w",
+      "atk": 15,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 44
+        }
+      ]
+    },
+    {
+      "name_eng": "Hell-droid",
+      "name_jpn": "へルドロイ",
+      "number": "E2",
+      "attrib": "y",
+      "movement": "yyyy",
+      "atk": 18,
+      "def": 15,
+      "entries": [
+        {
+          "index": 255
+        }
+      ]
+    },
+    {
+      "name_eng": "Sleep-sleep-sleep",
+      "name_jpn": "ねんねんね",
+      "number": "E3",
+      "attrib": "y",
+      "movement": "yygg",
+      "atk": 14,
+      "def": 14,
+      "entries": [
+        {
+          "index": 256
+        }
+      ]
+    },
+    {
+      "name_eng": "Aiien",
+      "name_jpn": "エイイアン",
+      "number": "E4",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 257
+        }
+      ]
+    },
+    {
+      "name_eng": "Diabolga",
+      "name_jpn": "ディアボルガ",
+      "number": "E5",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 13,
+      "def": 19,
+      "entries": [
+        {
+          "table": 1,
+          "index": 45
+        }
+      ]
+    },
+    {
+      "name_eng": "Inugami",
+      "name_jpn": "イヌガミ",
+      "number": "E6",
+      "attrib": "y",
+      "movement": "yyyy",
+      "atk": 17,
+      "def": 16,
+      "entries": [
+        {
+          "index": 258
+        }
+      ]
+    },
+    {
+      "name_eng": "Mr-Gentle",
+      "name_jpn": "Ｍｒ．ジェントル",
+      "number": "E7",
+      "attrib": "y",
+      "movement": "yybb",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "index": 259
+        }
+      ]
+    },
+    {
+      "name_eng": "Goku-zo",
+      "name_jpn": "ゴクーゾ",
+      "number": "E8",
+      "attrib": "y",
+      "movement": "yyyr",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "index": 260
+        }
+      ]
+    },
+    {
+      "name_eng": "Big-snail",
+      "name_jpn": "メイドラマイマイ",
+      "number": "E9",
+      "attrib": "y",
+      "movement": "ww",
+      "atk": 15,
+      "def": 16,
+      "entries": [
+        {
+          "index": 261
+        }
+      ]
+    },
+    {
+      "name_eng": "Yellow-Puzzle",
+      "name_jpn": "イエローパズル",
+      "number": "E10",
+      "attrib": "y",
+      "movement": "yyyy",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 262
+        }
+      ]
+    },
+    {
+      "name_eng": "Wartium",
+      "name_jpn": "ウォーテウム",
+      "number": "Leg03",
+      "attrib": "y",
+      "movement": "y",
+      "atk": 20,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 46
+        }
+      ]
+    },
+    {
+      "name_eng": "Yuki-daruman",
+      "name_jpn": "ユキ・ダルマン",
+      "number": "E12",
+      "attrib": "b",
+      "movement": "bbrr",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 263
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-dragon",
+      "name_jpn": "シードラコ",
+      "number": "E13",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 13,
+      "def": 14,
+      "entries": [
+        {
+          "index": 264
+        }
+      ]
+    },
+    {
+      "name_eng": "Ammo-rodan",
+      "name_jpn": "アンモロドン",
+      "number": "E14",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 14,
+      "def": 16,
+      "entries": [
+        {
+          "index": 265
+        }
+      ]
+    },
+    {
+      "name_eng": "Sea-weapon",
+      "name_jpn": "シーウエポン",
+      "number": "E15",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 266
+        }
+      ]
+    },
+    {
+      "name_eng": "Bouzu",
+      "name_jpn": "ボウズ",
+      "number": "E16",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 14,
+      "def": 15,
+      "entries": [
+        {
+          "index": 267
+        }
+      ]
+    },
+    {
+      "name_eng": "Lightning",
+      "name_jpn": "ライトニンゲソ",
+      "number": "E17",
+      "attrib": "b",
+      "movement": "bbby",
+      "atk": 16,
+      "def": 15,
+      "entries": [
+        {
+          "index": 268
+        }
+      ]
+    },
+    {
+      "name_eng": "Coward-Wappa",
+      "name_jpn": "カワワッパ",
+      "number": "E18",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 17,
+      "def": 11,
+      "entries": [
+        {
+          "index": 269
+        }
+      ]
+    },
+    {
+      "name_eng": "God-Hand",
+      "name_jpn": "魔神の果て",
+      "number": "E19",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 19,
+      "def": 16,
+      "entries": [
+        {
+          "table": 1,
+          "index": 47
+        }
+      ]
+    },
+    {
+      "name_eng": "God-Foot",
+      "name_jpn": "魔神の麓",
+      "number": "E20",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 16,
+      "def": 18,
+      "entries": [
+        {
+          "table": 1,
+          "index": 48
+        }
+      ]
+    },
+    {
+      "name_eng": "Blue-Puzzle",
+      "name_jpn": "ブルーパズル",
+      "number": "E21",
+      "attrib": "b",
+      "movement": "bbbb",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 270
+        }
+      ]
+    },
+    {
+      "name_eng": "Warfalk",
+      "name_jpn": "ウォーフォーク",
+      "number": "Leg04",
+      "attrib": "b",
+      "movement": "ww",
+      "atk": 13,
+      "def": 17,
+      "entries": [
+        {
+          "index": 271
+        }
+      ]
+    },
+    {
+      "name_eng": "The-Legend-of-Dragon",
+      "name_jpn": "鉄の竜",
+      "number": "Leg05",
+      "attrib": "r",
+      "movement": "w",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "table": 1,
+          "index": 49
+        }
+      ]
+    },
+    {
+      "name_eng": "Magnard",
+      "name_jpn": "マグナード",
+      "number": "E22",
+      "attrib": "r",
+      "movement": "rrrg",
+      "atk": 13,
+      "def": 13,
+      "entries": [
+        {
+          "index": 272
+        }
+      ]
+    },
+    {
+      "name_eng": "Dragon-Rock",
+      "name_jpn": "ドラゴロック",
+      "number": "E23",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 14,
+      "def": 14,
+      "entries": [
+        {
+          "index": 273
+        }
+      ]
+    },
+    {
+      "name_eng": "Gladius",
+      "name_jpn": "グラディウス",
+      "number": "E24",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 11,
+      "def": 14,
+      "entries": [
+        {
+          "index": 274
+        }
+      ]
+    },
+    {
+      "name_eng": "Master-swordman",
+      "name_jpn": "魔法剣客",
+      "number": "E25",
+      "attrib": "r",
+      "movement": "rrrg",
+      "atk": 14,
+      "def": 17,
+      "entries": [
+        {
+          "index": 275
+        }
+      ]
+    },
+    {
+      "name_eng": "Elephoot",
+      "name_jpn": "エレフォート",
+      "number": "E26",
+      "attrib": "r",
+      "movement": "rrry",
+      "atk": 18,
+      "def": 11,
+      "entries": [
+        {
+          "index": 276
+        }
+      ]
+    },
+    {
+      "name_eng": "Guardian",
+      "name_jpn": "ガーディアン",
+      "number": "E27",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 12,
+      "def": 18,
+      "entries": [
+        {
+          "index": 277
+        }
+      ]
+    },
+    {
+      "name_eng": "Kishin",
+      "name_jpn": "鬼神",
+      "number": "E28",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 13,
+      "def": 13,
+      "entries": [
+        {
+          "table": 1,
+          "index": 50
+        }
+      ]
+    },
+    {
+      "name_eng": "Tsuvame",
+      "name_jpn": "バルキリー燕",
+      "number": "E29",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 13,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 51
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-Puzzle",
+      "name_jpn": "レッドパズル",
+      "number": "E30",
+      "attrib": "r",
+      "movement": "rrrr",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 278
+        }
+      ]
+    },
+    {
+      "name_eng": "Warknight",
+      "name_jpn": "ウォーナイト",
+      "number": "E31",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 11,
+      "def": 15,
+      "entries": [
+        {
+          "index": 279
+        }
+      ]
+    },
+    {
+      "name_eng": "Mystycocoon",
+      "name_jpn": "ミスティコクーン",
+      "number": "E32",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 12,
+      "def": 13,
+      "entries": [
+        {
+          "index": 280
+        }
+      ]
+    },
+    {
+      "name_eng": "Queen-insect",
+      "name_jpn": "クインセクト",
+      "number": "E33",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 20,
+      "def": 10,
+      "entries": [
+        {
+          "table": 1,
+          "index": 52
+        }
+      ]
+    },
+    {
+      "name_eng": "Mantygun",
+      "name_jpn": "マンティガン",
+      "number": "E34",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 9,
+      "def": 7,
+      "entries": [
+        {
+          "table": 1,
+          "index": 53
+        }
+      ]
+    },
+    {
+      "name_eng": "Gyaaaaa!!",
+      "name_jpn": "ギャーッ",
+      "number": "E35",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 13,
+      "def": 16,
+      "entries": [
+        {
+          "index": 281
+        }
+      ]
+    },
+    {
+      "name_eng": "Koala-Teacher",
+      "name_jpn": "コアラ先生",
+      "number": "E36",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 15,
+      "def": 12,
+      "entries": [
+        {
+          "index": 282
+        }
+      ]
+    },
+    {
+      "name_eng": "Death-plant",
+      "name_jpn": "ガブラント",
+      "number": "E37",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 13,
+      "def": 17,
+      "entries": [
+        {
+          "index": 283
+        }
+      ]
+    },
+    {
+      "name_eng": "Ray-curn",
+      "name_jpn": "レイクーン",
+      "number": "E38",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 16,
+      "def": 12,
+      "entries": [
+        {
+          "index": 284
+        }
+      ]
+    },
+    {
+      "name_eng": "Kangaroo-Punch",
+      "name_jpn": "ＫＰ",
+      "number": "E39",
+      "attrib": "g",
+      "movement": "gggb",
+      "atk": 16,
+      "def": 17,
+      "entries": [
+        {
+          "index": 285
+        }
+      ]
+    },
+    {
+      "name_eng": "Saboo",
+      "name_jpn": "サボー",
+      "number": "E40",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 15,
+      "def": 16,
+      "entries": [
+        {
+          "index": 286
+        }
+      ]
+    },
+    {
+      "name_eng": "Green-Puzzle",
+      "name_jpn": "グリーンパズル",
+      "number": "E41",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 15,
+      "def": 15,
+      "entries": [
+        {
+          "index": 287
+        }
+      ]
+    },
+    {
+      "name_eng": "Chai-rang",
+      "name_jpn": "チャイレン",
+      "number": "Leg06",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 288
+        }
+      ]
+    },
+    {
+      "name_eng": "Guardian-angel",
+      "name_jpn": "守護天使",
+      "number": "E42",
+      "attrib": "m",
+      "entries": [
+        {
+          "table": 1,
+          "index": 54
+        }
+      ]
+    },
+    {
+      "name_eng": "Tears-of-Pearl",
+      "name_jpn": "人魚の涙",
+      "number": "E43",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 289
+        }
+      ]
+    },
+    {
+      "name_eng": "Illusion",
+      "name_jpn": "異界の扉",
+      "number": "E44",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 290
+        }
+      ]
+    },
+    {
+      "name_eng": "Falcon-Time",
+      "name_jpn": "刻の隼",
+      "number": "E45",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 291
+        }
+      ]
+    },
+    {
+      "name_eng": "Booster",
+      "name_jpn": "機械の翼",
+      "number": "E46",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 292
+        }
+      ]
+    },
+    {
+      "name_eng": "Decapitation-arrow",
+      "name_jpn": "断罪の矢",
+      "number": "E47",
+      "attrib": "m",
+      "entries": [
+        {
+          "table": 1,
+          "index": 55
+        }
+      ]
+    },
+    {
+      "name_eng": "Forbidden-act",
+      "name_jpn": "複製の技法",
+      "number": "E48",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 293
+        }
+      ]
+    },
+    {
+      "name_eng": "Treasure-of-elf",
+      "name_jpn": "エルフの秘宝",
+      "number": "E49",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 294
+        }
+      ]
+    },
+    {
+      "name_eng": "Shaman's-prayer",
+      "name_jpn": "呪術師の祈り",
+      "number": "E50",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 295
+        }
+      ]
+    },
+    {
+      "name_eng": "Dimension-pocket",
+      "name_jpn": "便利なポケット",
+      "number": "E51",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 296
+        }
+      ]
+    },
+    {
+      "name_eng": "Evolution",
+      "name_jpn": "進化の時",
+      "number": "E52",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 297
+        }
+      ]
+    },
+    {
+      "name_eng": "Card-shield",
+      "name_jpn": "護符術",
+      "number": "E53",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 298
+        }
+      ]
+    },
+    {
+      "name_eng": "Temptation",
+      "name_jpn": "堕天使の嘆き",
+      "number": "E54",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 299
+        },
+        {
+          "table": 1,
+          "index": 56
+        }
+      ]
+    },
+    {
+      "name_eng": "Funny-action",
+      "name_jpn": "珍獣の羽",
+      "number": "E55",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 300
+        }
+      ]
+    },
+    {
+      "name_eng": "Curse-bind",
+      "name_jpn": "縛りの呪い",
+      "number": "E56",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 301
+        }
+      ]
+    },
+    {
+      "name_eng": "Corpse-debris",
+      "name_jpn": "亡者の盾",
+      "number": "E57",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 302
+        }
+      ]
+    },
+    {
+      "name_eng": "Sacred-mail",
+      "name_jpn": "天空の武具",
+      "number": "E58",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 303
+        }
+      ]
+    },
+    {
+      "name_eng": "Brave-heart",
+      "name_jpn": "勇者の精神",
+      "number": "E59",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 304
+        }
+      ]
+    },
+    {
+      "name_eng": "Origin-of-Species",
+      "name_jpn": "古代樹の実",
+      "number": "E60",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 305
+        }
+      ]
+    },
+    {
+      "name_eng": "Wave-on-the-Blade",
+      "name_jpn": "名刀の刃紋",
+      "number": "E61",
+      "attrib": "s",
+      "entries": [
+        {
+          "table": 1,
+          "index": 57
+        }
+      ]
+    },
+    {
+      "name_eng": "Fu",
+      "name_jpn": "ふぅ",
+      "number": "E11",
+      "attrib": "y",
+      "movement": "yyyy",
+      "atk": 17,
+      "def": 16,
+      "entries": [
+        {
+          "index": 306
+        }
+      ]
+    },
+    {
+      "name_eng": "Cliolla",
+      "name_jpn": "天使長クリオラ",
+      "number": "W1",
+      "attrib": "y",
+      "movement": "",
+      "atk": 8,
+      "def": 8,
+      "entries": [
+        {
+          "table": 1,
+          "index": 58
+        }
+      ]
+    },
+    {
+      "name_eng": "Judgment",
+      "name_jpn": "審判の石像",
+      "number": "W2",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 8,
+      "def": 8,
+      "entries": [
+        {
+          "index": 307
+        }
+      ]
+    },
+    {
+      "name_eng": "Dark-Magician",
+      "name_jpn": "冥魔ポロン",
+      "number": "W3",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 16,
+      "def": 16,
+      "entries": [
+        {
+          "index": 308
+        }
+      ]
+    },
+    {
+      "name_eng": "Etoile(Wing)",
+      "name_jpn": "翼のエトワール",
+      "number": "W4",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 17,
+      "def": 11,
+      "entries": [
+        {
+          "index": 309
+        }
+      ]
+    },
+    {
+      "name_eng": "Lawrence(Sword)",
+      "name_jpn": "剣のローレンス",
+      "number": "W5",
+      "attrib": "y",
+      "movement": "w",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "table": 1,
+          "index": 59
+        }
+      ]
+    },
+    {
+      "name_eng": "Yellow-Ball",
+      "name_jpn": "黄玉文明",
+      "number": "W6",
+      "attrib": "y",
+      "movement": "yyy",
+      "atk": 15,
+      "def": 13,
+      "entries": [
+        {
+          "index": 310
+        }
+      ]
+    },
+    {
+      "name_eng": "Poyo-Roll",
+      "name_jpn": "ポヨロール",
+      "number": "W7",
+      "attrib": "y",
+      "movement": "yy",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 311
+        }
+      ]
+    },
+    {
+      "name_eng": "Evil-Poseidon",
+      "name_jpn": "イビルポセイドン",
+      "number": "W8",
+      "attrib": "b",
+      "movement": "b",
+      "atk": 15,
+      "def": 10,
+      "entries": [
+        {
+          "table": 1,
+          "index": 60
+        }
+      ]
+    },
+    {
+      "name_eng": "Rai-Rai",
+      "name_jpn": "雷雷",
+      "number": "W9",
+      "attrib": "b",
+      "movement": "bby",
+      "atk": 14,
+      "def": 12,
+      "entries": [
+        {
+          "index": 312
+        }
+      ]
+    },
+    {
+      "name_eng": "Fu-Fu",
+      "name_jpn": "風風",
+      "number": "W10",
+      "attrib": "b",
+      "movement": "bbg",
+      "atk": 12,
+      "def": 14,
+      "entries": [
+        {
+          "index": 313
+        }
+      ]
+    },
+    {
+      "name_eng": "Christophe(Arm)",
+      "name_jpn": "拳のクリストフ",
+      "number": "W11",
+      "attrib": "b",
+      "movement": "bb",
+      "atk": 17,
+      "def": 14,
+      "entries": [
+        {
+          "table": 1,
+          "index": 61
+        }
+      ]
+    },
+    {
+      "name_eng": "Dark-Fighter",
+      "name_jpn": "冥斧ヴァル",
+      "number": "W12",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 14,
+      "def": 18,
+      "entries": [
+        {
+          "index": 314
+        }
+      ]
+    },
+    {
+      "name_eng": "Blue-Ball",
+      "name_jpn": "蒼玉文明",
+      "number": "W13",
+      "attrib": "b",
+      "movement": "bbb",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 315
+        }
+      ]
+    },
+    {
+      "name_eng": "Teru-Teruo",
+      "name_jpn": "テルテルオ",
+      "number": "W14",
+      "attrib": "b",
+      "movement": "bbrr",
+      "atk": 16,
+      "def": 14,
+      "entries": [
+        {
+          "index": 316
+        }
+      ]
+    },
+    {
+      "name_eng": "Oriental-Dragon",
+      "name_jpn": "仙龍",
+      "number": "W15",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "index": 317
+        }
+      ]
+    },
+    {
+      "name_eng": "Kusanagi",
+      "name_jpn": "草薙の燕",
+      "number": "W16",
+      "attrib": "r",
+      "movement": "r",
+      "atk": 13,
+      "def": 10,
+      "entries": [
+        {
+          "table": 1,
+          "index": 62
+        }
+      ]
+    },
+    {
+      "name_eng": "Falcon",
+      "name_jpn": "隼丸",
+      "number": "W17",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 13,
+      "def": 14,
+      "entries": [
+        {
+          "index": 318
+        }
+      ]
+    },
+    {
+      "name_eng": "Dark-Swordsman",
+      "name_jpn": "冥剣ユラナス",
+      "number": "W18",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 8,
+      "def": 14,
+      "entries": [
+        {
+          "table": 1,
+          "index": 63
+        }
+      ]
+    },
+    {
+      "name_eng": "Albert(Eyes)",
+      "name_jpn": "瞳のアルベール",
+      "number": "W19",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 12,
+      "def": 11,
+      "entries": [
+        {
+          "index": 319
+        }
+      ]
+    },
+    {
+      "name_eng": "Red-Ball",
+      "name_jpn": "朱玉文明",
+      "number": "W20",
+      "attrib": "r",
+      "movement": "rrr",
+      "atk": 13,
+      "def": 15,
+      "entries": [
+        {
+          "index": 320
+        }
+      ]
+    },
+    {
+      "name_eng": "Conde-Panda",
+      "name_jpn": "パンダ師範",
+      "number": "W21",
+      "attrib": "r",
+      "movement": "rrg",
+      "atk": 17,
+      "def": 13,
+      "entries": [
+        {
+          "index": 321
+        }
+      ]
+    },
+    {
+      "name_eng": "King-of-Sword",
+      "name_jpn": "覇王の剣",
+      "number": "W22",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 10,
+      "def": 17,
+      "entries": [
+        {
+          "table": 1,
+          "index": 64
+        }
+      ]
+    },
+    {
+      "name_eng": "Dina-Saver",
+      "name_jpn": "ディナセーバー",
+      "number": "W23",
+      "attrib": "g",
+      "movement": "gg",
+      "atk": 11,
+      "def": 11,
+      "entries": [
+        {
+          "table": 1,
+          "index": 65
+        }
+      ]
+    },
+    {
+      "name_eng": "Dark-Archer",
+      "name_jpn": "冥弓アルテナ",
+      "number": "W24",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 17,
+      "def": 15,
+      "entries": [
+        {
+          "index": 322
+        }
+      ]
+    },
+    {
+      "name_eng": "Dark-Lancer",
+      "name_jpn": "冥槍クロノ",
+      "number": "W25",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 18,
+      "def": 14,
+      "entries": [
+        {
+          "index": 323
+        }
+      ]
+    },
+    {
+      "name_eng": "Setra(Claw)",
+      "name_jpn": "爪のセトラ",
+      "number": "W26",
+      "attrib": "g",
+      "movement": "gggg",
+      "atk": 15,
+      "def": 16,
+      "entries": [
+        {
+          "index": 324
+        }
+      ]
+    },
+    {
+      "name_eng": "Green-Ball",
+      "name_jpn": "緑玉文明",
+      "number": "W27",
+      "attrib": "g",
+      "movement": "ggg",
+      "atk": 15,
+      "def": 14,
+      "entries": [
+        {
+          "index": 325
+        }
+      ]
+    },
+    {
+      "name_eng": "Kaku-zoo",
+      "name_jpn": "カク象",
+      "number": "W28",
+      "attrib": "g",
+      "movement": "ggbb",
+      "atk": 13,
+      "def": 17,
+      "entries": [
+        {
+          "index": 326
+        }
+      ]
+    },
+    {
+      "name_eng": "Happy-tone",
+      "name_jpn": "幸福のラッパ",
+      "number": "W29",
+      "attrib": "m",
+      "entries": [
+        {
+          "table": 1,
+          "index": 66
+        }
+      ]
+    },
+    {
+      "name_eng": "Skullman's-flag",
+      "name_jpn": "伝説の海賊旗",
+      "number": "W30",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 327
+        }
+      ]
+    },
+    {
+      "name_eng": "Crown-of-Poseidon",
+      "name_jpn": "海王の王冠",
+      "number": "W31",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 328
+        }
+      ]
+    },
+    {
+      "name_eng": "Ball-Holy-Land",
+      "name_jpn": "玉文明の聖地",
+      "number": "W32",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 329
+        }
+      ]
+    },
+    {
+      "name_eng": "Flying-Phoenix",
+      "name_jpn": "不死鳥天舞",
+      "number": "W33",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 330
+        }
+      ]
+    },
+    {
+      "name_eng": "Castle-of-Satan",
+      "name_jpn": "冥主の城",
+      "number": "W34",
+      "attrib": "m",
+      "entries": [
+        {
+          "index": 331
+        }
+      ]
+    },
+    {
+      "name_eng": "Devil-Vision",
+      "name_jpn": "魔王の鼓動",
+      "number": "W35",
+      "attrib": "s",
+      "entries": [
+        {
+          "table": 1,
+          "index": 67
+        }
+      ]
+    },
+    {
+      "name_eng": "Dance-with-Spirits",
+      "name_jpn": "風雷の舞",
+      "number": "W36",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 332
+        }
+      ]
+    },
+    {
+      "name_eng": "Trickster",
+      "name_jpn": "トリックスター",
+      "number": "W37",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 333
+        }
+      ]
+    },
+    {
+      "name_eng": "Chu-of-Fish",
+      "name_jpn": "熱帯魚の唇",
+      "number": "W38",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 334
+        }
+      ]
+    },
+    {
+      "name_eng": "Jewel-of-Chimera",
+      "name_jpn": "キマイラの宝石",
+      "number": "W39",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 335
+        }
+      ]
+    },
+    {
+      "name_eng": "Psycho-booster",
+      "name_jpn": "口寄せの儀式",
+      "number": "W40",
+      "attrib": "s",
+      "entries": [
+        {
+          "index": 336
+        }
+      ]
+    },
+    {
+      "name_eng": "Suzume",
+      "name_jpn": "バルキリー雀",
+      "number": "Leg07",
+      "attrib": "r",
+      "movement": "rr",
+      "atk": 10,
+      "def": 10,
+      "entries": [
+        {
+          "index": 337
+        }
+      ]
+    }
+  ]
+}
