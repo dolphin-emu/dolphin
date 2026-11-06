@@ -71,13 +71,22 @@ signals:
   void SkylandersPortalHotkey();
   void InfinityBaseHotkey();
 
+  // A Qt::Key from a configured controller while no game is running: an arrow key or Key_Return.
+  void GameListKey(int key);
+
 private:
   void Run();
   void CheckDebuggingHotkeys();
   void CheckGBAHotkeys();
+  void CheckGameListController();
 
   Common::Flag m_stop_requested;
   std::thread m_thread;
+
+  // The last game-list controller poll, so a press is sent once. Only the hotkey thread uses these.
+  bool m_game_list_synced = false;
+  int m_game_list_direction = 0;
+  bool m_game_list_a = false;
 
   InputProfile::ProfileCycler m_profile_cycler;
 };
