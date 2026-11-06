@@ -94,7 +94,13 @@ using std::uint32_t;
 
 // Font parameters
 const int FNT_CELL_SIZE = 24;
-const int FNT_RENDER_SIZE = FNT_CELL_SIZE * 5 / 6;
+const int FNT_LATIN_SIZE = 23; // Capitals 17 rows tall
+const int FNT_ALPHA_SIZE = 24; // Full-width capitals 18 rows tall
+const int FNT_KANJI_SIZE = 22; // Kanji 20 rows tall
+const int FNT_LATIN_BASELINE = 20; // Cell row under the Latin baseline
+const int FNT_LATIN_CAP_TOP = 3; // Cell row of the top of a capital
+const int FNT_KANJI_BASELINE = 19; // Cell row under the full-width baseline
+const int FNT_HALF_WIDTH = 14; // Advance of half-width glyphs 524 to 681
 const int FNT_CELLS_PER_ROW = 21;
 const int FNT_PIXMAP_WIDTH = 512; // Must be >= CELL_SIZE * CELLS_PER_ROW
 
@@ -1165,13 +1171,6 @@ static void freetype_to_fnt_data(
 	if (FT_New_Memory_Face(library, font_buf.data(), font_buf.size(), 0, &face) != 0)
 		throw font_error("error reading font data");
 
-	// Set size to render glyphs at
-	if (FT_Set_Pixel_Sizes(face, 0, FNT_RENDER_SIZE) != 0)
-		throw font_error("error selecting font size (is the font scalable?)");
-
-	// Get descender size in pixels (negative value)
-	const int descender = face->size->metrics.descender >> 6;
-
 	// Resize output vectors
 	const unsigned cpr_squared = FNT_CELLS_PER_ROW * FNT_CELLS_PER_ROW;
 	const unsigned pages = (font_table_size + cpr_squared - 1) / cpr_squared;
@@ -1191,12 +1190,35 @@ static void freetype_to_fnt_data(
 		if (glyph_index == 0)
 			continue;
 
-		// Load glyph data
-		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER) != 0)
+		// The half-width section uses the Latin size
+		const bool shift_jis = font_table == shift_jis_font_table;
+		const bool half = shift_jis && i >= 524 && i < 682;
+		const bool latin = !shift_jis || half;
+
+		// Full-width Latin, Greek and Cyrillic letters are proportional
+		const uint16_t codepoint = font_table[i];
+		const bool proportional = !shift_jis ||
+		                          (codepoint >= 0xFF10 && codepoint <= 0xFF19) ||
+		                          (codepoint >= 0xFF21 && codepoint <= 0xFF3A) ||
+		                          (codepoint >= 0xFF41 && codepoint <= 0xFF5A) ||
+		                          (codepoint >= 0x0391 && codepoint <= 0x0451);
+		const int size = latin ? FNT_LATIN_SIZE : proportional ? FNT_ALPHA_SIZE : FNT_KANJI_SIZE;
+		if (FT_Set_Pixel_Sizes(face, 0, size) != 0)
+			throw font_error("error selecting font size (is the font scalable?)");
+
+		// Load glyph data with light hinting
+		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT) != 0)
 			throw font_error("error loading glyph");
 
-		// Record width
-		out_widths[i] = clamp(face->glyph->metrics.horiAdvance >> 6, 0, FNT_CELL_SIZE);
+		// Record width, proportional or fixed with the glyph centered
+		const FT_Bitmap* bitmap = &face->glyph->bitmap;
+		const int advance = clamp(face->glyph->advance.x >> 6, 0, FNT_CELL_SIZE);
+		if (!proportional)
+			out_widths[i] = half ? FNT_HALF_WIDTH : FNT_CELL_SIZE;
+		else if (bitmap->width == 0)
+			out_widths[i] = FNT_CELL_SIZE / 2;
+		else
+			out_widths[i] = clamp(bitmap->width + 2, 0, FNT_CELL_SIZE);
 
 		// Calculate cell offset within final image
 		const unsigned cell_page = i / cpr_squared;
@@ -1208,24 +1230,32 @@ static void freetype_to_fnt_data(
 			cell_x    * FNT_CELL_SIZE;
 
 		// Copy glyph image
-		const FT_Bitmap* bitmap = &face->glyph->bitmap;
-		const int xStart = face->glyph->bitmap_left;
-		const int yStart = FNT_CELL_SIZE + descender - face->glyph->bitmap_top;
+		const int baseline = latin ? FNT_LATIN_BASELINE : FNT_KANJI_BASELINE;
+		const int xStart = proportional ? 1 : face->glyph->bitmap_left + (out_widths[i] - advance) / 2;
+		const int yStart = baseline - face->glyph->bitmap_top;
 		const int xMax = xStart + bitmap->width;
 		const int yMax = yStart + bitmap->rows;
 
 		for (int y = yStart; y < yMax; y++)
 		{
+			// Squeeze descenders and accents inside a 1 pixel border
+			int yDst = y;
+			if (yMax > FNT_CELL_SIZE - 1 && y >= baseline)
+				yDst = baseline + (y - baseline) * (FNT_CELL_SIZE - 1 - baseline) / (yMax - baseline);
+			else if (latin && yStart < 1 && y < FNT_LATIN_CAP_TOP)
+				yDst = 1 + (y - yStart) * (FNT_LATIN_CAP_TOP - 1) / (FNT_LATIN_CAP_TOP - yStart);
+
 			for (int x = xStart; x < xMax; x++)
 			{
 				// Clip pixels outsize the cell
-				if (y < 0 || x < 0 || x >= FNT_CELL_SIZE || y >= FNT_CELL_SIZE)
+				if (yDst < 1 || x < 1 || x >= FNT_CELL_SIZE - 1 || yDst >= FNT_CELL_SIZE - 1)
 					continue;
 
-				// Copy pixel
+				// Copy pixel, keeping the darker one where squeezed rows overlap
 				int srcOff = (y - yStart) * bitmap->width + (x - xStart);
-				int dstOff = cell_offset + y * FNT_PIXMAP_WIDTH + x;
-				out_pixmap.data[dstOff] = bitmap->buffer[srcOff];
+				int dstOff = cell_offset + yDst * FNT_PIXMAP_WIDTH + x;
+				if (bitmap->buffer[srcOff] > out_pixmap.data[dstOff])
+					out_pixmap.data[dstOff] = bitmap->buffer[srcOff];
 			}
 		}
 	}
