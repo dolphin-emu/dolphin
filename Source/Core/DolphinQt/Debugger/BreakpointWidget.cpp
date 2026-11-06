@@ -98,8 +98,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
   setWindowTitle(tr("Breakpoints"));
   setObjectName(QStringLiteral("breakpoints"));
 
-  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsBreakpointsVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
