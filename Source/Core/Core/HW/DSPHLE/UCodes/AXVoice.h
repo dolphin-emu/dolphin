@@ -534,6 +534,35 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   }
 #endif
 
+#ifdef AX_WII
+  // The Wii uCode also resets the depop value of every channel the voice isn't mixed into,
+  // instead of keeping the value left from an earlier use of the PB.
+  if (!MIX_ON(MAIN_L))
+    pb.dpop.main_left = 0;
+  if (!MIX_ON(MAIN_R))
+    pb.dpop.main_right = 0;
+  if (!MIX_ON(MAIN_S))
+    pb.dpop.main_surround = 0;
+  if (!MIX_ON(AUXA_L))
+    pb.dpop.auxA_left = 0;
+  if (!MIX_ON(AUXA_R))
+    pb.dpop.auxA_right = 0;
+  if (!MIX_ON(AUXA_S))
+    pb.dpop.auxA_surround = 0;
+  if (!MIX_ON(AUXB_L))
+    pb.dpop.auxB_left = 0;
+  if (!MIX_ON(AUXB_R))
+    pb.dpop.auxB_right = 0;
+  if (!MIX_ON(AUXB_S))
+    pb.dpop.auxB_surround = 0;
+  if (!MIX_ON(AUXC_L))
+    pb.dpop.auxC_left = 0;
+  if (!MIX_ON(AUXC_R))
+    pb.dpop.auxC_right = 0;
+  if (!MIX_ON(AUXC_S))
+    pb.dpop.auxC_surround = 0;
+#endif
+
 #undef MIX_ON
 #undef RAMP_ON
 
@@ -605,6 +634,25 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
       MixAdd(buffers.wm_aux3, wm_samples, wm_count, &pb.remote_mixer.aux3, &pb.remote_dpop.aux3,
              WMCHAN_MIX_RAMP(7));
   }
+
+  // As with the main channels, a remote channel the voice isn't mixed into, or every one
+  // when the voice isn't sent to the remotes, has its depop value reset.
+  if (!pb.remote || !WMCHAN_MIX_ON(0))
+    pb.remote_dpop.main0 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(1))
+    pb.remote_dpop.aux0 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(2))
+    pb.remote_dpop.main1 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(3))
+    pb.remote_dpop.aux1 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(4))
+    pb.remote_dpop.main2 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(5))
+    pb.remote_dpop.aux2 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(6))
+    pb.remote_dpop.main3 = 0;
+  if (!pb.remote || !WMCHAN_MIX_ON(7))
+    pb.remote_dpop.aux3 = 0;
 #undef WMCHAN_MIX_RAMP
 #undef WMCHAN_MIX_ON
 #endif
