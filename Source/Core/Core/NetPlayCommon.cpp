@@ -12,14 +12,13 @@
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
-#include "Common/SFMLHelper.h"
 
 namespace NetPlay
 {
 constexpr u32 LZO_IN_LEN = 1024 * 64;
 constexpr u32 LZO_OUT_LEN = LZO_IN_LEN + (LZO_IN_LEN / 16) + 64 + 3;
 
-bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
+bool CompressFileIntoPacket(const std::string& file_path, NetPacket& packet)
 {
   File::IOFile file(file_path, "rb");
   if (!file)
@@ -88,7 +87,7 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
   return true;
 }
 
-static bool CompressFolderIntoPacketInternal(const File::FSTEntry& folder, sf::Packet& packet)
+static bool CompressFolderIntoPacketInternal(const File::FSTEntry& folder, NetPacket& packet)
 {
   const u64 size = folder.children.size();
   packet << size;
@@ -105,7 +104,7 @@ static bool CompressFolderIntoPacketInternal(const File::FSTEntry& folder, sf::P
   return true;
 }
 
-bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet)
+bool CompressFolderIntoPacket(const std::string& folder_path, NetPacket& packet)
 {
   if (!File::IsDirectory(folder_path))
   {
@@ -117,7 +116,7 @@ bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet
   return CompressFolderIntoPacketInternal(File::ScanDirectoryTree(folder_path, true), packet);
 }
 
-bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet)
+bool CompressBufferIntoPacket(std::span<const u8> in_buffer, NetPacket& packet)
 {
   const u64 size = in_buffer.size();
   packet << size;
@@ -172,9 +171,10 @@ bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet)
   return true;
 }
 
-bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
+bool DecompressPacketIntoFile(NetPacket& packet, const std::string& file_path)
 {
-  const u64 file_size = Common::PacketReadU64(packet);
+  u64 file_size{};
+  packet >> file_size;
 
   if (file_size == 0)
     return true;
@@ -235,7 +235,7 @@ bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
   return bytes_written == file_size;
 }
 
-static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::string& folder_path)
+static bool DecompressPacketIntoFolderInternal(NetPacket& packet, const std::string& folder_path)
 {
   if (!File::CreateFullPath(folder_path + "/"))
     return false;
@@ -267,7 +267,7 @@ static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::st
   return true;
 }
 
-bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_path)
+bool DecompressPacketIntoFolder(NetPacket& packet, const std::string& folder_path)
 {
   bool folder_existed;
   packet >> folder_existed;
@@ -276,9 +276,10 @@ bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_pa
   return DecompressPacketIntoFolderInternal(packet, folder_path);
 }
 
-std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)
+std::optional<std::vector<u8>> DecompressPacketIntoBuffer(NetPacket& packet)
 {
-  const u64 size = Common::PacketReadU64(packet);
+  u64 size{};
+  packet >> size;
 
   std::vector<u8> out_buffer;
 
