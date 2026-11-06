@@ -68,6 +68,12 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
   std::string result = root;
   std::string_view work = external_relative_path;
 
+  // Remove trailing path separators; D_RIIVOLUTION_IDX can have a trailing slash.
+  // When appending the first path element below, this would create root//element which fails on
+  // Windows.
+  while (result.ends_with('/'))
+    result.pop_back();
+
   // Strip away all leading and trailing path separators.
   while (work.starts_with('/'))
     work.remove_prefix(1);
