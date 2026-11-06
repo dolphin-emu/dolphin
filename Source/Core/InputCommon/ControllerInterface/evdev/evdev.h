@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <libevdev/libevdev.h>
 #include <string>
 #include <vector>
+
+#include <libevdev/libevdev.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -87,6 +88,9 @@ public:
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
 
+  std::unique_ptr<Core::SpringEffect> CreateSpringEffect() override;
+  std::unique_ptr<Core::FrictionEffect> CreateFrictionEffect() override;
+
 private:
   std::string m_name;
 
@@ -100,5 +104,7 @@ private:
   std::vector<Node> m_nodes;
 
   InputBackend& m_input_backend;
+
+  int m_ffb_fd = -1;
 };
 }  // namespace ciface::evdev
