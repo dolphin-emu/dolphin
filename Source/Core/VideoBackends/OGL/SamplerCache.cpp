@@ -4,6 +4,7 @@
 #include "VideoBackends/OGL/SamplerCache.h"
 
 #include <memory>
+#include <ranges>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/OGL/OGLConfig.h"
@@ -111,10 +112,10 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
 
 void SamplerCache::Clear()
 {
-  for (auto& p : m_cache)
-    glDeleteSamplers(1, &p.second);
-  for (auto& p : m_active_samplers)
-    p.second = 0;
+  for (auto& val : m_cache | std::views::values)
+    glDeleteSamplers(1, &val);
+  for (auto& val : m_active_samplers | std::views::values)
+    val = 0;
   m_cache.clear();
 }
 }  // namespace OGL

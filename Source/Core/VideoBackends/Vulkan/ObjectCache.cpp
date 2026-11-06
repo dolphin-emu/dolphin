@@ -74,10 +74,10 @@ void ObjectCache::Shutdown()
 
 void ObjectCache::ClearSamplerCache()
 {
-  for (const auto& it : m_sampler_cache)
+  for (const auto& sampler : m_sampler_cache | std::views::values)
   {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroySampler(g_vulkan_context->GetDevice(), it.second, nullptr);
+    if (sampler != VK_NULL_HANDLE)
+      vkDestroySampler(g_vulkan_context->GetDevice(), sampler, nullptr);
   }
   m_sampler_cache.clear();
 }
@@ -495,8 +495,8 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 
 void ObjectCache::DestroyRenderPassCache()
 {
-  for (auto& it : m_render_pass_cache)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
+  for (auto& render_pass : m_render_pass_cache | std::views::values)
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), render_pass, nullptr);
   m_render_pass_cache.clear();
 }
 

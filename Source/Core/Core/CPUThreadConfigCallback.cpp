@@ -21,8 +21,8 @@ static size_t s_next_callback_id = 0;
 
 void RunCallbacks()
 {
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& callback : s_callbacks | std::views::values)
+    callback();
 }
 
 void OnConfigChanged()

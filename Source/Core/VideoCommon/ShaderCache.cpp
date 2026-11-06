@@ -857,8 +857,8 @@ void ShaderCache::LoadPipelineUIDCache()
       // Write any current UIDs out to the file.
       // This way, if we load a UID cache where the data was incomplete (e.g. Dolphin crashed),
       // we don't lose the existing UIDs which were previously at the beginning.
-      for (const auto& it : m_gx_pipeline_cache)
-        AppendGXPipelineUID(it.first);
+      for (const auto& uid : m_gx_pipeline_cache | std::views::keys)
+        AppendGXPipelineUID(uid);
     }
   }
 

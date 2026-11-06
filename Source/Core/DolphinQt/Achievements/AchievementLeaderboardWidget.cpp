@@ -81,20 +81,20 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
     }
     rc_client_destroy_leaderboard_list(leaderboard_list);
   }
-  for (auto row : m_leaderboard_order)
+  for (auto id : m_leaderboard_order | std::views::keys)
   {
-    UpdateRow(row.first);
+    UpdateRow(id);
   }
 }
 
 void AchievementLeaderboardWidget::UpdateData(
     const std::set<AchievementManager::AchievementId>& update_ids)
 {
-  for (auto row : m_leaderboard_order)
+  for (auto id : m_leaderboard_order | std::views::keys)
   {
-    if (update_ids.contains(row.first))
+    if (update_ids.contains(id))
     {
-      UpdateRow(row.first);
+      UpdateRow(id);
     }
   }
 }

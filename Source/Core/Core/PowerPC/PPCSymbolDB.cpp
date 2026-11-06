@@ -133,8 +133,8 @@ void PPCSymbolDB::DetermineNoteLayers(XNoteMap* notes)
   if (notes->empty())
     return;
 
-  for (auto& note : *notes)
-    note.second.layer = 0;
+  for (auto& note : *notes | std::views::values)
+    note.layer = 0;
 
   for (auto iter = notes->begin(); iter != notes->end(); ++iter)
   {
@@ -229,9 +229,9 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::FillInCallers(XFuncMap* functions)
 {
-  for (auto& p : *functions)
+  for (auto& func : *functions | std::views::values)
   {
-    p.second.callers.clear();
+    func.callers.clear();
   }
 
   for (auto& entry : *functions)
@@ -705,9 +705,9 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
   const auto& ppc_debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
   u32 next_address = 0;
-  for (const auto& function : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    const Common::Symbol& symbol = function.second;
+    const Common::Symbol& symbol = val;
 
     // Skip functions which are inside bigger functions
     if (symbol.address + symbol.size <= next_address)
