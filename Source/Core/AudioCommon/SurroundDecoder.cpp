@@ -40,7 +40,7 @@ size_t SurroundDecoder::QueryFramesNeededForSurroundOutput(const size_t output_f
 }
 
 // Receive and decode samples
-void SurroundDecoder::PutFrames(const short* in, const size_t num_frames_in)
+void SurroundDecoder::PutFrames(float* in, const size_t num_frames_in)
 {
   // Maybe check if it is really power-of-2?
   s64 remaining_frames = static_cast<s64>(num_frames_in);
@@ -48,15 +48,8 @@ void SurroundDecoder::PutFrames(const short* in, const size_t num_frames_in)
 
   while (remaining_frames > 0)
   {
-    // Convert to float
-    for (size_t i = 0, end = m_frame_block_size * STEREO_CHANNELS; i < end; ++i)
-    {
-      m_float_conversion_buffer[i] = in[i + frame_index * STEREO_CHANNELS] /
-                                     static_cast<float>(std::numeric_limits<short>::max());
-    }
-
     // Decode
-    const float* dpl2_fs = m_fsdecoder->decode(m_float_conversion_buffer.data());
+    const float* dpl2_fs = m_fsdecoder->decode(in + (frame_index * STEREO_CHANNELS));
 
     // Add to ring buffer and fix channel mapping
     // Maybe modify FreeSurround to output the correct mapping?
