@@ -716,7 +716,9 @@ if(USE_UPNP)
   add_definitions(-DUSE_UPNP)
 endif()
 
-dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
+# Note: MbedTLS 2.x is largely not available on modern systems.
+# We require 2.x because 3.x removed necessary SSLv3 features.
+dolphin_add_bundled_library(mbedtls2 Externals/mbedtls2)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
 
