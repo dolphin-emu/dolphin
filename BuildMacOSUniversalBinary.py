@@ -69,6 +69,9 @@ DEFAULT_CONFIG = {
     # Whether our autoupdate functionality is enabled or not.
     "autoupdate": True,
 
+    # Whether dolphin-tool is built and bundled with the application.
+    "enable_cli_tool": True,
+
     # Whether CCache is used for the build or not.
     "ccache": False,
 
@@ -121,6 +124,12 @@ def parse_args(conf=DEFAULT_CONFIG):
         help="Enables our autoupdate functionality",
         action=argparse.BooleanOptionalAction,
         default=conf["autoupdate"])
+
+    parser.add_argument(
+        "--enable_cli_tool",
+        help="Enables building and bundling dolphin-tool",
+        action=argparse.BooleanOptionalAction,
+        default=conf["enable_cli_tool"])
 
     parser.add_argument(
         "--ccache",
@@ -303,6 +312,8 @@ def build(config):
                 '-DMACOS_CODE_SIGNING="ON"',
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
+                "-DENABLE_CLI_TOOL="
+                + python_to_cmake_bool(config["enable_cli_tool"]),
                 '-DDISTRIBUTOR=' + config['distributor'],
                 # Distributable bundles need to be postprocessed to embed dependencies
                 "-DPOSTPROCESS_BUNDLE=ON",
@@ -345,6 +356,14 @@ def build(config):
             "-e", "preserve",
             config["codesign_identity"],
             dst_app+"/Dolphin.app/Contents/Helpers/Dolphin Updater.app"])
+
+    if config["enable_cli_tool"]:
+        subprocess.check_call([
+            "../Tools/mac-codesign.sh",
+            "-t",
+            "-e", "preserve",
+            config["codesign_identity"],
+            dst_app+"/Dolphin.app/Contents/Helpers/dolphin-tool"])
 
     subprocess.check_call([
         "../Tools/mac-codesign.sh",
