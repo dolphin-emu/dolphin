@@ -9,18 +9,13 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
+static void GenerateLightShader(ShaderCode& object, const LightFunc func, int index,
                                 int litchan_index, bool alpha)
 {
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
 
-  const auto attnfunc =
-      static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
-  const auto diffusefunc =
-      static_cast<DiffuseFunc>((uid_data.diffusefunc >> (2 * litchan_index)) & 0x3);
-
-  switch (attnfunc)
+  switch (func.attnfunc)
   {
   case AttenuationFunc::None:
   case AttenuationFunc::Dir:
@@ -35,7 +30,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  LIGHT_DIR_PARAMS(index));
     object.Write("cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
     object.Write("distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
-                 (diffusefunc == DiffuseFunc::None) ? "" : "normalize",
+                 (func.diffusefunc == DiffuseFunc::None) ? "" : "normalize",
                  LIGHT_DISTATT_PARAMS(index));
     object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
@@ -55,7 +50,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     break;
   }
 
-  switch (diffusefunc)
+  switch (func.diffusefunc)
   {
   case DiffuseFunc::None:
     object.Write("lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
@@ -63,10 +58,10 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     break;
   case DiffuseFunc::Sign:
   case DiffuseFunc::Clamp:
-    object.Write("lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL
-                 ")));\n",
-                 swizzle, swizzle_components, diffusefunc != DiffuseFunc::Sign ? "max(0.0," : "(",
-                 swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+    object.Write(
+        "lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL ")));\n",
+        swizzle, swizzle_components, func.diffusefunc != DiffuseFunc::Sign ? "max(0.0," : "(",
+        swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   default:
     ASSERT(false);
@@ -82,6 +77,9 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
+    auto color_func = uid_data.color[j].func;
+    auto alpha_func = uid_data.alpha[j].func;
+
     object.Write("vec4 dolphin_calculate_lighting_chn{}(vec4 base_color, vec3 pos, vec3 _normal)\n",
                  j);
     object.Write("{{\n");
@@ -90,15 +88,14 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
                  "\tvec3 ldir, h, cosAttn, distAttn;\n"
                  "\tfloat dist, dist2, attn;\n");
 
-    const bool colormatsource = !!(uid_data.matsource & (1 << j));
-    if (colormatsource)  // from vertex
+    if (color_func.matsource == MatSource::Vertex)
       object.Write("\tint4 mat = int4(round(base_color * 255.0));\n");
     else  // from color
       object.Write("\tint4 mat = {}[{}];\n", I_MATERIALS, j + 2);
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)
+    if (color_func.enablelighting)
     {
-      if ((uid_data.ambsource & (1 << j)) != 0)  // from vertex
+      if (color_func.ambsource == AmbSource::Vertex)
         object.Write("\tlacc = int4(round(base_color * 255.0));\n");
       else  // from color
         object.Write("\tlacc = {}[{}];\n", I_MATERIALS, j);
@@ -109,18 +106,17 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
     }
 
     // check if alpha is different
-    const bool alphamatsource = !!(uid_data.matsource & (1 << (j + 2)));
-    if (alphamatsource != colormatsource)
+    if (alpha_func.matsource != color_func.matsource)
     {
-      if (alphamatsource)  // from vertex
+      if (alpha_func.matsource == MatSource::Vertex)
         object.Write("\tmat.w = int(round(base_color.w * 255.0));\n");
       else  // from color
         object.Write("\tmat.w = {}[{}].w;\n", I_MATERIALS, j + 2);
     }
 
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)
+    if (alpha_func.enablelighting)
     {
-      if ((uid_data.ambsource & (1 << (j + 2))) != 0)  // from vertex
+      if (alpha_func.ambsource == AmbSource::Vertex)
         object.Write("\tlacc.w = int(round(base_color.w * 255.0));\n");
       else  // from color
         object.Write("\tlacc.w = {}[{}].w;\n", I_MATERIALS, j);
@@ -130,20 +126,20 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
       object.Write("\tlacc.w = 255;\n");
     }
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
+    if (uid_data.color[j].mask != 0)  // Color lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * j))) != 0)
-          GenerateLightShader(object, uid_data, i, j, false);
+        if ((uid_data.color[j].mask & (1 << i)) != 0)
+          GenerateLightShader(object, color_func, i, j, false);
       }
     }
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    if (uid_data.alpha[j].mask != 0)  // Alpha lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * (j + 2)))) != 0)
-          GenerateLightShader(object, uid_data, i, j + 2, true);
+        if ((uid_data.alpha[j].mask & (1 << i)) != 0)
+          GenerateLightShader(object, alpha_func, i, j + 2, true);
       }
     }
     object.Write("\tlacc = clamp(lacc, 0, 255);\n");
@@ -154,37 +150,41 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
 
 void GetLightingShaderUid(LightingUidData& uid_data)
 {
+  auto collect = [](const LitChannel& chan) -> LightChannel {
+    LightChannel out = {
+        .func =
+            LightFunc{
+                .matsource = chan.matsource,
+                .enablelighting = chan.enablelighting,
+                .ambsource = {},
+                .diffusefunc = {},
+                .attnfunc = {},
+            },
+        .mask = 0,
+    };
+
+    if (chan.enablelighting)
+    {
+      out.func.ambsource = chan.ambsource;
+      out.func.diffusefunc = chan.diffusefunc;
+      out.func.attnfunc = chan.attnfunc;
+      out.mask = chan.GetFullLightMask();
+    }
+
+    return out;
+  };
+
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource.Value()) << j;
-    uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource.Value()) << (j + 2);
-    uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
-    uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j + 2);
-
-    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
-    {
-      uid_data.ambsource |= static_cast<u32>(xfmem.color[j].ambsource.Value()) << j;
-      uid_data.attnfunc |= static_cast<u32>(xfmem.color[j].attnfunc.Value()) << (2 * j);
-      uid_data.diffusefunc |= static_cast<u32>(xfmem.color[j].diffusefunc.Value()) << (2 * j);
-      uid_data.light_mask |= xfmem.color[j].GetFullLightMask() << (8 * j);
-    }
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
-    {
-      uid_data.ambsource |= static_cast<u32>(xfmem.alpha[j].ambsource.Value()) << (j + 2);
-      uid_data.attnfunc |= static_cast<u32>(xfmem.alpha[j].attnfunc.Value()) << (2 * (j + 2));
-      uid_data.diffusefunc |= static_cast<u32>(xfmem.alpha[j].diffusefunc.Value()) << (2 * (j + 2));
-      uid_data.light_mask |= xfmem.alpha[j].GetFullLightMask() << (8 * (j + 2));
-    }
+    uid_data.color[j] = collect(xfmem.color[j]);
+    uid_data.alpha[j] = collect(xfmem.alpha[j]);
   }
 }
 
-static void GenerateCustomLightingImpl(ShaderCode* out, const LightingUidData& uid_data, int index,
+static void GenerateCustomLightingImpl(ShaderCode* out, const LightFunc func, int index,
                                        int litchan_index, u32 channel_index, u32 custom_light_index,
                                        bool alpha)
 {
-  const auto attnfunc =
-      static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
-
   const std::string_view light_type = alpha ? "alpha" : "color";
   const std::string name = fmt::format("lights_chan{}_{}", channel_index, light_type);
 
@@ -198,7 +198,7 @@ static void GenerateCustomLightingImpl(ShaderCode* out, const LightingUidData& u
   out->Write("\t\tfrag_input.{}[{}].distatt = " LIGHT_DISTATT ";\n", name, custom_light_index,
              LIGHT_DISTATT_PARAMS(index));
   out->Write("\t\tfrag_input.{}[{}].attenuation_type = {};\n", name, custom_light_index,
-             static_cast<u32>(attnfunc));
+             static_cast<u32>(func.attnfunc));
   if (alpha)
   {
     out->Write("\t\tfrag_input.{}[{}].color = float3(" LIGHT_COL
@@ -247,15 +247,16 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
 
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    const bool colormatsource = !!(uid_data.matsource & (1 << j));
-    if (colormatsource)  // from vertex
+    const auto color_func = uid_data.color[j].func;
+    const auto alpha_func = uid_data.alpha[j].func;
+    if (color_func.matsource == MatSource::Vertex)
       out->Write("frag_input.base_material[{}] = frag_input.color_{};\n", j, j);
     else  // from color
       out->Write("frag_input.base_material[{}] = {}[{}] / 255.0;\n", j, I_MATERIALS, j + 2);
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)
+    if (color_func.enablelighting)
     {
-      if ((uid_data.ambsource & (1 << j)) != 0)  // from vertex
+      if (color_func.ambsource == AmbSource::Vertex)
         out->Write("frag_input.ambient_lighting[{}] = frag_input.color_{};\n", j, j);
       else  // from color
         out->Write("frag_input.ambient_lighting[{}] = {}[{}] / 255.0;\n", j, I_MATERIALS, j);
@@ -266,18 +267,17 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
     }
 
     // check if alpha is different
-    const bool alphamatsource = !!(uid_data.matsource & (1 << (j + 2)));
-    if (alphamatsource != colormatsource)
+    if (alpha_func.matsource != color_func.matsource)
     {
-      if (alphamatsource)  // from vertex
+      if (alpha_func.matsource == MatSource::Vertex)
         out->Write("frag_input.base_material[{}].w = frag_input.color_{}.w;\n", j, j);
       else  // from color
         out->Write("frag_input.base_material[{}].w = {}[{}].w / 255.0;\n", j, I_MATERIALS, j + 2);
     }
 
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)
+    if (alpha_func.enablelighting)
     {
-      if ((uid_data.ambsource & (1 << (j + 2))) != 0)  // from vertex
+      if (alpha_func.ambsource == AmbSource::Vertex)
         out->Write("frag_input.ambient_lighting[{}].w = frag_input.color_{}.w;\n", j, j);
       else  // from color
         out->Write("frag_input.ambient_lighting[{}].w = {}[{}].w / 255.0;\n", j, I_MATERIALS, j);
@@ -288,13 +288,13 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
     }
 
     u32 light_count = 0;
-    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
+    if (uid_data.color[j].mask != 0)  // Color lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * j))) != 0)
+        if ((uid_data.color[j].mask & (1 << i)) != 0)
         {
-          GenerateCustomLightingImpl(out, uid_data, i, j, j, light_count, false);
+          GenerateCustomLightingImpl(out, color_func, i, j, j, light_count, false);
           light_count++;
         }
       }
@@ -302,13 +302,13 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
     out->Write("\tfrag_input.light_chan{}_color_count = {};\n", j, light_count);
 
     light_count = 0;
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    if (uid_data.alpha[j].mask != 0)  // Alpha lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * (j + 2)))) != 0)
+        if ((uid_data.alpha[j].mask & (1 << i)) != 0)
         {
-          GenerateCustomLightingImpl(out, uid_data, i, j + 2, j, light_count, true);
+          GenerateCustomLightingImpl(out, alpha_func, i, j + 2, j, light_count, true);
           light_count++;
         }
       }
