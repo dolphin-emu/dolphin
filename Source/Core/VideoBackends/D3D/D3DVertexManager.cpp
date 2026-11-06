@@ -59,9 +59,20 @@ static ComPtr<ID3D11ShaderResourceView>
 CreateTexelBufferView(ID3D11Buffer* buffer, TexelBufferFormat format, DXGI_FORMAT srv_format)
 {
   ComPtr<ID3D11ShaderResourceView> srv;
-  CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(buffer, srv_format, 0,
-                                            VertexManager::TEXEL_STREAM_BUFFER_SIZE /
-                                                VertexManager::GetTexelBufferElementSize(format));
+  CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(
+#ifdef __MINGW32__
+      D3D11_SRV_DIMENSION_BUFFER,
+#else
+      buffer,
+#endif
+      srv_format, 0,
+      VertexManager::TEXEL_STREAM_BUFFER_SIZE / VertexManager::GetTexelBufferElementSize(format)
+#ifdef __MINGW32__
+          ,
+      0, -1);
+#else
+  );
+#endif;
   HRESULT hr = D3D::device->CreateShaderResourceView(buffer, &srv_desc, &srv);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create SRV for texel buffer: {}", DX11HRWrap(hr));
   return srv;
