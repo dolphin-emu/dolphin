@@ -237,7 +237,11 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
     }
     else if (!(mail & 0xFFFF))
     {
-      if (RenderingInProgress())
+      // A game that's running behind can send its next rendering command, and the sync
+      // mails for that command's first frame, before it has answered DONE_RENDERING with
+      // MAIL_CONTINUE. The uCode keeps those sync mails and uses them once the queued
+      // command runs (seen in Super Mario Galaxy 2).
+      if (RenderingInProgress() || (m_pending_commands_count && !m_cmd_can_execute))
       {
         SetMailState(MailState::RENDERING);
       }
@@ -265,7 +269,9 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       if (m_sync_flags_second_half)
         m_sync_max_voice_id = 0xFFFF;
 
-      RenderAudio();
+      // Otherwise the sync flags are kept for the rendering command waiting to run.
+      if (RenderingInProgress())
+        RenderAudio();
       if (m_sync_flags_second_half)
         SetMailState(MailState::WAITING);
       m_sync_flags_second_half = !m_sync_flags_second_half;
@@ -274,7 +280,9 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
     {
       m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
       m_sync_voice_skip_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
-      RenderAudio();
+      // Otherwise the sync flags are kept for the rendering command waiting to run.
+      if (RenderingInProgress())
+        RenderAudio();
       SetMailState(MailState::WAITING);
     }
     break;
@@ -648,8 +656,9 @@ void ZeldaUCode::RenderAudio()
       m_rendering_curr_voice++;
     }
 
+    // The uCode numbers these acknowledgments from 1 (F355FF01 to F355FF07 for 7 frames).
     if (!(m_flags & LIGHT_PROTOCOL))
-      SendCommandAck(CommandAck::STANDARD, 0xFF00 | m_rendering_curr_frame);
+      SendCommandAck(CommandAck::STANDARD, 0xFF00 | (m_rendering_curr_frame + 1));
 
     m_renderer.FinalizeFrame();
 
