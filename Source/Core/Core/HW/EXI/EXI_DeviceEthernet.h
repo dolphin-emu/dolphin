@@ -21,6 +21,7 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
+#include "Common/SFMLHelper.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -454,7 +455,7 @@ private:
     u32 m_router_ip = 0;
     Common::MACAddress m_router_mac{};
     std::map<u32, Common::MACAddress> m_arp_table;
-    sf::TcpListener m_upnp_httpd;
+    Common::ReuseAddrSfTcpListener m_upnp_httpd;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     NetworkRef m_network_ref;
