@@ -462,6 +462,12 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   }
 #endif
 
+#ifdef AX_WII
+  // Some of these will be overwritten during mixing.
+  pb.dpop = {};
+  pb.remote_dpop = {};
+#endif
+
   // Mix LRS, AUXA and AUXB depending on mixer_control
   // TODO: Handle DPL2 on AUXB.
 
