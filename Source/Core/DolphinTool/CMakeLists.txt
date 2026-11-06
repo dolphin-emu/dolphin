@@ -33,6 +33,16 @@ if(MSVC)
   target_link_libraries(dolphin-tool PRIVATE use_pch)
 endif()
 
+if(APPLE)
+  if(MACOS_CODE_SIGNING)
+    add_custom_command(TARGET dolphin-tool
+      POST_BUILD
+      COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+      "${MACOS_CODE_SIGNING_IDENTITY}"
+      "$<TARGET_FILE:dolphin-tool>")
+  endif()
+endif()
+
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-tool)
 if (NOT WIN32)
   install(TARGETS dolphin-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
