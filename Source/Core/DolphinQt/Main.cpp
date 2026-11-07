@@ -185,6 +185,12 @@ int main(int argc, char* argv[])
   // every native widget is a separate subsurface, which are not clipped to the window and swallow
   // pointer input, breaking the dock separators and leaving stale content after a resize.
   QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+
+  // Wayland compositors and the XDG desktop portal match windows to the desktop file by this name,
+  // which Qt would otherwise make up from the organization domain. Flatpak renames the desktop
+  // file to the app's ID.
+  QGuiApplication::setDesktopFileName(
+      qEnvironmentVariable("FLATPAK_ID", QStringLiteral("dolphin-emu")));
 #endif
 
   // QApplication will parse arguments and remove any it recognizes as targeting Qt
