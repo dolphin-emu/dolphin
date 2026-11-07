@@ -544,7 +544,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
 #undef RAMP_ON
 
   // Optionally, phase shift left or right channel to simulate 3D sound.
-  if (pb.initial_time_delay.on)
+  if (pb.itd.on)
   {
     // TODO
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesAXInitialTimeDelay);
