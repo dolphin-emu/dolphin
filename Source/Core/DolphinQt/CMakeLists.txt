@@ -634,7 +634,14 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
 
-    set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+    if(APPLE)
+      # set_source_files_properties for MACOSX_PACKAGE_LOCATION won't work with CMAKE_RUNTIME_OUTPUT_DIRECTORY
+      # because it contains a generator expression, which won't be evaluated. We don't need to place translations
+      # next to the binary on macOS anyway, so just use a staging directory in CMAKE_CURRENT_BINARY_DIR.
+      set(mo_dir "${CMAKE_CURRENT_BINARY_DIR}/Languages/${lang}")
+    else()
+      set(mo_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}")
+    endif()
     set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
