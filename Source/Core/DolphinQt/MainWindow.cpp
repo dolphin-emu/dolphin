@@ -110,6 +110,7 @@
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -134,6 +135,10 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+
+#if defined(QT_DBUS_LIB)
+#include "DolphinQt/GlobalShortcuts.h"
+#endif
 
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -390,6 +395,11 @@ void MainWindow::InitControllers()
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
+#if defined(QT_DBUS_LIB)
+  if (QtUtils::IsWayland())
+    m_global_shortcuts = new GlobalShortcuts(this);
+#endif
+
   // Defaults won't work reliably without loading and saving the config first
 
   Wiimote::LoadConfig();
@@ -410,6 +420,12 @@ void MainWindow::InitControllers()
 
 void MainWindow::ShutdownControllers()
 {
+#if defined(QT_DBUS_LIB)
+  // Make sure no shortcut presses a hotkey after the controllers are shut down.
+  delete m_global_shortcuts;
+  m_global_shortcuts = nullptr;
+#endif
+
   m_hotkey_scheduler->Stop();
 
   Settings::Instance().UnregisterDevicesChangedCallback();
@@ -1446,6 +1462,10 @@ void MainWindow::ShowHotkeyDialog()
   {
     m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
     InstallHotkeyFilter(m_hotkey_window);
+#if defined(QT_DBUS_LIB)
+    if (m_global_shortcuts)
+      connect(m_hotkey_window, &MappingWindow::Save, m_global_shortcuts, &GlobalShortcuts::Refresh);
+#endif
   }
 
   m_hotkey_window->show();

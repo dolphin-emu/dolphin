@@ -35,6 +35,7 @@ class GameCount;
 class GameList;
 class GBATASInputWindow;
 class GCTASInputWindow;
+class GlobalShortcuts;
 class HotkeyScheduler;
 class InfinityBaseWindow;
 class JITWidget;
@@ -265,6 +266,9 @@ private:
   FreeLookWindow* m_freelook_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
+#if defined(QT_DBUS_LIB)
+  GlobalShortcuts* m_global_shortcuts = nullptr;
+#endif
   NetPlayDialog* m_netplay_dialog;
   DiscordHandler* m_netplay_discord;
   NetPlaySetupDialog* m_netplay_setup_dialog;
