@@ -8,7 +8,9 @@ rename-icon: dolphin-emu
 finish-args:
   - --device=all
   - --socket=pulseaudio
-  - --socket=x11
+  - --socket=wayland
+  # X11 is still used where Wayland isn't available, like in Gamescope on the Steam Deck
+  - --socket=fallback-x11
   - --share=network
   - --share=ipc
   # required for the emulated bluetooth adapter feature to work.
