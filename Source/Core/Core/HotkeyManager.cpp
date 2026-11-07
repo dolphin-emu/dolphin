@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -208,6 +210,11 @@ static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkey_down;
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
+// Hotkeys held down by something outside the controller interface, and those pressed since they
+// were last polled, so that a press is not missed if it is released before the next poll.
+static std::array<std::atomic<u32>, NUM_HOTKEY_GROUPS> s_external_held;
+static std::array<std::atomic<u32>, NUM_HOTKEY_GROUPS> s_external_pressed;
+
 static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", "Hotkeys");
 
 InputConfig* GetConfig()
@@ -249,6 +256,36 @@ bool IsPressed(int id, bool held)
   }
 
   return false;
+}
+
+void SetExternalState(int id, bool pressed)
+{
+  const auto* const manager = static_cast<HotkeyManager*>(s_config.GetController(0));
+  const int group = manager->FindGroupByID(id);
+  const u32 bit = 1u << manager->GetIndexForGroup(group, id);
+  if (pressed)
+  {
+    s_external_held[group] |= bit;
+    s_external_pressed[group] |= bit;
+  }
+  else
+  {
+    s_external_held[group] &= ~bit;
+  }
+}
+
+void ReleaseExternalState()
+{
+  for (std::size_t group = 0; group < NUM_HOTKEY_GROUPS; ++group)
+  {
+    s_external_held[group] = 0;
+    s_external_pressed[group] = 0;
+  }
+}
+
+static u32 TakeExternalState(std::size_t group)
+{
+  return s_external_held[group] | s_external_pressed[group].exchange(0);
 }
 
 void Initialize()
@@ -371,6 +408,9 @@ void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
     ASSERT(group_count <= bitmasks.size());
     kb->button[group] = 0;
     m_keys[group]->GetState(&kb->button[group], bitmasks.data());
+
+    if (ControlReference::GetInputGate())
+      kb->button[group] |= HotkeyManagerEmu::TakeExternalState(group);
   }
 }
 
