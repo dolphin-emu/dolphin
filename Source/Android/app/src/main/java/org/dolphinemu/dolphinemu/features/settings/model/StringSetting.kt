@@ -108,6 +108,12 @@ enum class StringSetting(
         "HostUrl",
         ""
     ),
+    ACHIEVEMENTS_HOST_OVERRIDE_APPS(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "HostOverrideApps",
+        ""
+    ),
     NETPLAY_TRAVERSAL_CHOICE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_NETPLAY,

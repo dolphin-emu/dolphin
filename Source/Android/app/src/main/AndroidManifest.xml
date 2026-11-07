@@ -149,14 +149,22 @@
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main" />
 
-        <receiver
-            android:name=".features.retroachievements.RetroAchievementsHostOverrideReceiver"
+        <provider
+            android:name=".features.retroachievements.RetroAchievementsHostOverrideProvider"
+            android:authorities="${applicationId}.retroachievements"
+            android:exported="true" />
+
+        <activity
+            android:name=".features.retroachievements.RetroAchievementsHostOverrideAccessActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="${applicationId}.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE" />
-                <action android:name="${applicationId}.action.CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE" />
+                <action android:name="${applicationId}.action.REQUEST_RETROACHIEVEMENTS_HOST_OVERRIDE_ACCESS" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </receiver>
+        </activity>
 
         <service
             android:name=".services.SyncChannelJobService"
