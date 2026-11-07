@@ -193,7 +193,7 @@ LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wPa
   case WM_SIZE:
   {
     if (g_presenter)
-      g_presenter->ResizeSurface();
+      g_presenter->ResizeSurface(LOWORD(lParam), HIWORD(lParam));
   }
   break;
 

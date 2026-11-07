@@ -168,7 +168,7 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::MacOS;
   else if (platform_name == QStringLiteral("xcb"))
     return WindowSystemType::X11;
-  else if (platform_name == QStringLiteral("wayland"))
+  else if (platform_name.startsWith(QStringLiteral("wayland")))
     return WindowSystemType::Wayland;
   else if (platform_name == QStringLiteral("haiku"))
     return WindowSystemType::Haiku;
@@ -198,6 +198,12 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   wsi.render_surface = wsi.render_window;
 #endif
   wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
+  if (wsi.type == WindowSystemType::Wayland && window)
+  {
+    // A wl_surface can't report its size.
+    wsi.render_surface_width = static_cast<int>(window->width() * wsi.render_surface_scale);
+    wsi.render_surface_height = static_cast<int>(window->height() * wsi.render_surface_scale);
+  }
 
   return wsi;
 }
@@ -1100,16 +1106,33 @@ void MainWindow::FullScreen()
   if (!was_fullscreen)
     m_render_widget_geometry = m_render_widget->saveGeometry();
 
-  HideRenderWidget(false);
-  SetFullScreenResolution(!was_fullscreen);
+  const auto change_window = [&] {
+    HideRenderWidget(false);
+    SetFullScreenResolution(!was_fullscreen);
 
-  if (was_fullscreen)
+    if (was_fullscreen)
+    {
+      ShowRenderWidget();
+    }
+    else
+    {
+      m_render_widget->showFullScreen();
+    }
+
+    // Make sure Qt has created the new surface (and the video backend has been told about it)
+    // before presenting resumes.
+    m_render_widget->winId();
+  };
+
+  if (GetWindowSystemType() == WindowSystemType::Wayland)
   {
-    ShowRenderWidget();
+    // The old wl_surface is destroyed when the window switches between a top-level window and an
+    // embedded one. The video backend must not present to it in the meantime.
+    Host::GetInstance()->RunWithPresentationPaused(change_window);
   }
   else
   {
-    m_render_widget->showFullScreen();
+    change_window();
   }
 }
 
@@ -1296,6 +1319,14 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
   {
     // Remove the widget from the stack and reparent it to nullptr, so that it can draw
     // itself in a new window if it wants. Disconnect the title updates.
+    if (GetWindowSystemType() == WindowSystemType::Wayland)
+    {
+      // Qt would reuse the wl_surface of the embedded window for the top-level window, but a
+      // surface that has been a subsurface can't be given the xdg_toplevel role.
+      if (QWindow* const window = m_render_widget->windowHandle())
+        window->destroy();
+    }
+
     m_stack->removeWidget(m_render_widget);
     m_render_widget->setParent(nullptr);
     m_rendering_to_main = false;

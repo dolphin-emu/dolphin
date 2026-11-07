@@ -10,6 +10,7 @@
 #include <QBrush>
 #include <QCursor>
 #include <QFont>
+#include <QGuiApplication>
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
@@ -20,11 +21,13 @@
 #include <QSize>
 #include <QString>
 #include <QVBoxLayout>
+#include <QWindow>
 
 #if defined(__APPLE__)
 #include <QToolTip>
 #endif
 
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
@@ -75,6 +78,13 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
 {
   s_parent = parent;
   setMouseTracking(true);
+
+  // Wayland clients don't know where their windows are on the screen, so a window can't be moved
+  // there. A tooltip has to be a popup positioned relative to a parent window instead. Popups don't
+  // have masks either, so the shape of the balloon has to come from a transparent background. This
+  // has to be set before the native window is created.
+  if (QtUtils::IsWayland())
+    setAttribute(Qt::WA_TranslucentBackground);
 
   QColor window_color;
   QColor text_color;
@@ -244,14 +254,28 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
   // The BalloonTip should be contained entirely within the screen that contains the target
   // position.
-  QScreen* screen = QGuiApplication::screenAt(target_arrow_tip_position);
-  if (screen == nullptr)
+  QScreen* screen = nullptr;
+  QRect screen_rect;
+  if (QtUtils::IsWayland())
   {
-    // If the target position isn't on any screen (which can happen if the window is partly off the
-    // screen and the user hovers over the label) then use the screen containing the cursor instead.
-    screen = QGuiApplication::screenAt(QCursor::pos());
+    // The target position is relative to the parent window, whose position on the screen is
+    // unknown. Search for the screen from the parent instead, and let the compositor keep the popup
+    // on the screen. The rectangle is only used to decide which way the arrow points.
+    screen = s_parent->screen();
+    screen_rect = QRect(QPoint(0, 0), screen->size());
   }
-  const QRect screen_rect = screen->geometry();
+  else
+  {
+    screen = QGuiApplication::screenAt(target_arrow_tip_position);
+    if (screen == nullptr)
+    {
+      // If the target position isn't on any screen (which can happen if the window is partly off
+      // the screen and the user hovers over the label) then use the screen containing the cursor
+      // instead.
+      screen = QGuiApplication::screenAt(QCursor::pos());
+    }
+    screen_rect = screen->geometry();
+  }
 
   QPainterPath rect_path;
   rect_path.addRoundedRect(rect_left, rect_top, rect_width, rect_height, corner_outer_radius,
@@ -270,6 +294,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   // Using Qt::FlatCap instead fixes the issue.
 
   m_pixmap = QPixmap(size_hint);
+  // The area outside of the balloon is visible with a translucent background
+  m_pixmap.fill(Qt::transparent);
 
   QPen border_pen(m_border_color, border_full_width);
   border_pen.setCapStyle(Qt::FlatCap);
@@ -384,8 +410,10 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
       screen_rect.left() + screen_rect.width() - size_hint.width();
   // If the balloon would extend off the screen, push it left or right until it's not
   const int actual_balloontip_global_x =
-      std::max(screen_rect.left(),
-               std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
+      QtUtils::IsWayland() ?
+          target_balloontip_global_x :
+          std::max(screen_rect.left(),
+                   std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
   // The tip pixel should be in the middle of the control, and arrow_tip_exterior_y is at the bottom
   // of that pixel. When arrow_at_bottom is true the arrow is above arrow_tip_exterior_y and so the
   // tip pixel is in the right place, but when it's false the arrow is below arrow_tip_exterior_y
@@ -393,6 +421,16 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const int tip_pixel_adjustment = arrow_at_bottom ? 0 : 1;
   const int actual_balloontip_global_y =
       target_arrow_tip_position.y() - arrow_tip_exterior_y - tip_pixel_adjustment;
+
+  if (QtUtils::IsWayland())
+  {
+    // Without a transient parent the compositor would make this a normal window, which it places
+    // wherever it likes instead of as a popup next to the parent.
+    create();
+    QWindow* const parent_window = s_parent->window()->windowHandle();
+    if (windowHandle() && parent_window)
+      windowHandle()->setTransientParent(parent_window);
+  }
 
   move(actual_balloontip_global_x, actual_balloontip_global_y);
 
