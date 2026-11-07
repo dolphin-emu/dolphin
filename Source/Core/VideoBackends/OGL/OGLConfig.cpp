@@ -111,7 +111,11 @@ void InitDriverInfo()
     break;
   case DriverDetails::VENDOR_MESA:
   {
-    if (svendor == "nouveau")
+    // Modern Mesa reports GL_VENDOR as "Mesa"; Nouveau is identified by its
+    // renderer string (GPU codenames such as NVC3, or "nouveau" in older
+    // Gallium strings). Without this, no DRIVER_NOUVEAU bug entry ever matches.
+    if (svendor == "nouveau" || srenderer.contains("nouveau") ||
+        (srenderer.size() >= 3 && srenderer[0] == 'N' && srenderer[1] == 'V'))
     {
       driver = DriverDetails::DRIVER_NOUVEAU;
     }
