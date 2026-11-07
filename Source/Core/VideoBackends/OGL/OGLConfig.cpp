@@ -732,6 +732,16 @@ bool PopulateConfig(GLContext* m_main_gl_context)
     OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
+#ifdef __linux__
+  if (std::string_view(g_ogl_config.gl_vendor) == "Intel" &&
+      std::string_view(g_ogl_config.gl_version).contains("Mesa"))
+  {
+    OSD::AddMessage("Intel Mesa OpenGL may cause GPU hangs on Linux. "
+                    "Consider switching to the Vulkan backend.",
+                    10000);
+  }
+#endif
+
   INFO_LOG_FMT(VIDEO, "Video Info: {}, {}, {}", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                g_ogl_config.gl_version);
 
