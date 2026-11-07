@@ -536,7 +536,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -770,7 +770,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // clipPos/w needs to be done in pixel shader, not here
-  if (!host_config.fast_depth_calc)
+  if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     out.Write("o.clipPos = o.pos;\n");
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
@@ -866,7 +866,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // are not supported, however that will require at least OpenGL 3.2 support.
     for (u32 i = 0; i < uid_data->numTexGens; ++i)
       out.Write("tex{}.xyz = o.tex{};\n", i, i);
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
       out.Write("clipPos = o.clipPos;\n");
     if (per_pixel_lighting)
     {

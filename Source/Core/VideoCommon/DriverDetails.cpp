@@ -67,6 +67,8 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_NOUVEAU, Family::UNKNOWN, BUG_BROKEN_UBO, 900, 916,
      true},
+    {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_NOUVEAU, Family::UNKNOWN, BUG_BROKEN_FRAG_COORD_DEPTH,
+     -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_R600, Family::UNKNOWN, BUG_BROKEN_UBO, 900, 913, true},
     {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_R600, Family::UNKNOWN, BUG_BROKEN_GEOMETRY_SHADERS,
      -1.0, 1112.0, true},
@@ -318,6 +320,7 @@ static const char* to_string(Bug bug)
     case BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY:          return "slow-optimal-image-to-buffer-copy";
     case BUG_BROKEN_TEV_COLOR_ZERO:                      return "broken-tev-color-zero";
     case BUG_BROKEN_DEPTH_CLAMP_CONTROL:                 return "broken-depth-clamp-control";
+    case BUG_BROKEN_FRAG_COORD_DEPTH:                    return "broken-frag-coord-depth";
   }
   return "Unknown";
 }

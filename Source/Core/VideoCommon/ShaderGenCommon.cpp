@@ -7,6 +7,7 @@
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -45,6 +46,8 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_dynamic_vertex_loader = g_backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
   bits.backend_gl_layer_in_fs = g_backend_info.bSupportsGLLayerInFS;
+  bits.backend_broken_frag_coord_depth =
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAG_COORD_DEPTH);
   return bits;
 }
 
@@ -193,7 +196,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     }
     index_offset += texgens;
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     {
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          index_base + index_offset);
@@ -226,7 +229,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     for (unsigned int i = 0; i < texgens; ++i)
       DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD", i);
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          texgens);
 
@@ -250,7 +253,7 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
   for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
 
-  if (!host_config.fast_depth_calc)
+  if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     object.Write("\t{}.clipPos = {}.clipPos;\n", a, b);
 
   if (host_config.per_pixel_lighting)

@@ -882,7 +882,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -1031,13 +1031,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
               ".y * screenpos.y);\n");
   }
-  else if (!host_config.fast_depth_calc)
+  else if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
   {
     // FastDepth means to trust the depth generated in perspective division.
     // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
     // For disabled FastDepth we just calculate the depth value again.
     // The performance impact of this additional calculation doesn't matter, but it prevents
     // the host GPU driver from performing any early depth test optimizations.
+    // Drivers with BUG_BROKEN_FRAG_COORD_DEPTH also take this path even with FastDepth
+    // enabled: their hardware depth value cannot be trusted for fog/ztexture either.
     out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
     // the screen space depth value = far z + (clip z / clip w) * z range
     out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS

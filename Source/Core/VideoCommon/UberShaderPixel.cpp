@@ -148,7 +148,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -939,7 +939,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  TevResult &= 255;\n\n");
 
-  if (host_config.fast_depth_calc)
+  if (host_config.fast_depth_calc && !host_config.backend_broken_frag_coord_depth)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
@@ -952,6 +952,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
               "[1].y));\n");
+    out.Write("  zCoord = clamp(zCoord, 0, 0xFFFFFF);\n"
+              "\n");
   }
 
   // ===========

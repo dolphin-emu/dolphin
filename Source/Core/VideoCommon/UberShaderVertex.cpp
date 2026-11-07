@@ -180,7 +180,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -402,11 +402,9 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
               "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
-  if (!host_config.fast_depth_calc)
-  {
-    // clipPos/w needs to be done in pixel shader, not here
+  // clipPos/w needs to be done in pixel shader, not here
+  if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
     out.Write("o.clipPos = o.pos;\n");
-  }
 
   if (per_pixel_lighting)
   {
@@ -497,7 +495,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
     // are not supported, however that will require at least OpenGL 3.2 support.
     for (u32 i = 0; i < num_texgen; ++i)
       out.Write("tex{}.xyz = o.tex{};\n", i, i);
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc || host_config.backend_broken_frag_coord_depth)
       out.Write("clipPos = o.clipPos;\n");
     if (per_pixel_lighting)
     {

@@ -357,7 +357,16 @@ enum Bug
   // Affected devices: Official AMD (RADV is unaffected)
   // Started Version: -1
   // Ended Version: -1
-  BUG_BROKEN_DEPTH_CLAMP_CONTROL
+  BUG_BROKEN_DEPTH_CLAMP_CONTROL,
+
+  // BUG: The hardware fragment depth (gl_FragCoord.z) does not yield the expected value in
+  // full game shaders, so deriving the fog/ztexture depth from it saturates fog across the
+  // scene when FastDepthCalc is enabled. Derive that depth from clip space instead, as is
+  // already done when FastDepthCalc is disabled.
+  // Affected devices: Nouveau (Mesa), verified on Fermi/NVC3
+  // Started Version: -1
+  // Ended Version: -1
+  BUG_BROKEN_FRAG_COORD_DEPTH
 };
 
 // Initializes our internal vendor, device family, and driver version
