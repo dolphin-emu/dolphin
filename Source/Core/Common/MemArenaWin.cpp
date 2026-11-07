@@ -120,10 +120,40 @@ static DWORD GetLowDWORD(u64 value)
 
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
-  m_memory_handle =
-      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
-                        GetLowDWORD(size), UTF8ToTStr(name).c_str());
+  // If a mapping of the given name already exists, CreateFileMapping() does not fail. It hands back
+  // a handle to that existing mapping instead, using its size rather than the requested one.
+  // Silently sharing another arena's memory is never what we want, so keep appending a counter
+  // until we get a mapping we actually created. MemArenaUnix gets this for free via O_EXCL.
+  //
+  // The name only distinguishes processes, so a collision happens whenever two arenas coexist
+  // within one process, which is the case if multiple copies of this code are loaded as a library.
+  constexpr u32 MAX_ATTEMPTS = 256;
+  for (u32 counter = 0; counter < MAX_ATTEMPTS; ++counter)
+  {
+    std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
+    if (counter != 0)
+      name += fmt::format(".{}", counter);
+
+    m_memory_handle =
+        CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
+                          GetLowDWORD(size), UTF8ToTStr(name).c_str());
+    const DWORD error = GetLastError();
+
+    if (!m_memory_handle)
+    {
+      ERROR_LOG_FMT(MEMMAP, "CreateFileMapping() failed: {}", GetWin32ErrorString(error));
+      return;
+    }
+
+    if (error != ERROR_ALREADY_EXISTS)
+      return;
+
+    CloseHandle(m_memory_handle);
+    m_memory_handle = nullptr;
+  }
+
+  ERROR_LOG_FMT(MEMMAP, "Found no unused name for the shared memory segment after {} attempts.",
+                MAX_ATTEMPTS);
 }
 
 void MemArena::ReleaseSHMSegment()
