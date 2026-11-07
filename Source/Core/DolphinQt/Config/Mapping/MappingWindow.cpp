@@ -417,6 +417,16 @@ void MappingWindow::UpdateDeviceList()
     m_devices_combo->addItem(qname, qname);
   }
 
+  // If another device stands in for the configured one (e.g. the keyboard and mouse after
+  // switching between X11 and Wayland), switch to it so new mappings refer to the device in use.
+  if (const auto device = g_controller_interface.FindDevice(m_controller->GetDefaultDevice()))
+  {
+    ciface::Core::DeviceQualifier devq;
+    devq.FromDevice(device.get());
+    if (!(devq == m_controller->GetDefaultDevice()))
+      m_controller->SetDefaultDevice(std::move(devq));
+  }
+
   const auto default_device = m_controller->GetDefaultDevice().ToString();
 
   if (!default_device.empty())
