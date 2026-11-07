@@ -254,6 +254,12 @@ std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq)
       return d;
   }
 
+  for (const auto& d : m_devices)
+  {
+    if (d->CanStandInFor(devq))
+      return d;
+  }
+
   return nullptr;
 }
 

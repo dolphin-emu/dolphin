@@ -247,6 +247,13 @@ public:
   std::string GetSource() const override { return std::string(SOURCE_NAME); }
   int GetSortPriority() const override { return DEFAULT_DEVICE_SORT_PRIORITY; }
 
+  // Keep configurations made under X11 working. The key names match those of the XInput2
+  // backend, and XInput2 stands in for this device the other way around.
+  bool CanStandInFor(const Core::DeviceQualifier& devq) const override
+  {
+    return devq.source == "XInput2";
+  }
+
   Core::DeviceRemoval UpdateInput() override
   {
     m_connection->DispatchPending();
