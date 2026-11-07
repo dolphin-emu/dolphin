@@ -51,12 +51,12 @@ struct PBMixerWM
 struct PBInitialTimeDelay
 {
   u16 on;
-  u16 addrMemHigh;
-  u16 addrMemLow;
-  u16 offsetLeft;
-  u16 offsetRight;
-  u16 targetLeft;
-  u16 targetRight;
+  u16 addr_hi;
+  u16 addr_lo;
+  u16 offset_left;
+  u16 offset_right;
+  u16 target_left;
+  u16 target_right;
 };
 
 struct PBUpdate
@@ -213,7 +213,7 @@ struct AXPB
   u16 is_stream;  // 1 = stream, anything else = one shot
 
   PBMixer mixer;
-  PBInitialTimeDelay initial_time_delay;
+  PBInitialTimeDelay itd;
   PBUpdates updates;
   PBDpop dpop;
   PBVolumeEnvelope vol_env;
@@ -271,7 +271,7 @@ struct AXPBWii
   u16 is_stream;  // 1 = stream, 0 = one shot
 
   PBMixerWii mixer;
-  PBInitialTimeDelay initial_time_delay;
+  PBInitialTimeDelay itd;
   PBDpopWii dpop;
   PBUpdatesWii updates;  // Not present in all versions of the struct.
   PBVolumeEnvelope vol_env;
