@@ -60,6 +60,13 @@ if(MSVC)
   target_link_libraries(dolphin-nogui PRIVATE use_pch)
 endif()
 
+if(WIN32)
+  check_linker_flag(CXX "-municode" HAS_MUNICODE)
+  if(HAS_MUNICODE)
+    target_link_options(dolphin-nogui PRIVATE -municode)
+  endif()
+endif()
+
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-nogui PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
