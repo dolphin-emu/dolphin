@@ -278,11 +278,11 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
+
+    m_samples_main_right[i] += val;
     if (neg)
       val = -val;
-
     m_samples_main_left[i] += val;
-    m_samples_main_right[i] += val;
   }
 }
 
