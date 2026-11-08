@@ -14,6 +14,10 @@
 	path = Externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
 	shallow = true
+[submodule "Externals/libzmq/libzmq"]
+	path = Externals/libzmq/libzmq
+	url = https://github.com/zeromq/libzmq.git
+	shallow = true
 [submodule "Externals/spirv_cross/SPIRV-Cross"]
 	path = Externals/spirv_cross/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
@@ -33,6 +37,10 @@
 [submodule "Externals/VulkanMemoryAllocator"]
 	path = Externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+	shallow = true
+[submodule "Externals/Cross-Compatible-FileLock-Windows-and-Linux"]
+	path = Externals/Cross-Compatible-FileLock-Windows-and-Linux
+	url = https://github.com/KaganCanSit/Cross-Compatible-FileLock-Windows-and-Linux.git
 	shallow = true
 [submodule "Externals/cubeb/cubeb"]
 	path = Externals/cubeb/cubeb

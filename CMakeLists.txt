@@ -762,6 +762,9 @@ dolphin_add_bundled_library(watcher Externals/watcher)
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
   dolphin_add_bundled_library(cpp-ipc Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
+elseif(APPLE)
+  add_subdirectory(Externals/libzmq)
+  add_definitions(-DHAVE_ZMQ)
 endif()
 
 ########################################
