@@ -83,7 +83,7 @@ std::vector<std::pair<std::string, std::string>> ListInputDevices()
 {
   std::vector<std::pair<std::string, std::string>> devices;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_INPUT, &collection);
 
@@ -147,7 +147,7 @@ cubeb_devid GetInputDeviceById(std::string_view id)
   if (id.empty())
     return nullptr;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = CubebUtils::GetContext();
   const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_INPUT, &collection);
 
@@ -181,7 +181,7 @@ std::vector<std::pair<std::string, std::string>> ListOutputDevices()
 {
   std::vector<std::pair<std::string, std::string>> devices;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   if (!cubeb_ctx)
     return devices;
@@ -215,7 +215,7 @@ const void* GetOutputDeviceById(std::string_view id)
   if (id.empty())
     return nullptr;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   if (!cubeb_ctx)
     return nullptr;
