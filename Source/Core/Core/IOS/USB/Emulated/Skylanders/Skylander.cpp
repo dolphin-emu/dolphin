@@ -1037,7 +1037,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   u64 expected_time_us;
   // Audio requests are 64 bytes long, are the only Interrupt requests longer than 32 bytes,
   // echo the request as the response and respond immediately
-  if (cmd->length > 32 && cmd->length <= 64)
+  if (cmd->endpoint == 2 && cmd->length > 32 && cmd->length <= 64)
   {
     // Play audio through Portal Mixer
     // Audio is unsigned 16 bit, supplied as 64 bytes which is 32 samples
