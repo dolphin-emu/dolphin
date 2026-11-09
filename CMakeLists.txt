@@ -709,6 +709,8 @@ if(ENABLE_SDL)
   add_definitions(-DHAVE_SDL3)
 endif()
 
+dolphin_add_bundled_library(ASIO Externals/asio)
+
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
 
 if(USE_UPNP)
