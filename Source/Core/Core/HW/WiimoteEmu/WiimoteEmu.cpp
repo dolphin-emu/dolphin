@@ -4,6 +4,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <memory>
 #include <optional>
@@ -503,14 +504,15 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
   // Accumulate depth (TV-facing) travel from the z-axis accelerometer data, as a pure
   // translation composed into a dual quaternion — the translational analogue of
-  // integrating the gyroscope into the orientation quaternion — then clamp it.
-  if (abs((target_state->acceleration.value.y - 512)) > 98)
-  {
-    const float dz = 0.0005f * float(target_state->acceleration.value.y - 512);
-    m_z_travel = Common::DualQuaternion::TranslateZ(dz) * m_z_travel;
-    m_z_travel = Common::DualQuaternion::TranslateZ(
-        std::clamp(m_z_travel.TranslationZ(), -SEPARATION_MAX, SEPARATION_MAX));
-  }
+  // integrating the gyroscope into the orientation quaternion.
+  // The raw-data threshold gate is folded into the increment as a relay dead-band
+  // (below-threshold strokes contribute 0), so the dual quaternion composes every
+  // frame and no control-flow gate is needed.
+  const float accel_dev = float(target_state->acceleration.value.y - 512);
+  const float gated = (std::abs(accel_dev) > 98.0f) ? accel_dev : 0.0f;
+  m_z_travel = Common::DualQuaternion::TranslateZ(0.0005f * gated) * m_z_travel;
+  m_z_travel = Common::DualQuaternion::TranslateZ(
+      std::clamp(m_z_travel.TranslationZ(), -SEPARATION_MAX, SEPARATION_MAX));
 
   // Calculate IR camera state.
   if (m_ir_passthrough->enabled.GetValue() && m_ir_passthrough->AreInputsBound())
