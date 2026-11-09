@@ -4,7 +4,6 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
-#include <cmath>
 #include <fstream>
 #include <memory>
 #include <optional>
@@ -56,6 +55,11 @@ namespace
 {
 // Maximum absolute depth travel fed to the IR pointer, in meters.
 constexpr float SEPARATION_MAX = 0.1f;
+// Converts stroke-axis acceleration (m/s^2) to z-travel (meters): the old raw-count
+// gain of 0.0005 per 10-bit count, expressed in m/s^2 (104 counts per g).
+constexpr float Z_TRAVEL_GAIN =
+    0.0005f * float((WiimoteEmu::Wiimote::ACCEL_ONE_G - WiimoteEmu::Wiimote::ACCEL_ZERO_G) << 2) /
+    float(MathUtil::GRAVITY_ACCELERATION);
 }  // namespace
 
 namespace WiimoteEmu
@@ -502,15 +506,16 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   target_state->acceleration =
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
-  // Accumulate depth (TV-facing) travel from the z-axis accelerometer data, as a pure
-  // translation composed into a dual quaternion — the translational analogue of
-  // integrating the gyroscope into the orientation quaternion.
-  // The raw-data threshold gate is folded into the increment as a relay dead-band
-  // (below-threshold strokes contribute 0), so the dual quaternion composes every
-  // frame and no control-flow gate is needed.
-  const float accel_dev = float(target_state->acceleration.value.y - 512);
-  const float gated = (std::abs(accel_dev) > 98.0f) ? accel_dev : 0.0f;
-  m_z_travel = Common::DualQuaternion::TranslateZ(0.0005f * gated) * m_z_travel;
+  // Accumulate depth (TV-facing) travel from the stroke-axis acceleration with gravity
+  // removed: subtracting the default gravity rotated into the remote frame by the
+  // current orientation leaves exactly the swing/shake (stroke) acceleration, so a
+  // still-held remote reads 0 at any tilt and no raw-data threshold is needed. The
+  // result is composed in as a pure translation into the dual quaternion.
+  const auto gravity_body =
+      GetOrientation() *
+      GetTransformation().Transform(Common::Vec3{0, 0, float(GRAVITY_ACCELERATION)}, 0);
+  const float a_stroke = GetTotalAcceleration().y - gravity_body.y;
+  m_z_travel = Common::DualQuaternion::TranslateZ(Z_TRAVEL_GAIN * a_stroke) * m_z_travel;
   m_z_travel = Common::DualQuaternion::TranslateZ(
       std::clamp(m_z_travel.TranslationZ(), -SEPARATION_MAX, SEPARATION_MAX));
 
