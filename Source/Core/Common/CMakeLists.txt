@@ -1,6 +1,7 @@
 add_library(common
   Analytics.cpp
   Analytics.h
+  AsioUtil.h
   Assembler/AssemblerShared.cpp
   Assembler/AssemblerShared.h
   Assembler/AssemblerTables.cpp
@@ -191,6 +192,7 @@ PUBLIC
   sfml-network
 
 PRIVATE
+  asio
   CURL::libcurl
   FatFs
   spng::spng
