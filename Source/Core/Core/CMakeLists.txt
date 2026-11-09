@@ -695,6 +695,7 @@ PUBLIC
   videosoftware
 
 PRIVATE
+  asio
   FatFs
   fmt::fmt
   LZO::LZO
