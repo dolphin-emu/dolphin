@@ -350,5 +350,9 @@ private:
   PositionalState m_shake_state;
 
   IMUCursorState m_imu_cursor_state;
+
+  // Travel of the IR pointer accumulated along the depth (TV-facing) axis, held as a
+  // pure-translation dual quaternion (identity rotation, translation in the dual part).
+  Common::DualQuaternion m_z_travel;
 };
 }  // namespace WiimoteEmu

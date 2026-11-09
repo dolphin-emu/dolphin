@@ -382,9 +382,37 @@ public:
 };
 
 Quaternion operator*(Quaternion lhs, const Quaternion& rhs);
+Quaternion operator+(Quaternion lhs, const Quaternion& rhs);
 Vec3 operator*(const Quaternion& lhs, const Vec3& rhs);
 
 Vec3 FromQuaternionToEuler(const Quaternion& q);
+
+// A rigid transformation (rotation + translation) encoded as a dual quaternion
+// Q = P + eps*V with eps^2 = 0: real_part holds the rotation, and the vector part
+// of dual_part holds half of the translation. Composition is by multiplication:
+// (P, V) * (P2, V2) = (P*P2, P*V2 + V*P2), which for two pure translations
+// (P = P2 = Identity) reduces to adding the translations — so a running
+// translation state accumulates by multiplying each new increment in.
+class DualQuaternion
+{
+public:
+  // The identity transformation (no rotation, no translation).
+  DualQuaternion() : real_part{Quaternion::Identity()}, dual_part{0.0f, 0.0f, 0.0f, 0.0f} {}
+
+  // Pure translation by the given vector (zero rotation).
+  static DualQuaternion Translate(const Vec3& translation);
+  static DualQuaternion TranslateZ(float z);
+
+  // Compose two rigid transformations: rhs is applied first, then this.
+  DualQuaternion operator*(const DualQuaternion& rhs) const;
+
+  // The translation encoded in the dual part.
+  Vec3 Translation() const;
+  float TranslationZ() const;
+
+  Quaternion real_part;
+  Quaternion dual_part;
+};
 
 class Matrix33
 {

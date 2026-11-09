@@ -51,7 +51,12 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 
-#define SEPERATION_MAX .1
+namespace
+{
+// Maximum absolute depth travel fed to the IR pointer, in meters.
+constexpr float SEPARATION_MAX = 0.1f;
+}  // namespace
+
 namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
@@ -203,6 +208,7 @@ void Wiimote::Reset()
   m_shake_state = {};
 
   m_imu_cursor_state = {};
+  m_z_travel = {};
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
@@ -477,7 +483,6 @@ GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
 void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
                                        SensorBarState sensor_bar_state)
 {
-  static double z_travel;
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
   m_hotkeys->UpdateState();
@@ -496,13 +501,15 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   target_state->acceleration =
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+  // Accumulate depth (TV-facing) travel from the z-axis accelerometer data, as a pure
+  // translation composed into a dual quaternion — the translational analogue of
+  // integrating the gyroscope into the orientation quaternion — then clamp it.
   if (abs((target_state->acceleration.value.y - 512)) > 98)
   {
-    z_travel += .0005 * (target_state->acceleration.value.y - 512);
-    if (z_travel > SEPERATION_MAX)
-      z_travel = SEPERATION_MAX;
-    if (z_travel < -SEPERATION_MAX)
-      z_travel = -SEPERATION_MAX;
+    const float dz = 0.0005f * float(target_state->acceleration.value.y - 512);
+    m_z_travel = Common::DualQuaternion::TranslateZ(dz) * m_z_travel;
+    m_z_travel = Common::DualQuaternion::TranslateZ(
+        std::clamp(m_z_travel.TranslationZ(), -SEPARATION_MAX, SEPARATION_MAX));
   }
 
   // Calculate IR camera state.
@@ -516,7 +523,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
         GetTotalTransformation(),
         Common::Vec2(MathUtil::DegreesToRadians(m_fov_x_setting.GetValue()),
                      MathUtil::DegreesToRadians(m_fov_y_setting.GetValue())),
-        z_travel);
+        m_z_travel.TranslationZ());
   }
   else
   {

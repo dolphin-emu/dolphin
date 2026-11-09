@@ -114,6 +114,12 @@ Quaternion operator*(Quaternion lhs, const Quaternion& rhs)
   return lhs *= rhs;
 }
 
+Quaternion operator+(Quaternion lhs, const Quaternion& rhs)
+{
+  return Quaternion(lhs.data.w + rhs.data.w, lhs.data.x + rhs.data.x, lhs.data.y + rhs.data.y,
+                     lhs.data.z + rhs.data.z);
+}
+
 Vec3 operator*(const Quaternion& lhs, const Vec3& rhs)
 {
   const auto result = lhs * Quaternion(0, rhs.x, rhs.y, rhs.z) * lhs.Conjugate();
@@ -144,6 +150,37 @@ Vec3 FromQuaternionToEuler(const Quaternion& q)
   result.z = std::atan2(siny_cosp, cosy_cosp);
 
   return result;
+}
+
+DualQuaternion DualQuaternion::Translate(const Vec3& translation)
+{
+  DualQuaternion result;
+  result.dual_part = Quaternion(0.0f, 0.5f * translation.x, 0.5f * translation.y,
+                                0.5f * translation.z);
+  return result;
+}
+
+DualQuaternion DualQuaternion::TranslateZ(float z)
+{
+  return Translate({0.0f, 0.0f, z});
+}
+
+DualQuaternion DualQuaternion::operator*(const DualQuaternion& rhs) const
+{
+  DualQuaternion result;
+  result.real_part = real_part * rhs.real_part;
+  result.dual_part = (real_part * rhs.dual_part) + (dual_part * rhs.real_part);
+  return result;
+}
+
+Vec3 DualQuaternion::Translation() const
+{
+  return Vec3{2.0f * dual_part.data.x, 2.0f * dual_part.data.y, 2.0f * dual_part.data.z};
+}
+
+float DualQuaternion::TranslationZ() const
+{
+  return 2.0f * dual_part.data.z;
 }
 
 Matrix33 Matrix33::Identity()
