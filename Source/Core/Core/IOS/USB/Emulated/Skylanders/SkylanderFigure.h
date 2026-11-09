@@ -53,23 +53,27 @@ struct FigureData final
   };
 };
 
-constexpr u32 BLOCK_COUNT = 0x40;
-constexpr u32 BLOCK_SIZE = 0x10;
-constexpr u32 FIGURE_SIZE = BLOCK_COUNT * BLOCK_SIZE;
+constexpr std::size_t BLOCK_COUNT = 0x40;
+constexpr std::size_t BLOCK_SIZE = 0x10;
+constexpr std::size_t FIGURE_SIZE = BLOCK_COUNT * BLOCK_SIZE;
 
 class SkylanderFigure
 {
 public:
-  SkylanderFigure(const std::string& file_path);
-  SkylanderFigure(File::IOFile file);
+  explicit SkylanderFigure(const std::string& file_path);
+  explicit SkylanderFigure(File::IOFile file);
+
   bool Create(u16 sky_id, u16 sky_var,
               std::optional<std::array<u8, 4>> requested_nuid = std::nullopt);
   void Save();
   void Close();
   bool FileIsOpen() const;
+
   void GetBlock(u8 index, u8* dest) const;
   void SetBlock(u8 block, const u8* buf);
+
   void DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const;
+
   FigureData GetData() const;
   void SetData(FigureData* data);
 
@@ -80,6 +84,6 @@ private:
   void Encrypt(std::span<const u8, FIGURE_SIZE>);
 
   File::IOFile m_sky_file;
-  std::array<u8, FIGURE_SIZE> m_data;
+  std::array<u8, FIGURE_SIZE> m_data{};
 };
 }  // namespace IOS::HLE::USB

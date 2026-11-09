@@ -263,7 +263,7 @@ void AdvancedPane::CreateLayout()
   mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem2_override_slider_layout);
 
-  m_mem2_override_slider = new ConfigSliderU32(64, 128, Config::MAIN_MEM2_SIZE, 0x100000);
+  m_mem2_override_slider = new ConfigSliderU32(64, 256, Config::MAIN_MEM2_SIZE, 0x100000);
   mem2_override_slider_layout->addWidget(m_mem2_override_slider);
 
   m_mem2_label =
@@ -276,10 +276,9 @@ void AdvancedPane::CreateLayout()
   });
 
   m_ram_override_checkbox->SetDescription(
-      tr("Adjusts the amount of RAM in the emulated console.<br><br>"
-         "<b>WARNING</b>: Enabling this will completely break many games.<br>Only a small "
-         "number "
-         "of games can benefit from this."
+      tr("Sets the amount of RAM in the emulated console to the values provided.<br><br>"
+         "<b>WARNING</b>: Enabling this will completely break many games. By default, Dolphin "
+         "determines what value is required based on the game information."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));

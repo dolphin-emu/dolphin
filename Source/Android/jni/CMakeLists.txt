@@ -13,7 +13,11 @@ add_library(main SHARED
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  GameList/TitleDatabase.cpp
+  GameList/TitleDatabase.h
   GpuDriver.cpp
+  HotkeyScheduler.cpp
+  HotkeyScheduler.h
   InfinityConfig.cpp
   Input/Control.cpp
   Input/Control.h

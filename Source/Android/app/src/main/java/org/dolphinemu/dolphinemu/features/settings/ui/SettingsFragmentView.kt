@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui
 
+import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -50,6 +51,12 @@ interface SettingsFragmentView {
      * @param menuKey Identifier for the settings group that should be shown.
      */
     fun loadSubMenu(menuKey: MenuTag)
+
+    /**
+     * Opens the settings screen containing a search result and scrolls to the result.
+     */
+    fun loadSearchResult(menuKey: MenuTag, settingPosition: Int, extras: Bundle?)
+
     fun showDialogFragment(fragment: DialogFragment)
 
     /**
@@ -67,7 +74,7 @@ interface SettingsFragmentView {
     /**
      * Have the fragment tell the containing Activity that a Setting was modified.
      */
-    fun onSettingChanged()
+    fun onSettingChanged(setting: SettingsItem? = null)
 
     /**
      * Refetches the values of all controller settings.
@@ -94,6 +101,11 @@ interface SettingsFragmentView {
      * @param value   The current value of the Setting.
      */
     fun hasMenuTagActionForValue(menuTag: MenuTag, value: Int): Boolean
+
+    /**
+     * Returns the arguments used when opening a navigable setting's associated screen.
+     */
+    fun getMenuTagActionExtras(menuTag: MenuTag, value: Int): Bundle?
 
     /**
      * Controls whether the input mapping dialog should detect inputs from all devices,

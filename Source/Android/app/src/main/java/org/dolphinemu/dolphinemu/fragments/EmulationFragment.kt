@@ -165,6 +165,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         runWhenSurfaceIsValid = true
     }
 
+    fun resetEmulation() {
+        Log.debug("[EmulationFragment] Resetting emulation.")
+        NativeLibrary.ResetEmulation()
+    }
+
     fun stopEmulation() {
         Log.debug("[EmulationFragment] Stopping emulation.")
         NativeLibrary.StopEmulation()

@@ -134,7 +134,7 @@ static void ExceptionThread(mach_port_t port)
 {
   Common::SetCurrentThreadName("Mach exception thread");
 #pragma pack(4)
-  struct
+  struct alignas(8)
   {
     mach_msg_header_t Head;
     NDR_record_t NDR;
@@ -147,7 +147,7 @@ static void ExceptionThread(mach_port_t port)
     mach_msg_trailer_t trailer;
   } msg_in;
 
-  struct
+  struct alignas(8)
   {
     mach_msg_header_t Head;
     NDR_record_t NDR;

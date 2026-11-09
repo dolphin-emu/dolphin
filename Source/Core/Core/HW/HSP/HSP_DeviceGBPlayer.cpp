@@ -162,8 +162,8 @@ private:
   u8 m_bits_per_sample = 9;
 };
 
-CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* player)
-    : IGBPlayer(system, player), m_gba_core{m_system, Config::GBPLAYER_GBA_INDEX}
+CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* gbplayer)
+    : IGBPlayer(system, gbplayer), m_gba_core{m_system, Config::GBPLAYER_GBA_INDEX}
 {
   auto& core_timing = m_system.GetCoreTiming();
 

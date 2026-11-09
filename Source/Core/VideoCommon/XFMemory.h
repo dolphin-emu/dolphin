@@ -18,7 +18,7 @@ constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
 // Lighting
 
 // Projection
-enum class TexSize : u32
+enum class TexSize : u8
 {
   ST = 0,
   STQ = 1
@@ -30,7 +30,7 @@ struct fmt::formatter<TexSize> : EnumFormatter<TexSize::STQ>
 };
 
 // Input form
-enum class TexInputForm : u32
+enum class TexInputForm : u8
 {
   AB11 = 0,
   ABC1 = 1
@@ -63,7 +63,7 @@ struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::Invalid>
 };
 
 // Texture generation type
-enum class TexGenType : u32
+enum class TexGenType : u8
 {
   Regular = 0,
   EmbossMap = 1,  // Used when bump mapping
@@ -83,7 +83,7 @@ struct fmt::formatter<TexGenType> : EnumFormatter<TexGenType::Color1>
 };
 
 // Source row
-enum class SourceRow : u32
+enum class SourceRow : u8
 {
   Geom = 0,    // Input is abc
   Normal = 1,  // Input is abc
@@ -318,11 +318,11 @@ struct fmt::formatter<INVTXSPEC>
 union TexMtxInfo
 {
   BitField<0, 1, u32> unknown;
-  BitField<1, 1, TexSize> projection;
-  BitField<2, 1, TexInputForm> inputform;
+  BitField<1, 1, TexSize, u32> projection;
+  BitField<2, 1, TexInputForm, u32> inputform;
   BitField<3, 1, u32> unknown2;
-  BitField<4, 3, TexGenType> texgentype;
-  BitField<7, 5, SourceRow> sourcerow;
+  BitField<4, 3, TexGenType, u32> texgentype;
+  BitField<7, 5, SourceRow, u32> sourcerow;
   BitField<12, 3, u32> embosssourceshift;  // what generated texcoord to use
   BitField<15, 3, u32> embosslightshift;   // light index that is used
   u32 hex;

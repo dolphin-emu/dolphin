@@ -58,5 +58,30 @@ inline Digest CalculateDigest(const std::array<T, Size>& msg)
 }
 
 std::string DigestToString(const Digest& digest);
-std::string DigestToSource(const Digest& digest);
+
+constexpr Digest StringToDigest(std::string_view str)
+{
+  Digest digest{};
+  ASSERT(str.size() == digest.size() * 2);
+
+  for (size_t i = 0; i < str.size(); ++i)
+  {
+    const char c = str[i];
+    u8 quartet;
+    if (c >= '0' && c <= '9')
+      quartet = c - '0';
+    else if (c >= 'A' && c <= 'F')
+      quartet = c - 'A' + 10;
+    else if (c >= 'a' && c <= 'f')
+      quartet = c - 'a' + 10;
+    else
+      ASSERT(false);
+
+    if (i % 2 == 0)
+      digest[i / 2] = quartet << 4;
+    else
+      digest[i / 2] |= quartet;
+  }
+  return digest;
+}
 }  // namespace Common::SHA1

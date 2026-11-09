@@ -99,8 +99,6 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/SkipAction.h
   GraphicsModSystem/Runtime/CustomPipeline.cpp
   GraphicsModSystem/Runtime/CustomPipeline.h
-  GraphicsModSystem/Runtime/CustomShaderCache.cpp
-  GraphicsModSystem/Runtime/CustomShaderCache.h
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h
@@ -258,9 +256,9 @@ if(_M_X86_64)
   )
 elseif(_M_ARM_64)
   target_sources(videocommon PRIVATE
+    TextureDecoder_ARM64.cpp
     VertexLoaderARM64.cpp
     VertexLoaderARM64.h
-    TextureDecoder_Generic.cpp
   )
 else()
   target_sources(videocommon PRIVATE

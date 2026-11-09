@@ -7,8 +7,8 @@ plugins {
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdk = 36
-    ndkVersion = "29.0.14206865"
+    compileSdk = 37
+    ndkVersion = "30.0.15729638"
 
     buildFeatures {
         compose = true
@@ -38,7 +38,7 @@ android {
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
 
         versionCode = getBuildVersionCode()
 
@@ -91,12 +91,18 @@ android {
     externalNativeBuild {
         cmake {
             path = file("../../../CMakeLists.txt")
-            version = "3.22.1+"
+            version = "3.25.0+"
         }
     }
     namespace = "org.dolphinemu.dolphinemu"
 
     defaultConfig {
+        ndk {
+            // We only officially support arm64-v8a and x86_64.
+            // If you want to try building other ABIs anyway, you need -DENABLE_GENERIC=ON.
+            abiFilters += listOf("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
+        }
+
         externalNativeBuild {
             cmake {
                 arguments(
@@ -105,7 +111,6 @@ android {
                     "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
                     // , "-DENABLE_GENERIC=ON"
                 )
-                abiFilters("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
 
                 // Uncomment the line below if you don't want to build the C++ unit tests
                 //targets("main", "hook_impl", "main_hook", "gsl_alloc_hook", "file_redirect_hook")
@@ -115,12 +120,6 @@ android {
 
     packaging {
         jniLibs.useLegacyPackaging = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
 
@@ -171,6 +170,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
+
+    implementation(libs.accompanist)
 }
 
 fun getGitVersion(): String {

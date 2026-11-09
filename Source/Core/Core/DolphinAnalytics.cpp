@@ -354,6 +354,9 @@ void DolphinAnalytics::MakePerGameBuilder()
   // Unique id bound to the gameid.
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
+  // Other game-specific fields.
+  builder.AddData("simulated-memory-size", SConfig::GetInstance().GetSimulatedMemorySize());
+
   // Configuration.
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
   builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));

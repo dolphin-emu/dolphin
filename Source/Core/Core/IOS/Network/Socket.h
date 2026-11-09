@@ -17,23 +17,19 @@ typedef pollfd pollfd_t;
 #elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or   \
     defined(__OpenBSD__) or defined(__HAIKU__)
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <net/if.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#if defined(ANDROID) || defined(__HAIKU__)
-#include <fcntl.h>
-#else
-#include <sys/fcntl.h>
-#endif
-#include <net/if.h>
-#include <netinet/in.h>
-#include <poll.h>
 
 typedef struct pollfd pollfd_t;
 #else
+#include <fcntl.h>
 #include <netinet/in.h>
-#include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
@@ -304,7 +300,6 @@ private:
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last = 0;
   std::vector<PollCommand> pending_polls;
-  std::chrono::time_point<std::chrono::high_resolution_clock> last_time =
-      std::chrono::high_resolution_clock::now();
+  TimePoint last_time = Clock::now();
 };
 }  // namespace IOS::HLE

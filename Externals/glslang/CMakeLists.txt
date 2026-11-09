@@ -17,5 +17,4 @@ if (TARGET glslang)
   PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
   )
-  dolphin_disable_warnings(glslang)
 endif()

@@ -23,6 +23,21 @@ enum class GBAPadGroup
 class GBAPad : public ControllerEmu::EmulatedController
 {
 public:
+  static constexpr u16 GBA_BUTTON_A = 1u << 0;
+  static constexpr u16 GBA_BUTTON_B = 1u << 1;
+  static constexpr u16 GBA_BUTTON_SELECT = 1u << 2;
+  static constexpr u16 GBA_BUTTON_START = 1u << 3;
+  static constexpr u16 GBA_BUTTON_RIGHT = 1u << 4;
+  static constexpr u16 GBA_BUTTON_LEFT = 1u << 5;
+  static constexpr u16 GBA_BUTTON_UP = 1u << 6;
+  static constexpr u16 GBA_BUTTON_DOWN = 1u << 7;
+  static constexpr u16 GBA_BUTTON_R = 1u << 8;
+  static constexpr u16 GBA_BUTTON_L = 1u << 9;
+
+  static constexpr u16 GBA_ALL_BUTTONS = (1u << 10) - 1;
+
+  static constexpr u16 PAD_STATUS_RESET_SIGNAL = 1u << 10;
+
   explicit GBAPad(unsigned int index);
   GCPadStatus GetInput();
   void SetReset(bool reset);

@@ -42,13 +42,14 @@ public:
 
 class NullEFBInterface final : public EFBInterfaceBase
 {
-  void ReinterpretPixelData(EFBReinterpretType convtype) override;
+  void ReinterpretPixelData(FramebufferManager* framebuffer_manager,
+                            EFBReinterpretType convtype) override;
 
-  void PokeColor(u16 x, u16 y, u32 color) override;
-  void PokeDepth(u16 x, u16 y, u32 depth) override;
+  void PokeColor(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 color) override;
+  void PokeDepth(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 depth) override;
 
-  u32 PeekColorInternal(u16 x, u16 y) override;
-  u32 PeekDepthInternal(u16 x, u16 y) override;
+  u32 PeekColorInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y) override;
+  u32 PeekDepthInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y) override;
 };
 
 }  // namespace Null

@@ -233,8 +233,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
-  const auto fov_default =
-      Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
+  const auto fov_default = Common::DVec2(MathUtil::RadiansToDegrees(CameraLogic::CAMERA_FOV_X),
+                                         MathUtil::RadiansToDegrees(CameraLogic::CAMERA_FOV_Y));
   m_imu_ir->AddSetting(&m_fov_x_setting,
                        // i18n: FOV stands for "Field of view".
                        {_trans("Horizontal FOV"),
@@ -312,15 +312,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
 
   Reset();
-
-  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
-  RefreshConfig();
 }
 
-Wiimote::~Wiimote()
-{
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
-}
+Wiimote::~Wiimote() = default;
 
 std::string Wiimote::GetName() const
 {
@@ -520,8 +514,8 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   {
     target_state->camera_points = CameraLogic::GetCameraPoints(
         GetTotalTransformation(),
-        Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
-            float(MathUtil::TAU),
+        Common::Vec2(MathUtil::DegreesToRadians(m_fov_x_setting.GetValue()),
+                     MathUtil::DegreesToRadians(m_fov_y_setting.GetValue())),
         z_travel);
   }
   else
@@ -837,11 +831,6 @@ void Wiimote::SetRumble(bool on)
 {
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
-}
-
-void Wiimote::RefreshConfig()
-{
-  m_speaker_logic.SetSpeakerEnabled(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
 }
 
 void Wiimote::StepDynamics()

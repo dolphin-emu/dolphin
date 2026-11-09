@@ -176,8 +176,12 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
       m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
   }
   m_skylander_portal_mixer.Mix(samples, num_samples);
-  for (auto& mixer : m_gba_mixers)
-    mixer.Mix(samples, num_samples);
+  m_achievement_mixer.Mix(samples, num_samples);
+  for (std::size_t i = 0; i < m_gba_mixers.size(); ++i)
+  {
+    if (!m_config_gba_routing_enabled || !m_config_gba_output_enabled[i])
+      m_gba_mixers[i].Mix(samples, num_samples);
+  }
 
   return num_samples;
 }
@@ -265,6 +269,9 @@ void Mixer::PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samp
   if (!IsOutputSampleRateValid() || wiimote_index >= m_wiimote_speaker_mixers.size())
     return;
 
+  if (!m_config_wiimote_enable_speaker)
+    return;
+
   // WiimoteEmu produces host-endian mono samples.
 
   m_wiimote_speaker_mixers[wiimote_index].SetInputSampleRateDivisor(sample_rate_divisor);
@@ -317,6 +324,27 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   }
 }
 
+void Mixer::PushAchievementSamples(const s16* samples, std::size_t num_samples)
+{
+  if (!IsOutputSampleRateValid())
+    return;
+
+  // AchievementManager pushes host-endian LR-ordered stereo samples.
+  for (std::size_t i = 0; i != num_samples; ++i)
+  {
+    m_achievement_mixer.PushSample(samples[i * 2], samples[i * 2 + 1]);
+  }
+}
+
+std::size_t Mixer::MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples)
+{
+  if (!samples || device_number >= m_gba_mixers.size())
+    return 0;
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_gba_mixers[device_number].Mix(samples, num_samples);
+  return num_samples;
+}
+
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
 {
   m_dma_mixer.SetInputSampleRateDivisor(rate_divisor);
@@ -330,6 +358,12 @@ void Mixer::SetStreamInputSampleRateDivisor(u32 rate_divisor)
 void Mixer::SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate)
 {
   m_gba_mixers[device_number].SetInputSampleRateDivisor(GBA_SAMPLE_RATE_DIVIDEND / sample_rate);
+}
+
+void Mixer::SetAchievementSampleRate(u32 sample_rate)
+{
+  m_achievement_mixer.SetInputSampleRateDividend(sample_rate);
+  m_achievement_mixer.SetInputSampleRateDivisor(1);
 }
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
@@ -433,6 +467,10 @@ void Mixer::RefreshConfig()
   m_config_wiimote_routing_enabled = Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
   for (std::size_t i = 0; i < m_config_wiimote_output_enabled.size(); ++i)
     m_config_wiimote_output_enabled[i] = Config::Get(Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
+  m_config_gba_routing_enabled = Config::Get(Config::MAIN_GBA_AUDIO_ROUTING_ENABLED);
+  for (std::size_t i = 0; i < m_config_gba_output_enabled.size(); ++i)
+    m_config_gba_output_enabled[i] = Config::Get(Config::MAIN_GBA_AUDIO_OUTPUT_ENABLED[i]);
+  m_config_wiimote_enable_speaker = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

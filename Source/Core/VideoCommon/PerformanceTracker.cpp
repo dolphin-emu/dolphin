@@ -94,7 +94,7 @@ void PerformanceTracker::HandleRawDt(DT diff)
   // Sometimes euler averages can break when the average is inf/nan
   const auto hz_avg = m_hz_avg.load();
   if (std::isfinite(hz_avg))
-    m_hz_avg = hz_avg + a * (hz - hz_avg);
+    m_hz_avg = std::lerp(hz_avg, hz, a);
   else
     m_hz_avg = hz;
 

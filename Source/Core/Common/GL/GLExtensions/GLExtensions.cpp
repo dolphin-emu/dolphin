@@ -2157,8 +2157,10 @@ static void InitExtensionList(GLContext* context)
     default:
     case 320:
       s_extension_list["VERSION_GLES_3_2"] = true;
+      [[fallthrough]];
     case 310:
       s_extension_list["VERSION_GLES_3_1"] = true;
+      [[fallthrough]];
     case 300:
       s_extension_list["VERSION_GLES_3"] = true;
       break;
@@ -2195,6 +2197,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl450exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 440:
     {
@@ -2211,6 +2214,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl440exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 430:
     {
@@ -2239,6 +2243,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl430exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 420:
     {
@@ -2259,6 +2264,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl420exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 410:
     {
@@ -2273,6 +2279,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl410exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 400:
     {
@@ -2293,6 +2300,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl400exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 330:
     {
@@ -2311,6 +2319,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl330exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 320:
     {
@@ -2328,6 +2337,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl320exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 310:
     {
@@ -2343,6 +2353,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl310exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 300:
     {
@@ -2374,6 +2385,7 @@ static void InitExtensionList(GLContext* context)
       };
       for (auto it : gl300exts)
         s_extension_list[it] = true;
+      [[fallthrough]];
     }
     case 210:
     case 200:

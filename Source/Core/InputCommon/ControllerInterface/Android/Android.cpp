@@ -69,6 +69,7 @@ jmethodID s_controller_interface_unregister_input_device_listener;
 jmethodID s_controller_interface_get_vibrator_manager;
 jmethodID s_controller_interface_get_system_vibrator_manager;
 jmethodID s_controller_interface_vibrate;
+jmethodID s_controller_interface_cancel_vibration;
 
 jclass s_sensor_event_listener_class;
 jmethodID s_sensor_event_listener_constructor;
@@ -602,6 +603,11 @@ public:
       IDCache::GetEnvForThread()->CallStaticVoidMethod(s_controller_interface_class,
                                                        s_controller_interface_vibrate, m_vibrator);
     }
+    else if (old_state >= 0.5 && state < 0.5)
+    {
+      IDCache::GetEnvForThread()->CallStaticVoidMethod(
+          s_controller_interface_class, s_controller_interface_cancel_vibration, m_vibrator);
+    }
   }
 
 private:
@@ -892,6 +898,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       "()Lorg/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager;");
   s_controller_interface_vibrate =
       env->GetStaticMethodID(s_controller_interface_class, "vibrate", "(Landroid/os/Vibrator;)V");
+  s_controller_interface_cancel_vibration = env->GetStaticMethodID(
+      s_controller_interface_class, "cancelVibration", "(Landroid/os/Vibrator;)V");
   env->DeleteLocalRef(controller_interface_class);
 
   const jclass sensor_event_listener_class =

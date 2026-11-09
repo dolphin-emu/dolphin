@@ -330,7 +330,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     case ConfigurationOption::OptionType::Float:
     {
       std::ostringstream value;
-      value.imbue(std::locale("C"));
+      value.imbue(std::locale::classic());
 
       for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
       {

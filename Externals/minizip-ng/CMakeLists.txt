@@ -41,4 +41,3 @@ set(CMAKE_DISABLE_FIND_PACKAGE_PkgConfig TRUE)
 set(PKGCONFIG_FOUND FALSE)
 
 add_subdirectory(minizip-ng)
-dolphin_disable_warnings(minizip-ng)

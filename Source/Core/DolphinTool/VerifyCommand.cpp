@@ -3,12 +3,14 @@
 
 #include "DolphinTool/VerifyCommand.h"
 
+#include <array>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
 #include <OptionParser.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 
 #include "Core/AchievementManager.h"
 #include "DiscIO/Volume.h"
@@ -74,6 +76,7 @@ static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
 
 int VerifyCommand(const std::vector<std::string>& args)
 {
+  using namespace std::literals;
   optparse::OptionParser parser;
 
   parser.usage("usage: verify [options]...");
@@ -91,12 +94,13 @@ int VerifyCommand(const std::vector<std::string>& args)
       .help("Path to input file.")
       .metavar("FILE");
 
+  static constexpr std::array algorithms{"crc32"sv, "md5"sv, "sha1"sv, "rchash"sv};
   parser.add_option("-a", "--algorithm")
       .type("string")
       .action("store")
-      .help("Optional. Compute and print the digest using the selected algorithm, then exit. "
-            "[%choices]")
-      .choices({"crc32", "md5", "sha1", "rchash"});
+      .help("Optional. Compute and print the digest using the selected algorithm, then exit.")
+      .metavar(fmt::format("{}", fmt::join(algorithms, "|")))
+      .choices(algorithms.begin(), algorithms.end());
 
   const optparse::Values& options = parser.parse_args(args);
 

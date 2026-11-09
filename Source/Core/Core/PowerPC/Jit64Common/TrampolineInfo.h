@@ -8,7 +8,7 @@
 #include "Common/x64Emitter.h"
 
 // Stores information we need to batch-patch a MOV with a call to the slow read/write path after
-// it faults. There will be 10s of thousands of these structs live, so be wary of making this too
+// it faults. There will be 100s of thousands of these structs live, so be wary of making this too
 // big.
 struct TrampolineInfo final
 {
@@ -46,4 +46,7 @@ struct TrampolineInfo final
   s32 offset = 0;
   Gen::X64Reg op_reg{};
   Gen::OpArg op_arg{};
+
+  // It's not set if memcheck is disabled. Otherwise, it's almost always set.
+  u8* exception_handler_at_loc = nullptr;
 };

@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Inline.h"
+#include "Core/Config/MainSettings.h"
 
 class PointerWrap;
 
@@ -34,6 +35,7 @@ public:
                                  std::size_t num_samples, u32 sample_rate_divisor);
   void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
+  void PushAchievementSamples(const s16* samples, std::size_t num_samples);
 
   u32 GetSampleRate() const { return m_output_sample_rate; }
   void SetSampleRate(u32 output_sample_rate) { m_output_sample_rate = output_sample_rate; }
@@ -44,11 +46,13 @@ public:
   void SetDMAInputSampleRateDivisor(u32 rate_divisor);
   void SetStreamInputSampleRateDivisor(u32 rate_divisor);
   void SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate);
+  void SetAchievementSampleRate(u32 sample_rate);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
   void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
   std::size_t MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples, std::size_t num_samples);
   void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
+  std::size_t MixGBA(std::size_t device_number, s16* samples, std::size_t num_samples);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
@@ -174,11 +178,12 @@ private:
       MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000},
   };
   MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000};
+  MixerFifo m_achievement_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 44100};
 
   // GBAs generally use a 65536 sample rate which is not a factor of our FIXED_SAMPLE_RATE_DIVIDEND.
   static constexpr u32 GBA_SAMPLE_RATE_DIVIDEND = 0x1000000;
 
-  std::array<MixerFifo, 4> m_gba_mixers{
+  std::array<MixerFifo, Config::GBA_SPEAKER_COUNT> m_gba_mixers{
       MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
       MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
       MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
@@ -200,6 +205,9 @@ private:
   int m_config_audio_buffer_ms;
   bool m_config_wiimote_routing_enabled = false;
   std::array<bool, 4> m_config_wiimote_output_enabled{};
+  bool m_config_gba_routing_enabled = false;
+  std::array<bool, Config::GBA_SPEAKER_COUNT> m_config_gba_output_enabled{};
+  bool m_config_wiimote_enable_speaker;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

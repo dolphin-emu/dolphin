@@ -46,3 +46,5 @@ CMakeLists.txt.user
 
 # clangd cache for Neovim
 .cache/clangd
+# Ignore CMake user presets
+CMakeUserPresets.json

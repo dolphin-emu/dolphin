@@ -186,7 +186,7 @@ object ControllerInterface {
     private fun vibrate(vibrator: Vibrator) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vibrator.vibrate(
-                VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE),
+                VibrationEffect.createOneShot(10000, VibrationEffect.DEFAULT_AMPLITUDE),
                 VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_MEDIA).build()
             )
         } else {
@@ -194,14 +194,20 @@ object ControllerInterface {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 @Suppress("DEPRECATION")
                 vibrator.vibrate(
-                    VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE),
+                    VibrationEffect.createOneShot(10000, VibrationEffect.DEFAULT_AMPLITUDE),
                     attributes
                 )
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(100, attributes)
+                vibrator.vibrate(10000, attributes)
             }
         }
+    }
+
+    @Keep
+    @JvmStatic
+    private fun cancelVibration(vibrator: Vibrator) {
+        vibrator.cancel()
     }
 
     private class InputDeviceListener : InputManager.InputDeviceListener {

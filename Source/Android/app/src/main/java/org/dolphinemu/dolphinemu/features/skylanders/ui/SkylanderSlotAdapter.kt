@@ -47,7 +47,7 @@ class SkylanderSlotAdapter(
 
         holder.binding.buttonLoadFigure.setOnClickListener {
             activity.setSkylanderData(0, 0, "", position)
-            activity.requestSkylanderFile.launch("*/*")
+            activity.requestSkylanderFile.launch(arrayOf("*/*"))
         }
 
         val inflater = LayoutInflater.from(activity)

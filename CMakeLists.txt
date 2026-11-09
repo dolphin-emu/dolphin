@@ -1,17 +1,17 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.20...4.2.1)
+cmake_minimum_required(VERSION 3.25...4.2.1)
 
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
-
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW) # MSVC debug information format flags are selected by an abstraction.
-endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0.0" CACHE STRING "")
+
+# When we don't set a sysroot, AppleClang will put /usr/local/include at a higher
+# priority than -isystem paths, which can cause weird include issues in Externals
+set(CMAKE_OSX_SYSROOT macosx CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverride.cmake")
 
@@ -23,9 +23,20 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
 
-if (CMAKE_VERSION VERSION_LESS "3.25" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(LINUX TRUE)
-endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+
+# Support functions
+include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
+include(CheckSymbolExists)
+include(DolphinCompileDefinitions)
+include(DolphinDisableWarnings)
+include(DolphinLibraryTools)
+include(GNUInstallDirs)
+include(RemoveCompileFlag)
+
+# When using the Visual Studio generator, only show our targets and not the ones from Externals.
+set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT dolphin-emu)
 
 if (MSVC)
   set(CMAKE_C_STANDARD 99)
@@ -38,25 +49,35 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the c++23 features we use
-set (GCC_min_version 12)
-set (Clang_min_version 15)
-set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.3") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 19.32)
-set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
+# Minimum required versions
+# Toolsets
+set(Xcode_min_version 26.0)
+set(MSVC_toolset_min_version 143)
+# Compilers
+set(GCC_min_version 12)
+set(Clang_min_version 18)
+set(AppleClang_min_version 21.0.0)
+set(MSVC_min_version 19.32)
+# Standard libraries
+set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
+set(libc++_min_version 180000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz"
+
+dolphin_check_toolset_version("Xcode" XCODE_VERSION ${Xcode_min_version})
+dolphin_check_toolset_version("MSVC Toolset" MSVC_TOOLSET_VERSION ${MSVC_toolset_min_version})
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 
-if ("-" STREQUAL "${${COMPILER}_min_version}-")
+if(NOT DEFINED ${COMPILER}_min_version)
   message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
-else()
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
-    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
-    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
-    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
-  endif()
+elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${${COMPILER}_min_version})
+  message(FATAL_ERROR "Requires ${COMPILER} ${${COMPILER}_min_version} or higher")
 endif()
+
+# libstdc++ is almost always used on Linux, even when using clang as the compiler.
+# libc++ is used on the likes of Android, Apple devices, FreeBSD, and a few (very) rare Linux distros like Chimera Linux.
+# Windows uses its own standard library named STL, which we check as part of the toolset above. (outside of MinGW which can use either libstdc++ or libc++)
+dolphin_check_std_version("GNU_libstdc++" _GLIBCXX_RELEASE ${libstdc++_min_version})
+dolphin_check_std_version("LLVM_libc++" _LIBCPP_VERSION ${libc++_min_version})
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
@@ -82,7 +103,7 @@ if(APPROVED_VENDORED_DEPENDENCIES)
   message(WARNING "APPROVED_VENDORED_DEPENDENCIES is deprecated.  Please migrate to setting USE_SYSTEM_LIBS to ON and setting USE_SYSTEM_<dependency> to either AUTO or OFF to allow bundled libs.")
 endif()
 option(USE_UPNP "Enables UPnP port mapping support" ON)
-option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
+option(ENABLE_NOGUI "Enable NoGUI frontend" OFF)
 option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -97,6 +118,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -146,26 +168,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
-if(UNIX)
-  # Builds a relocatable binary on Linux.
-  # The Sys folder will need to be copied to the Binaries folder.
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-endif()
-
-list(APPEND CMAKE_MODULE_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake
-)
-
-# Support functions
-include(CheckAndAddFlag)
-include(CheckCCompilerFlag)
-include(CheckSymbolExists)
-include(DolphinCompileDefinitions)
-include(DolphinDisableWarningsMSVC)
-include(DolphinLibraryTools)
-include(GNUInstallDirs)
-include(RemoveCompileFlag)
-
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -179,23 +181,22 @@ if(CMAKE_SYSROOT)
   set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
 endif()
 
-# Set where the binary files will be built.  The program will not execute from
-# here.  You must run "make install" to install these to the proper location
-# as defined above.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+# Output directory for the Dolphin binary
+# We need to use a generator expression here to ensure that multi-config generators
+# (like Visual Studio) put the binaries in the right place.
+# See https://cmake.org/cmake/help/v4.2/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/Binaries>)
 
-if (WIN32)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
+# Output directory for PDB files. PDBs are only generated on Windows with MSVC.
+# We set a common directory for all PDBs to avoid littering the Binaries/ directory.
+set(CMAKE_PDB_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/pdb>)
 
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)
-  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
+if(ENABLE_CCACHE)
+  include(CCache)
+  if(NOT CCACHE_BIN)
+    message(WARNING "Ccache was enabled but not found. This build will not use Ccache.")
   endif()
 endif()
-
-# setup CCache
-include(CCache)
 
 # Architecture detection and arch specific settings
 message(STATUS "Detected architecture: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -213,6 +214,9 @@ else()
 endif()
 
 if(ENABLE_GENERIC)
+  if(WIN32)
+    message(FATAL_ERROR "Generic builds are not supported on Windows!")
+  endif()
   message(STATUS "Warning! Building generic build!")
   set(_M_GENERIC 1)
   add_definitions(-D_M_GENERIC=1)
@@ -229,6 +233,12 @@ else()
   message(FATAL_ERROR "You're building on an unsupported platform: "
       "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
       " Enable generic build if you really want a JIT-less binary.")
+endif()
+
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+  set(DOLPHIN_HOST ARM64)
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x64|x86_64|amd64|AMD64")
+  set(DOLPHIN_HOST x64)
 endif()
 
 if(CMAKE_GENERATOR MATCHES "Ninja")
@@ -269,6 +279,7 @@ if(MSVC)
 
   # Additional warnings
   add_compile_options(
+    /w15262 # Unannotated fallthrough between switch labels
     /w44263 # Non-virtual member function hides base class virtual function
     /w44265 # Class has virtual functions, but destructor is not virtual
     /w44946 # Reinterpret cast between related types
@@ -384,12 +395,6 @@ if(ENABLE_LTO)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   else()
     message(STATUS "IPO / LTO not supported: <${error}>")
-  endif()
-endif()
-
-if(UNIX)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
   endif()
 endif()
 
@@ -609,36 +614,36 @@ endif()
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 if (_M_X86_64)
-  add_subdirectory(Externals/Bochs_disasm)
+  dolphin_add_bundled_library(Bochs_disasm Externals/Bochs_disasm)
 endif()
-add_subdirectory(Externals/cpp-optparse)
+dolphin_add_bundled_library(cpp-optparse Externals/cpp-optparse)
 
 dolphin_find_optional_system_library_pkgconfig(FMT
   fmt>=10.1 fmt::fmt Externals/fmt
 )
 
-add_subdirectory(Externals/imgui)
-add_subdirectory(Externals/implot)
+dolphin_add_bundled_library(ImGui Externals/imgui)
+dolphin_add_bundled_library(ImPlot Externals/implot)
 
 dolphin_find_optional_system_library(glslang Externals/glslang DOLPHIN_TRY_VERSIONS 15 16)
 
 # SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
 # video backends, and on Apple devices for the Metal video backend.
 if(WIN32 OR APPLE)
-  add_subdirectory(Externals/spirv_cross)
+  dolphin_add_bundled_library(SPIRV-Cross Externals/spirv_cross)
 endif()
-add_subdirectory(Externals/tinygltf)
+dolphin_add_bundled_library(TinyGLTF Externals/tinygltf)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
   if(APPLE AND USE_BUNDLED_MOLTENVK)
-    add_subdirectory(Externals/MoltenVK)
+    dolphin_add_bundled_library(MoltenVK Externals/MoltenVK)
   endif()
 
 
   if (ANDROID AND _M_ARM_64)
-    add_subdirectory(Externals/libadrenotools)
+    dolphin_add_bundled_library(libadrenotools Externals/libadrenotools)
   endif()
 endif()
 
@@ -680,14 +685,12 @@ dolphin_find_optional_system_library_pkgconfig(lz4 liblz4>=1.8 LZ4::LZ4 External
 
 dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/libspng)
 
-# Using static FreeSurround from Externals
 # There is no system FreeSurround library.
-message(STATUS "Using static FreeSurround from Externals")
-add_subdirectory(Externals/FreeSurround)
+dolphin_add_bundled_library(FreeSurround Externals/FreeSurround)
 
 if (APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
-  add_subdirectory(Externals/ed25519)
+  dolphin_add_bundled_library(ed25519 Externals/ed25519)
   include_directories(Externals/ed25519)
 endif()
 
@@ -703,6 +706,7 @@ endif()
 
 if(ENABLE_SDL)
   dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
+  add_definitions(-DHAVE_SDL3)
 endif()
 
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
@@ -721,8 +725,7 @@ if(NOT ANDROID)
 endif()
 
 if(USE_DISCORD_PRESENCE)
-  message(STATUS "Using static DiscordRPC from Externals")
-  add_subdirectory(Externals/discord-rpc EXCLUDE_FROM_ALL)
+  dolphin_add_bundled_library(DiscordRPC Externals/discord-rpc)
   include_directories(Externals/discord-rpc/include)
 endif()
 
@@ -745,19 +748,19 @@ endif()
 
 include_directories(Externals/picojson)
 
-add_subdirectory(Externals/expr)
+dolphin_add_bundled_library(expr Externals/expr)
 
-add_subdirectory(Externals/FatFs)
+dolphin_add_bundled_library(FatFs Externals/FatFs)
 
 if (USE_RETRO_ACHIEVEMENTS)
-  add_subdirectory(Externals/rcheevos)
+  dolphin_add_bundled_library(rcheevos Externals/rcheevos)
 endif()
 
-add_subdirectory(Externals/watcher)
+dolphin_add_bundled_library(watcher Externals/watcher)
 
 # Any other platform or BSD is currently unsupported by cpp-ipc
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  add_subdirectory(Externals/cpp-ipc)
+  dolphin_add_bundled_library(cpp-ipc Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
 endif()
 
@@ -830,7 +833,7 @@ add_subdirectory(Source)
 # Install shared data files
 #
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
-  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/Sys PATTERN)
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES COPYING DESTINATION ${datadir})

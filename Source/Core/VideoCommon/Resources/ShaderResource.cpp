@@ -400,11 +400,15 @@ void ShaderResource::SetHostConfig(const ShaderHostConfig& host_config)
 
 void ShaderResource::MarkAsPending()
 {
+  if (!m_shader_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetPending(m_shader_asset);
 }
 
 void ShaderResource::MarkAsActive()
 {
+  if (!m_shader_asset) [[unlikely]]
+    return;
   m_resource_context.asset_cache->MarkAssetActive(m_shader_asset);
 }
 
@@ -451,6 +455,9 @@ void ShaderResource::ResetData()
 
 Resource::TaskComplete ShaderResource::CollectPrimaryData()
 {
+  if (!m_shader_asset) [[unlikely]]
+    return Resource::TaskComplete::Error;
+
   const auto shader_data = m_shader_asset->GetData();
   if (!shader_data) [[unlikely]]
   {

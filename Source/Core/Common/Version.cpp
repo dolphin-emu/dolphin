@@ -80,11 +80,15 @@ const std::string& GetScmUpdateTrackStr()
 const std::string& GetNetplayDolphinVer()
 {
 #ifdef _WIN32
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
+  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Windows";
 #elif __APPLE__
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
+  static const std::string netplay_dolphin_ver = SCM_DESC_STR " macOS";
+#elif ANDROID
+  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Android";
+#elif __linux__
+  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Linux";
 #else
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
+  static const std::string netplay_dolphin_ver = SCM_DESC_STR;
 #endif
   return netplay_dolphin_ver;
 }

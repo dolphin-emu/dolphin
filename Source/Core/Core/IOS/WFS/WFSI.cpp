@@ -156,7 +156,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 
     if (!ES::IsValidTMDSize(tmd_size))
     {
-      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large ({})", tmd_size);
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size invalid ({})", tmd_size);
       return_error_code = IPC_EINVAL;
       break;
     }

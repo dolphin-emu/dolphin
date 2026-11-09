@@ -51,7 +51,7 @@ class FigureSlotAdapter(
 
         holder.binding.buttonLoadFigure.setOnClickListener {
             activity.setInfinityFigureData(0, "", figure.position, position)
-            activity.requestInfinityFigureFile.launch("*/*")
+            activity.requestInfinityFigureFile.launch(arrayOf("*/*"))
         }
 
         val inflater = LayoutInflater.from(activity)

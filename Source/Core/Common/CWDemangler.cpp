@@ -111,7 +111,7 @@ static std::optional<std::size_t> find_split(std::string_view s, bool special,
   return std::nullopt;
 }
 
-ParseQualifiersResult parse_qualifiers(std::string_view str)
+static ParseQualifiersResult parse_qualifiers(std::string_view str)
 {
   std::string pre;
   std::string post;
@@ -171,7 +171,7 @@ ParseQualifiersResult parse_qualifiers(std::string_view str)
   return {pre, post, str};
 }
 
-std::optional<ParseDigitsResult> parse_digits(std::string_view str)
+static std::optional<ParseDigitsResult> parse_digits(std::string_view str)
 {
   if (str.empty())
     return std::nullopt;

@@ -14,6 +14,8 @@
 #include <QStyle>
 #include <QVBoxLayout>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -395,7 +397,7 @@ void WiiTASInputWindow::LoadExtensionAndMotionPlus()
   {
     Common::IniFile ini;
     ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
-    const std::string section_name = "Wiimote" + std::to_string(m_num + 1);
+    const std::string section_name = fmt::format("Wiimote{}", m_num + 1);
 
     std::string extension;
     ini.GetIfExists(section_name, "Extension", &extension);

@@ -367,6 +367,9 @@ object NativeLibrary {
     external fun PauseEmulation(overrideAchievementRestrictions: Boolean)
 
     @JvmStatic
+    external fun ResetEmulation()
+
+    @JvmStatic
     external fun StopEmulation()
 
   /**

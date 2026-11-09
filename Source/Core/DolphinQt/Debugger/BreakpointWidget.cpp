@@ -78,7 +78,7 @@ private:
     opt.decorationSize = QSize(0, 0);
 
     // Default draw command for paint.
-    QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, 0);
+    QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, nullptr);
 
     // Draw pixmap at the center of the tablewidget cell
     QPixmap pix = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
@@ -311,7 +311,7 @@ void BreakpointWidget::Update()
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::transparent);
 
-    const float icon_radius = static_cast<float>(image.height()) / 2.0f;
+    const float icon_radius = image.deviceIndependentSize().height() / 2.0f;
     const float gap_radius = icon_radius / 2.0f;
     const QPointF center(icon_radius, icon_radius);
 

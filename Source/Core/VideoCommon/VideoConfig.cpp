@@ -179,6 +179,7 @@ void VideoConfig::Refresh()
   bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
   bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
   bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  uSkipEFBCopyToRamClearByte = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM_CLEAR_BYTE);
   bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   bDisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
   bDeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
@@ -390,7 +391,6 @@ void CheckForConfigChanges()
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_gfx->WaitForGPUIdle();
     g_vertex_manager->InvalidatePipelineObject();
-    g_vertex_manager->NotifyCustomShaderCacheOfHostChange(new_host_config);
     g_shader_cache->SetHostConfig(new_host_config);
     g_shader_cache->Reload();
     g_framebuffer_manager->RecompileShaders();

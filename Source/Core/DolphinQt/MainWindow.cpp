@@ -297,8 +297,8 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
     }
   }
 
-  m_state_slot =
-      std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES));
+  State::SetSelectedSlot(
+      std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES)));
 
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
 
@@ -1531,12 +1531,12 @@ void MainWindow::StateSave()
 
 void MainWindow::StateLoadSlot()
 {
-  State::Load(m_system, m_state_slot);
+  State::LoadSelected(m_system);
 }
 
 void MainWindow::StateSaveSlot()
 {
-  State::Save(m_system, m_state_slot);
+  State::SaveSelected(m_system);
 }
 
 void MainWindow::StateLoadSlotAt(int slot)
@@ -1572,27 +1572,17 @@ void MainWindow::StateSaveOldest()
 void MainWindow::SetStateSlot(int slot)
 {
   Settings::Instance().SetStateSlot(slot);
-  m_state_slot = slot;
-
-  Core::DisplayMessage(fmt::format("Selected slot {} - {}", m_state_slot,
-                                   State::GetInfoStringOfSlot(m_state_slot, false)),
-                       2500);
+  State::SelectSlot(slot);
 }
 
 void MainWindow::IncrementSelectedStateSlot()
 {
-  u32 state_slot = m_state_slot + 1;
-  if (state_slot > State::NUM_STATES)
-    state_slot = 1;
-  m_menu_bar->SetStateSlot(state_slot);
+  m_menu_bar->SetStateSlot(State::GetNextSlot());
 }
 
 void MainWindow::DecrementSelectedStateSlot()
 {
-  u32 state_slot = m_state_slot - 1;
-  if (state_slot < 1)
-    state_slot = State::NUM_STATES;
-  m_menu_bar->SetStateSlot(state_slot);
+  m_menu_bar->SetStateSlot(State::GetPreviousSlot());
 }
 
 void MainWindow::PerformOnlineUpdate(const std::string& region)

@@ -279,8 +279,18 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
 
 void HostFileSystem::DoState(PointerWrap& p)
 {
-  // Temporarily close the file, to prevent any issues with the savestating of files/folders.
-  for (Handle& handle : m_handles)
+  // This piece of code is handling four separate problems:
+  // 1. Close host handles by calling reset on them, in case DoStateRead needs to modify a file that
+  //    was open.
+  // 2. Close guest handles by setting opened to false on each element in m_handles, in case
+  //    DoStateRead needs to modify a file that was open.
+  // 3. Close guest handles by setting opened to false on each element in m_handles, because if all
+  //    of them were open, it would make DoStateRead/DoStateWriteOrMeasure's calls to OpenFile fail.
+  // 4. Create a copy of m_handles that we can restore later in case we're writing/measuring,
+  //    because OpenFile happily stomps over elements in m_handles that have opened set to false.
+  auto handles_copy = std::move(m_handles);
+  m_handles = {};
+  for (Handle& handle : handles_copy)
     handle.host_file.reset();
 
   // The format for the next part of the save state is follows:
@@ -316,6 +326,8 @@ void HostFileSystem::DoState(PointerWrap& p)
         memcpy(nand_size_ptr, &size_of_nand, sizeof(size_of_nand));
       }
     }
+
+    m_handles = std::move(handles_copy);
   }
   else  // case where we're in read mode.
   {
@@ -681,7 +693,7 @@ static u64 ComputeUsedClusters(const File::FSTEntry& parent_entry)
     if (entry.isDirectory)
       clusters += ComputeUsedClusters(entry);
     else
-      clusters += Common::AlignUp(entry.size, CLUSTER_SIZE) / CLUSTER_SIZE;
+      clusters += Common::DivideRoundingUp(entry.size, CLUSTER_SIZE);
   }
   return clusters;
 }

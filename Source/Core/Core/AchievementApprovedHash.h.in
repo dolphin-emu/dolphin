@@ -1,0 +1,10 @@
+// Copyright 2026 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+#include "Common/Crypto/SHA1.h"
+
+static constexpr std::string_view ACHIEVEMENT_APPROVED_LIST_FILENAME = "ApprovedInis.json";
+static constinit inline Common::SHA1::Digest ACHIEVEMENT_APPROVED_LIST_HASH =
+    Common::SHA1::StringToDigest("@ACHIEVEMENT_APPROVED_LIST_HASH@");

@@ -47,6 +47,8 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
 
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);
   config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, dtm->bSkipEFBCopyToRam);
+  config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM_CLEAR_BYTE,
+                    dtm->uSkipEFBCopyToRamClearByte);
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
   config_layer->Set(Config::GFX_HACK_IMMEDIATE_XFB, dtm->bImmediateXFB);
   config_layer->Set(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, dtm->bSkipXFBCopyToRam);
@@ -108,6 +110,7 @@ void SaveToDTM(Movie::DTMHeader* dtm)
 
   dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  dtm->uSkipEFBCopyToRamClearByte = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM_CLEAR_BYTE);
   dtm->bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   dtm->bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
   dtm->bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
@@ -115,6 +118,29 @@ void SaveToDTM(Movie::DTMHeader* dtm)
   dtm->bUseFMA = Config::Get(Config::SESSION_USE_FMA);
 
   dtm->bFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+
+  dtm->controllers = 0;
+  dtm->bongos = 0;
+  dtm->GBAControllers = 0;
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device != SerialInterface::SIDEVICE_NONE)
+      dtm->controllers |= 1 << i;
+
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      dtm->GBAControllers |= 1 << i;
+    else if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
+      dtm->bongos |= 1 << i;
+  }
+  if (dtm->bWii)
+  {
+    for (int i = 0; i < MAX_WIIMOTES; ++i)
+    {
+      if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None)
+        dtm->controllers |= 1 << (i + 4);
+    }
+  }
 
   // Settings which only existed in old Dolphin versions
   dtm->bSkipIdle = true;

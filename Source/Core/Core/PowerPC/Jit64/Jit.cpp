@@ -34,6 +34,7 @@
 #include "Core/Host.h"
 #include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -170,22 +171,24 @@ bool Jit64::BackPatch(SContext* ctx)
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
 
-  auto it = m_back_patch_info.find(codePtr);
-  if (it == m_back_patch_info.end())
+  // Find the block
+  auto block_it = m_back_patch_info.lower_bound(codePtr);
+  if (block_it == m_back_patch_info.end())
   {
-    PanicAlertFmt("BackPatch: no register use entry for address {}", fmt::ptr(codePtr));
+    PanicAlertFmt("BackPatch: no block returned for address {}", fmt::ptr(codePtr));
+    return false;
+  }
+  // Then find the entry
+  auto entry_it = std::ranges::find_if(block_it->second, [codePtr](auto& entry) {
+    return codePtr < entry.start + entry.len && codePtr >= entry.start;
+  });
+  if (entry_it == block_it->second.end())
+  {
+    PanicAlertFmt("BackPatch: entry for address {} not found in block", fmt::ptr(codePtr));
     return false;
   }
 
-  TrampolineInfo& info = it->second;
-
-  u8* exceptionHandler = nullptr;
-  if (jo.memcheck)
-  {
-    auto it2 = m_exception_handler_at_loc.find(codePtr);
-    if (it2 != m_exception_handler_at_loc.end())
-      exceptionHandler = it2->second;
-  }
+  TrampolineInfo& entry = *entry_it;
 
   // In the trampoline code, we jump back into the block at the beginning
   // of the next instruction. The next instruction comes immediately
@@ -195,21 +198,19 @@ bool Jit64::BackPatch(SContext* ctx)
   // to insert the backpatch jump.)
 
   js.generatingTrampoline = true;
-  js.trampolineExceptionHandler = exceptionHandler;
-  js.compilerPC = info.pc;
+  js.trampolineExceptionHandler = entry.exception_handler_at_loc;
+  js.compilerPC = entry.pc;
 
   // Generate the trampoline.
-  const u8* trampoline = trampolines.GenerateTrampoline(info);
+  const u8* trampoline = trampolines.GenerateTrampoline(entry);
   js.generatingTrampoline = false;
   js.trampolineExceptionHandler = nullptr;
 
-  u8* start = info.start;
-
   // Patch the original memory operation.
-  XEmitter emitter(start, start + info.len);
+  XEmitter emitter(entry.start, entry.start + entry.len);
   emitter.JMP(trampoline);
   // NOPs become dead code
-  const u8* end = info.start + info.len;
+  const u8* end = entry.start + entry.len;
   for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
     emitter.INT3();
 
@@ -217,10 +218,10 @@ bool Jit64::BackPatch(SContext* ctx)
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
   // swap it back so that the swap can happen again (this double swap isn't ideal but
   // only happens the first time we fault).
-  if (info.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
+  if (entry.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
   {
-    u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
-    switch (info.accessSize << 3)
+    u64* ptr = ContextRN(ctx, entry.nonAtomicSwapStoreSrc);
+    switch (entry.accessSize << 3)
     {
     case 8:
       // No need to swap a byte
@@ -242,19 +243,27 @@ bool Jit64::BackPatch(SContext* ctx)
 
   // This is special code to undo the LEA in SafeLoadToReg if it clobbered the address
   // register in the case where reg_value shared the same location as opAddress.
-  if (info.offsetAddedToAddress)
+  if (entry.offsetAddedToAddress)
   {
-    u64* ptr = ContextRN(ctx, info.op_arg.GetSimpleReg());
-    *ptr = static_cast<u32>(*ptr - info.offset);
+    u64* ptr = ContextRN(ctx, entry.op_arg.GetSimpleReg());
+    *ptr = static_cast<u32>(*ptr - entry.offset);
   }
+
+  // Delete the entry
+  block_it->second.erase(entry_it);
+  if (block_it->second.empty())
+    m_back_patch_info.erase(block_it);
 
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
 
   return true;
 }
 
-void Jit64::Init()
+bool Jit64::Init()
 {
+  if (!CheckValidity())
+    return false;
+
   InitFastmemArena();
 
   RefreshConfig();
@@ -263,7 +272,7 @@ void Jit64::Init()
 
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  js.fastmemLoadStore = nullptr;
+  js.fastmemLoadStore = false;
   js.compilerPC = 0;
 
   gpr.SetEmitter(this);
@@ -284,7 +293,9 @@ void Jit64::Init()
 
   m_stack_guard = nullptr;
 
-  blocks.Init();
+  if (!blocks.Init())
+    return false;
+
   asm_routines.Init();
 
   // important: do this *after* generating the global asm routines, because we can't use farcode in
@@ -299,6 +310,8 @@ void Jit64::Init()
   EnableOptimization();
 
   ResetFreeMemoryRanges();
+
+  return true;
 }
 
 void Jit64::ClearCache()
@@ -321,7 +334,12 @@ void Jit64::FreeRanges()
   // Check if any code blocks have been freed in the block cache and transfer this information to
   // the local rangesets to allow overwriting them with new code.
   for (const auto& [from, to] : blocks.GetRangesToFreeNear())
+  {
+    // This erase isn't just a matter of memory usage: because lookups first use lower_bound to get
+    // the entries of the currently running block, a destroyed block could interfere if left here.
+    m_back_patch_info.erase(from);
     m_free_ranges_near.insert(from, to);
+  }
   for (const auto& [from, to] : blocks.GetRangesToFreeFar())
     m_free_ranges_far.insert(from, to);
   blocks.ClearRangesToFree();
@@ -865,6 +883,13 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_begin = far_start;
       b->far_end = far_end;
 
+      if (!m_back_patch_info_temp.empty())
+      {
+        // The copy from temp is intentional, to minimize allocations due to exceeded vector
+        // capacity.
+        m_back_patch_info.emplace(near_start, m_back_patch_info_temp);
+      }
+
       blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
@@ -922,6 +947,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.curBlock = b;
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
+  m_back_patch_info_temp.clear();
 
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   b->normalEntry = AlignCode4();
@@ -958,7 +984,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
   // this lets them use fastmem).
-  if (!js.pairedQuantizeAddresses.contains(js.blockStart))
+  if (!js.pairedQuantizeAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them
     BitSet8 gqr_static = ComputeStaticGQRs(code_block);
@@ -987,7 +1013,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
   }
 
-  if (!js.noSpeculativeConstantsAddresses.contains(js.blockStart))
+  if (!js.noSpeculativeConstantsAddresses.TestBit(js.blockStart / sizeof(UGeckoInstruction)))
   {
     IntializeSpeculativeConstants();
   }
@@ -1003,7 +1029,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->num_cycles;
-    js.fastmemLoadStore = nullptr;
+    js.fastmemLoadStore = false;
     js.fixupExceptionHandler = false;
 
     if (i == (code_block.m_num_instructions - 1))
@@ -1015,7 +1041,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
+      bool gatherPipeIntCheck =
+          js.fifoWriteAddresses.TestBit(prev_address / sizeof(UGeckoInstruction));
 
       // Gather pipe writes using an immediate address are explicitly tracked.
       if (jo.optimizeGatherPipe &&
@@ -1203,12 +1230,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SwitchToFarCode();
         if (!js.fastmemLoadStore)
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = nullptr;
           SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
         }
         else
         {
-          m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
+          m_back_patch_info_temp.back().exception_handler_at_loc = GetWritableCodePtr();
         }
 
         RCForkGuard gpr_guard = gpr.Fork();

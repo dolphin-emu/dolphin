@@ -1,3 +1,6 @@
+include(CheckCXXSourceCompiles)
+include(CheckCXXSymbolExists)
+
 # like add_library(new ALIAS old) but avoids add_library cannot create ALIAS target "new" because target "old" is imported but not globally visible. on older cmake
 # This can be replaced with a direct alias call once our minimum is cmake 3.18
 function(dolphin_alias_library new old)
@@ -38,8 +41,21 @@ function(dolphin_optional_system_library out_use_system library)
   endif()
 endfunction()
 
-function(dolphin_add_bundled_library library use_system bundled_path)
-  if (${use_system} STREQUAL "AUTO")
+function(dolphin_find_directory_targets dir result)
+  get_directory_property(targets DIRECTORY ${dir} BUILDSYSTEM_TARGETS)
+
+  get_property(subdirs DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+  foreach(subdir IN LISTS subdirs)
+    dolphin_find_directory_targets(${subdir} sub_targets)
+    list(APPEND targets ${sub_targets})
+  endforeach()
+
+  set(${result} "${targets}" PARENT_SCOPE)
+endfunction()
+
+function(dolphin_add_bundled_library library bundled_path)
+  set(use_system "${ARGV2}")
+  if (use_system STREQUAL "AUTO")
     message(STATUS "No system ${library} was found.  Using static ${library} from Externals.")
   else()
     message(STATUS "Using static ${library} from Externals")
@@ -48,6 +64,15 @@ function(dolphin_add_bundled_library library use_system bundled_path)
     message(FATAL_ERROR "No bundled ${library} was found.  Did you forget to checkout submodules?")
   endif()
   add_subdirectory(${bundled_path} EXCLUDE_FROM_ALL)
+  dolphin_find_directory_targets(${bundled_path} bundled_targets)
+  foreach(target IN LISTS bundled_targets)
+    get_target_property(type ${target} TYPE)
+    get_target_property(imported ${target} IMPORTED)
+    if(imported OR type STREQUAL "INTERFACE_LIBRARY" OR type STREQUAL "UTILITY")
+      continue()
+    endif()
+    dolphin_disable_warnings(${target})
+  endforeach()
 endfunction()
 
 function(dolphin_set_library_type library type)
@@ -116,7 +141,7 @@ function(dolphin_find_optional_system_library library bundled_path)
     message(STATUS "Using system ${library}")
   else()
     dolphin_set_library_type(${library} "Bundled")
-    dolphin_add_bundled_library(${library} ${use_system} ${bundled_path})
+    dolphin_add_bundled_library(${library} ${bundled_path} ${use_system})
   endif()
 endfunction()
 
@@ -135,6 +160,34 @@ function(dolphin_find_optional_system_library_pkgconfig library search alias bun
     dolphin_alias_library(${alias} PkgConfig::${library})
   else()
     dolphin_set_library_type(${library} "Bundled")
-    dolphin_add_bundled_library(${library} ${use_system} ${bundled_path})
+    dolphin_add_bundled_library(${library} ${bundled_path} ${use_system})
+  endif()
+endfunction()
+
+function(dolphin_check_toolset_version LABEL VERSION_VAR MIN_VERSION)
+    if(NOT DEFINED ${VERSION_VAR})
+      return()
+    endif()
+    message(STATUS "Using ${LABEL} ${${VERSION_VAR}}")
+    if(${VERSION_VAR} VERSION_LESS ${MIN_VERSION})
+        message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
+    endif()
+endfunction()
+
+
+function(dolphin_check_std_version LABEL VERSION_MACRO MIN_VERSION)
+  check_cxx_symbol_exists(${VERSION_MACRO} version IS_${LABEL})
+  if(NOT IS_${LABEL})
+    return()
+  endif()
+  check_cxx_source_compiles([[
+    #include <version>
+    #if ${VERSION_MACRO} < ${MIN_VERSION}
+    #error
+    #endif
+    int main(){}
+  ]] HAS_MINIMUM_${LABEL})
+  if(NOT HAS_MINIMUM_${LABEL})
+    message(FATAL_ERROR "Requires ${LABEL} ${MIN_VERSION} or higher")
   endif()
 endfunction()

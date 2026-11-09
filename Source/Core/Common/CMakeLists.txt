@@ -99,8 +99,12 @@ add_library(common
   JsonUtil.h
   JsonUtil.cpp
   Lazy.h
+  LazyMemoryRegionBitSet.cpp
+  LazyMemoryRegionBitSet.h
   LinearDiskCache.h
   UnixUtil.h
+  LocaleUtil.cpp
+  LocaleUtil.h
   Logging/ConsoleListener.h
   Logging/Log.h
   Logging/LogManager.cpp

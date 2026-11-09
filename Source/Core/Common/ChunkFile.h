@@ -288,7 +288,7 @@ public:
   }
 
   template <typename T>
-  void DoPointer(T*& x, T* const base)
+  bool DoPointer(T*& x, T* const base, size_t count)
   {
     // pointers can be more than 2^31 apart, but you're using this function wrong if you need that
     // much range
@@ -296,15 +296,23 @@ public:
     Do(offset);
     if (IsReadMode())
     {
+      if (offset < 0 || static_cast<size_t>(offset) > count)
+      {
+        SetMeasureMode();
+        return false;
+      }
       x = base + offset;
     }
+    return true;
   }
 
-  void DoPointer(void*& x, void* const base)
+  bool DoPointer(void*& x, void* const base, size_t count)
   {
     auto* ptr = static_cast<u8*>(x);
-    DoPointer(ptr, static_cast<u8*>(base));
+    if (!DoPointer(ptr, static_cast<u8*>(base), count))
+      return false;
     x = ptr;
+    return true;
   }
 
   void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)

@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <locale>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
@@ -26,6 +25,7 @@
 #include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/LocaleUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -77,6 +77,8 @@ static Common::UniqueBuffer<u8> s_undo_load_buffer;
 
 // Used to estimate buffer size for the next save.
 static u32 s_last_state_size = 0;
+
+static u32 s_selected_slot = 1;
 
 // Shared locks are acquired for each state save task.
 // Tasks generally transition from: Calling thread -> CPU thread -> Compress/Write thread.
@@ -263,15 +265,15 @@ namespace
 struct SlotWithTimestamp
 {
   // 1-based indexing.
-  int slot;
+  u32 slot;
   double timestamp;
 };
 }  // namespace
 
 // Returns first slot number (1-based indexing) not in the vector.
-static std::optional<int> GetEmptySlot(std::span<const SlotWithTimestamp> used_slots)
+static std::optional<u32> GetEmptySlot(std::span<const SlotWithTimestamp> used_slots)
 {
-  for (int i = 1; i <= int(NUM_STATES); ++i)
+  for (u32 i = 1; i <= NUM_STATES; ++i)
   {
     if (!Common::Contains(used_slots, i, &SlotWithTimestamp::slot))
       return i;
@@ -300,10 +302,11 @@ static std::string SystemTimeAsDoubleToString(double time)
     return "";
 
   // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
+  // Using L for locale-dependent formatting.
+  return fmt::format(Common::GetEnvironmentLocale(), "{:L%x %X}", *local_time);
 }
 
-static std::string MakeStateFilename(int number)
+static std::string MakeStateFilename(u32 number)
 {
   return fmt::format("{}{}.s{:02d}", File::GetUserPath(D_STATESAVES_IDX),
                      SConfig::GetInstance().GetGameID(), number);
@@ -313,7 +316,7 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
 {
   std::vector<SlotWithTimestamp> result;
   StateHeader header;
-  for (int i = 1; i <= int(NUM_STATES); ++i)
+  for (u32 i = 1; i <= NUM_STATES; ++i)
   {
     std::string filename = MakeStateFilename(i);
     if (!File::Exists(filename) || !ReadHeader(filename, header))
@@ -337,7 +340,7 @@ static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f
     Common::UniqueBuffer<char> compressed_buffer(LZ4_compressBound(bytes_to_compress));
     const int compressed_len = LZ4_compress_default(
         reinterpret_cast<const char*>(raw_buffer.data()) + total_bytes_compressed,
-        compressed_buffer.get(), bytes_to_compress, int(compressed_buffer.size()));
+        compressed_buffer.get(), bytes_to_compress, static_cast<int>(compressed_buffer.size()));
 
     if (compressed_len == 0)
     {
@@ -474,7 +477,7 @@ static void SaveAsFromCore(Core::System& system, std::string filename)
 {
   // Try with a buffer a bit larger than the previous state.
   // This will often avoid the "Measure" step.
-  const auto buffer_size_estimate = std::size_t(s_last_state_size) * 110 / 100;
+  const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
   Common::UniqueBuffer<u8> buffer{buffer_size_estimate};
 
   if (const auto actual_size = SaveToBuffer(system, buffer))
@@ -508,13 +511,13 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
 {
   // Just read the first block, since it will contain the full revision string
   lzo_uint32 cur_len = 0;  // size of compressed bytes
-  lzo_uint new_len = 0;    // size of uncompressed bytes
-  Common::UniqueBuffer<u8> buffer(header.legacy_header.lzo_size);
+  Common::UniqueBuffer<u8> buffer(IN_LEN);
+  lzo_uint new_len = buffer.size();  // output buffer capacity
 
-  if (!f.ReadArray(&cur_len, 1) || !f.ReadBytes(out, cur_len))
+  if (!f.ReadArray(&cur_len, 1) || cur_len > OUT_LEN || !f.ReadBytes(out, cur_len))
     return false;
 
-  const int res = lzo1x_decompress(out, cur_len, buffer.data(), &new_len, nullptr);
+  const int res = lzo1x_decompress_safe(out, cur_len, buffer.data(), &new_len, nullptr);
   if (res != LZO_E_OK)
   {
     // This doesn't seem to happen anymore.
@@ -525,7 +528,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   }
 
   // Read in cookie and string length
-  if (buffer.size() >= sizeof(StateHeaderVersion))
+  if (new_len >= sizeof(StateHeaderVersion))
   {
     memcpy(&header.version_header, buffer.data(), sizeof(StateHeaderVersion));
   }
@@ -533,12 +536,12 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version cookie and version "
                    "string length ({0})",
-                   buffer.size());
+                   new_len);
     return false;
   }
 
   // Read in the string
-  if (buffer.size() >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
+  if (new_len >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
   {
     header.version_string.assign(
         reinterpret_cast<char*>(buffer.data() + sizeof(StateHeaderVersion)),
@@ -547,7 +550,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   else
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version string ({0} / {1})",
-                   header.version_header.version_string_length, buffer.size());
+                   header.version_header.version_string_length, new_len);
     return false;
   }
 
@@ -608,7 +611,7 @@ static bool ReadHeader(const std::string& filename, StateHeader& header)
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
-std::string GetInfoStringOfSlot(int slot, bool translate)
+std::string GetInfoStringOfSlot(u32 slot, bool translate)
 {
   std::lock_guard lk{s_state_saves_in_progress};
 
@@ -623,7 +626,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   return SystemTimeAsDoubleToString(header.legacy_header.time);
 }
 
-u64 GetUnixTimeOfSlot(int slot)
+u64 GetUnixTimeOfSlot(u32 slot)
 {
   std::lock_guard lk{s_state_saves_in_progress};
 
@@ -902,14 +905,53 @@ void Shutdown()
   s_flush_unsaved_data_hook.reset();
 }
 
-void Save(Core::System& system, int slot)
+void Save(Core::System& system, u32 slot)
 {
   SaveAs(system, MakeStateFilename(slot));
 }
 
-void Load(Core::System& system, int slot)
+void Load(Core::System& system, u32 slot)
 {
   LoadAs(system, MakeStateFilename(slot));
+}
+
+u32 GetSelectedSlot()
+{
+  return s_selected_slot;
+}
+
+void SetSelectedSlot(u32 slot)
+{
+  s_selected_slot = std::clamp<u32>(slot, 1, NUM_STATES);
+}
+
+void SelectSlot(u32 slot)
+{
+  SetSelectedSlot(slot);
+
+  Core::DisplayMessage(fmt::format("Selected slot {} - {}", s_selected_slot,
+                                   GetInfoStringOfSlot(s_selected_slot, false)),
+                       2500);
+}
+
+u32 GetNextSlot()
+{
+  return s_selected_slot >= NUM_STATES ? 1 : s_selected_slot + 1;
+}
+
+u32 GetPreviousSlot()
+{
+  return s_selected_slot <= 1 ? NUM_STATES : s_selected_slot - 1;
+}
+
+void SaveSelected(Core::System& system)
+{
+  Save(system, s_selected_slot);
+}
+
+void LoadSelected(Core::System& system)
+{
+  Load(system, s_selected_slot);
 }
 
 void LoadLastSaved(Core::System& system, int i)
@@ -922,7 +964,7 @@ void LoadLastSaved(Core::System& system, int i)
     s_compress_and_dump_thread.WaitForCompletion();
 
     std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
-    if (std::size_t(i) > used_slots.size())
+    if (static_cast<std::size_t>(i) > used_slots.size())
     {
       Core::DisplayMessage("State doesn't exist", 2000);
       return;

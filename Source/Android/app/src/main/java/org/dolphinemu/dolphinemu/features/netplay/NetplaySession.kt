@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplayMessage
 import org.dolphinemu.dolphinemu.features.netplay.model.Player
@@ -86,6 +87,12 @@ class NetplaySession(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val players = _players.asSharedFlow().distinctUntilChanged()
+
+    private val _controllerMapping = MutableSharedFlow<ControllerMapping>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val controllerMapping = _controllerMapping.asSharedFlow().distinctUntilChanged()
 
     private val _chatMessages = MutableSharedFlow<String>(
         extraBufferCapacity = 32,
@@ -179,11 +186,22 @@ class NetplaySession(
 
     fun startGame() = nativeStartGame()
 
+    fun computeGameDigest() = nativeComputeGameDigest()
+
+    fun computeSDCardDigest() = nativeComputeSDCardDigest()
+
+    fun abortGameDigest() = nativeAbortGameDigest()
+
     fun getPort(): Int = nativeGetPort()
 
     fun getExternalIpAddress(): String? = nativeGetExternalIpAddress()
 
     fun reconnectTraversal() = nativeReconnectTraversal()
+
+    fun setControllerMapping(mapping: ControllerMapping) {
+        nativeSetPadMapping(mapping.gamecubePorts.map { it?.pid ?: 0 }.toIntArray())
+        nativeSetWiimoteMapping(mapping.wiiRemotes.map { it?.pid ?: 0 }.toIntArray())
+    }
 
     fun consumeBootSessionData(): Long {
         return bootSessionDataPointer.also {
@@ -272,11 +290,25 @@ class NetplaySession(
 
     private external fun nativeStartGame()
 
+    private external fun nativeComputeGameDigest()
+
+    private external fun nativeComputeSDCardDigest()
+
+    private external fun nativeAbortGameDigest()
+
     private external fun nativeGetPort(): Int
 
     private external fun nativeGetExternalIpAddress(): String?
 
     private external fun nativeReconnectTraversal()
+
+    private external fun nativeGetPadMapping(): IntArray
+
+    private external fun nativeGetWiimoteMapping(): IntArray
+
+    private external fun nativeSetPadMapping(mapping: IntArray)
+
+    private external fun nativeSetWiimoteMapping(mapping: IntArray)
 
     // NetPlayUI callbacks
 
@@ -304,7 +336,16 @@ class NetplaySession(
 
     @Keep
     fun onUpdate(players: Array<Player>) {
-        _players.tryEmit(players.toList())
+        val playersList = players.toList()
+        _players.tryEmit(playersList)
+
+        fun findPlayer(playerId: Int) = playersList.find { it.pid == playerId }
+        _controllerMapping.tryEmit(
+            ControllerMapping(
+                gamecubePorts = nativeGetPadMapping().map(::findPlayer).toList(),
+                wiiRemotes = nativeGetWiimoteMapping().map(::findPlayer).toList(),
+            )
+        )
     }
 
     @Keep
@@ -381,7 +422,7 @@ class NetplaySession(
                     result = null,
                 )
             } ?: emptyList(),
-            matches = null,
+            finished = false,
         )
     }
 
@@ -398,18 +439,12 @@ class NetplaySession(
     @Keep
     fun onSetGameDigestResult(playerId: Int, result: String) {
         val current = _gameDigestProgress.value ?: return
-        val updated = current.copy(
+        _gameDigestProgress.value = current.copy(
             playerProgresses = current.playerProgresses.map {
                 if (it.playerId == playerId) it.copy(result = result) else it
-            }
+            },
+            finished = true,
         )
-        val finished = updated.playerProgresses.all { it.result != null }
-        _gameDigestProgress.value = if (finished) {
-            val results = updated.playerProgresses.map { it.result }
-            updated.copy(matches = results.distinct().size == 1)
-        } else {
-            updated
-        }
     }
 
     /**

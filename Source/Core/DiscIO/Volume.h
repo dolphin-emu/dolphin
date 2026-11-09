@@ -126,6 +126,7 @@ public:
   }
   virtual Region GetRegion() const = 0;
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual u32 GetSimulatedMemorySize() const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
   virtual u64 GetDataSize() const = 0;

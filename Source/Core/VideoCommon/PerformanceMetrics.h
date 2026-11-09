@@ -51,8 +51,10 @@ public:
 private:
   struct FrameBufferSize
   {
-    u32 width = 0;
-    u32 height = 0;
+    FrameBufferSize() : width(0), height(0) {}
+    FrameBufferSize(u32 w, u32 h) : width(w), height(h) {}
+    u32 width;
+    u32 height;
   };
 
   PerformanceTracker m_fps_counter{"render_times.txt"};

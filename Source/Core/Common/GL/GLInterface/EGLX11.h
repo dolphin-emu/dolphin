@@ -11,6 +11,7 @@
 class GLContextEGLX11 final : public GLContextEGL
 {
 public:
+  GLContextEGLX11();
   ~GLContextEGLX11() override;
 
   void Update() override;

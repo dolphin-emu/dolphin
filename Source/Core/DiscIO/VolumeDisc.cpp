@@ -179,6 +179,14 @@ std::optional<u8> VolumeDisc::GetDiscNumber(const Partition& partition) const
   return ReadSwapped<u8>(6, partition);
 }
 
+u32 VolumeDisc::GetSimulatedMemorySize() const
+{
+  // Simulated memory size is a 32-bit unsigned integer in the `bi2.bin` file at offset `0x04`.
+  // Apploader reads this and "simulates" a smaller memory size. Originally useful for simulating
+  // 24 MiB of memory on devkits with 48 MiB.
+  return ReadSwapped<u32>(BI2_ADDRESS + 0x04, GetGamePartition()).value_or(0);
+}
+
 bool VolumeDisc::IsNKit() const
 {
   constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"

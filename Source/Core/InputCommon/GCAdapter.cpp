@@ -473,6 +473,17 @@ static void ScanThreadFunc()
   }
 #endif
 
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
+#if LIBUSB_API_HAS_HOTPLUG
+  if (s_libusb_hotplug_enabled)
+    libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
+#endif
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+  const jmethodID disable_hotplug_callback_func =
+      env->GetStaticMethodID(s_adapter_class, "disableHotplugCallback", "()V");
+  env->CallStaticVoidMethod(s_adapter_class, disable_hotplug_callback_func);
+#endif
+
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread stopped");
 }
 
@@ -761,17 +772,6 @@ static void AddGCAdapter(libusb_device* device)
 void Shutdown()
 {
   StopScanThread();
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-#if LIBUSB_API_HAS_HOTPLUG
-  if (s_libusb_context && s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
-#endif
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-  JNIEnv* const env = IDCache::GetEnvForThread();
-  const jmethodID disable_hotplug_callback_func =
-      env->GetStaticMethodID(s_adapter_class, "disableHotplugCallback", "()V");
-  env->CallStaticVoidMethod(s_adapter_class, disable_hotplug_callback_func);
-#endif
   Reset();
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION

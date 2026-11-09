@@ -93,24 +93,25 @@ NullGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<NativeVertexFormat>(vtx_decl);
 }
 
-void NullEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
+void NullEFBInterface::ReinterpretPixelData(FramebufferManager* framebuffer_manager,
+                                            EFBReinterpretType convtype)
 {
 }
 
-void NullEFBInterface::PokeColor(u16 x, u16 y, u32 color)
+void NullEFBInterface::PokeColor(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 color)
 {
 }
 
-void NullEFBInterface::PokeDepth(u16 x, u16 y, u32 depth)
+void NullEFBInterface::PokeDepth(FramebufferManager* framebuffer_manager, u16 x, u16 y, u32 depth)
 {
 }
 
-u32 NullEFBInterface::PeekColorInternal(u16 x, u16 y)
+u32 NullEFBInterface::PeekColorInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y)
 {
   return 0;
 }
 
-u32 NullEFBInterface::PeekDepthInternal(u16 x, u16 y)
+u32 NullEFBInterface::PeekDepthInternal(FramebufferManager* framebuffer_manager, u16 x, u16 y)
 {
   return 0;
 }

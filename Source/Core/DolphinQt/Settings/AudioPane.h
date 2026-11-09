@@ -7,6 +7,8 @@
 
 #include <QWidget>
 
+#include "Core/Config/MainSettings.h"
+
 namespace AudioCommon
 {
 enum class DPL2Quality;
@@ -41,6 +43,7 @@ private:
   void OnDspChanged();
 
   void UpdateWiimoteRoutingEnabled();
+  void UpdateGBARoutingEnabled();
 
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
@@ -79,4 +82,10 @@ private:
   ConfigBool* m_wiimote_routing_enable = nullptr;
   std::array<ConfigBool*, 4> m_wiimote_output_enable{};
   std::array<ConfigStringChoice*, 4> m_wiimote_output_device{};
+
+  // GBA Audio Routing
+  QGroupBox* m_gba_routing_box = nullptr;
+  ConfigBool* m_gba_routing_enable = nullptr;
+  std::array<ConfigBool*, Config::GBA_SPEAKER_COUNT> m_gba_output_enable{};
+  std::array<ConfigStringChoice*, Config::GBA_SPEAKER_COUNT> m_gba_output_device{};
 };

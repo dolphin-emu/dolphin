@@ -193,12 +193,13 @@ void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFor
                        const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
                                     int height);
-void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int imageWidth,
+void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int image_width_minus_1,
                             TextureFormat texformat, std::span<const u8> tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
-                                         std::span<const u8> src_gb, int s, int t, int imageWidth);
+                                         std::span<const u8> src_gb, int s, int t,
+                                         int image_width_minus_1);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth);
+                                         int image_width_minus_1);
 void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);

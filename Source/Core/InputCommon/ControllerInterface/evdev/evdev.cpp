@@ -7,12 +7,15 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <string>
 
 #include <fcntl.h>
 #include <libudev.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/Flag.h"
@@ -114,7 +117,7 @@ protected:
     }
   }
 
-  std::string GetIndexedName() const { return "Button " + std::to_string(m_index); }
+  std::string GetIndexedName() const { return fmt::format("Button {}", m_index); }
 
   const u8 m_index;
 };
@@ -175,7 +178,7 @@ public:
     const int min = libevdev_get_abs_minimum(m_dev, m_code);
     const int max = libevdev_get_abs_maximum(m_dev, m_code);
 
-    m_base = (max + min) / 2;
+    m_base = std::midpoint(min, max);
     m_range = (upper ? max : min) - m_base;
   }
 
@@ -184,7 +187,7 @@ public:
 protected:
   std::string GetIndexedName() const
   {
-    return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
+    return fmt::format("Axis {}{}", m_index, m_range < 0 ? '-' : '+');
   }
 
 private:
@@ -538,7 +541,7 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
     // evdev resolution is specified in "g"s and deg/s.
     // Convert these to m/s/s and rad/s.
     constexpr ControlState accel_scale = MathUtil::GRAVITY_ACCELERATION;
-    constexpr ControlState gyro_scale = MathUtil::TAU / 360;
+    constexpr ControlState gyro_scale = MathUtil::DegreesToRadians(ControlState{1});
 
     add_motion_inputs(ABS_X, accel_scale);
     add_motion_inputs(ABS_RX, gyro_scale);

@@ -7,7 +7,6 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-#include <locale>
 #include <mbedtls/md.h>
 #include <mutex>
 #include <thread>
@@ -25,6 +24,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IOFile.h"
+#include "Common/LocaleUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -158,7 +158,8 @@ std::string MovieManager::GetRTCDisplay() const
   const tm gm_time = fmt::gmtime(current_time);
 
   // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+  // Using L for locale-dependent formatting.
+  return fmt::format(Common::GetEnvironmentLocale(), "Date/Time: {:L%c}", gm_time);
 }
 
 // NOTE: GPU Thread
@@ -1226,8 +1227,8 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
 
   if (serialized.length > serialized.data.size())
   {
-    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", int(serialized.length),
-                   m_current_byte);
+    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}",
+                   static_cast<int>(serialized.length), m_current_byte);
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1236,7 +1237,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (m_current_byte + serialized.length > m_temp_input.size())
   {
     PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte,
-                   int(serialized.length), m_temp_input.size());
+                   static_cast<int>(serialized.length), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1309,17 +1310,6 @@ void MovieManager::SaveRecording(const std::string& filename)
   header.filetype[3] = 0x1A;
   strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = m_system.IsWii();
-  header.controllers = 0;
-  header.GBAControllers = 0;
-  for (int i = 0; i < 4; ++i)
-  {
-    if (IsUsingGBA(i))
-      header.GBAControllers |= 1 << i;
-    if (IsUsingPad(i))
-      header.controllers |= 1 << i;
-    if (IsUsingWiimote(i) && m_system.IsWii())
-      header.controllers |= 1 << (i + 4);
-  }
 
   header.bFromSaveState = m_recording_from_save_state;
   header.frameCount = m_total_frames;
@@ -1336,7 +1326,6 @@ void MovieManager::SaveRecording(const std::string& filename)
   strncpy(header.discChange.data(), m_disc_change_filename.c_str(), header.discChange.size());
   strncpy(header.author.data(), m_author.c_str(), header.author.size());
   header.md5 = m_md5;
-  header.bongos = m_bongos;
   header.revision = m_revision;
   header.DSPiromHash = m_dsp_irom_hash;
   header.DSPcoefHash = m_dsp_coef_hash;

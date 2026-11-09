@@ -10,6 +10,7 @@
 
 #include <OptionParser.h>
 #include <ed25519.h>
+#include <fmt/format.h>
 #include <mbedtls/base64.h>
 #include <mbedtls/sha256.h>
 #include <zlib.h>
@@ -225,8 +226,8 @@ static bool DownloadContent(std::span<const TodoList::DownloadOp> to_download,
     if (File::Exists(temp_path + DIR_SEP + hash_filename))
       continue;
 
-    UI::SetDescription("Downloading " + download.filename + "... (File " + std::to_string(i + 1) +
-                       " of " + std::to_string(to_download.size()) + ")");
+    UI::SetDescription(fmt::format("Downloading {}... (File {} of {})", download.filename, i + 1,
+                                   to_download.size()));
     UI::SetCurrentMarquee(false);
 
     // Add slashes where needed.

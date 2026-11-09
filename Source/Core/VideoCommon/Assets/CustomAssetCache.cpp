@@ -95,7 +95,7 @@ void CustomAssetCache::ProcessDirtyAssets()
   {
     if (const auto it = m_asset_id_to_handle.find(asset_id); it != m_asset_id_to_handle.end())
     {
-      const auto asset_handle = it->second;
+      const auto asset_handle = it->second.second;
       AssetData& asset_data = m_asset_handle_to_data[asset_handle];
       asset_data.load_status = AssetData::LoadStatus::PendingReload;
       asset_data.load_request_time = now;
@@ -103,7 +103,7 @@ void CustomAssetCache::ProcessDirtyAssets()
       // Asset was reloaded, clear any errors we might have
       asset_data.has_load_error = false;
 
-      m_pending_assets.InsertAsset(it->second, asset_data.asset.get());
+      m_pending_assets.InsertAsset(asset_handle, asset_data.asset.get());
 
       DEBUG_LOG_FMT(VIDEO, "Dirty asset pending reload: {}", asset_data.asset->GetAssetId());
     }

@@ -244,6 +244,7 @@ enum class SyncCodeID : u8
 };
 
 constexpr u32 MAX_NAME_LENGTH = 30;
+constexpr u32 MAX_TARGET_PAD_BUFFER_SIZE = 99;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
 constexpr u32 MAX_ENET_MTU = 1392;  // see https://github.com/lsalzman/enet/issues/132
 

@@ -7,13 +7,13 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include <string>
-#include <tuple>
 
 #include "Common/CWDemangler.h"
 
 using namespace CWDemangler;
 
-void DoDemangleTemplateArgsTest(std::string mangled, std::string name, std::string template_args)
+static void DoDemangleTemplateArgsTest(std::string mangled, std::string name,
+                                       std::string template_args)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -28,7 +28,7 @@ void DoDemangleTemplateArgsTest(std::string mangled, std::string name, std::stri
   }
 }
 
-void DoDemangleNameTest(std::string mangled, std::string name, std::string full_name)
+static void DoDemangleNameTest(std::string mangled, std::string name, std::string full_name)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -44,7 +44,8 @@ void DoDemangleNameTest(std::string mangled, std::string name, std::string full_
   }
 }
 
-void DoDemangleQualifiedNameTest(std::string mangled, std::string base_name, std::string full_name)
+static void DoDemangleQualifiedNameTest(std::string mangled, std::string base_name,
+                                        std::string full_name)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -60,8 +61,8 @@ void DoDemangleQualifiedNameTest(std::string mangled, std::string base_name, std
   }
 }
 
-void DoDemangleArgTest(std::string mangled, std::string type_pre, std::string type_post,
-                       std::string remainder)
+static void DoDemangleArgTest(std::string mangled, std::string type_pre, std::string type_post,
+                              std::string remainder)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -77,7 +78,7 @@ void DoDemangleArgTest(std::string mangled, std::string type_pre, std::string ty
   }
 }
 
-void DoDemangleFunctionArgsTest(std::string mangled, std::string args, std::string remainder)
+static void DoDemangleFunctionArgsTest(std::string mangled, std::string args, std::string remainder)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -92,7 +93,7 @@ void DoDemangleFunctionArgsTest(std::string mangled, std::string args, std::stri
   }
 }
 
-void DoDemangleTest(std::string mangled, std::string demangled)
+static void DoDemangleTest(std::string mangled, std::string demangled)
 {
   DemangleOptions options = DemangleOptions();
 
@@ -104,8 +105,8 @@ void DoDemangleTest(std::string mangled, std::string demangled)
   EXPECT_EQ(result, expected);
 }
 
-void DoDemangleOptionsTest(bool omit_empty_params, bool mw_extensions, std::string mangled,
-                           std::string demangled)
+static void DoDemangleOptionsTest(bool omit_empty_params, bool mw_extensions, std::string mangled,
+                                  std::string demangled)
 {
   DemangleOptions options = DemangleOptions(omit_empty_params, mw_extensions);
 

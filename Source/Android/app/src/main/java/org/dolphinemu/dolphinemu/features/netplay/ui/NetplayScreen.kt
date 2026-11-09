@@ -4,6 +4,10 @@ package org.dolphinemu.dolphinemu.features.netplay.ui
 
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.annotation.StringRes
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -37,13 +42,16 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -53,12 +61,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -72,11 +78,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -86,6 +93,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass
@@ -94,6 +102,7 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.features.netplay.model.ControllerMapping
 import org.dolphinemu.dolphinemu.features.netplay.model.GameDigestProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinAddress
 import org.dolphinemu.dolphinemu.features.netplay.model.JoinInfoType
@@ -103,6 +112,8 @@ import org.dolphinemu.dolphinemu.features.netplay.model.Player
 import org.dolphinemu.dolphinemu.features.netplay.model.SaveTransferProgress
 import org.dolphinemu.dolphinemu.features.netplay.model.TraversalState
 import org.dolphinemu.dolphinemu.model.GameFile
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager
+import org.dolphinemu.dolphinemu.ui.theme.DolphinScaffold
 import org.dolphinemu.dolphinemu.ui.theme.DolphinTheme
 import org.dolphinemu.dolphinemu.ui.theme.MenuSpacer
 import org.dolphinemu.dolphinemu.ui.theme.OutlinedBox
@@ -127,6 +138,9 @@ fun NetplayScreen(
     onGameSelected: (GameFile) -> Unit,
     gameFiles: List<GameFile>,
     notAllPlayersHaveGame: Flow<Unit>,
+    dualCoreWarning: Flow<Unit>,
+    onSetDualCoreEnabled: (Boolean) -> Unit,
+    onSkipDualCoreWarning: () -> Unit,
     onConfirmStartGame: () -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
@@ -139,20 +153,62 @@ fun NetplayScreen(
     saveTransferProgress: SaveTransferProgress?,
     gameDigestProgress: GameDigestProgress?,
     joinAddresses: Map<JoinInfoType, JoinAddress>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiiRemoteChanged: (port: Int, player: Player?) -> Unit,
+    onComputeGameDigest: () -> Unit,
+    onComputeSDCardDigest: () -> Unit,
+    onAbortGameDigest: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            MediumTopAppBar(
-                title = { Text(stringResource(R.string.netplay_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClicked) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-            )
+    val scrollState = rememberScrollState()
+
+    DolphinScaffold(
+        title = {
+            Text(stringResource(R.string.netplay_title))
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClicked) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+        },
+        actions = {
+            if (isHosting) {
+                var menuExpanded by remember { mutableStateOf(false) }
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    Text(
+                        text = stringResource(R.string.netplay_checksum),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.netplay_checksum_current_game)) },
+                        onClick = {
+                            menuExpanded = false
+                            onComputeGameDigest()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.netplay_checksum_sd_card)) },
+                        onClick = {
+                            menuExpanded = false
+                            onComputeSDCardDigest()
+                        },
+                    )
+                }
+            }
         },
         floatingActionButton = {
             if (isHosting) {
@@ -169,6 +225,7 @@ fun NetplayScreen(
         // State which must live above the landscape/portrait split.
         var showChat by rememberSaveable { mutableStateOf(false) }
         var showGamePicker by rememberSaveable { mutableStateOf(false) }
+        var showControllerMapping by rememberSaveable { mutableStateOf(false) }
         var selectedJoinInfoType by rememberSaveable {
             mutableStateOf(joinAddresses.keys.firstOrNull() ?: JoinInfoType.EXTERNAL)
         }
@@ -192,6 +249,11 @@ fun NetplayScreen(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiiRemoteChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = { showControllerMapping = it },
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -202,6 +264,7 @@ fun NetplayScreen(
                 joinAddresses = joinAddresses,
                 selectedJoinInfoType = selectedJoinInfoType,
                 onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
+                scrollState = scrollState,
                 contentPadding = innerPadding,
                 modifier = modifier
             )
@@ -218,6 +281,11 @@ fun NetplayScreen(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = { showGamePicker = it },
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiiRemoteChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = { showControllerMapping = it },
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -228,6 +296,7 @@ fun NetplayScreen(
                 joinAddresses = joinAddresses,
                 selectedJoinInfoType = selectedJoinInfoType,
                 onSelectedJoinInfoTypeChanged = { selectedJoinInfoType = it },
+                scrollState = scrollState,
                 contentPadding = innerPadding,
                 modifier = modifier
             )
@@ -246,6 +315,11 @@ fun NetplayScreen(
         var showNotAllPlayersHaveGame by rememberSaveable { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             notAllPlayersHaveGame.collect { showNotAllPlayersHaveGame = true }
+        }
+
+        var showDualCoreWarning by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            dualCoreWarning.collect { showDualCoreWarning = true }
         }
 
         var dismissSaveTransferProgressDialog by rememberSaveable { mutableStateOf(false) }
@@ -295,7 +369,10 @@ fun NetplayScreen(
             gameDigestProgress != null && !dismissGameDigestDialog -> {
                 GameDigestProgressDialog(
                     gameDigestProgress = gameDigestProgress,
-                    onDismiss = { dismissGameDigestDialog = true },
+                    onDismiss = {
+                        dismissGameDigestDialog = true
+                        if (isHosting) onAbortGameDigest()
+                    },
                 )
             }
 
@@ -319,6 +396,21 @@ fun NetplayScreen(
                     onDismissRequest = { showNotAllPlayersHaveGame = false },
                 )
             }
+
+            showDualCoreWarning -> {
+                DualCoreWarningDialog(
+                    onSetDualCoreEnabled = onSetDualCoreEnabled,
+                    onStartGame = {
+                        showDualCoreWarning = false
+                        onConfirmStartGame()
+                    },
+                    onSkipWarning = {
+                        showDualCoreWarning = false
+                        onSkipDualCoreWarning()
+                    },
+                    onDismiss = { showDualCoreWarning = false },
+                )
+            }
         }
     }
 }
@@ -336,6 +428,11 @@ private fun PortraitContent(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -346,12 +443,13 @@ private fun PortraitContent(
     joinAddresses: Map<JoinInfoType, JoinAddress>,
     selectedJoinInfoType: JoinInfoType,
     onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
+    scrollState: ScrollState,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(contentPadding)
     ) {
         Chat(
@@ -374,6 +472,11 @@ private fun PortraitContent(
             showGamePicker = showGamePicker,
             onShowGamePickerChanged = onShowGamePickerChanged,
             players = players,
+            controllerMapping = controllerMapping,
+            onGamecubePortChanged = onGamecubePortChanged,
+            onWiimotePortChanged = onWiimotePortChanged,
+            showControllerMapping = showControllerMapping,
+            onShowControllerMappingChanged = onShowControllerMappingChanged,
             hostInputAuthorityEnabled = hostInputAuthorityEnabled,
             networkMode = networkMode,
             onNetworkModeChanged = onNetworkModeChanged,
@@ -408,6 +511,11 @@ private fun LandscapeContent(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -418,6 +526,7 @@ private fun LandscapeContent(
     joinAddresses: Map<JoinInfoType, JoinAddress>,
     selectedJoinInfoType: JoinInfoType,
     onSelectedJoinInfoTypeChanged: (JoinInfoType) -> Unit,
+    scrollState: ScrollState,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
@@ -439,7 +548,6 @@ private fun LandscapeContent(
                 .fillMaxHeight()
         )
 
-        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -458,6 +566,11 @@ private fun LandscapeContent(
                 showGamePicker = showGamePicker,
                 onShowGamePickerChanged = onShowGamePickerChanged,
                 players = players,
+                controllerMapping = controllerMapping,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiimotePortChanged,
+                showControllerMapping = showControllerMapping,
+                onShowControllerMappingChanged = onShowControllerMappingChanged,
                 hostInputAuthorityEnabled = hostInputAuthorityEnabled,
                 networkMode = networkMode,
                 onNetworkModeChanged = onNetworkModeChanged,
@@ -479,6 +592,7 @@ private fun LandscapeContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayersAndSettings(
     game: String,
@@ -487,6 +601,11 @@ private fun PlayersAndSettings(
     showGamePicker: Boolean,
     onShowGamePickerChanged: (Boolean) -> Unit,
     players: List<Player>,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
     hostInputAuthorityEnabled: Boolean,
     networkMode: NetworkMode,
     onNetworkModeChanged: (NetworkMode) -> Unit,
@@ -524,25 +643,15 @@ private fun PlayersAndSettings(
 
         MenuSpacer()
 
-        OutlinedBox(
-            label = { Text(stringResource(R.string.netplay_players_label)) },
-        ) {
-            PlayersTable(
-                rows = buildList {
-                    add(
-                        listOf(
-                            stringResource(R.string.netplay_players_name),
-                            stringResource(R.string.netplay_players_ping),
-                            stringResource(R.string.netplay_players_mapping),
-                        )
-                    )
-                    addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
-                    repeat(4 - players.size) { add(listOf("", "", "")) }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
+        Players(
+            players = players,
+            isHosting = isHosting,
+            controllerMapping = controllerMapping,
+            onGamecubePortChanged = onGamecubePortChanged,
+            onWiimotePortChanged = onWiimotePortChanged,
+            showControllerMapping = showControllerMapping,
+            onShowControllerMappingChanged = onShowControllerMappingChanged,
+        )
 
         if (isHosting) {
             MenuSpacer()
@@ -588,8 +697,10 @@ private fun Chat(
 
     fun LazyListScope.messages() {
         items(messages.size) { index ->
+            val message = messages[index]
             Text(
-                text = messages[index].message(context),
+                text = message.message(context),
+                color = message.color(),
                 style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 18.sp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -745,6 +856,7 @@ private fun GameGridItem(
     gameFile: GameFile,
     onClick: () -> Unit,
 ) {
+    val titleDatabase = GameFileCacheManager.getTitleDatabase()
     Card(
         onClick = onClick,
     ) {
@@ -754,7 +866,7 @@ private fun GameGridItem(
                     .data(gameFile)
                     .error(R.drawable.no_banner)
                     .build(),
-                contentDescription = gameFile.getTitle(),
+                contentDescription = gameFile.getTitle(titleDatabase),
                 contentScale = ContentScale.Crop,
                 imageLoader = CoilUtils.imageLoader,
                 modifier = Modifier
@@ -762,7 +874,7 @@ private fun GameGridItem(
                     .aspectRatio(0.7f)
             )
             Text(
-                text = gameFile.getTitle(),
+                text = gameFile.getTitle(titleDatabase),
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 2,
                 minLines = 2,
@@ -843,7 +955,7 @@ private fun JoinInfoDropdown(
             label = { Text(stringResource(R.string.netplay_host_address_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
         )
 
@@ -924,6 +1036,64 @@ private fun AddressRow(
     )
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun Players(
+    players: List<Player>,
+    isHosting: Boolean,
+    controllerMapping: ControllerMapping,
+    onGamecubePortChanged: (Int, Player?) -> Unit,
+    onWiimotePortChanged: (Int, Player?) -> Unit,
+    showControllerMapping: Boolean,
+    onShowControllerMappingChanged: (Boolean) -> Unit,
+) {
+    val sheetState = rememberSheetState(
+        skipPartiallyExpanded = true,
+        initialValue = if (showControllerMapping) SheetValue.Expanded else SheetValue.Hidden,
+    )
+
+    if (showControllerMapping) {
+        ModalBottomSheet(
+            onDismissRequest = { onShowControllerMappingChanged(false) },
+            sheetState = sheetState,
+            modifier = Modifier
+                .statusBarsPadding()
+        ) {
+            ControllerMapping(
+                mapping = controllerMapping,
+                players = players,
+                onGamecubePortChanged = onGamecubePortChanged,
+                onWiimotePortChanged = onWiimotePortChanged,
+            )
+        }
+    }
+
+    OutlinedBox(
+        label = { Text(stringResource(R.string.netplay_players_label)) },
+        onClick = if (isHosting) {
+            { onShowControllerMappingChanged(true) }
+        } else {
+            null
+        },
+    ) {
+        PlayersTable(
+            rows = buildList {
+                add(
+                    listOf(
+                        stringResource(R.string.netplay_players_name),
+                        stringResource(R.string.netplay_players_ping),
+                        stringResource(R.string.netplay_players_mapping),
+                    )
+                )
+                addAll(players.map { listOf(it.name, it.ping.toString(), it.mapping) })
+                repeat(4 - players.size) { add(listOf("", "", "")) }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+
 /**
  * A table arranged into columns sized to wrap the largest item. Except the
  * first column which takes up the remaining space left by the other columns.
@@ -936,7 +1106,6 @@ private fun PlayersTable(
 ) {
     rows.zipWithNext { a, b -> if (a.size != b.size) throw IllegalArgumentException("Rows must all contain the same number of elements.") }
     val maxWidths = remember { List(rows.first().size) { mutableIntStateOf(0) } }
-    val density = LocalDensity.current
 
     Column(
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -948,23 +1117,21 @@ private fun PlayersTable(
             ) {
                 row.forEachIndexed { itemIndex, text ->
                     Box(
-                        modifier = Modifier
-                            .then(
-                                when {
-                                    itemIndex == 0 -> Modifier.weight(1f)
-
-                                    maxWidths[itemIndex].intValue > 0 -> Modifier
-                                        .width(with(density) { maxWidths[itemIndex].intValue.toDp() })
-
-                                    else -> Modifier
+                        modifier = if (itemIndex == 0) {
+                            Modifier.weight(1f)
+                        } else {
+                            val maxWidth = maxWidths[itemIndex]
+                            Modifier.layout { measurable, constraints ->
+                                val placeable =
+                                    measurable.measure(constraints.copy(maxWidth = Constraints.Infinity))
+                                if (placeable.width > maxWidth.intValue) {
+                                    maxWidth.intValue = placeable.width
                                 }
-                            )
-                            .onGloballyPositioned { coordinates ->
-                                val width = coordinates.size.width
-                                if (width > maxWidths[itemIndex].intValue) {
-                                    maxWidths[itemIndex].intValue = width
+                                layout(maxWidth.intValue, placeable.height) {
+                                    placeable.place(x = 0, y = 0)
                                 }
                             }
+                        }
                     ) {
                         Text(
                             text = text,
@@ -976,6 +1143,150 @@ private fun PlayersTable(
             }
             if (rowIndex == 0) {
                 HorizontalDivider()
+            }
+        }
+    }
+}
+
+private val PORT_DROPDOWN_MIN_WIDTH = 140.dp
+private val PORT_DROPDOWN_SPACING = 10.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ControllerMapping(
+    mapping: ControllerMapping,
+    players: List<Player>,
+    onGamecubePortChanged: (port: Int, player: Player?) -> Unit,
+    onWiimotePortChanged: (port: Int, player: Player?) -> Unit,
+) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = DolphinTheme.scaffoldPadding)
+            .padding(bottom = 24.dp)
+            .navigationBarsPadding()
+    ) {
+        val columns =
+            ((maxWidth + PORT_DROPDOWN_SPACING) / (PORT_DROPDOWN_MIN_WIDTH + PORT_DROPDOWN_SPACING))
+                .toInt()
+                .coerceAtLeast(1)
+                .let { if (it == 3) 2 else it } // Three per row would look strange so bump down to two.
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            PortsSection(
+                titleId = R.string.netplay_controllers_gamecube,
+                portLabelId = R.string.netplay_controllers_port,
+                mapping = mapping.gamecubePorts,
+                players = players,
+                onPortChanged = onGamecubePortChanged,
+                columns = columns,
+            )
+
+            HorizontalDivider()
+
+            PortsSection(
+                titleId = R.string.netplay_controllers_wii_remotes,
+                portLabelId = R.string.netplay_controllers_remote,
+                mapping = mapping.wiiRemotes,
+                players = players,
+                onPortChanged = onWiimotePortChanged,
+                columns = columns,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PortsSection(
+    @StringRes titleId: Int,
+    @StringRes portLabelId: Int,
+    mapping: List<Player?>,
+    players: List<Player>,
+    onPortChanged: (port: Int, player: Player?) -> Unit,
+    columns: Int,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(PORT_DROPDOWN_SPACING),
+    ) {
+        Text(
+            text = stringResource(titleId),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        mapping.indices.chunked(columns).forEach { row ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(PORT_DROPDOWN_SPACING),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                row.forEach { port ->
+                    PortDropdown(
+                        label = stringResource(portLabelId, port + 1),
+                        selectedPlayer = mapping[port],
+                        players = players,
+                        onPlayerSelected = { onPortChanged(port, it) },
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PortDropdown(
+    label: String,
+    selectedPlayer: Player?,
+    players: List<Player>,
+    onPlayerSelected: (player: Player?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    fun Player.displayName() = "$name ($pid)"
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = selectedPlayer?.displayName()
+                ?: stringResource(R.string.netplay_controllers_none),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.netplay_controllers_none)) },
+                onClick = {
+                    onPlayerSelected(null)
+                    expanded = false
+                },
+            )
+            players.forEach { player ->
+                DropdownMenuItem(
+                    text = { Text(player.displayName()) },
+                    onClick = {
+                        onPlayerSelected(player)
+                        expanded = false
+                    },
+                )
             }
         }
     }
@@ -1001,7 +1312,7 @@ private fun NetworkModeDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
         )
         ExposedDropdownMenu(
@@ -1207,11 +1518,12 @@ private fun GameDigestProgressDialog(
                         HorizontalDivider()
                     }
                 }
-                if (gameDigestProgress.matches != null) {
+                val matches = gameDigestProgress.matches
+                if (matches != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(
-                            if (gameDigestProgress.matches) {
+                            if (matches) {
                                 R.string.netplay_game_digest_match
                             } else {
                                 R.string.netplay_game_digest_mismatch
@@ -1224,7 +1536,7 @@ private fun GameDigestProgressDialog(
             }
         },
         confirmButton = {
-            if (gameDigestProgress.matches != null) {
+            if (gameDigestProgress.finished) {
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.netplay_game_digest_close))
                 }
@@ -1262,6 +1574,88 @@ private fun GameDigestPlayerRow(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun DualCoreWarningDialog(
+    onSetDualCoreEnabled: (Boolean) -> Unit,
+    onStartGame: () -> Unit,
+    onSkipWarning: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var dualCoreEnabled by rememberSaveable { mutableStateOf(true) }
+    AlertDialog(
+        title = { Text(stringResource(R.string.netplay_dual_core_warning_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.netplay_dual_core_warning_message),
+                )
+                val ripplePadding = 12.dp
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .layout { measurable, constraints ->
+                            // Enlarge the ripple area beyond the dialog's padding
+                            val hPx = ripplePadding.roundToPx()
+                            val placeable = measurable.measure(
+                                constraints.copy(
+                                    minWidth = constraints.maxWidth + hPx * 2,
+                                    maxWidth = constraints.maxWidth + hPx * 2
+                                )
+                            )
+                            layout(constraints.maxWidth, placeable.height) {
+                                placeable.place(-hPx, 0)
+                            }
+                        }
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable {
+                            dualCoreEnabled = !dualCoreEnabled
+                            onSetDualCoreEnabled(dualCoreEnabled)
+                        }
+                        .padding(ripplePadding),
+                ) {
+                    Text(
+                        text = stringResource(R.string.dual_core),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = dualCoreEnabled,
+                        onCheckedChange = null,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onStartGame) {
+                Text(stringResource(R.string.netplay_start))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onSkipWarning) {
+                Text(stringResource(R.string.netplay_dont_warn_again))
+            }
+        },
+        onDismissRequest = onDismiss,
+    )
+}
+
+@Composable
+private fun NetplayMessage.color(): Color {
+    val isDark = isSystemInDarkTheme()
+    return when (this) {
+        is NetplayMessage.Chat -> Color.Unspecified
+        is NetplayMessage.GameChanged -> if (isDark) Color(0xFFCE93D8) else Color(0xFF8E24AA)
+        is NetplayMessage.HostInputAuthorityChanged -> if (isDark) Color(0xFF90CAF9) else Color(
+            0xFF1565C0
+        )
+
+        is NetplayMessage.BufferChanged -> if (isDark) Color(0xFF80CBC4) else Color(0xFF00897B)
+        is NetplayMessage.Desync -> if (isDark) Color(0xFFEF9A9A) else Color(0xFFC62828)
     }
 }
 
@@ -1338,6 +1732,9 @@ private fun PreviewNetplayScreen() {
         onGameSelected = {},
         gameFiles = emptyList(),
         notAllPlayersHaveGame = emptyFlow(),
+        dualCoreWarning = emptyFlow(),
+        onSetDualCoreEnabled = {},
+        onSkipDualCoreWarning = {},
         onConfirmStartGame = {},
         hostInputAuthorityEnabled = true,
         networkMode = NetworkMode.HOST_INPUT_AUTHORITY,
@@ -1352,6 +1749,9 @@ private fun PreviewNetplayScreen() {
             JoinInfoType.EXTERNAL to JoinAddress.Loaded("203.0.113.1:2626"),
             JoinInfoType.LOCAL to JoinAddress.Loaded("192.168.1.5:2626"),
         ),
+        controllerMapping = ControllerMapping.emptyControllerMapping(),
+        onGamecubePortChanged = { _, _ -> },
+        onWiiRemoteChanged = { _, _ -> },
 //        saveTransferProgress = SaveTransferProgress(
 //            title = "Title",
 //            totalSize = 1024L,
@@ -1368,5 +1768,8 @@ private fun PreviewNetplayScreen() {
 //                ),
 //            ),
 //        ),
+        onAbortGameDigest = {},
+        onComputeGameDigest = {},
+        onComputeSDCardDigest = {},
     )
 }

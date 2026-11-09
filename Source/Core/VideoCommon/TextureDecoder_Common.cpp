@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <numeric>
 #include <span>
 
 #include "Common/CommonTypes.h"
@@ -358,7 +359,7 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TLUTFormat tlutfmt)
   }
 }
 
-void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int imageWidth,
+void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int image_width_minus_1,
                             TextureFormat texformat, std::span<const u8> tlut_, TLUTFormat tlutfmt)
 {
   /* General formula for computing texture offset
@@ -378,7 +379,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 3;
     u16 tBlk = t >> 3;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;
     u16 blkS = s & 7;
     u16 blkT = t & 7;
@@ -397,7 +398,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 3;
     u16 tBlk = t >> 3;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;
     u16 blkS = s & 7;
     u16 blkT = t & 7;
@@ -418,7 +419,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 3;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;
     u16 blkS = s & 7;
     u16 blkT = t & 3;
@@ -435,7 +436,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 3;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;
     u16 blkS = s & 7;
     u16 blkT = t & 3;
@@ -451,7 +452,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 3;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;
     u16 blkS = s & 7;
     u16 blkT = t & 3;
@@ -470,7 +471,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 2;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 2) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 4;
     u16 blkS = s & 3;
     u16 blkT = t & 3;
@@ -486,7 +487,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 2;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 2) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 4;
     u16 blkS = s & 3;
     u16 blkT = t & 3;
@@ -503,7 +504,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 2;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 2) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 4;
     u16 blkS = s & 3;
     u16 blkT = t & 3;
@@ -519,7 +520,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 2;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 2) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 4;
     u16 blkS = s & 3;
     u16 blkT = t & 3;
@@ -535,7 +536,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   {
     u16 sBlk = s >> 2;
     u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 2) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 5;  // shift by 5 is correct
     u16 blkS = s & 3;
     u16 blkT = t & 3;
@@ -556,7 +557,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
 
     u16 sBlk = sDxt >> 1;
     u16 tBlk = tDxt >> 1;
-    u16 widthBlks = (imageWidth >> 3) + 1;
+    u16 widthBlks = (image_width_minus_1 >> 3) + 1;
     u32 base = (tBlk * widthBlks + sBlk) << 2;
     u16 blkS = sDxt & 1;
     u16 blkT = tDxt & 1;
@@ -602,12 +603,14 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
       color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
       break;
     case 6:
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
+      color = MakeRGBA(std::midpoint(red1, red2), std::midpoint(green1, green2),
+                       std::midpoint(blue1, blue2), 255);
       break;
     case 7:
       // color[3] is the same as color[2] (average of both colors), but transparent.
       // This differs from DXT1 where color[3] is transparent black.
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
+      color = MakeRGBA(std::midpoint(red1, red2), std::midpoint(green1, green2),
+                       std::midpoint(blue1, blue2), 0);
       break;
     default:
       color = 0;
@@ -619,7 +622,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   break;
   case TextureFormat::XFB:
   {
-    size_t offset = (t * imageWidth + (s & (~1))) * 2;
+    size_t offset = (t * image_width_minus_1 + (s & (~1))) * 2;
 
     // We do this one color sample (aka 2 RGB pixles) at a time
     int Y = int((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
@@ -633,19 +636,19 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
     u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
     u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
-    dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
+    dst[t * image_width_minus_1 + s] = 0xff000000 | B << 16 | G << 8 | R;
   }
   break;
   }
 }
 
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
-                                         std::span<const u8> src_gb, int s, int t, int imageWidth)
+                                         std::span<const u8> src_gb, int s, int t,
+                                         int image_width_minus_1)
 {
   u16 sBlk = s >> 2;
   u16 tBlk = t >> 2;
-  u16 widthBlks =
-      (imageWidth >> 2) + 1;  // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
+  u16 widthBlks = (image_width_minus_1 >> 2) + 1;
   u32 base_ar = (tBlk * widthBlks + sBlk) << 4;
   u32 base_gb = (tBlk * widthBlks + sBlk) << 4;
   u16 blkS = s & 3;
@@ -662,12 +665,11 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
 }
 
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth)
+                                         int image_width_minus_1)
 {
   u16 sBlk = s >> 2;
   u16 tBlk = t >> 2;
-  u16 widthBlks =
-      (imageWidth >> 2) + 1;  // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
+  u16 widthBlks = (image_width_minus_1 >> 2) + 1;
   u32 base_ar = (tBlk * widthBlks + sBlk) << 4;
   u32 base_gb = (tBlk * widthBlks + sBlk) << 4;
   u16 blkS = s & 3;

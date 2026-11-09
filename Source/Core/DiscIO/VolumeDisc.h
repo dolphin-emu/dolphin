@@ -47,6 +47,7 @@ public:
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
   std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
+  u32 GetSimulatedMemorySize() const override;
   bool IsNKit() const override;
 
 protected:

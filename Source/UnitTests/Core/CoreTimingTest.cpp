@@ -161,14 +161,15 @@ TEST(CoreTiming, SharedSlot)
   CoreTiming::EventType* cb_d = core_timing.RegisterEvent("callbackD", FifoCallback<3>);
   CoreTiming::EventType* cb_e = core_timing.RegisterEvent("callbackE", FifoCallback<4>);
 
+  // Enter slice 0
+  core_timing.Advance();
+
   core_timing.ScheduleEvent(1000, cb_a, CB_IDS[0]);
   core_timing.ScheduleEvent(1000, cb_b, CB_IDS[1]);
   core_timing.ScheduleEvent(1000, cb_c, CB_IDS[2]);
   core_timing.ScheduleEvent(1000, cb_d, CB_IDS[3]);
   core_timing.ScheduleEvent(1000, cb_e, CB_IDS[4]);
 
-  // Enter slice 0
-  core_timing.Advance();
   EXPECT_EQ(1000, ppc_state.downcount);
 
   s_callbacks_ran_flags = 0;

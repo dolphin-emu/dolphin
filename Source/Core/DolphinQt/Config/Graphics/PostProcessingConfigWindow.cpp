@@ -19,6 +19,8 @@
 #include <QWidget>
 
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
@@ -46,7 +48,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   Create();
   ConnectWidgets();
 
-  adjustSize();
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 PostProcessingConfigWindow::~PostProcessingConfigWindow()
@@ -98,7 +100,7 @@ void PostProcessingConfigWindow::Create()
     if (it->HasSubGroups())
     {
       auto* const tab = CreateDependentTab(it);
-      m_tabs->addTab(tab, QString::fromStdString(it->GetGUIName()));
+      m_tabs->addTab(GetWrappedWidget(tab), QString::fromStdString(it->GetGUIName()));
 
       if (it->GetConfigurationOption()->m_type == OptionType::Bool)
       {
@@ -117,7 +119,7 @@ void PostProcessingConfigWindow::Create()
 
   if (add_general_page)
   {
-    m_tabs->insertTab(0, general, tr("General"));
+    m_tabs->insertTab(0, GetWrappedWidget(general), tr("General"));
   }
 
   m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok);

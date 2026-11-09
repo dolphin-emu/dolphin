@@ -521,8 +521,9 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
 {
   // Read local version.
   hci_read_local_ver_rp local_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{HCI_CMD_READ_LOCAL_VER, 0}),
-                                   Common::AsWritableU8Span(local_ver)))
+  if (!adapter.SendBlockingCommand(
+          Common::AsU8Span(hci_cmd_hdr_t{.opcode = HCI_CMD_READ_LOCAL_VER, .length = 0}),
+          Common::AsWritableU8Span(local_ver)))
   {
     return false;
   }
@@ -585,7 +586,7 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
 
   // Read ROM version.
   rtl_rom_version_evt read_rom_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}),
+  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{.opcode = 0xfc6d, .length = 0}),
                                    Common::AsWritableU8Span(read_rom_ver)))
   {
     return false;

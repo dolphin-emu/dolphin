@@ -373,7 +373,7 @@ void ARCodeWidget::OnCodeToggleAllClicked()
     // file once per code.
     QSignalBlocker blocker(m_code_list);
 
-    for (int i = 0; i < m_ar_codes.size(); ++i)
+    for (int i = 0; i < static_cast<int>(m_ar_codes.size()); ++i)
     {
       m_ar_codes[i].enabled = new_state;
       m_code_list->item(i)->setCheckState(new_check_state);

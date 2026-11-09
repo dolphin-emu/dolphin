@@ -154,8 +154,9 @@ static u32 ReadHwCap(u32 type)
 #if defined(__linux__)
   return getauxval(type);
 #elif defined(HAVE_ELF_AUX_INFO)
-  u_long hwcap = 0;
-  elf_aux_info(type, &hwcap, sizeof(hwcap));
+  u_long hwcap;
+  if (elf_aux_info(type, &hwcap, sizeof(hwcap)) != 0)
+    hwcap = 0;
   return hwcap;
 #endif
 }
