@@ -36,6 +36,8 @@ Dolphin includes or links code of the following third-party software projects:
    [GPLv2+](https://libav.org/legal.html)
 - [libcdio](https://www.gnu.org/software/libcdio/):
    [GPLv3+](http://git.savannah.gnu.org/gitweb/?p=libcdio.git;a=blob_plain;f=COPYING)
+- [libdatachannel](https://github.com/paullouisageneau/libdatachannel):
+   [MPL 2.0](https://github.com/paullouisageneau/libdatachannel/blob/master/LICENSE)
 - [libiconv](https://www.gnu.org/software/libiconv/):
    [LGPLv2.1+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
 - [liblzma](https://tukaani.org/xz/):
