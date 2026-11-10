@@ -11,7 +11,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Swap.h"
 
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -259,7 +258,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     WARN_LOG_FMT(WIIMOTE, "WriteData: write during active read request.");
   }
 
-  const u16 address = Common::swap16(wd.address);
+  const u16 address = wd.address;
 
   DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})", wd.space,
                 wd.slave_address, address, wd.size);
@@ -412,9 +411,9 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // Save the request and process it on the next "Update()" call(s)
   m_read_request.space = static_cast<AddressSpace>(rd.space);
   m_read_request.slave_address = rd.slave_address;
-  m_read_request.address = Common::swap16(rd.address);
+  m_read_request.address = rd.address;
   // A zero size request is just ignored, like on the real wiimote.
-  m_read_request.size = Common::swap16(rd.size);
+  m_read_request.size = rd.size;
 
   DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})",
                 static_cast<u8>(m_read_request.space), m_read_request.slave_address,
@@ -444,7 +443,7 @@ bool Wiimote::ProcessReadDataRequest()
   auto& reply = rpt.payload;
 
   reply.buttons = m_status.buttons;
-  reply.address = Common::swap16(m_read_request.address);
+  reply.address = m_read_request.address;
 
   // Pre-fill with zeros in case of read-error or read < 16-bytes:
   std::ranges::fill(reply.data, 0x00);

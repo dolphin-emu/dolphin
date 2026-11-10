@@ -1514,10 +1514,8 @@ void Device::ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
   OutputReportReadData read_data{};
   read_data.space = u8(space);
   read_data.slave_address = slave;
-  read_data.address[0] = u8(address >> 8);
-  read_data.address[1] = u8(address);
-  read_data.size[0] = u8(size >> 8);
-  read_data.size[1] = u8(size);
+  read_data.address = address;
+  read_data.size = size;
   QueueReport(read_data);
 
   AddReadDataReplyHandler(space, slave, address, size, {}, std::move(callback));
@@ -1537,7 +1535,7 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
   auto read_handler = [this, space, slave, address, size, data = std::move(starting_data),
                        callback =
                            std::move(callback)](const InputReportReadDataReply& reply) mutable {
-    if (Common::swap16(reply.address) != address)
+    if (reply.address != address)
       return ReportHandler::HandlerResult::NotHandled;
 
     if (reply.error != u8(ErrorCode::Success))
@@ -1579,8 +1577,7 @@ void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& 
   OutputReportWriteData write_data = {};
   write_data.space = u8(space);
   write_data.slave_address = slave;
-  write_data.address[0] = u8(address >> 8);
-  write_data.address[1] = u8(address);
+  write_data.address = address;
 
   static constexpr auto MAX_DATA_SIZE = std::size(write_data.data);
   write_data.size = u8(std::min(std::size(data), MAX_DATA_SIZE));
