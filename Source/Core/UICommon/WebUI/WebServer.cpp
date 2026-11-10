@@ -10,6 +10,7 @@
 
 #include <httplib.h>
 
+#include "Common/FFmpegLoader.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
@@ -118,6 +119,14 @@ namespace WebUI
 
 void StartServer()
 {
+#if defined(DYNAMICALLY_LOAD_FFMPEG)
+  if (!Common::LoadSharedFFmpeg())
+  {
+    PanicAlertFmtT("Failed to load FFmpeg. Web Interface is unavailable.");
+    return;
+  }
+#endif
+
   std::lock_guard lk{g_server_mutex};
 
   if (g_web_server != nullptr)
