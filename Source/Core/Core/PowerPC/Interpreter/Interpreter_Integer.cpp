@@ -35,6 +35,55 @@ u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
   return value2 > (~value1);
 }
 
+// All PowerPC add/subtract instructions compute a + b + carry_in (subtractions use ~rA as a).
+// Writes rD and, if update_ca, CA. OV and CR0 are only written for the XO-form instructions, as
+// requested by their OE and Rc bits.
+template <bool update_ca, bool xo_form>
+inline void Interpreter::Helper_Add(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, u32 a,
+                                    u32 b, u32 carry_in)
+{
+  const u64 sum = u64{a} + u64{b} + u64{carry_in};
+  const u32 result = static_cast<u32>(sum);
+
+  ppc_state.gpr[inst.RD] = result;
+
+  if constexpr (update_ca)
+    ppc_state.SetCarry(static_cast<u32>(sum >> 32));
+
+  if constexpr (xo_form)
+  {
+    // Signed overflow: a and b have the same sign and the result has the other one.
+    if (inst.OE)
+      ppc_state.SetXER_OV(((a ^ result) & (b ^ result)) >> 31);
+
+    if (inst.Rc)
+      Helper_UpdateCR0(ppc_state, result);
+  }
+}
+
+// XO-form instructions that leave CA unchanged (add, subf, neg).
+inline void Interpreter::Helper_AddXO(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
+                                      u32 a, u32 b, u32 carry_in)
+{
+  Helper_Add<false, true>(ppc_state, inst, a, b, carry_in);
+}
+
+// XO-form instructions that update CA (addc, adde, addme, addze and their subf counterparts).
+inline void Interpreter::Helper_AddXOCarrying(PowerPC::PowerPCState& ppc_state,
+                                              UGeckoInstruction inst, u32 a, u32 b, u32 carry_in)
+{
+  Helper_Add<true, true>(ppc_state, inst, a, b, carry_in);
+}
+
+// D-form instructions (addic, subfic). They never update OV or CR0: the OE and Rc bits of
+// UGeckoInstruction overlap their immediate.
+inline void Interpreter::Helper_AddImmediateCarrying(PowerPC::PowerPCState& ppc_state,
+                                                     UGeckoInstruction inst, u32 a, u32 b,
+                                                     u32 carry_in)
+{
+  Helper_Add<true, false>(ppc_state, inst, a, b, carry_in);
+}
+
 void Interpreter::addi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
@@ -47,11 +96,7 @@ void Interpreter::addi(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::addic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 imm = u32(s32{inst.SIMM_16});
-
-  ppc_state.gpr[inst.RD] = a + imm;
-  ppc_state.SetCarry(Helper_Carry(a, imm));
+  Helper_AddImmediateCarrying(ppc_state, inst, ppc_state.gpr[inst.RA], u32(s32{inst.SIMM_16}), 0);
 }
 
 void Interpreter::addic_rc(Interpreter& interpreter, UGeckoInstruction inst)
@@ -140,10 +185,7 @@ void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const s32 a = s32(ppc_state.gpr[inst.RA]);
-  const s32 immediate = inst.SIMM_16;
-  ppc_state.gpr[inst.RD] = u32(immediate - a);
-  ppc_state.SetCarry((a == 0) || (Helper_Carry(0 - u32(a), u32(immediate))));
+  Helper_AddImmediateCarrying(ppc_state, inst, ~ppc_state.gpr[inst.RA], u32(s32{inst.SIMM_16}), 1);
 }
 
 void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
@@ -404,98 +446,35 @@ void Interpreter::xorx(Interpreter& interpreter, UGeckoInstruction inst)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
 }
 
-static bool HasAddOverflowed(u32 x, u32 y, u32 result)
-{
-  // If x and y have the same sign, but the result is different
-  // then an overflow has occurred.
-  return (((x ^ result) & (y ^ result)) >> 31) != 0;
-}
-
 void Interpreter::addx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b;
-
-  ppc_state.gpr[inst.RD] = result;
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXO(ppc_state, inst, ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB], 0);
 }
 
 void Interpreter::addcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, b));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB], 0);
 }
 
 void Interpreter::addex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 carry = ppc_state.GetCarry();
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB],
+                       ppc_state.GetCarry());
 }
 
 void Interpreter::addmex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 carry = ppc_state.GetCarry();
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 b = 0xFFFFFFFF;
-  const u32 result = a + b + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  // rA + 0xFFFFFFFF + carry carries out unless both rA and carry are zero.
-  ppc_state.SetCarry(carry != 0 || a != 0);
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ppc_state.gpr[inst.RA], 0xFFFFFFFF, ppc_state.GetCarry());
 }
 
 void Interpreter::addzex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 carry = ppc_state.GetCarry();
-  const u32 a = ppc_state.gpr[inst.RA];
-  const u32 result = a + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, carry));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, 0, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ppc_state.gpr[inst.RA], 0, ppc_state.GetCarry());
 }
 
 void Interpreter::divwx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -592,102 +571,36 @@ void Interpreter::mullwx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::negx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ppc_state.gpr[inst.RA];
-
-  ppc_state.gpr[inst.RD] = (~a) + 1;
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(a == 0x80000000);
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RD]);
+  Helper_AddXO(ppc_state, inst, ~ppc_state.gpr[inst.RA], 0, 1);
 }
 
 void Interpreter::subfx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b + 1;
-
-  ppc_state.gpr[inst.RD] = result;
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXO(ppc_state, inst, ~ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB], 1);
 }
 
 void Interpreter::subfcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b + 1;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(a == 0xFFFFFFFF || Helper_Carry(b, a + 1));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ~ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB], 1);
 }
 
 void Interpreter::subfex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 b = ppc_state.gpr[inst.RB];
-  const u32 carry = ppc_state.GetCarry();
-  const u32 result = a + b + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, b) || Helper_Carry(a + b, carry));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ~ppc_state.gpr[inst.RA], ppc_state.gpr[inst.RB],
+                       ppc_state.GetCarry());
 }
 
-// sub from minus one
 void Interpreter::subfmex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 b = 0xFFFFFFFF;
-  const u32 carry = ppc_state.GetCarry();
-  const u32 result = a + b + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  // ~rA + 0xFFFFFFFF + carry carries out unless both ~rA and carry are zero.
-  ppc_state.SetCarry(carry != 0 || a != 0);
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ~ppc_state.gpr[inst.RA], 0xFFFFFFFF, ppc_state.GetCarry());
 }
 
-// sub from zero
 void Interpreter::subfzex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
-  const u32 carry = ppc_state.GetCarry();
-  const u32 result = a + carry;
-
-  ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(Helper_Carry(a, carry));
-
-  if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, 0, result));
-
-  if (inst.Rc)
-    Helper_UpdateCR0(ppc_state, result);
+  Helper_AddXOCarrying(ppc_state, inst, ~ppc_state.gpr[inst.RA], 0, ppc_state.GetCarry());
 }
