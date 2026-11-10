@@ -19,6 +19,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
@@ -304,76 +305,92 @@ bool Wiimote::IsBalanceBoard()
 {
   if (!ConnectInternal())
     return false;
-  // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
-  // TODO: Use the structs for building these reports..
-  static const u8 init_extension_rpt1[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
-  static const u8 init_extension_rpt2[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
-  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
-                                     0};
-  if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
-      !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
-  {
-    ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Failed to initialise extension.");
-    return false;
-  }
 
-  int ret = IOWrite(status_report, sizeof(status_report));
-  u8 buf[MAX_PAYLOAD];
-  while (ret != 0)
+  // This allows the camera hardware to respond on the I2C bus.
+  // Unfortunately this "enable" report succeeds even on a Balance Board.
+  // It's worth mentioning that at least one off-brand remote allows
+  //  the camera hardware to respond even without this "enable" report.
+  struct
   {
-    ret = IORead(buf);
-    if (ret == -1)
+    u8 hid_type = WR_SET_REPORT | BT_OUTPUT;
+    u8 rpt_id = u8(OutputReportID::IRLogicEnable);
+    OutputReportIRLogicEnable payload{};
+  } enable_camera;
+  static_assert(sizeof(enable_camera) == sizeof(OutputReportIRLogicEnable) + 2);
+
+  enable_camera.payload.ack = 1;
+  enable_camera.payload.enable = 1;
+
+  // This writes {0x01} to addr:0x30 of the camera hardware.
+  // This turns off object tracking or some such thing. It's part of the normal init sequence.
+  // The camera hardware is not present on the I2C bus of a Balance Board so it will NACK.
+  struct
+  {
+    u8 hid_type = WR_SET_REPORT | BT_OUTPUT;
+    u8 rpt_id = u8(OutputReportID::WriteData);
+    OutputReportWriteData payload = {
+        .space = u8(AddressSpace::I2CBus),
+        .slave_address = WiimoteEmu::CameraLogic::I2C_ADDR,
+        .address{Common::BigEndianValue<u16>(0x30)},
+        .size = 1,
+        .data{0x01},
+    };
+  } const write_to_camera;
+  static_assert(sizeof(write_to_camera) == sizeof(OutputReportWriteData) + 2);
+
+  const auto deadline = Clock::now() + std::chrono::milliseconds{1000};
+
+  // We enable the camera, wait for that reply, then try to write to the camera.
+  bool camera_is_enabled = false;
+  int rw_result = IOWrite(Common::AsU8Span(enable_camera).data(), sizeof(enable_camera));
+
+  while (rw_result != 0)
+  {
+    if (Clock::now() >= deadline)
+    {
+      WARN_LOG_FMT(WIIMOTE, "IsBalanceBoard: Timed out. Assuming this is a Wii Remote.");
+      return false;
+    }
+
+    std::array<u8, MAX_PAYLOAD> buf{};
+    rw_result = IORead(buf.data());
+    if (rw_result == -1)
       continue;
 
-    switch (InputReportID(buf[1]))
+    const auto rpt_id = InputReportID(buf[1]);
+    if (rpt_id == InputReportID::Ack)
     {
-    case InputReportID::Status:
-    {
-      const auto* status = reinterpret_cast<InputReportStatus*>(&buf[2]);
-      // A Balance Board has a Balance Board extension.
-      if (!status->extension)
-        return false;
-      // Read two bytes from 0xa400fe to identify the extension.
-      static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
-                                            u8(OutputReportID::ReadData),
-                                            0x04,
-                                            0xa4,
-                                            0x00,
-                                            0xfe,
-                                            0x02,
-                                            0x00};
-      ret = IOWrite(identify_ext_rpt, sizeof(identify_ext_rpt));
-      break;
-    }
-    case InputReportID::ReadDataReply:
-    {
-      const auto* reply = reinterpret_cast<InputReportReadDataReply*>(&buf[2]);
-      if (Common::swap16(reply->address) != 0x00fe)
+      const InputReportAck ack = Common::BitCastPtr<InputReportAck>(buf.data() + 2);
+
+      DEBUG_LOG_FMT(WIIMOTE, "IsBalanceBoard: Received ACK: rpt_id:{:02x} error_code:{}",
+                    std::to_underlying(ack.rpt_id), std::to_underlying(ack.error_code));
+
+      if (ack.rpt_id == OutputReportID::IRLogicEnable)
       {
-        ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address {:X}",
-                      Common::swap16(reply->address));
-        return false;
+        if (ack.error_code != ErrorCode::Success)
+        {  // The "enable" reply has an error code. I guess we can try again.
+          rw_result = IOWrite(Common::AsU8Span(enable_camera).data(), sizeof(enable_camera));
+        }
+        else
+        {  // We've received our "enable" reply. Now we can see if the camera hardware responds.
+          camera_is_enabled = true;
+          rw_result = IOWrite(Common::AsU8Span(write_to_camera).data(), sizeof(write_to_camera));
+        }
       }
-      // A Balance Board ext can be identified by checking for 0x0402.
-      return reply->data[0] == 0x04 && reply->data[1] == 0x02;
-    }
-    case InputReportID::Ack:
-    {
-      const auto* ack = reinterpret_cast<InputReportAck*>(&buf[2]);
-      if (ack->rpt_id == OutputReportID::ReadData && ack->error_code != ErrorCode::Success)
+      else if (camera_is_enabled && ack.rpt_id == OutputReportID::WriteData)
       {
-        WARN_LOG_FMT(WIIMOTE,
-                     "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
-        return false;
+        // ACK == Wii Remote. NACK == Balance Board.
+        return ack.error_code == ErrorCode::Nack;
       }
-      break;
     }
-    default:
-      break;
+    else
+    {
+      DEBUG_LOG_FMT(WIIMOTE, "IsBalanceBoard: Ignoring report type: {:02x}",
+                    std::to_underlying(rpt_id));
     }
   }
+
+  ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard: IO failure.");
   return false;
 }
 
