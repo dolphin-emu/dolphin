@@ -11,7 +11,6 @@
 #include <thread>
 #include <vector>
 
-#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
@@ -65,7 +64,7 @@ public:
 
   bool IsBalanceBoard();
 
-  void InterruptDataOutput(const u8* data, const u32 size) override;
+  void InterruptDataOutput(const u8* data, u32 size) override;
 
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
@@ -147,8 +146,6 @@ private:
   void ReadThreadFunc();
   void WriteThreadFunc();
 
-  void RefreshConfig();
-
   std::atomic<bool> m_is_linked = false;
 
   // And we track the rumble state to drop unnecessary rumble reports.
@@ -164,10 +161,6 @@ private:
   Common::SPSCQueue<TimedReport> m_write_reports;
   // Kick the write thread.
   Common::Event m_write_event;
-
-  bool m_speaker_enabled_in_dolphin_config = false;
-
-  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 
 class WiimoteScannerBackend
