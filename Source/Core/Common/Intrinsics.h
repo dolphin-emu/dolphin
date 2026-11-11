@@ -40,12 +40,18 @@
 #define FUNCTION_TARGET_SSE3 [[gnu::target("sse3")]]
 #endif
 
+#define ATTR_TARGET_WAITPKG __attribute__((target("waitpkg")))
+#define ATTR_TARGET_MWAITX __attribute__((target("mwaitx")))
+
 #elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
 /**
  * MSVC and ICC support intrinsics for any instruction set without any function attributes.
  */
 #include <intrin.h>
+
+#define ATTR_TARGET_WAITPKG
+#define ATTR_TARGET_MWAITX
 
 #endif  // defined(_MSC_VER) || defined(__INTEL_COMPILER)
 

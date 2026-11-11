@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <thread>
-#include "Common/CommonFuncs.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13,7 +12,10 @@
 #include <timeapi.h>
 #endif
 
+#include "Common/CPUDetect.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 
 namespace Common
@@ -176,15 +178,78 @@ void PrecisionTimer::SleepUntil(Clock::time_point target)
   std::this_thread::sleep_until(target - SPIN_TIME);
 #endif
 
-  // Spin for the remaining time.
+  HardwareSleepUntil(target);
+}
+
+void SpinUntil(Clock::time_point target)
+{
   while (Clock::now() < target)
   {
-#if defined(_WIN32)
+#if defined(_M_X86_64)
+    _mm_pause();
+#elif defined(_WIN32)
     YieldProcessor();
 #else
     std::this_thread::yield();
 #endif
   }
+}
+
+#if defined(_M_X86_64)
+ATTR_TARGET_WAITPKG static void SleepViaTPAUSE(u32 tsc_ticks)
+{
+  _mm_lfence();
+  _tpause(0, __rdtsc() + tsc_ticks);
+}
+
+ATTR_TARGET_MWAITX static void SleepViaMWAITX(u32 tsc_ticks)
+{
+  alignas(64) u64 dummy{};
+  constexpr u32 extensions = 0x2;  // Use timer.
+
+  _mm_monitorx(&dummy, 0, 0);
+  _mm_mwaitx(extensions, 0, tsc_ticks);
+}
+#endif
+
+void HardwareSleepUntil(TimePoint target)
+{
+#if defined(_M_X86_64)
+  decltype(SleepViaTPAUSE)* tsc_sleep_func{};
+
+  const u64 tsc_mhz = u64(cpu_info.GetInvariantTSCMHz());
+  if (tsc_mhz != 0)
+  {
+    if (cpu_info.bWAITPKG)
+    {
+      DEBUG_LOG_FMT(COMMON, "HardwareSleepUntil via TPAUSE. TSC: {} MHz", tsc_mhz);
+      tsc_sleep_func = SleepViaTPAUSE;
+    }
+    else if (cpu_info.bMONITORX)
+    {
+      DEBUG_LOG_FMT(COMMON, "HardwareSleepUntil via MWAITX. TSC: {} MHz", tsc_mhz);
+      tsc_sleep_func = SleepViaMWAITX;
+    }
+  }
+
+  if (tsc_sleep_func)
+  {
+    while (true)
+    {
+      const auto duration = target - Clock::now();
+      if (duration.count() <= 0)
+        break;
+
+      const auto tsc_ticks = duration_cast<std::chrono::microseconds>(duration * tsc_mhz).count();
+      tsc_sleep_func(tsc_ticks);
+    }
+
+    return;
+  }
+#endif
+
+  // Fallback to spinning.
+  SpinUntil(target);
 }
 
 // Results are appropriately slewed on Linux, but not on Windows, macOS, or FreeBSD.
