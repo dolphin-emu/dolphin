@@ -643,15 +643,17 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
 }
 
-std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 index, u16 address,
-                                                         u8 size)
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(const CPState& cpmem, CPArray array,
+                                                         u32 index, u16 xf_addr, u8 size)
 {
-  const auto desc = fmt::format("Load {} words to XF address {:03x} from CP array {} row {}", size,
-                                address, array, index);
+  const u32 mem_addr = cpmem.array_bases[array] + cpmem.array_strides[array] * index;
+  const auto desc =
+      fmt::format("Load {} words to XF address {:03x} from CP array {}, row {} ({:08X})", size,
+                  xf_addr, array, index, mem_addr);
   fmt::memory_buffer written;
   for (u32 i = 0; i < size; i++)
   {
-    fmt::format_to(std::back_inserter(written), "{}\n", GetXFMemName(address + i));
+    fmt::format_to(std::back_inserter(written), "{}\n", GetXFMemName(xf_addr + i));
   }
 
   return std::make_pair(desc, fmt::to_string(written));
