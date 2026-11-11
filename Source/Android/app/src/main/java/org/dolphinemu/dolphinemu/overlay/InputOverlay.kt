@@ -1146,7 +1146,9 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
 
             ButtonType.BUTTON_Z,
             ButtonType.TRIGGER_L,
-            ButtonType.TRIGGER_R -> 0.225f
+            ButtonType.TRIGGER_R,
+            ButtonType.GBA_BUTTON_L,
+            ButtonType.GBA_BUTTON_R -> 0.225f
 
             ButtonType.BUTTON_START -> 0.075f
             ButtonType.WIIMOTE_BUTTON_1,
@@ -1163,6 +1165,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             ButtonType.CLASSIC_TRIGGER_R,
             ButtonType.CLASSIC_BUTTON_ZL,
             ButtonType.CLASSIC_BUTTON_ZR -> 0.25f
+
+            ButtonType.GBA_BUTTON_A,
+            ButtonType.GBA_BUTTON_B -> 0.11f
+
+            ButtonType.GBA_BUTTON_START,
+            ButtonType.GBA_BUTTON_SELECT -> 0.1875f
 
             else -> 0.125f
         }
