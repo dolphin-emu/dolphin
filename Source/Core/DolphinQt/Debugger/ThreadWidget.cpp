@@ -26,7 +26,7 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Threads"));
   setObjectName(QStringLiteral("threads"));
 
-  setHidden(!Settings::Instance().IsThreadsVisible() || !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsThreadsVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 

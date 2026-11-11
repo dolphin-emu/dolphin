@@ -154,8 +154,6 @@ public:
   bool GetCheatsEnabled() const;
 
   // Debug
-  void SetDebugModeEnabled(bool enabled);
-  bool IsDebugModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
   void SetThreadsVisible(bool enabled);
@@ -234,6 +232,7 @@ signals:
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
   void GameCountVisibilityChanged(bool visible);
+  void HardcoreModeChanged(bool enabled);
 
 private:
   Settings();
