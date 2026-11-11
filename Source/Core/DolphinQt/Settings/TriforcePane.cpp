@@ -21,6 +21,7 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/Settings/AvalonDeckManager.h"
 
 namespace
 {
@@ -77,6 +78,20 @@ TriforcePane::TriforcePane()
     auto* const ip_redirections = new IPRedirectionsDialog{this};
     ip_redirections->setAttribute(Qt::WA_DeleteOnClose);
     ip_redirections->open();
+  });
+
+  auto* const avalon_deck_manager_group = new QGroupBox{tr("The Key of Avalon")};
+  main_layout->addWidget(avalon_deck_manager_group);
+
+  auto* const avalon_deck_manager_layout = new QVBoxLayout{avalon_deck_manager_group};
+
+  auto* const avalon_deck_manager_button = new NonDefaultQPushButton{tr("Deck Manager")};
+  avalon_deck_manager_layout->addWidget(avalon_deck_manager_button);
+
+  connect(avalon_deck_manager_button, &QPushButton::clicked, this, [this] {
+    auto* const deck_manager = new AvalonDeckManager{this};
+    deck_manager->setAttribute(Qt::WA_DeleteOnClose);
+    deck_manager->open();
   });
 
   main_layout->addStretch(1);
