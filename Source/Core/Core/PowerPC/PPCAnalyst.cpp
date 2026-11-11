@@ -4,6 +4,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 
 #include <algorithm>
+#include <bitset>
 #include <map>
 #include <string>
 #include <vector>

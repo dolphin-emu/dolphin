@@ -309,20 +309,20 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
 
   if (SetEmitterStateToFreeCodeRegion())
   {
-    JitBlock* b = m_block_cache.AllocateBlock(em_address);
-    b->normalEntry = b->near_begin = GetWritableCodePtr();
+    JitBlock b = m_block_cache.InitBlock(em_address);
+    b.normalEntry = b.near_begin = GetWritableCodePtr();
 
-    if (DoJit(em_address, b, nextPC))
+    if (DoJit(em_address, &b, nextPC))
     {
       // Record what memory region was used so we know what to free if this block gets invalidated.
-      b->near_end = GetWritableCodePtr();
-      b->far_begin = b->far_end = nullptr;
+      b.near_end = GetWritableCodePtr();
+      b.far_begin = b.far_end = nullptr;
 
       // Mark the memory region that this code block uses in the RangeSizeSet.
-      if (b->near_begin != b->near_end)
-        m_free_ranges.erase(b->near_begin, b->near_end);
+      if (b.near_begin != b.near_end)
+        m_free_ranges.erase(b.near_begin, b.near_end);
 
-      m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+      m_block_cache.FinalizeBlock(std::move(b), jo.enableBlocklink, code_block, m_code_buffer);
 
 #ifdef JIT_LOG_GENERATED_CODE
       LogGeneratedCode();
