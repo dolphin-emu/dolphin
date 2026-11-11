@@ -42,7 +42,7 @@ public:
   void DoBacktrace(uintptr_t access_address, SContext* ctx);
   bool HandleFastmemFault(SContext* ctx);
 
-  void ClearCache() override;
+  void ClearCache(bool poison = true) override;
 
   CommonAsmRoutinesBase* GetAsmRoutines() override { return this; }
   void Run() override;
@@ -294,7 +294,7 @@ protected:
   Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
                                            Arm64Gen::ARM64Reg tmp2);
 
-  bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+  bool DoJit(JitBlock* b);
 
   void Trace();
 
