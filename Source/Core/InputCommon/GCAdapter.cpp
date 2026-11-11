@@ -831,18 +831,26 @@ static void Reset()
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter detached");
 }
 
-GCPadStatus Input(int chan)
+static bool IsReadable()
 {
   if (!s_is_adapter_wanted.load(std::memory_order_relaxed))
-    return {};
+    return false;
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   if (s_handle == nullptr || s_status != AdapterStatus::Detected)
-    return {};
+    return false;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   if (!s_detected || !s_fd)
-    return {};
+    return false;
 #endif
+
+  return true;
+}
+
+GCPadStatus Input(int chan)
+{
+  if (!IsReadable())
+    return {};
 
   std::lock_guard lk(s_read_mutex);
 
@@ -855,6 +863,18 @@ GCPadStatus Input(int chan)
     return pad_state.origin;
   }
 
+  return pad_state.status;
+}
+
+std::optional<GCPadStatus> Peek(int chan)
+{
+  if (!IsReadable())
+    return std::nullopt;
+
+  std::lock_guard lk(s_read_mutex);
+  const auto& pad_state = s_port_states[chan];
+  if (pad_state.controller_type == ControllerType::None)
+    return std::nullopt;
   return pad_state.status;
 }
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <thread>
 
 #include <QObject>
@@ -71,13 +72,23 @@ signals:
   void SkylandersPortalHotkey();
   void InfinityBaseHotkey();
 
+  // An arrow key or Qt::Key_Return from a controller while no game is running.
+  void GameListKey(int key);
+
 private:
   void Run();
   void CheckDebuggingHotkeys();
   void CheckGBAHotkeys();
+  void CheckGameListController();
 
   Common::Flag m_stop_requested;
   std::thread m_thread;
+
+  // The last game list poll. Only the hotkey thread uses these.
+  bool m_game_list_synced = false;
+  int m_game_list_direction = 0;
+  bool m_game_list_a = false;
+  std::chrono::steady_clock::time_point m_game_list_repeat_time;
 
   InputProfile::ProfileCycler m_profile_cycler;
 };
