@@ -97,7 +97,7 @@ std::string MemoryWatcher::ComposeMessages(const Core::CPUThreadGuard& guard)
     }
   }
 
-  return message_stream.str();
+  return std::move(message_stream).str();
 }
 
 void MemoryWatcher::Step(const Core::CPUThreadGuard& guard)

@@ -564,7 +564,7 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out)
     break;
   }
 
-  m_output_box->appendPlainText(QString::fromStdString(str_contents.str()));
+  m_output_box->appendPlainText(QString::fromUtf8(str_contents.view()));
   m_output_box->moveCursor(QTextCursor::MoveOperation::Start);
   m_output_box->ensureCursorVisible();
 
