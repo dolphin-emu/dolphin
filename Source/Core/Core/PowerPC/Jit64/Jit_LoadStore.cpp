@@ -238,6 +238,8 @@ void Jit64::dcbx(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
+  // See Interpreter::dcbf comment on explanation of why this exists.
+
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
   // - addi rX,rX,32
@@ -398,25 +400,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   FixupBranch done = J(Jump::Near);
   SwitchToNearCode();
   SetJumpTarget(done);
-}
-
-void Jit64::dcbt(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
-
-  // Prefetch. Since we don't emulate the data cache, we don't need to do anything.
-
-  // If a dcbst follows a dcbt, it probably isn't a case of dynamic code
-  // modification, so don't bother invalidating the jit block cache.
-  // This is important because invalidating the block cache when we don't
-  // need to is terrible for performance.
-  // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
-      js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
-  {
-    js.skipInstructions = 1;
-  }
 }
 
 // Zero cache line.
