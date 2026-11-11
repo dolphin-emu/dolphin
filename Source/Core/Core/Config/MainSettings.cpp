@@ -700,6 +700,7 @@ static std::string GetDefaultTriforceIPRedirections()
 
 const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS{
     {System::Main, "Core", "TriforceIPRedirections"}, GetDefaultTriforceIPRedirections()};
+const Info<int> MAIN_TRIFORCE_REGION{{System::Main, "Core", "TriforceRegion"}, 1};
 
 // Main.WiimoteAudioRouting
 
