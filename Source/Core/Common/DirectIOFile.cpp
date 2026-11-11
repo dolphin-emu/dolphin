@@ -12,7 +12,6 @@
 
 #include "Common/Buffer.h"
 #include "Common/CommonFuncs.h"
-#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #else
 #include <string>
@@ -28,9 +27,11 @@
 #endif
 
 #include "Common/FileUtil.h"
+#include "Common/UnixUtil.h"
 #endif
 
 #include "Common/Assert.h"
+#include "Common/MathUtil.h"
 
 namespace File
 {
@@ -212,6 +213,30 @@ static bool OverlappedTransfer(HANDLE handle, u64 offset, auto* data_ptr, u64 si
     data_ptr += bytes_transferred;
   }
 }
+#else
+template <auto* RWFunc>
+static bool PReadWriteHelper(int fd, auto* data_ptr, u64 size, u64 offset)
+{
+  while (true)
+  {
+    // Note: Some platforms (e.g. macOS, FreeBSD) may not handle values greater than INT_MAX.
+    const auto nbyte = MathUtil::SaturatingCast<int>(size);
+    const auto result = UnixUtil::RetryOnEINTR(RWFunc, fd, data_ptr, nbyte, off_t(offset));
+    if (result == -1)
+      return false;
+
+    if (result == 0)
+      return size == 0;
+
+    size -= result;
+
+    if (size == 0)
+      return true;
+
+    offset += result;
+    data_ptr += result;
+  }
+}
 #endif
 
 bool DirectIOFile::OffsetRead(u64 offset, u8* out_ptr, u64 size)
@@ -219,7 +244,7 @@ bool DirectIOFile::OffsetRead(u64 offset, u8* out_ptr, u64 size)
 #if defined(_WIN32)
   return OverlappedTransfer<ReadFile>(m_handle, offset, out_ptr, size);
 #else
-  return pread(m_fd, out_ptr, size, off_t(offset)) == ssize_t(size);
+  return PReadWriteHelper<pread>(m_fd, out_ptr, size, offset);
 #endif
 }
 
@@ -228,7 +253,7 @@ bool DirectIOFile::OffsetWrite(u64 offset, const u8* in_ptr, u64 size)
 #if defined(_WIN32)
   return OverlappedTransfer<WriteFile>(m_handle, offset, in_ptr, size);
 #else
-  return pwrite(m_fd, in_ptr, size, off_t(offset)) == ssize_t(size);
+  return PReadWriteHelper<pwrite>(m_fd, in_ptr, size, offset);
 #endif
 }
 
