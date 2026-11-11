@@ -11,6 +11,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
+#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "DiscIO/CISOBlob.h"
@@ -249,6 +250,84 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 
     return PlainFileReader::Create(std::move(file));
   }
+}
+
+bool ConvertBlob(const ConversionFunction& conversion_function, std::unique_ptr<BlobReader> infile,
+                 std::string_view infile_path, const std::string& outfile_path,
+                 const CompressCB& callback)
+{
+  File::DirectIOFile outfile;
+
+  // Writing to and renaming a temporary file won't work with Android SAF.
+#if !defined(ANDROID)
+  // Since we write to a temporary file it probably makes sense to first delete the destination.
+  // Users may be doing conversions with limited storage space.
+  if (!File::Delete(outfile_path))
+  {
+    PanicAlertFmtT(
+        "Failed to delete existing file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
+    return false;
+  }
+
+  File::AtomicWriteHelper atomic_write_helper{&outfile, outfile_path};
+  if (!outfile.IsOpen())
+  {
+    PanicAlertFmtT(
+        "Failed to create temporary file for \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
+    return false;
+  }
+  const auto& temp_path = atomic_write_helper.GetTempPath();
+#else
+  outfile.Open(outfile_path, File::AccessMode::Write);
+  if (!outfile.IsOpen())
+  {
+    PanicAlertFmtT(
+        "Failed to open the output file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
+    return false;
+  }
+  const auto& temp_path = outfile_path;
+#endif
+
+  const auto result = conversion_function(std::move(infile), outfile, callback);
+  switch (result)
+  {
+  case ConversionResultCode::ReadFailed:
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
+    return false;
+
+  case ConversionResultCode::WriteFailed:
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
+                   "Check that you have enough space available on the target drive.",
+                   temp_path);
+    return false;
+
+  case ConversionResultCode::InternalError:
+  case ConversionResultCode::Canceled:
+  default:
+    return false;
+
+  case ConversionResultCode::Success:
+    break;
+  }
+
+#if !defined(ANDROID)
+  if (!atomic_write_helper.Finalize())
+  {
+    PanicAlertFmtT("Failed to rename file from \"{0}\" to \"{1}\".", temp_path, outfile_path);
+    return false;
+  }
+#endif
+
+  return true;
 }
 
 }  // namespace DiscIO
