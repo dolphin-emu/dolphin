@@ -31,11 +31,11 @@
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/TAS/BalanceBoardWidget.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASSpinBox.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/InputConfig.h"
@@ -345,21 +345,95 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   SetupScrollArea(layout);
 }
 
+BalanceBoardTASInputWindow::BalanceBoardTASInputWindow(QWidget* parent) : TASInputWindow{parent}
+{
+  setWindowTitle(tr("Wii TAS Input %1 - Balance Board").arg(WIIMOTE_BALANCE_BOARD + 1));
+
+  const QKeySequence balance_tl_keyseq = QKeySequence(Qt::ALT | Qt::Key_L);
+  const QKeySequence balance_tr_keyseq = QKeySequence(Qt::ALT | Qt::Key_R);
+  const QKeySequence balance_bl_keyseq = QKeySequence(Qt::ALT | Qt::SHIFT | Qt::Key_L);
+  const QKeySequence balance_br_keyseq = QKeySequence(Qt::ALT | Qt::SHIFT | Qt::Key_R);
+  const QKeySequence balance_weight_keyseq = QKeySequence(Qt::ALT | Qt::Key_W);
+
+  auto* const balance_board_box =
+      new QGroupBox(QStringLiteral("%1 (%2/%3/%4)")
+                        .arg(tr("Balance"), balance_tl_keyseq.toString(QKeySequence::NativeText),
+                             balance_tr_keyseq.toString(QKeySequence::NativeText),
+                             balance_weight_keyseq.toString(QKeySequence::NativeText)));
+
+  // How heavy do the TASers want to pretend to be?
+  constexpr int max_total_kg = 136;
+  // FYI, a lifted board shows about -4kg (the weight of the board itself).
+  // But I don't think TASers necessarily need to simulate that.
+  // They'd probably prefer the bottom of the slider be 0kg.
+  constexpr int min_total_kg = 0;
+  constexpr int max_sensor_value = max_total_kg;
+  constexpr int min_sensor_value = min_total_kg / 4;
+
+  using BBExt = WiimoteEmu::BalanceBoardExt;
+  auto& balance_group = BBExt::BALANCE_GROUP;
+  auto* bal_top_layout = new QHBoxLayout;
+  auto* const balance_value_tl = CreateWeightSliderValuePair(
+      balance_group, BBExt::SENSOR_TL, &m_balance_board_overrider, bal_top_layout, min_sensor_value,
+      max_sensor_value, balance_tl_keyseq, balance_board_box);
+  auto* const balance_value_tr = CreateWeightSliderValuePair(
+      balance_group, BBExt::SENSOR_TR, &m_balance_board_overrider, bal_top_layout, min_sensor_value,
+      max_sensor_value, balance_tr_keyseq, balance_board_box);
+
+  auto* bal_bottom_layout = new QHBoxLayout;
+  auto* const balance_value_bl = CreateWeightSliderValuePair(
+      balance_group, BBExt::SENSOR_BL, &m_balance_board_overrider, bal_bottom_layout,
+      min_sensor_value, max_sensor_value, balance_bl_keyseq, balance_board_box);
+  auto* const balance_value_br = CreateWeightSliderValuePair(
+      balance_group, BBExt::SENSOR_BR, &m_balance_board_overrider, bal_bottom_layout,
+      min_sensor_value, max_sensor_value, balance_br_keyseq, balance_board_box);
+
+  auto* bal_weight_layout = new QHBoxLayout;
+  auto* const total_weight_value = CreateWeightSliderValuePair(
+      bal_weight_layout, min_total_kg, max_total_kg, balance_weight_keyseq, balance_board_box);
+
+  auto* bal_visual = new BalanceBoardWidget(
+      this, total_weight_value,
+      {balance_value_tr, balance_value_br, balance_value_tl, balance_value_bl});
+
+  auto* bal_ar = new AspectRatioWidget(bal_visual, 20, 12);
+  bal_ar->setMinimumHeight(120);
+  auto* bal_visual_layout = new QHBoxLayout;
+  bal_visual_layout->addWidget(bal_ar);
+
+  auto* const bboard_power_button =
+      CreateButton(QStringLiteral("&Power Button"), WiimoteEmu::BalanceBoard::BUTTONS_GROUP_NAME,
+                   WiimoteEmu::BalanceBoard::BUTTON_POWER_NAME, &m_wiimote_overrider);
+
+  auto* bal_layout = new QVBoxLayout;
+  bal_layout->addLayout(bal_top_layout);
+  bal_layout->addLayout(bal_visual_layout);
+  bal_layout->addLayout(bal_bottom_layout);
+  bal_layout->addLayout(bal_weight_layout);
+  bal_layout->addWidget(bboard_power_button);
+
+  balance_board_box->setLayout(bal_layout);
+
+  auto* top_layout = new QHBoxLayout;
+  top_layout->addWidget(balance_board_box);
+
+  auto* layout = new QVBoxLayout;
+  layout->addLayout(top_layout);
+  layout->addWidget(m_settings_box);
+
+  setLayout(layout);
+
+  adjustSize();
+}
+
 WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
 {
   return static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(m_num));
 }
 
-ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments()
-{
-  return static_cast<ControllerEmu::Attachments*>(
-      GetWiimote()->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments));
-}
-
 WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
 {
-  return static_cast<WiimoteEmu::Extension*>(
-      GetAttachments()->GetAttachmentList()[m_active_extension].get());
+  return GetWiimote()->GetActiveExtension();
 }
 
 void WiiTASInputWindow::UpdateExtension(const int extension)
@@ -421,7 +495,7 @@ void WiiTASInputWindow::LoadExtensionAndMotionPlus()
         QueueOnObject(this, [this, attached] { UpdateMotionPlus(attached); });
       });
   m_attachment_callback_id =
-      GetAttachments()->GetAttachmentSetting().AddCallback([this](const int extension_index) {
+      wiimote->GetAttachmentSetting().AddCallback([this](const int extension_index) {
         QueueOnObject(this, [this, extension_index] { UpdateExtension(extension_index); });
       });
 }
@@ -490,7 +564,7 @@ void WiiTASInputWindow::hideEvent(QHideEvent* const event)
   wiimote->GetMotionPlusSetting().RemoveCallback(m_motion_plus_callback_id);
 
   GetExtension()->ClearInputOverrideFunction();
-  GetAttachments()->GetAttachmentSetting().RemoveCallback(m_attachment_callback_id);
+  wiimote->GetAttachmentSetting().RemoveCallback(m_attachment_callback_id);
 
   TASInputWindow::hideEvent(event);
 }
@@ -498,6 +572,32 @@ void WiiTASInputWindow::hideEvent(QHideEvent* const event)
 void WiiTASInputWindow::showEvent(QShowEvent* const event)
 {
   LoadExtensionAndMotionPlus();
+
+  TASInputWindow::showEvent(event);
+}
+
+WiimoteEmu::BalanceBoard* BalanceBoardTASInputWindow::GetBalanceBoard() const
+{
+  return static_cast<WiimoteEmu::BalanceBoard*>(BalanceBoard::GetConfig()->GetController(0));
+}
+
+void BalanceBoardTASInputWindow::hideEvent(QHideEvent* const event)
+{
+  auto* const board = GetBalanceBoard();
+
+  board->ClearInputOverrideFunction();
+  board->GetActiveExtension()->ClearInputOverrideFunction();
+
+  TASInputWindow::hideEvent(event);
+}
+
+void BalanceBoardTASInputWindow::showEvent(QShowEvent* const event)
+{
+  auto* const board = GetBalanceBoard();
+
+  board->SetInputOverrideFunction(m_wiimote_overrider.GetInputOverrideFunction());
+  board->GetActiveExtension()->SetInputOverrideFunction(
+      m_balance_board_overrider.GetInputOverrideFunction());
 
   TASInputWindow::showEvent(event);
 }
