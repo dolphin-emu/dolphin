@@ -1,6 +1,7 @@
 # <a name="main-section-overview"></a>Dolphin Coding Style & Legal Requirements
 
 - [Legal](#legal)
+- [Pull requests](#pull-requests)
 - [Coding style introduction](#introduction)
 - [C++ coding style and formatting](#cpp-coding-style-and-formatting)
 - [C++ code-specific guidelines](#cpp-code-specific-guidelines)
@@ -32,6 +33,13 @@ Because large language models are trained on massive amounts of data gathered fr
 ## <a name="code-licensing"></a>Code licensing
 
 If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
+
+# <a name="pull-requests"></a>Pull requests
+
+Pull requests must have a clean history.
+This precludes commits with only small fixes.
+
+It is desirable for the area of the code edited to be prefixed to the commit name (e.g., `GCAdapter: Automatically start and stop thread` or `Android: Add page table fastmem to Debug setting`).
 
 # <a name="introduction"></a>Coding style introduction
 
