@@ -170,7 +170,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     break;
 
   case EXIDeviceType::Gecko:
-    result = std::make_unique<CEXIGecko>(system);
+    result = CreateEXIGecko(system);
     break;
 
   case EXIDeviceType::AGP:
