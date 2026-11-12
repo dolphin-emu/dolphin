@@ -12,13 +12,50 @@
 
 #include <fmt/format.h>
 
+#include "SFML/Network/TcpListener.hpp"
+#include "SFML/Network/TcpSocket.hpp"
+
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 
-namespace ExpansionInterface
+namespace
 {
+class GeckoSockServer
+{
+public:
+  GeckoSockServer();
+  ~GeckoSockServer();
+  bool GetAvailableSock();
+
+  // Client for this server object
+  std::unique_ptr<sf::TcpSocket> client;
+  // Set before starting the client thread; cleared after it closes the socket.
+  Common::Flag client_connected{false};
+  void ClientThread();
+  std::thread clientThread;
+
+  std::mutex send_lock;
+  std::mutex recv_lock;
+
+  std::deque<u8> send_fifo;
+  std::deque<u8> recv_fifo;
+
+private:
+  static int client_count;
+  Common::Flag client_running;
+
+  // Only ever one server thread
+  static void GeckoConnectionWaiter();
+
+  static Common::Flag server_running;
+  static std::thread connectionThread;
+  static std::mutex connection_lock;
+  static std::queue<std::unique_ptr<sf::TcpSocket>> waiting_socks;
+};
+
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
 Common::Flag GeckoSockServer::server_running;
@@ -175,10 +212,34 @@ void GeckoSockServer::ClientThread()
   client->disconnect();
   client_connected.Clear();
 }
+}  // namespace
 
-CEXIGecko::CEXIGecko(Core::System& system) : IEXIDevice(system)
+namespace ExpansionInterface
 {
-}
+class CEXIGecko : public IEXIDevice, private GeckoSockServer
+{
+public:
+  using IEXIDevice::IEXIDevice;
+  bool IsPresent() const override { return true; }
+  void ImmReadWrite(u32& _uData, u32 _uSize) override;
+
+private:
+  enum
+  {
+    CMD_LED_OFF = 0x7,
+    CMD_LED_ON = 0x8,
+    CMD_INIT = 0x9,
+    CMD_RECV = 0xa,
+    CMD_SEND = 0xb,
+    CMD_CHK_TX = 0xc,
+    CMD_CHK_RX = 0xd,
+  };
+
+  static const u32 ident = 0x04700000;
+
+  // Only accessed by the CPU thread. Refilled from recv_fifo under recv_lock
+  std::deque<u8> m_recv_buffer;
+};
 
 void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
 {
@@ -260,5 +321,10 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
     ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unknown USBGecko command {:x}", _uData);
     break;
   }
+}
+
+std::unique_ptr<IEXIDevice> CreateEXIGecko(Core::System& system)
+{
+  return std::make_unique<CEXIGecko>(system);
 }
 }  // namespace ExpansionInterface
