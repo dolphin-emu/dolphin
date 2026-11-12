@@ -6,8 +6,11 @@
 // a simple lockless thread-safe,
 // single producer, single consumer queue
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <cassert>
+#include <utility>
 
 #include "Common/TypeUtils.h"
 
@@ -39,34 +42,40 @@ public:
   template <typename... Args>
   void Emplace(Args&&... args)
   {
-    m_write_ptr->value.Construct(std::forward<Args>(args)...);
+    m_write_ptr->values[m_write_pos].Construct(std::forward<Args>(args)...);
 
-    Node* const new_ptr = new Node;
-    m_write_ptr->next = new_ptr;
-    m_write_ptr = new_ptr;
+    if (++m_write_pos == ITEMS_PER_NODE)
+    {
+      m_write_pos = 0;
+      Node* const new_ptr = new Node;
+      m_write_ptr->next = new_ptr;
+      m_write_ptr = new_ptr;
+    }
 
     AdjustSize(1);
   }
 
-  void WaitForEmpty() requires(IncludeWaitFunctionality)
+  void WaitForEmpty() requires IncludeWaitFunctionality
   {
     while (const std::size_t old_size = Size())
       m_size.wait(old_size, std::memory_order_acquire);
   }
 
   // The following are only safe from the "consumer thread":
-  T& Front() { return m_read_ptr->value.Ref(); }
-  const T& Front() const { return m_read_ptr->value.Ref(); }
+  T& Front() { return m_read_ptr->values[m_read_pos].Ref(); }
+  const T& Front() const { return m_read_ptr->values[m_read_pos].Ref(); }
 
   void Pop()
   {
     assert(!Empty());
 
-    m_read_ptr->value.Destroy();
+    m_read_ptr->values[m_read_pos].Destroy();
 
-    Node* const old_node = m_read_ptr;
-    m_read_ptr = old_node->next;
-    delete old_node;
+    if (++m_read_pos == ITEMS_PER_NODE)
+    {
+      m_read_pos = 0;
+      delete std::exchange(m_read_ptr, m_read_ptr->next);
+    }
 
     AdjustSize(-1);
   }
@@ -81,7 +90,7 @@ public:
     return true;
   }
 
-  void WaitForData() requires(IncludeWaitFunctionality)
+  void WaitForData() requires IncludeWaitFunctionality
   {
     m_size.wait(0, std::memory_order_acquire);
   }
@@ -93,14 +102,20 @@ public:
   }
 
 private:
+  static constexpr std::size_t BYTES_PER_NODE = 1024;
+  static constexpr std::size_t ITEMS_PER_NODE = std::max(BYTES_PER_NODE / sizeof(T), 1uz);
+
   struct Node
   {
-    ManuallyConstructedValue<T> value;
+    std::array<ManuallyConstructedValue<T>, ITEMS_PER_NODE> values;
     Node* next;
   };
 
   Node* m_write_ptr = new Node;
+  std::size_t m_write_pos = 0;
+
   Node* m_read_ptr = m_write_ptr;
+  std::size_t m_read_pos = 0;
 
   void AdjustSize(std::size_t value)
   {
