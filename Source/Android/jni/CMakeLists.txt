@@ -1,6 +1,7 @@
 add_library(main SHARED
   AchievementAdapter.cpp
   ActivityTracker.cpp
+  AndroidGBAHost.cpp
   Cheats/ARCheat.cpp
   Cheats/Cheats.h
   Cheats/GeckoCheat.cpp
@@ -15,6 +16,7 @@ add_library(main SHARED
   GameList/GameFileCache.cpp
   GameList/TitleDatabase.cpp
   GameList/TitleDatabase.h
+  GbaRenderer.cpp
   GpuDriver.cpp
   HotkeyScheduler.cpp
   HotkeyScheduler.h
