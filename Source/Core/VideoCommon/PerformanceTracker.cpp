@@ -73,14 +73,14 @@ void PerformanceTracker::UpdateStats()
 
     PushFront(diff);
 
-    while (DT(static_cast<long>(m_running_variance.Total())) - m_dt_queue.back() >= window)
+    while (DT(static_cast<DT::rep>(m_running_variance.Total())) - m_dt_queue.back() >= window)
       PopBack();
 
     // Simple Moving Average Throughout the Window
-    const double hz = DT_s(1.0) / DT(static_cast<long>(m_running_variance.Mean()));
+    const double hz = DT_s(1.0) / DT(static_cast<DT::rep>(m_running_variance.Mean()));
 
     // Exponential Moving Average
-    const DT_s rc = SAMPLE_RC_RATIO * DT(static_cast<long>(m_running_variance.Total()));
+    const DT_s rc = SAMPLE_RC_RATIO * DT(static_cast<DT::rep>(m_running_variance.Total()));
     const double a = 1.0 - std::exp(-(DT_s(diff) / rc));
 
     // Sometimes euler averages can break when the average is inf/nan
@@ -91,9 +91,9 @@ void PerformanceTracker::UpdateStats()
 
     LogRenderTimeToFile(diff);
   }
-  m_dt_avg.store(DT(static_cast<long>(m_running_variance.Mean())), std::memory_order_relaxed);
+  m_dt_avg.store(DT(static_cast<DT::rep>(m_running_variance.Mean())), std::memory_order_relaxed);
   m_hz_avg.store(hz_avg, std::memory_order_relaxed);
-  m_dt_std.store(DT(static_cast<long>(m_running_variance.PopulationStandardDeviation())),
+  m_dt_std.store(DT(static_cast<DT::rep>(m_running_variance.PopulationStandardDeviation())),
                  std::memory_order_relaxed);
 }
 
