@@ -4,10 +4,14 @@
 #pragma once
 
 #include <array>
+#include <concepts>
 #include <string>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
+#include "Common/Swap.h"
+#include "Common/TypeUtils.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -272,4 +276,128 @@ void SendPowerButtonEvent();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);
 int NumLocalWiimotes();
+
+class NetPacket
+{
+public:
+  // Write string.
+  NetPacket& operator<<(std::string_view str)
+  {
+    *this << u32(str.size());
+    return append(Common::AsU8Span(str));
+  }
+
+  // Read string.
+  NetPacket& operator>>(std::string& str)
+  {
+    u32 length{};
+    if (*this >> length)
+    {
+      if (length > RemainingBytes())
+      {
+        m_good = false;
+      }
+      else
+      {
+        str.resize(length);
+        read(Common::AsWritableU8Span(str));
+      }
+    }
+    return *this;
+  }
+
+  // Write enum.
+  NetPacket& operator<<(Common::Enum auto value)
+  {
+    return *this << Common::BigEndianValue{std::to_underlying(value)};
+  }
+
+  // Read enum.
+  template <Common::Enum T>
+  NetPacket& operator>>(T& value)
+  {
+    Common::BigEndianValue<std::underlying_type_t<T>> big_endian_value{};
+    if (*this >> big_endian_value)
+      value = T(std::underlying_type_t<T>(big_endian_value));
+    return *this;
+  }
+
+  // Write bool (avoiding implicit conversions).
+  NetPacket& operator<<(std::same_as<bool> auto value) { return append(std::array<u8, 1>{value}); }
+
+  // Read bool.
+  NetPacket& operator>>(bool& value)
+  {
+    std::array<u8, 1> data{};
+    if (read(data))
+      value = data.front() != 0;
+    return *this;
+  }
+
+  // Write arithmetic.
+  template <typename T>
+  NetPacket& operator<<(const T& value)
+      requires(std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+  {
+    return *this << Common::BigEndianValue<T>{value};
+  }
+
+  // Read arithmetic.
+  template <typename T>
+  NetPacket& operator>>(T& value) requires(std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+  {
+    Common::BigEndianValue<T> big_endian_value{};
+    if (*this >> big_endian_value)
+      value = T(big_endian_value);
+    return *this;
+  }
+
+  // Write BigEndianValue.
+  template <typename T>
+  NetPacket& operator<<(Common::BigEndianValue<T> value)
+  {
+    return append(Common::AsU8Span(value));
+  }
+
+  // Read BigEndianValue.
+  template <typename T>
+  NetPacket& operator>>(Common::BigEndianValue<T>& value)
+  {
+    return read(Common::AsWritableU8Span(value));
+  }
+
+  NetPacket& append(std::span<const u8> bytes)
+  {
+    m_data.insert(m_data.end(), bytes.begin(), bytes.end());
+    return *this;
+  }
+
+  NetPacket& read(std::span<u8> bytes)
+  {
+    if (bytes.size() > RemainingBytes())
+    {
+      m_good = false;
+      return *this;
+    }
+
+    std::copy_n(data() + m_read_pos, bytes.size(), bytes.data());
+    m_read_pos += bytes.size();
+    return *this;
+  }
+
+  explicit operator bool() const { return m_good; }
+
+  const u8* data() const { return m_data.data(); }
+  std::size_t size() const { return m_data.size(); }
+  const u8* begin() const { return m_data.data(); }
+  const u8* end() const { return m_data.data() + m_data.size(); }
+
+private:
+  std::size_t RemainingBytes() const { return m_good ? (size() - m_read_pos) : 0; }
+
+  bool m_good{true};
+  std::size_t m_read_pos{};
+  std::vector<u8> m_data;
+};
+
 }  // namespace NetPlay

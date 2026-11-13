@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <SFML/Network/Packet.hpp>
-
 #include <map>
 #include <mutex>
 #include <optional>
@@ -31,11 +29,11 @@ class NetPlayServer : public Common::TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsync(sf::Packet&& packet, PlayerId pid, u8 channel_id = DEFAULT_CHANNEL);
-  void SendAsyncToClients(sf::Packet&& packet, PlayerId skip_pid = 0,
+  void SendAsync(NetPacket&& packet, PlayerId pid, u8 channel_id = DEFAULT_CHANNEL);
+  void SendAsyncToClients(NetPacket&& packet, PlayerId skip_pid = 0,
                           u8 channel_id = DEFAULT_CHANNEL);
-  void SendChunked(sf::Packet&& packet, PlayerId pid, const std::string& title = "");
-  void SendChunkedToClients(sf::Packet&& packet, PlayerId skip_pid = 0,
+  void SendChunked(NetPacket&& packet, PlayerId pid, const std::string& title = "");
+  void SendChunkedToClients(NetPacket&& packet, PlayerId skip_pid = 0,
                             const std::string& title = "");
 
   NetPlayServer(u16 port, bool forward_port, NetPlayUI* dialog,
@@ -103,7 +101,7 @@ private:
 
   struct AsyncQueueEntry
   {
-    sf::Packet packet;
+    NetPacket packet;
     PlayerId target_pid{};
     TargetMode target_mode{};
     u8 channel_id = 0;
@@ -111,7 +109,7 @@ private:
 
   struct ChunkedDataQueueEntry
   {
-    sf::Packet packet;
+    NetPacket packet;
     PlayerId target_pid{};
     TargetMode target_mode{};
     std::string title;
@@ -130,12 +128,12 @@ private:
                             Data&&... data_to_send);
   template <typename... Data>
   void SendResponseToAllPlayers(const MessageID message_id, Data&&... data_to_send);
-  void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
+  void SendToClients(const NetPacket& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
-  void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  ConnectionError OnConnect(ENetPeer* socket, sf::Packet& received_packet);
+  void Send(ENetPeer* socket, const NetPacket& packet, u8 channel_id = DEFAULT_CHANNEL);
+  ConnectionError OnConnect(ENetPeer* socket, NetPacket& received_packet);
   unsigned int OnDisconnect(const Client& player);
-  unsigned int OnData(sf::Packet& packet, Client& player);
+  unsigned int OnData(NetPacket& packet, Client& player);
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress) override {}
@@ -146,7 +144,7 @@ private:
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
-  void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
+  void ChunkedDataSend(NetPacket&& packet, PlayerId pid, const TargetMode target_mode);
   void ChunkedDataAbort();
 
   void SetupIndex();

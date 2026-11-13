@@ -140,8 +140,6 @@ add_library(common
   SDCardUtil.h
   SettingsHandler.cpp
   SettingsHandler.h
-  SFMLHelper.cpp
-  SFMLHelper.h
   SmallVector.h
   SocketContext.cpp
   SocketContext.h
