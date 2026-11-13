@@ -159,6 +159,15 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
 
         for (const auto& rect : rects)
         {
+          if (rect.right > image_to_write->width || rect.bottom > image_to_write->height)
+          {
+            ERROR_LOG_FMT(
+                VIDEO, "Dynamic input texture region ({}, {}, {}, {}) exceeds image '{}' ({}x{}).",
+                rect.left, rect.top, rect.right, rect.bottom, texture_data.m_image_name,
+                image_to_write->width, image_to_write->height);
+            continue;
+          }
+
           InputCommon::ImagePixelData pixel_data;
           if (host_key_image->width == rect.GetWidth() &&
               host_key_image->height == rect.GetHeight())
@@ -177,9 +186,11 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
                 Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
           }
 
-          CopyImageRegion(pixel_data, *image_to_write,
-                          Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect);
-          dirty = true;
+          if (CopyImageRegion(pixel_data, *image_to_write,
+                              Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect))
+          {
+            dirty = true;
+          }
         }
       }
     }

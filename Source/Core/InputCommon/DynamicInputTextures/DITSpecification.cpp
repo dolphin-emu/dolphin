@@ -3,6 +3,9 @@
 
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 
+#include <cmath>
+#include <limits>
+
 #include <fmt/format.h>
 
 #include "Common/FileUtil.h"
@@ -11,6 +14,25 @@
 
 namespace InputCommon::DynamicInputTextures
 {
+namespace
+{
+bool ReadCoordinate(const picojson::value& value, u32* coordinate)
+{
+  if (!value.is<double>())
+    return false;
+
+  const double number = value.get<double>();
+  if (!std::isfinite(number) || number < 0 ||
+      number > static_cast<double>(std::numeric_limits<u32>::max()) || std::trunc(number) != number)
+  {
+    return false;
+  }
+
+  *coordinate = static_cast<u32>(number);
+  return true;
+}
+}  // namespace
+
 bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_textures,
                             const std::string& base_path, const std::string& json_file)
 {
@@ -135,20 +157,20 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
             return false;
           }
 
-          if (!std::ranges::all_of(region_offsets, &picojson::value::is<double>))
+          if (!ReadCoordinate(region_offsets[0], &r.left) ||
+              !ReadCoordinate(region_offsets[1], &r.top) ||
+              !ReadCoordinate(region_offsets[2], &r.right) ||
+              !ReadCoordinate(region_offsets[3], &r.bottom) || r.left >= r.right ||
+              r.top >= r.bottom)
           {
             ERROR_LOG_FMT(
                 VIDEO,
                 "Failed to load dynamic input json file '{}' because emulated controller '{}' "
-                "key '{}' has a region that has the incorrect offset type.",
+                "key '{}' has an invalid region.",
                 json_file, emulated_controller_name, emulated_control);
             return false;
           }
 
-          r.left = static_cast<u32>(region_offsets[0].get<double>());
-          r.top = static_cast<u32>(region_offsets[1].get<double>());
-          r.right = static_cast<u32>(region_offsets[2].get<double>());
-          r.bottom = static_cast<u32>(region_offsets[3].get<double>());
           region_rects.push_back(r);
         }
         key_to_regions.insert_or_assign(emulated_control, std::move(region_rects));
