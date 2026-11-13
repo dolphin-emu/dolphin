@@ -48,4 +48,18 @@ using AtomicMutex = detail::AtomicMutexBase<true>;
 // Very fast to lock and unlock when uncontested (~3x faster than std::mutex).
 using SpinMutex = detail::AtomicMutexBase<false>;
 
+// This "mutex" class provides no actual thread synchronization.
+// It has a std::shared_mutex interface only to be compatible with standard locks.
+// Useful when template parameters can determine that a mutex is not actually needed.
+struct DummyMutex
+{
+  constexpr void lock() {}
+  constexpr bool try_lock() { return true; }
+  constexpr void unlock() {}
+
+  constexpr void lock_shared() {}
+  constexpr bool try_lock_shared() { return true; }
+  constexpr void unlock_shared() {}
+};
+
 }  // namespace Common
