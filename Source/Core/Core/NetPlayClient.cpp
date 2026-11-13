@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -1162,8 +1163,15 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
   };
 
   // Read the Mii data
-  bool mii_data;
+  bool mii_data{};
   packet >> mii_data;
+  if (!packet)
+  {
+    WARN_LOG_FMT(NETPLAY, "Received truncated Wii save data.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+
   if (mii_data)
   {
     INFO_LOG_FMT(NETPLAY, "Received Mii data.");
@@ -1184,19 +1192,33 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
   }
 
   // Read the saves
-  u32 save_count;
+  u32 save_count{};
   packet >> save_count;
+  if (!packet || save_count > IOS::HLE::FS::TOTAL_INODES)
+  {
+    WARN_LOG_FMT(NETPLAY, "Received invalid Wii save count.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+
   INFO_LOG_FMT(NETPLAY, "Received data for {} Wii saves.", save_count);
   for (u32 n = 0; n < save_count; n++)
   {
-    u64 title_id = Common::PacketReadU64(packet);
+    u64 title_id{};
+    bool exists{};
+    packet >> title_id >> exists;
+    if (!packet)
+    {
+      WARN_LOG_FMT(NETPLAY, "Received truncated Wii save data.");
+      SyncSaveDataResponse(false);
+      return;
+    }
+
     titles.push_back(title_id);
     temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL,
                             Common::GetTitleDataPath(title_id) + '/', 0, fs_modes);
     auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
 
-    bool exists;
-    packet >> exists;
     if (!exists)
     {
       INFO_LOG_FMT(NETPLAY, "No data for Wii save of title {:016x}.", title_id);
@@ -1206,7 +1228,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     INFO_LOG_FMT(NETPLAY, "Received Wii save of title {:016x}.", title_id);
 
     // Header
-    WiiSave::Header header;
+    WiiSave::Header header{};
     packet >> header.tid;
     packet >> header.banner_size;
     if (!packet || header.banner_size > sizeof(header.banner))
@@ -1224,7 +1246,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
       packet >> header.banner[i];
 
     // BkHeader
-    WiiSave::BkHeader bk_header;
+    WiiSave::BkHeader bk_header{};
     packet >> bk_header.size;
     packet >> bk_header.magic;
     packet >> bk_header.ngid;
@@ -1239,14 +1261,35 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     for (u8& byte : bk_header.mac_address)
       packet >> byte;
 
+    if (!packet || bk_header.size != WiiSave::BK_LISTED_SZ ||
+        bk_header.magic != WiiSave::BK_HDR_MAGIC ||
+        bk_header.number_of_files > IOS::HLE::FS::TOTAL_INODES ||
+        bk_header.number_of_files > bk_header.size_of_files / sizeof(WiiSave::FileHDR) ||
+        bk_header.size_of_files > std::numeric_limits<u32>::max() - WiiSave::FULL_CERT_SZ ||
+        bk_header.size_of_files + WiiSave::FULL_CERT_SZ != bk_header.total_size)
+    {
+      WARN_LOG_FMT(NETPLAY, "Received invalid Wii save metadata.");
+      SyncSaveDataResponse(false);
+      return;
+    }
+
     // Files
     std::vector<WiiSave::Storage::SaveFile> files;
+    files.reserve(bk_header.number_of_files);
     for (u32 i = 0; i < bk_header.number_of_files; i++)
     {
-      WiiSave::Storage::SaveFile file;
+      WiiSave::Storage::SaveFile file{};
       packet >> file.mode >> file.attributes;
       packet >> file.type;
       packet >> file.path;
+
+      if (!packet || (file.type != WiiSave::Storage::SaveFile::Type::File &&
+                      file.type != WiiSave::Storage::SaveFile::Type::Directory))
+      {
+        WARN_LOG_FMT(NETPLAY, "Received invalid Wii save file entry.");
+        SyncSaveDataResponse(false);
+        return;
+      }
 
       INFO_LOG_FMT(NETPLAY, "Received Wii save data of type {} at {}", static_cast<u8>(file.type),
                    file.path);
@@ -1274,8 +1317,14 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     }
   }
 
-  bool has_redirected_save;
+  bool has_redirected_save{};
   packet >> has_redirected_save;
+  if (!packet)
+  {
+    WARN_LOG_FMT(NETPLAY, "Received truncated Wii save data.");
+    SyncSaveDataResponse(false);
+    return;
+  }
   if (has_redirected_save)
   {
     INFO_LOG_FMT(NETPLAY, "Received redirected save.");
