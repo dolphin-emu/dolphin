@@ -33,7 +33,7 @@ auto RetryOnEINTR(auto func, auto... args)
 {
   while (true)
   {
-    const int result = func(args...);
+    const auto result = func(args...);
     if (result >= 0 || errno != EINTR)
       return result;
   }
