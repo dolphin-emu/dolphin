@@ -39,6 +39,8 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
@@ -54,6 +56,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -202,6 +205,18 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   if (!FillBackendInfo(main_gl_context.get()))
     return false;
+
+  OSD::AddMessage(fmt::format("Video Info: {}, {}, {}", g_ogl_config.gl_vendor,
+                              g_ogl_config.gl_renderer, g_ogl_config.gl_version),
+                  5000);
+
+  if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
+  {
+    OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
+                                main_gl_context->IsGLES() ? "EXT" : "ARB"),
+                    60000);
+    OSD::AddMessage("This device's performance may be poor.", 60000);
+  }
 
   auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
   ProgramShaderCache::Init();
