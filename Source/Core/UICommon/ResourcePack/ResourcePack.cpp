@@ -4,7 +4,10 @@
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <memory>
+#include <optional>
+#include <string_view>
 
 #include <mz.h>
 #include <mz_os.h>
@@ -18,6 +21,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/MinizipUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
@@ -27,6 +31,69 @@
 namespace ResourcePack
 {
 constexpr char TEXTURE_PATH[] = HIRES_TEXTURES_DIR DIR_SEP;
+
+namespace
+{
+struct TexturePath
+{
+  std::filesystem::path root;
+  std::filesystem::path destination;
+};
+
+bool IsSafeTextureName(std::string_view name)
+{
+  if (name.empty())
+    return false;
+
+  size_t start = 0;
+  while (start <= name.size())
+  {
+    const size_t end = name.find('/', start);
+    const std::string_view component = name.substr(start, end - start);
+    if (!Common::IsFileNameSafe(component))
+      return false;
+
+    if (end == std::string_view::npos)
+      return true;
+    start = end + 1;
+  }
+
+  return false;
+}
+
+bool IsPathWithin(const std::filesystem::path& root, const std::filesystem::path& path)
+{
+  auto root_it = root.begin();
+  auto path_it = path.begin();
+  while (root_it != root.end())
+  {
+    if (path_it == path.end() || *root_it != *path_it)
+      return false;
+    ++root_it;
+    ++path_it;
+  }
+  return path_it != path.end();
+}
+
+std::optional<TexturePath> ResolveTexturePath(const std::string& path, std::string_view texture)
+{
+  if (!IsSafeTextureName(texture))
+    return std::nullopt;
+
+  std::error_code error;
+  const std::filesystem::path root =
+      std::filesystem::weakly_canonical(StringToPath(path + TEXTURE_PATH), error);
+  if (error)
+    return std::nullopt;
+
+  const std::filesystem::path destination =
+      std::filesystem::weakly_canonical(root / StringToPath(texture), error);
+  if (error || !IsPathWithin(root, destination))
+    return std::nullopt;
+
+  return TexturePath{root, destination};
+}
+}  // namespace
 
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
@@ -112,7 +179,15 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
       return;
     }
 
-    m_textures.push_back(filename.substr(9));
+    const std::string texture_name = filename.substr(9);
+    if (!IsSafeTextureName(texture_name))
+    {
+      m_valid = false;
+      m_error = "Texture has an unsafe path: " + filename;
+      return;
+    }
+
+    m_textures.push_back(texture_name);
   } while (mz_zip_reader_goto_next_entry(zip_reader) != MZ_END_OF_LIST);
 }
 
@@ -209,14 +284,18 @@ bool ResourcePack::Install(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    const std::string texture_path = path + TEXTURE_PATH + texture;
-    std::string texture_full_dir;
-    if (!SplitPath(texture_path, &texture_full_dir, nullptr, nullptr))
-      continue;
-
-    if (!File::CreateFullPath(texture_full_dir))
+    const std::optional<TexturePath> texture_path = ResolveTexturePath(path, texture);
+    if (!texture_path)
     {
-      m_error = "Failed to create full path " + texture_full_dir;
+      m_error = "Texture has an unsafe path: " + texture;
+      return false;
+    }
+
+    const std::string texture_path_string = PathToString(texture_path->destination);
+
+    if (!File::CreateFullPath(texture_path_string))
+    {
+      m_error = "Failed to create full path for " + texture;
       return false;
     }
 
@@ -228,7 +307,7 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    File::IOFile out(texture_path, "wb");
+    File::IOFile out(texture_path_string, "wb");
     if (!out)
     {
       m_error = "Failed to open " + texture;
@@ -290,8 +369,15 @@ bool ResourcePack::Uninstall(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    const std::string texture_path = path + TEXTURE_PATH + texture;
-    if (File::Exists(texture_path) && !File::Delete(texture_path))
+    const std::optional<TexturePath> texture_path = ResolveTexturePath(path, texture);
+    if (!texture_path)
+    {
+      m_error = "Texture has an unsafe path: " + texture;
+      return false;
+    }
+
+    const std::string texture_path_string = PathToString(texture_path->destination);
+    if (File::Exists(texture_path_string) && !File::Delete(texture_path_string))
     {
       m_error = "Failed to delete texture " + texture;
       return false;
@@ -299,17 +385,14 @@ bool ResourcePack::Uninstall(const std::string& path)
 
     // Recursively delete empty directories
 
-    std::string dir;
-    SplitPath(texture_path, &dir, nullptr, nullptr);
-
-    while (dir.length() > (path + TEXTURE_PATH).length())
+    std::filesystem::path dir = texture_path->destination.parent_path();
+    while (dir != texture_path->root)
     {
-      const auto is_empty = Common::DoFileSearch(dir).empty();
-
-      if (is_empty)
-        File::DeleteDir(dir);
-
-      SplitPath(dir.substr(0, dir.size() - 2), &dir, nullptr, nullptr);
+      const std::string dir_string = PathToString(dir);
+      if (!Common::DoFileSearch(dir_string).empty())
+        break;
+      File::DeleteDir(dir_string);
+      dir = dir.parent_path();
     }
   }
 
