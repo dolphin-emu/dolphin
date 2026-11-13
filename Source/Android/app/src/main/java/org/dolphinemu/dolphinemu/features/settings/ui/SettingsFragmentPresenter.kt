@@ -35,6 +35,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting
+import org.dolphinemu.dolphinemu.features.retroachievements.RetroAchievementsHostOverrideAccess
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting
@@ -1134,6 +1135,21 @@ class SettingsFragmentPresenter(
                         context, R.string.achievements_logout, 0, 0, 0, false
                     ) {
                         logout()
+                        loadSettingsList()
+                    })
+            }
+            if (RetroAchievementsHostOverrideAccess.hasGrants()) {
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.achievements_host_override_revoke,
+                        R.string.achievements_host_override_revoke_description,
+                        0,
+                        R.string.achievements_host_override_revoked,
+                        false
+                    ) {
+                        AchievementModel.clearHostOverride()
+                        RetroAchievementsHostOverrideAccess.revokeAll()
                         loadSettingsList()
                     })
             }

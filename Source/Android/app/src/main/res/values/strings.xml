@@ -1002,6 +1002,13 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_logout">Log Out</string>
     <string name="achievements_login_in_progress">Logging In</string>
     <string name="achievements_login_failed">Login Failed</string>
+    <string name="achievements_host_override_request_title">Allow RetroAchievements proxy?</string>
+    <string name="achievements_host_override_request_message">%1$s (%2$s) wants to send Dolphin\'s RetroAchievements traffic through a local proxy while it is active. Hardcore mode is turned off meanwhile. Only allow apps you trust.</string>
+    <string name="achievements_host_override_allow">Allow</string>
+    <string name="achievements_host_override_deny">Deny</string>
+    <string name="achievements_host_override_revoke">Revoke Proxy Access</string>
+    <string name="achievements_host_override_revoke_description">Removes every app that was allowed to set a RetroAchievements proxy and clears the active proxy.</string>
+    <string name="achievements_host_override_revoked">Proxy access revoked</string>
 
     <!-- Netplay -->
     <string name="netplay_setup_title">Netplay Setup</string>

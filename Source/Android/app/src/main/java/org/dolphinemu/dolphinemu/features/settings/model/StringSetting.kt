@@ -102,6 +102,18 @@ enum class StringSetting(
         "ApiToken",
         ""
     ),
+    ACHIEVEMENTS_HOST_URL(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "HostUrl",
+        ""
+    ),
+    ACHIEVEMENTS_HOST_OVERRIDE_APPS(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "HostOverrideApps",
+        ""
+    ),
     NETPLAY_TRAVERSAL_CHOICE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_NETPLAY,
@@ -146,6 +158,8 @@ enum class StringSetting(
     fun setString(layer: Int, newValue: String) {
         NativeConfig.setString(layer, file, section, key, newValue)
     }
+
+    fun deleteFromLayer(layer: Int): Boolean = NativeConfig.deleteKey(layer, file, section, key)
 
     companion object {
         private val NOT_RUNTIME_EDITABLE_ARRAY = arrayOf(
