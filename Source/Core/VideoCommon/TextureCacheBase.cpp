@@ -11,9 +11,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#if defined(_M_X86_64)
-#include <pmmintrin.h>
-#endif
 
 #include <fmt/format.h>
 
@@ -2357,7 +2354,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(FramebufferCopyResolvedData& re
       {
         action->BeforeEFB(&efb);
       }
-      if (skip == true)
+      if (skip)
       {
         if (resolved_data.copy_to_ram)
         {
@@ -2502,11 +2499,18 @@ void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_
   //       Setting a clear byte different from 0 is also useful when the
   //       game does use the texture from RAM, if we can more closely
   //       resemble an actual EFB copy (e.g. Excite Truck).
-  u8* ptr = dst;
-  for (u32 i = 0; i < num_blocks_y; i++)
+  if (bytes_per_row == stride)
   {
-    std::memset(ptr, g_ActiveConfig.uSkipEFBCopyToRamClearByte, bytes_per_row);
-    ptr += stride;
+    std::memset(dst, g_ActiveConfig.uSkipEFBCopyToRamClearByte, bytes_per_row * num_blocks_y);
+  }
+  else
+  {
+    u8* ptr = dst;
+    for (u32 i = 0; i < num_blocks_y; i++)
+    {
+      std::memset(ptr, g_ActiveConfig.uSkipEFBCopyToRamClearByte, bytes_per_row);
+      ptr += stride;
+    }
   }
 }
 
@@ -2520,35 +2524,48 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   // which is why we still set uninitialized xfb memory to fuchsia
   // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
   // like is done in the EFB path.
+  constexpr std::array<u8, 2> BYTES = {0x01, 0xFE};
 
-#if defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
-#endif
+  // MSVC is a terrible compiler, and it absolutely refuses to use SIMD unless you do specifically a
+  // memcpy with a constant size and a source that can only be in memory (which is why this is also
+  // static). Otherwise, it insists in doing many simple stores with immediates. On ARM the current
+  // solution still makes it load on every iteration, but it's the best I could do on this stupid
+  // compiler.
+  // If you want to look for prettier ways to make compilers optimize this function well without
+  // intrinsics, have fun: https://godbolt.org/z/GraGzP6eY
+  // Clang not included because it's good (if not too aggressive) at autovectorizing.
+  static constexpr std::array<decltype(BYTES), 16> pattern1 = {
+      BYTES, BYTES, BYTES, BYTES, BYTES, BYTES, BYTES, BYTES,
+      BYTES, BYTES, BYTES, BYTES, BYTES, BYTES, BYTES, BYTES,
+  };
+  // This is needed because GCC otherwise will think that the two memcpy below may alias (and won't
+  // autovectorize as a result). Sigh...
+  static constexpr auto pattern2 = pattern1;
 
-  for (u32 i = 0; i < num_blocks_y; i++)
+  // Note that `bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;`
+  static_assert(32 % sizeof(pattern1) == 0);
+  if (bytes_per_row % 32 != 0)
   {
-    u32 size = bytes_per_row;
-    u8* rowdst = dst;
-#if defined(_M_X86_64)
-    while (size >= 16)
+    std::unreachable();
+  }
+
+  if (bytes_per_row == stride)
+  {
+    for (u32 i = 0; i < bytes_per_row * num_blocks_y; i += sizeof(pattern1))
     {
-      _mm_storeu_si128((__m128i*)rowdst, sixteenBytes);
-      size -= 16;
-      rowdst += 16;
+      std::memcpy(dst + i, pattern1.data(), sizeof(pattern1));
     }
-#endif
-    for (u32 offset = 0; offset < size; offset++)
+  }
+  else
+  {
+    for (u32 i = 0; i < num_blocks_y; i++)
     {
-      if (offset & 1)
+      for (u32 j = 0; j < bytes_per_row; j += sizeof(pattern2))
       {
-        rowdst[offset] = 254;
+        std::memcpy(dst + j, pattern2.data(), sizeof(pattern2));
       }
-      else
-      {
-        rowdst[offset] = 1;
-      }
+      dst += stride;
     }
-    dst += stride;
   }
 }
 
