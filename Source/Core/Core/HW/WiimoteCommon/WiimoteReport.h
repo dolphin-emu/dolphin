@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
+#include "Common/Swap.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
@@ -121,8 +120,7 @@ struct OutputReportWriteData
   u8 i2c_rw_ignored : 1;
   // Used only for register space (i2c bus) (7-bits):
   u8 slave_address : 7;
-  // big endian:
-  u8 address[2];
+  Common::BigEndianValue<u16> address;
   u8 size;
   u8 data[16];
 };
@@ -140,9 +138,8 @@ struct OutputReportReadData
   u8 i2c_rw_ignored : 1;
   // Used only for register space (i2c bus) (7-bits):
   u8 slave_address : 7;
-  // big endian:
-  u8 address[2];
-  u8 size[2];
+  Common::BigEndianValue<u16> address;
+  Common::BigEndianValue<u16> size;
 };
 static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 
@@ -238,8 +235,7 @@ struct InputReportReadDataReply
   ButtonData buttons;
   u8 error : 4;
   u8 size_minus_one : 4;
-  // big endian:
-  u16 address;
+  Common::BigEndianValue<u16> address;
   u8 data[16];
 };
 static_assert(sizeof(InputReportReadDataReply) == 21, "Wrong size");

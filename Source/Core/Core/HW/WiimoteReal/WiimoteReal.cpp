@@ -19,6 +19,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Speaker.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
@@ -311,74 +312,48 @@ bool Wiimote::IsBalanceBoard()
 {
   if (!ConnectInternal())
     return false;
-  // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
-  // TODO: Use the structs for building these reports..
-  static const u8 init_extension_rpt1[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
-  static const u8 init_extension_rpt2[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
-  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
-                                     0};
-  if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
-      !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
-  {
-    ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Failed to initialise extension.");
-    return false;
-  }
 
-  int ret = IOWrite(status_report, sizeof(status_report));
-  u8 buf[MAX_PAYLOAD];
-  while (ret != 0)
+  // This writes {0x00} to addr:0x09 of the speaker hardware.
+  // This will turn off the speaker and ACK on a Wii Remote.
+  // The speaker hardware is not present on the i2c bus of a Balance Board so it will NACK.
+  const struct
   {
-    ret = IORead(buf);
-    if (ret == -1)
+    u8 hid_type = WR_SET_REPORT | BT_OUTPUT;
+    u8 rpt_id = u8(OutputReportID::WriteData);
+    OutputReportWriteData payload = {
+        .space = u8(AddressSpace::I2CBus),
+        .slave_address = WiimoteEmu::SpeakerLogic::I2C_ADDR,
+        .address{Common::BigEndianValue<u16>(0x09)},
+        .size = 1,
+    };
+  } turn_off_speaker;
+  static_assert(sizeof(turn_off_speaker) == sizeof(OutputReportWriteData) + 2);
+
+  const auto deadline = Clock::now() + std::chrono::milliseconds{1000};
+
+  int rw_result = IOWrite(reinterpret_cast<const u8*>(&turn_off_speaker), sizeof(turn_off_speaker));
+
+  std::array<u8, MAX_PAYLOAD> buf{};
+  while (rw_result != 0)
+  {
+    if (Clock::now() >= deadline)
+    {
+      WARN_LOG_FMT(WIIMOTE, "IsBalanceBoard timed out. Assuming this is a Wii Remote.");
+      break;
+    }
+
+    rw_result = IORead(buf.data());
+    if (rw_result == -1)
       continue;
 
-    switch (InputReportID(buf[1]))
+    if (InputReportID(buf[1]) == InputReportID::Ack)
     {
-    case InputReportID::Status:
-    {
-      const auto* status = reinterpret_cast<InputReportStatus*>(&buf[2]);
-      // A Balance Board has a Balance Board extension.
-      if (!status->extension)
-        return false;
-      // Read two bytes from 0xa400fe to identify the extension.
-      static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
-                                            u8(OutputReportID::ReadData),
-                                            0x04,
-                                            0xa4,
-                                            0x00,
-                                            0xfe,
-                                            0x02,
-                                            0x00};
-      ret = IOWrite(identify_ext_rpt, sizeof(identify_ext_rpt));
-      break;
-    }
-    case InputReportID::ReadDataReply:
-    {
-      const auto* reply = reinterpret_cast<InputReportReadDataReply*>(&buf[2]);
-      if (Common::swap16(reply->address) != 0x00fe)
+      const InputReportAck ack = Common::BitCastPtr<InputReportAck>(buf.data() + 2);
+      if (ack.rpt_id == OutputReportID::WriteData)
       {
-        ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address {:X}",
-                      Common::swap16(reply->address));
-        return false;
+        // ACK == Wii Remote. NACK == Balance Board.
+        return ack.error_code == ErrorCode::Nack;
       }
-      // A Balance Board ext can be identified by checking for 0x0402.
-      return reply->data[0] == 0x04 && reply->data[1] == 0x02;
-    }
-    case InputReportID::Ack:
-    {
-      const auto* ack = reinterpret_cast<InputReportAck*>(&buf[2]);
-      if (ack->rpt_id == OutputReportID::ReadData && ack->error_code != ErrorCode::Success)
-      {
-        WARN_LOG_FMT(WIIMOTE,
-                     "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
-        return false;
-      }
-      break;
-    }
-    default:
-      break;
     }
   }
   return false;
