@@ -8,6 +8,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
 - [bzip2](https://www.sourceware.org/bzip2/):
    [bzip2 license](https://www.sourceware.org/git/?p=bzip2.git;a=blob;f=LICENSE;hb=HEAD) (similar to 3-clause BSD)
+- [cpp-httplib](https://github.com/yhirose/cpp-httplib):
+   [MIT](https://github.com/yhirose/cpp-httplib/blob/master/LICENSE)
 - [cpp-ipc](https://github.com/mutouyun/cpp-ipc):
    [MIT](https://github.com/mutouyun/cpp-ipc/blob/master/LICENSE)
 - [cubeb](https://github.com/kinetiknz/cubeb):
@@ -34,6 +36,8 @@ Dolphin includes or links code of the following third-party software projects:
    [GPLv2+](https://libav.org/legal.html)
 - [libcdio](https://www.gnu.org/software/libcdio/):
    [GPLv3+](http://git.savannah.gnu.org/gitweb/?p=libcdio.git;a=blob_plain;f=COPYING)
+- [libdatachannel](https://github.com/paullouisageneau/libdatachannel):
+   [MPL 2.0](https://github.com/paullouisageneau/libdatachannel/blob/master/LICENSE)
 - [libiconv](https://www.gnu.org/software/libiconv/):
    [LGPLv2.1+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
 - [liblzma](https://tukaani.org/xz/):
@@ -52,6 +56,10 @@ Dolphin includes or links code of the following third-party software projects:
    [BSD 3-Clause](https://github.com/miniupnp/miniupnp/blob/master/miniupnpc/LICENSE)
 - [Microsoft Visual C++ Runtime Library](http://www.microsoft.com/en-us/download/details.aspx?id=40784):
    [System Library if not distributed](https://www.gnu.org/licenses/gpl-faq.html#WindowsRuntimeAndGPL)
+- [Notyf](https://github.com/caroso1222/notyf):
+   [MIT](https://github.com/caroso1222/notyf/blob/master/LICENSE.md)
+- [OmniPad](https://github.com/WizardOfXerox/OmniPad):
+   [MIT](https://github.com/WizardOfXerox/OmniPad/blob/main/LICENSE)
 - [OpenAL Soft](http://kcat.strangesoft.net/openal.html):
    [LGPLv2+](http://repo.or.cz/w/openal-soft.git/blob/HEAD:/COPYING)
 - [OpenGL Header (MESA)](http://mesa3d.org/):

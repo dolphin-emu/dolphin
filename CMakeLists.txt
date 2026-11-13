@@ -95,8 +95,10 @@ endif()
 
 if(NOT ANDROID)
   option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
+  set(WEB_INTERFACE_DEFAULT ON)
+else()
+  set(WEB_INTERFACE_DEFAULT OFF)
 endif()
-
 
 set(USE_SYSTEM_LIBS "AUTO" CACHE STRING "Use system libraries instead of bundled libraries.  ON - Always use system and fail if unavailable, OFF - Always use bundled, AUTO - Use system if available, otherwise use bundled.  Default is AUTO")
 if(APPROVED_VENDORED_DEPENDENCIES)
@@ -119,6 +121,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
+option(ENABLE_WEB_INTERFACE "Enables Web Interface" "${WEB_INTERFACE_DEFAULT}")
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -524,13 +527,10 @@ endif()
 
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
-    if(_M_X86_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
-    elseif(_M_ARM_64)
-      set(FFMPEG_DIR Externals/FFmpeg-bin/ARM64)
-    endif()
+    set(FFMPEG_DIR Externals/FFmpeg)
+    set(DYNAMICALLY_LOAD_FFMPEG ON)
   endif()
-  find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
+  find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
   if(FFmpeg_FOUND)
     if(APPLE)
       find_library(COREMEDIA_LIBRARY CoreMedia)
@@ -540,11 +540,8 @@ if(ENCODE_FRAMEDUMPS)
     endif()
     message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
     add_definitions(-DHAVE_FFMPEG)
-    if(WIN32)
-      # Our prebuilt binaries depend on Bcrypt
-      set_property(TARGET FFmpeg::avutil APPEND PROPERTY
-        INTERFACE_LINK_LIBRARIES "Bcrypt.lib"
-      )
+    if(DYNAMICALLY_LOAD_FFMPEG)
+      add_definitions(-DDYNAMICALLY_LOAD_FFMPEG)
     endif()
   else()
     message(STATUS "libav/ffmpeg not found, disabling AVI frame dumps")
@@ -716,7 +713,9 @@ if(USE_UPNP)
   add_definitions(-DUSE_UPNP)
 endif()
 
-dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
+# Note: mbedtls 2.x is largely not available on modern systems.
+# We require 2.x because 3.x removed necessary SSLv3 features.
+add_subdirectory(Externals/mbedtls2)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
 
@@ -762,6 +761,20 @@ dolphin_add_bundled_library(watcher Externals/watcher)
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
   dolphin_add_bundled_library(cpp-ipc Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
+endif()
+
+if(ENABLE_WEB_INTERFACE)
+  if(NOT FFmpeg_FOUND)
+    message(STATUS "FFmpeg not found, disabling Web Interface")
+    set(ENABLE_WEB_INTERFACE OFF)
+  else()
+    set(USE_SYSTEM_LIBDATACHANNEL OFF)
+
+    dolphin_find_optional_system_library(LibDataChannel Externals/LibDataChannel)
+    dolphin_find_optional_system_library(httplib Externals/httplib)
+
+    add_definitions(-DHAVE_WEB_INTERFACE)
+  endif()
 endif()
 
 ########################################

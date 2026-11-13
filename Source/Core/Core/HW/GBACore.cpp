@@ -36,6 +36,11 @@
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 
+#if defined(HAVE_WEB_INTERFACE)
+#include "UICommon/WebUI/AVStream.h"
+#include "UICommon/WebUI/WebServer.h"
+#endif
+
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
@@ -295,6 +300,11 @@ void Core::Stop()
   m_save_path = {};
   m_rom_hash = {};
   m_game_title = {};
+
+#if defined(HAVE_WEB_INTERFACE)
+  if (const auto av_stream = WebUI::GetGBAStream(m_device_number).lock())
+    av_stream->FlushVideo();
+#endif
 }
 
 void Core::Reset()
@@ -459,6 +469,28 @@ void Core::AddCallbacks()
       host->FrameEnded(core->m_video_buffer);
   };
   m_core->addCoreCallbacks(m_core, &callbacks);
+
+#if defined(HAVE_WEB_INTERFACE)
+  if (m_device_number != Config::GBPLAYER_GBA_INDEX)
+  {
+    mCoreCallbacks webui_callbacks{};
+    webui_callbacks.context = this;
+    webui_callbacks.videoFrameEnded = [](void* context) {
+      auto* core = static_cast<Core*>(context);
+
+      if (const auto av_stream = WebUI::GetGBAStream(core->m_device_number).lock())
+      {
+        const u8* const video_data = reinterpret_cast<const u8*>(core->m_video_buffer.data());
+        unsigned int video_size_x{};
+        unsigned int video_size_y{};
+        core->m_core->currentVideoSize(core->m_core, &video_size_x, &video_size_y);
+
+        av_stream->PushVideoFrame({.mdspan{video_data, video_size_y, video_size_x}});
+      }
+    };
+    m_core->addCoreCallbacks(m_core, &webui_callbacks);
+  }
+#endif
 }
 
 static void ReadAudioBufferIntoMixer(mAudioBuffer* audio_buffer, Mixer* mixer,

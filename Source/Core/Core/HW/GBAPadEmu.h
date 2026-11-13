@@ -3,8 +3,13 @@
 
 #pragma once
 
+#if defined(HAVE_WEB_INTERFACE)
+#include <vector>
+#endif
+
 #include "Common/Common.h"
 
+#include "Common/HookableEvent.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 struct GCPadStatus;
@@ -66,4 +71,9 @@ private:
   bool m_reset_pending;
 
   const unsigned int m_index;
+
+#if defined(HAVE_WEB_INTERFACE)
+  std::atomic<u16> m_webui_buttons{};
+  std::vector<Common::EventHook> m_event_hooks;
+#endif
 };
