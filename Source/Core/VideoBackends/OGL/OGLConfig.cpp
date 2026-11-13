@@ -222,6 +222,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
   g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
 
+  InitDriverInfo();
+
   if (!m_main_gl_context->IsGLES())
   {
     if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
