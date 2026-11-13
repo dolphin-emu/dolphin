@@ -58,7 +58,8 @@ enum Driver
   DRIVER_ATI,          // Official ATI
   DRIVER_R600,         // OSS Radeon
   DRIVER_INTEL,        // Official Intel
-  DRIVER_I965,         // OSS Intel
+  DRIVER_I965,         // OSS Intel (legacy i965)
+  DRIVER_IRIS,         // OSS Intel (Mesa iris/crocus)
   DRIVER_ARM,          // Official Mali driver
   DRIVER_LIMA,         // OSS Mali driver
   DRIVER_QUALCOMM,     // Official Adreno driver

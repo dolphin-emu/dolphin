@@ -111,6 +111,8 @@ constexpr BugInfo m_known_bugs[] = {
      true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
      BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
+    {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_IRIS, Family::UNKNOWN,
+     BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_NOUVEAU, Family::UNKNOWN,
      BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN, BUG_BROKEN_MSAA_CLEAR, -1.0,
@@ -271,6 +273,7 @@ static const char* to_string(Driver driver)
     case DRIVER_R600:        return "R600";
     case DRIVER_INTEL:       return "Intel";
     case DRIVER_I965:        return "I965";
+    case DRIVER_IRIS:        return "Iris";
     case DRIVER_ARM:         return "ARM";
     case DRIVER_LIMA:        return "Lima";
     case DRIVER_QUALCOMM:    return "Qualcomm";
