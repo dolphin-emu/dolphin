@@ -129,6 +129,23 @@ void AudioPane::CreateWidgets()
   backend_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   backend_layout->addRow(m_backend_label, m_backend_combo);
 
+#ifdef HAVE_CUBEB
+  const auto backend_names = CubebUtils::GetBackendNames();
+  std::vector<std::pair<QString, QString>> cubeb_backend_options;
+  cubeb_backend_options.reserve(backend_names.size() + 1);
+  cubeb_backend_options.emplace_back(tr("Default Backend"), QString{});
+  for (auto name : backend_names)
+  {
+    cubeb_backend_options.emplace_back(
+        QString::fromUtf8(CubebUtils::GetCubebBackendDisplayName(name)), QString::fromUtf8(name));
+  }
+
+  m_cubeb_backend_label = new QLabel(tr("Cubeb Backend:"));
+  m_cubeb_backend_combo =
+      new ConfigStringChoice(cubeb_backend_options, Config::MAIN_AUDIO_CUBEB_BACKEND);
+  backend_layout->addRow(m_cubeb_backend_label, m_cubeb_backend_combo);
+#endif
+
 #ifdef _WIN32
   std::vector<std::pair<QString, QString>> wasapi_options;
   const auto default_device_config_value =
@@ -362,6 +379,10 @@ void AudioPane::OnBackendChanged()
 #ifdef HAVE_CUBEB
   UpdateWiimoteRoutingEnabled();
   UpdateGBARoutingEnabled();
+
+  const bool is_cubeb = backend == BACKEND_CUBEB;
+  m_cubeb_backend_label->setVisible(is_cubeb);
+  m_cubeb_backend_combo->setVisible(is_cubeb);
 #endif
 }
 
@@ -391,6 +412,9 @@ void AudioPane::OnEmulationStateChanged(bool running)
 #ifdef HAVE_CUBEB
   UpdateWiimoteRoutingEnabled();
   UpdateGBARoutingEnabled();
+
+  m_cubeb_backend_label->setDisabled(running);
+  m_cubeb_backend_combo->setDisabled(running);
 #endif
 }
 
