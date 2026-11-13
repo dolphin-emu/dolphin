@@ -82,6 +82,7 @@ PUBLIC
   common
 
 PRIVATE
+  asio
   fmt::fmt
   sfml-network
   spng::spng
