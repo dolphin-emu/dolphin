@@ -84,7 +84,7 @@ The actual installation process (*Activation*) just copies the contents of the p
 
 Texture packs will be removed (*Deactivated*) by removing their files from ``$DOLPHIN_USER_FOLDER/Load/Textures``.
 
-If there's an *active higher priority texture pack* that provides the same file as a lower priority one, Dolphin won't remove this file as it has already been overriden.
+If there's an *active higher priority texture pack* that provides the same file as a lower priority one, Dolphin won't remove this file as it has already been overridden.
 
 ## Migration
 
