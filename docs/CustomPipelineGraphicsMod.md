@@ -120,17 +120,17 @@ CustomShaderOutput custom_main( in CustomShaderData data )
 |``position``             | vec3                    | v1    | The position of the light in _view space_                                                       |
 |``direction``            | vec3                    | v1    | The direction in _view space_ the light is pointing (only applicable for point and spot lights) |
 |``color``                | vec3                    | v1    | The color of the light                                                                          |
-|``attenuation_type``     | uint                    | v1    | The attentuation type of the light.  See details below                                          |
+|``attenuation_type``     | uint                    | v1    | The attenuation type of the light.  See details below                                          |
 |``cosatt``               | vec4                    | v1    | The cos attenuation values used                                                                 |
 |``distatt``              | vec4                    | v1    | The distance attenuation values used                                                            |
 
-The `attenuation_type` is defined as a `uint` but is effecitvely an enumeration.  It has the following values:
+The `attenuation_type` is defined as a `uint` but is effectively an enumeration.  It has the following values:
 
 |Name                                              | Since | Description                                                             |
 |--------------------------------------------------|-------|-------------------------------------------------------------------------|
-|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT`` | v1    | This value denotes the lighting attentuation is for a point light       |
-|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR``   | v1    | This value denotes the lighting attentuation is for a directional light |
-|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT``  | v1    | This value denotes the lighting attentuation is for a directional light |
+|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT`` | v1    | This value denotes the lighting attenuation is for a point light       |
+|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR``   | v1    | This value denotes the lighting attenuation is for a directional light |
+|``CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT``  | v1    | This value denotes the lighting attenuation is for a directional light |
 
 
 `CustomShaderTevStage` is used to denote the various TEV operations.  Each operation describes a graphical operation that the game is applying when rendering the specific draw call.  It has the following structure:
