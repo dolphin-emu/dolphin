@@ -392,6 +392,8 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
     ConfigChanged();
 
     IOWindow io(GetParent(), GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    connect(&io, &IOWindow::OnMappingChange, [this] { OnMappingChange(); });
+
     io.exec();
 
     setting.SimplifyIfPossible();
@@ -401,4 +403,9 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
   });
 
   return button;
+}
+
+void MappingWidget::OnMappingChange()
+{
+  this->m_parent->OnMappingChange();
 }

@@ -37,6 +37,8 @@ public:
   virtual void SaveSettings() = 0;
   virtual InputConfig* GetConfig() = 0;
 
+  void OnMappingChange();
+
 signals:
   void Update();
   void ConfigChanged();
