@@ -616,14 +616,10 @@ if (WIN32)
 endif()
 
 # Handle localization
-find_package(Gettext)
-
-if(WIN32 AND NOT Gettext_FOUND)
-  message(STATUS "Using Gettext from Externals")
-  set(GETTEXT_MSGFMT_EXECUTABLE "${CMAKE_SOURCE_DIR}/Externals/gettext/msgfmt.exe")
-endif()
-
-if(GETTEXT_MSGFMT_EXECUTABLE)
+if(ENABLE_LOCALIZATION)
+  if(TARGET Gettext)
+    add_dependencies(dolphin-emu Gettext)
+  endif()
   set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
   file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 
