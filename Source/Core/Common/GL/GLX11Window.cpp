@@ -42,9 +42,8 @@ std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent
   Window window =
       XCreateWindow(display, parent_window, 0, 0, parent_attribs.width, parent_attribs.height, 0,
                     vi->depth, InputOutput, vi->visual, CWColormap, &attribs);
-  XSelectInput(display, parent_window, StructureNotifyMask);
   XMapWindow(display, window);
-  XSync(display, True);
+  XSync(display, False);
 
   return std::make_unique<GLX11Window>(display, parent_window, color_map, window,
                                        parent_attribs.width, parent_attribs.height);
