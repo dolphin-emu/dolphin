@@ -260,4 +260,9 @@ void GetStatus(bool ignore_focus);
 bool IsEnabled();
 void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);
+
+// Presses or releases a hotkey from outside the controller interface, like from the desktop's
+// global shortcuts. Like a binding, this is ignored while the input gate is closed.
+void SetExternalState(int id, bool pressed);
+void ReleaseExternalState();
 }  // namespace HotkeyManagerEmu

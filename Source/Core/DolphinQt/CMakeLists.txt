@@ -448,6 +448,13 @@ if (NOT WIN32)
   )
 endif()
 
+if (UNIX AND NOT APPLE)
+  target_sources(dolphin-emu PRIVATE
+    GlobalShortcuts.cpp
+    GlobalShortcuts.h
+  )
+endif()
+
 target_compile_definitions(dolphin-emu
 PRIVATE
   -DQT_USE_QSTRINGBUILDER

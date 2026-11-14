@@ -368,6 +368,8 @@ void VKGfx::CheckForSurfaceChange()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Recreate the surface. If this fails we're in trouble.
+  const auto [width, height] = g_presenter->GetNewSurfaceSize();
+  m_swap_chain->SetSurfaceSize(width, height);
   if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle()))
     PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
 
@@ -395,6 +397,8 @@ void VKGfx::CheckForSurfaceResize()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Resize the swap chain.
+  const auto [width, height] = g_presenter->GetNewSurfaceSize();
+  m_swap_chain->SetSurfaceSize(width, height);
   m_swap_chain->RecreateSwapChain();
   OnSwapChainResized();
 }

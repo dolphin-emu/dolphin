@@ -434,6 +434,13 @@ int KeyboardMouse::GetSortPriority() const
   return DEFAULT_DEVICE_SORT_PRIORITY;
 }
 
+bool KeyboardMouse::CanStandInFor(const Core::DeviceQualifier& devq) const
+{
+  // Keep configurations made under Wayland working. The key names match those of the Wayland
+  // backend, and it stands in for this device the other way around.
+  return devq.source == "Wayland";
+}
+
 KeyboardMouse::Key::Key(std::string key_name, KeyCode keycode, const char* keyboard)
     : m_keyname{std::move(key_name)}, m_keyboard(keyboard), m_keycodes{keycode}
 {
