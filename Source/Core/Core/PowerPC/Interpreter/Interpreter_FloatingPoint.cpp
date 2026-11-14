@@ -181,7 +181,7 @@ void Interpreter::Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state,
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~FPCC_MASK) | compare_value;
+  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~(FPCC_MASK >> FPRF_SHIFT)) | compare_value;
 
   ppc_state.cr.SetField(inst.CRFD, compare_value);
 }
@@ -216,7 +216,7 @@ void Interpreter::Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state,
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~FPCC_MASK) | compare_value;
+  ppc_state.fpscr.FPRF = (ppc_state.fpscr.FPRF & ~(FPCC_MASK >> FPRF_SHIFT)) | compare_value;
 
   ppc_state.cr.SetField(inst.CRFD, compare_value);
 }
