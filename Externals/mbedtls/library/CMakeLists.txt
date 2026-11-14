@@ -7,7 +7,7 @@ option(LINK_WITH_TRUSTED_STORAGE "Explicitly link mbed TLS library to trusted_st
 # the library folder is included directly by a parent project, without
 # including the top level CMakeLists.txt.
 if(NOT DEFINED MBEDTLS_DIR)
-    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
+    set(MBEDTLS_DIR ${PROJECT_SOURCE_DIR})
 endif()
 
 set(src_crypto
