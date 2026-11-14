@@ -1124,7 +1124,7 @@ void VolumeVerifier::WaitForAsyncOperations()
 
 bool VolumeVerifier::ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read)
 {
-  std::vector<u8> data(bytes_to_read);
+  Common::UniqueBuffer<u8> data(bytes_to_read);
 
   const u64 bytes_to_copy = std::min(m_excess_bytes, bytes_to_read);
   if (bytes_to_copy > 0)

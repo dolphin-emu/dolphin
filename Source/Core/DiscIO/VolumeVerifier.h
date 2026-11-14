@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Hash.h"
@@ -179,7 +180,7 @@ private:
   std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 
   u64 m_excess_bytes = 0;
-  std::vector<u8> m_data;
+  Common::UniqueBuffer<u8> m_data;
   Common::WorkQueueThreadSP<u64> m_crc32_worker;
   Common::WorkQueueThreadSP<u64> m_md5_worker;
   Common::WorkQueueThreadSP<u64> m_sha1_worker;
