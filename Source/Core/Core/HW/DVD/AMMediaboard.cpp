@@ -955,6 +955,9 @@ static u32 NetDIMMBind(GuestSocket guest_socket, const GuestSocketAddress& guest
       .sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port.ip_address),
   };
 
+  // TODO: When UDP sockets are implemented, this should not be applied to them.
+  Common::SetReuseAddressOnUnix(host_socket);
+
   const int bind_result = bind(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
   const int err = WSAGetLastError();
 

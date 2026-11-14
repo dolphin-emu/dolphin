@@ -24,6 +24,7 @@ typedef SSIZE_T ssize_t;
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/Network.h"
 #include "Common/SocketContext.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -1086,9 +1087,7 @@ static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t serve
   if (s_tmpsock == -1)
     ERROR_LOG_FMT(GDB_STUB, "Failed to create gdb socket");
 
-  int on = 1;
-  if (setsockopt(s_tmpsock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof on) < 0)
-    ERROR_LOG_FMT(GDB_STUB, "Failed to setsockopt");
+  Common::SetReuseAddressOnUnix(s_tmpsock);
 
   if (bind(s_tmpsock, server_addr, server_addrlen) < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to bind gdb socket");

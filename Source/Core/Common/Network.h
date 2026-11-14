@@ -317,6 +317,10 @@ const char* StrNetworkError();
 // Sets SO_NOSIGPIPE when available.
 bool SetPlatformSocketOptions(int fd);
 
+// Sets SO_REUSEADDR on non-Windows.
+// This allows binding immediately after a restart while old TCP sockets are still in "TIME_WAIT".
+bool SetReuseAddressOnUnix(int fd);
+
 // Pass this to all `send` calls to avoid SIGPIPE.
 #if defined(__linux__) || defined(__HAIKU__)
 static constexpr int SEND_FLAGS = MSG_NOSIGNAL;

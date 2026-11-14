@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/SFMLHelper.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -42,8 +43,8 @@ static void GBAConnectionWaiter()
 
   Common::SetCurrentThreadName("GBA Connection Waiter");
 
-  sf::TcpListener server;
-  sf::TcpListener clock_server;
+  Common::ReuseAddrSfTcpListener server;
+  Common::ReuseAddrSfTcpListener clock_server;
 
   // "dolphin gba"
   if (server.listen(0xd6ba) != sf::Socket::Status::Done)

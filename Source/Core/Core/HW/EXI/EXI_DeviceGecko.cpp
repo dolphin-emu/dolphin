@@ -14,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/SFMLHelper.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 
@@ -52,7 +53,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
 {
   Common::SetCurrentThreadName("Gecko Connection Waiter");
 
-  sf::TcpListener server;
+  Common::ReuseAddrSfTcpListener server;
   constexpr u16 initial_port = 0xd6ec;  // "dolphin gecko"
   constexpr int port_retries = 10;
   u16 server_port = initial_port;
