@@ -45,6 +45,10 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#if defined(HAVE_WEB_INTERFACE)
+#include "UICommon/WebUI/WebServer.h"
+#endif
+
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -121,6 +125,9 @@ static void RefreshConfig()
 {
   Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
   Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
+#if defined(HAVE_WEB_INTERFACE)
+  WebUI::RefreshConfig();
+#endif
 }
 
 void Init()
@@ -148,6 +155,9 @@ void Shutdown()
 {
   Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
 
+#if defined(HAVE_WEB_INTERFACE)
+  WebUI::StopServer();
+#endif
   Statistics::Shutdown();
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();

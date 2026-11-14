@@ -9,6 +9,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -32,6 +33,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+#include "UICommon/WebUI/WebServer.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {
@@ -106,6 +108,7 @@ void InterfacePane::CreateLayout()
   // Create layout here
   CreateUI();
   CreateInGame();
+  CreateWebUI();
   AddDescriptions();
 
   m_main_layout->addStretch(1);
@@ -236,6 +239,83 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_lock_mouse);
 #else
   m_checkbox_lock_mouse->hide();
+#endif
+}
+
+void InterfacePane::CreateWebUI()
+{
+#if defined(HAVE_WEB_INTERFACE)
+  auto* const web_ui_groupbox = new QGroupBox(tr("Web Interface"));
+  m_main_layout->addWidget(web_ui_groupbox);
+
+  auto* const web_ui_layout = new QGridLayout{web_ui_groupbox};
+  auto* const enable_checkbox =
+      new ConfigBool(tr("Enable Web Interface"), Config::MAIN_ENABLE_WEB_INTERFACE);
+  web_ui_layout->addWidget(enable_checkbox);
+
+  auto* const server_url = new QLabel{};
+  server_url->setOpenExternalLinks(true);
+  web_ui_layout->addWidget(server_url, 0, 1);
+
+  const auto update_server_url = [server_url] {
+    if (!Config::Get(Config::MAIN_ENABLE_WEB_INTERFACE))
+    {
+      server_url->setText(tr("Server is stopped."));
+      return;
+    }
+
+    if (const auto url = WebUI::GetCurrentURL())
+    {
+      server_url->setText(QString::fromUtf8("<a href='%1'>%1</a>").arg(QString::fromUtf8(*url)));
+      return;
+    }
+
+    server_url->setText(tr("Failed to start server."));
+  };
+
+  update_server_url();
+
+  auto* const enabling_group = new QWidget;
+  web_ui_layout->addWidget(enabling_group, 1, 0, 1, 2);
+  auto* const enabling_layout = new QFormLayout{enabling_group};
+
+  // Listening Port
+  auto* const web_ui_listening_ip_port = new QLineEdit{};
+  web_ui_listening_ip_port->setPlaceholderText(tr("e.g. 8080 or 127.0.0.1:8080"));
+  web_ui_listening_ip_port->setText(
+      QString::fromUtf8(Config::Get(Config::MAIN_WEB_INTERFACE_SERVER_PORT)));
+  enabling_layout->addRow(tr("Listening Port:"), web_ui_listening_ip_port);
+
+  connect(web_ui_listening_ip_port, &QLineEdit::editingFinished, [=] {
+    Config::SetBaseOrCurrent(Config::MAIN_WEB_INTERFACE_SERVER_PORT,
+                             web_ui_listening_ip_port->text().toStdString());
+    WebUI::StopServer();
+    WebUI::StartServer();
+    update_server_url();
+  });
+
+  // ICE Servers
+  auto* const web_ui_ice_servers = new QLineEdit{};
+  web_ui_ice_servers->setPlaceholderText(tr("e.g. stun:stun.cloudflare.com:3478"));
+  web_ui_ice_servers->setText(
+      QString::fromUtf8(Config::Get(Config::MAIN_WEB_INTERFACE_ICE_SERVERS)));
+  web_ui_ice_servers->setToolTip(
+      tr("Enables NAT traversal. Multiple servers may be separated by spaces.\n"
+         "The main listening port will still need to be manually forwarded.\n"
+         "Clients must reconnect for this setting to take effect."));
+  enabling_layout->addRow(tr("ICE Servers:"), web_ui_ice_servers);
+
+  connect(web_ui_ice_servers, &QLineEdit::editingFinished, [web_ui_ice_servers] {
+    Config::SetBaseOrCurrent(Config::MAIN_WEB_INTERFACE_ICE_SERVERS,
+                             web_ui_ice_servers->text().toStdString());
+  });
+
+  const auto update_widget_disabling = [=] {
+    enabling_group->setEnabled(enable_checkbox->isChecked());
+    update_server_url();
+  };
+  connect(enable_checkbox, &ConfigBool::stateChanged, enabling_layout, update_widget_disabling);
+  update_widget_disabling();
 #endif
 }
 
