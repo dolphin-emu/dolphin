@@ -269,7 +269,9 @@ struct TCacheEntry
 
   bool IsEfbCopy() const { return is_efb_copy; }
   bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+  u32 BlockAlignedWidth() const;
   u32 NumBlocksX() const;
+  u32 BlockAlignedHeight() const;
   u32 NumBlocksY() const;
   u32 BytesPerRow() const;
 
@@ -385,6 +387,8 @@ public:
                                  AbstractTexture* texture, TLUTFormat tlutfmt);
   static void RenderReinterpretEntry(const RcTcacheEntry& entry, AbstractTexture* texture,
                                      TextureFormat old_format, TextureFormat new_format);
+  static void RenderResizeEntry(const RcTcacheEntry& entry, AbstractTexture* texture, u32 old_width,
+                                u32 old_height);
 
   void ExecutePartialTextureUpdate(const PartialTextureUpdateContext& context);
 
@@ -441,10 +445,17 @@ private:
   RcTcacheEntry CreateReinterpretEntry(const RcTcacheEntry& existing_entry,
                                        TextureFormat new_format);
 
+  RcTcacheEntry CreateResizeEntry(const RcTcacheEntry& existing_entry, u32 new_native_width,
+                                  u32 new_native_height, u64 base_hash, u64 full_hash);
+
   PartialTextureUpdateContext
   BuildPartialUpdateContext(const RcTcacheEntry& target, const RcTcacheEntry& source,
                             const u8* palette, TLUTFormat tlutfmt, bool is_palette_texture,
                             u32 block_width, u32 block_height, u32 block_size, u32 numBlocksX);
+
+  RcTcacheEntry ResizeEntry(const RcTcacheEntry& existing_entry, u32 new_native_width,
+                            u32 new_native_height, u64 base_hash, u64 full_hash);
+
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
                                         TLUTFormat tlutfmt);
   void StitchXFBCopy(RcTcacheEntry& entry_to_update);
