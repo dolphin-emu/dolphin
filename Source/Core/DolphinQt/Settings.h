@@ -231,6 +231,7 @@ signals:
   void AnalyticsToggled(bool enabled);
   void ReleaseDevices();
   void DevicesChanged();
+  void USBKeyboardConnectionChanged(bool connected);
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
   void GameCountVisibilityChanged(bool visible);
