@@ -37,6 +37,8 @@ set_property(TARGET Qt6::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
+  ChangeDiscDialog.cpp
+  ChangeDiscDialog.h
   CheatSearchFactoryWidget.cpp
   CheatSearchFactoryWidget.h
   CheatSearchWidget.cpp
@@ -327,6 +329,10 @@ add_executable(dolphin-emu
   NANDRepairDialog.h
   NKitWarningDialog.cpp
   NKitWarningDialog.h
+  OpticalDiscProgressDialog.cpp
+  OpticalDiscProgressDialog.h
+  OpticalDriveWatcher.cpp
+  OpticalDriveWatcher.h
   QtUtils/AnalyticsPrompt.cpp
   QtUtils/AnalyticsPrompt.h
   QtUtils/AspectRatioWidget.cpp
