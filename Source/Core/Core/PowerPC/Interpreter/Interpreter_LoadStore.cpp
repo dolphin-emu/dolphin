@@ -471,9 +471,18 @@ void Interpreter::dcbf(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
   if (!ppc_state.m_enable_dcache)
   {
-    // Invalidate the JIT cache here as a heuristic to compensate for
-    // the lack of precise L1 icache emulation in the JIT. (Portable software
-    // should use icbi consistently, but games aren't portable.)
+    // Some games do not use `icbi` properly, and the JIT does not emulate the ICache accurately.
+    // Therefore, we use this instruction as an heuristic for invalidating the block cache. This is
+    // known to solve a crash after loading an area in games developed by Artificial Mind and
+    // Movement (Monster House, Scooby-Doo! Mystery Mayhem, Scooby-Doo! Unmasked).
+    // Note that this could cause unnecessary invalidation that would result in lengthy stutters. In
+    // the past `dcbi` and `dcbst` invalidated the block cache as well, and games like NBA Live
+    // 2005/06 or Harry Potter and the Prisoner of Azkaban are known to have suffered because of
+    // that (some games like The Last Story were fixed by making `dcbst` do nothing if it was
+    // preceded by `dcbt`/`dcbtst`).
+    // No games are known to be negatively affected with just `dcbf`, but if some were found, then
+    // this behavior would probably need to become an option.
+
     interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
     return;
   }
@@ -491,15 +500,6 @@ void Interpreter::dcbi(Interpreter& interpreter, UGeckoInstruction inst)
   }
 
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  if (!ppc_state.m_enable_dcache)
-  {
-    // Invalidate the JIT cache here as a heuristic to compensate for
-    // the lack of precise L1 icache emulation in the JIT. (Portable software
-    // should use icbi consistently, but games aren't portable.)
-    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
-    return;
-  }
-
   interpreter.m_mmu.InvalidateDCacheLine(address);
 }
 
@@ -507,15 +507,6 @@ void Interpreter::dcbst(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  if (!ppc_state.m_enable_dcache)
-  {
-    // Invalidate the JIT cache here as a heuristic to compensate for
-    // the lack of precise L1 icache emulation in the JIT. (Portable software
-    // should use icbi consistently, but games aren't portable.)
-    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
-    return;
-  }
-
   interpreter.m_mmu.StoreDCacheLine(address);
 }
 
