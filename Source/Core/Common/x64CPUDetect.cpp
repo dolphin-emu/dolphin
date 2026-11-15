@@ -139,7 +139,7 @@ void CPUInfo::Detect()
     vendor = CPUVendor::Other;
 
   // Detect family and other misc stuff.
-  bool is_amd_family_17 = false;
+  bool is_amd_family_15_or_17 = false;
   bool has_sse = false;
   if (func_id_max >= 1)
   {
@@ -157,9 +157,9 @@ void CPUInfo::Detect()
          model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
       bAtom = true;
 
-    // Detect AMD Zen1, Zen1+ and Zen2
-    if (vendor == CPUVendor::AMD && family == 0x17)
-      is_amd_family_17 = true;
+    // Detect AMD Excavator (Family 15h), Zen1, Zen1+ and Zen2 (Family 17h)
+    if (vendor == CPUVendor::AMD && (family == 0x15 || family == 0x17))
+      is_amd_family_15_or_17 = true;
 
     // AMD CPUs before Zen faked this flag and didn't actually
     // implement simultaneous multithreading (SMT; Intel calls it HTT)
@@ -235,7 +235,7 @@ void CPUInfo::Detect()
 
   // Computed flags
   bFlushToZero = has_sse;
-  bBMI2FastParallelBitOps = bBMI2 && !is_amd_family_17;
+  bBMI2FastParallelBitOps = bBMI2 && !is_amd_family_15_or_17;
   bCRC32 = bSSE4_2;
 
   model_name = ReplaceAll(model_name, ",", "_");

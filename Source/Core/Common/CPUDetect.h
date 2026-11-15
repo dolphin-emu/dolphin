@@ -32,7 +32,8 @@ struct CPUInfo
   bool bAVX = false;
   bool bBMI1 = false;
   bool bBMI2 = false;
-  // PDEP and PEXT are ridiculously slow on AMD Zen1, Zen1+ and Zen2 (Family 17h)
+  // PDEP and PEXT are ridiculously slow on AMD Excavator (Family 15h), as well as Zen1, Zen1+ and
+  // Zen2 (Family 17h).
   bool bBMI2FastParallelBitOps = false;
   bool bFMA = false;
   bool bFMA4 = false;
