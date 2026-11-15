@@ -304,6 +304,15 @@ private:
 
   template <typename T>
   static void Helper_IntCompare(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, T a, T b);
+  template <bool update_ca, bool xo_form>
+  static void Helper_Add(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, u32 a, u32 b,
+                         u32 carry_in);
+  static void Helper_AddXO(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, u32 a, u32 b,
+                           u32 carry_in);
+  static void Helper_AddXOCarrying(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, u32 a,
+                                   u32 b, u32 carry_in);
+  static void Helper_AddImmediateCarrying(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
+                                          u32 a, u32 b, u32 carry_in);
   static void Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                                          double a, double b);
   static void Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
