@@ -211,7 +211,8 @@ bool ElfReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
       u32 srcSize = p->p_filesz;
       u32 dstSize = p->p_memsz;
 
-      if (only_in_mem1 && writeAddr >= memory.GetRamSizeReal())
+      // writeAddr may be a virtual address at this point, so compare the physical address.
+      if (only_in_mem1 && (writeAddr & 0x3FFFFFFF) >= memory.GetRamSizeReal())
         continue;
 
       memory.CopyToEmu(writeAddr, src, srcSize);
