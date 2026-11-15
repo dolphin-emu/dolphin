@@ -32,6 +32,10 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <queries>
+        <provider android:authorities="com.raofflineproxy.config" />
+    </queries>
+
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name_suffixed"
@@ -52,6 +56,10 @@
         <profileable
             android:shell="true"
             tools:targetApi="29" />
+
+        <meta-data
+            android:name="com.raofflineproxy.PULLS_AUTOMATION_API"
+            android:value="true" />
 
         <activity
             android:name=".ui.main.MainActivity"
@@ -148,23 +156,6 @@
             android:name=".features.riivolution.ui.RiivolutionBootActivity"
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main" />
-
-        <provider
-            android:name=".features.retroachievements.RetroAchievementsHostOverrideProvider"
-            android:authorities="${applicationId}.retroachievements"
-            android:exported="true" />
-
-        <activity
-            android:name=".features.retroachievements.RetroAchievementsHostOverrideAccessActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="${applicationId}.action.REQUEST_RETROACHIEVEMENTS_HOST_OVERRIDE_ACCESS" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
 
         <service
             android:name=".services.SyncChannelJobService"

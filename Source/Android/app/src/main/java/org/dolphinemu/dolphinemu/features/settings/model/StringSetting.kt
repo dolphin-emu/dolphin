@@ -108,10 +108,10 @@ enum class StringSetting(
         "HostUrl",
         ""
     ),
-    ACHIEVEMENTS_HOST_OVERRIDE_APPS(
+    ACHIEVEMENTS_PROXY_APP(
         Settings.FILE_ACHIEVEMENTS,
         Settings.SECTION_ACHIEVEMENTS,
-        "HostOverrideApps",
+        "ProxyApp",
         ""
     ),
     NETPLAY_TRAVERSAL_CHOICE(
