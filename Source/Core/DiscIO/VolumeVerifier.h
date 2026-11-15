@@ -184,8 +184,8 @@ private:
   Common::WorkQueueThreadSP<u64> m_crc32_worker;
   Common::WorkQueueThreadSP<u64> m_md5_worker;
   Common::WorkQueueThreadSP<u64> m_sha1_worker;
-  std::future<void> m_content_future;
-  std::future<void> m_group_future;
+  Common::AsyncWorkThreadSP m_content_worker;
+  Common::AsyncWorkThreadSP m_group_worker;
 
   DiscScrubber m_scrubber;
   IOS::ES::TicketReader m_ticket;

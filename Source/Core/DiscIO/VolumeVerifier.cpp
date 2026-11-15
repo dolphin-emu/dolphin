@@ -1108,6 +1108,9 @@ void VolumeVerifier::SetUpHashing()
       m_sha1_context->Update(m_data.data(), byte_increment);
     });
   }
+
+  m_content_worker.Reset("Verify Content");
+  m_group_worker.Reset("Verify Group");
 }
 
 void VolumeVerifier::WaitForAsyncOperations()
@@ -1115,11 +1118,8 @@ void VolumeVerifier::WaitForAsyncOperations()
   m_crc32_worker.WaitForCompletion();
   m_md5_worker.WaitForCompletion();
   m_sha1_worker.WaitForCompletion();
-
-  if (m_content_future.valid())
-    m_content_future.wait();
-  if (m_group_future.valid())
-    m_group_future.wait();
+  m_content_worker.WaitForCompletion();
+  m_group_worker.WaitForCompletion();
 }
 
 bool VolumeVerifier::ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read)
@@ -1243,7 +1243,7 @@ void VolumeVerifier::Process()
 
   if (content_read)
   {
-    m_content_future = std::async(std::launch::async, [this, read_failed, content] {
+    m_content_worker.Push([this, read_failed, content] {
       if (read_failed || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
       {
         AddProblem(Severity::High, Common::FmtFormatT("Content {0:08x} is corrupt.", content.id));
@@ -1255,8 +1255,7 @@ void VolumeVerifier::Process()
 
   if (group_read)
   {
-    m_group_future = std::async(std::launch::async, [this, read_failed,
-                                                     group_index = m_group_index] {
+    m_group_worker.Push([this, read_failed, group_index = m_group_index] {
       const GroupToVerify& group = m_groups[group_index];
       u64 offset_in_group = 0;
       for (u64 block_index = group.block_index_start; block_index < group.block_index_end;
