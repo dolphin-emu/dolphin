@@ -10,7 +10,7 @@ class Jit64;
 class GPRRegCache final : public RegCache
 {
 public:
-  explicit GPRRegCache(Jit64& jit);
+  explicit GPRRegCache(Jit64& jit, Gen::XEmitter& emitter);
 
   bool IsImm(preg_t preg) const override;
   u32 Imm32(preg_t preg) const override;
@@ -20,7 +20,7 @@ public:
 
 protected:
   Gen::OpArg R(preg_t preg) const override;
-  Gen::OpArg GetDefaultLocation(preg_t preg) const override;
+  Gen::OpArg GetPPCStateLocation(preg_t preg) const override;
   void StoreRegister(preg_t preg, const Gen::OpArg& new_loc,
                      IgnoreDiscardedRegisters ignore_discarded_registers) override;
   void LoadRegister(preg_t preg, Gen::X64Reg new_loc) override;

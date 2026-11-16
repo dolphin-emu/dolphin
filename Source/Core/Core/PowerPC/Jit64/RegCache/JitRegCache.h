@@ -134,11 +134,10 @@ public:
     Yes,
   };
 
-  explicit RegCache(Jit64& jit);
+  explicit RegCache(Jit64& jit, Gen::XEmitter& emitter);
   virtual ~RegCache() = default;
 
   void Start();
-  void SetEmitter(Gen::XEmitter* emitter);
   bool SanityCheck() const;
 
   template <typename... Ts>
@@ -178,23 +177,23 @@ public:
 
   RCForkGuard Fork();
   void Discard(BitSet32 pregs);
-  void Flush(BitSet32 pregs = BitSet32::AllTrue(32), FlushMode mode = FlushMode::Full,
+  void Flush(BitSet32 pregs = BitSet32::AllTrue(), FlushMode mode = FlushMode::Full,
              IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
   void Reset(BitSet32 pregs);
-  void Revert();
+  BitSet32 RegistersRevertable() const;
   void Commit();
 
   bool IsAllUnlocked() const;
 
   void PreloadRegisters(BitSet32 pregs);
-  BitSet32 RegistersInUse() const;
+  BitSet16 RegistersInUse() const;
 
 protected:
   friend class RCOpArg;
   friend class RCX64Reg;
   friend class RCForkGuard;
 
-  virtual Gen::OpArg GetDefaultLocation(preg_t preg) const = 0;
+  virtual Gen::OpArg GetPPCStateLocation(preg_t preg) const = 0;
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc,
                              IgnoreDiscardedRegisters ignore_discarded_registers) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
@@ -230,8 +229,9 @@ protected:
   bool IsAnyConstraintActive() const;
 
   Jit64& m_jit;
+  Gen::XEmitter& m_emitter;
+
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
   std::array<RCConstraint, 32> m_constraints;
-  Gen::XEmitter* m_emitter = nullptr;
 };

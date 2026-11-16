@@ -231,22 +231,15 @@ void RCForkGuard::EndFork()
   rc = nullptr;
 }
 
-RegCache::RegCache(Jit64& jit) : m_jit{jit}
+RegCache::RegCache(Jit64& jit, XEmitter& emitter) : m_jit{jit}, m_emitter(emitter)
 {
 }
 
 void RegCache::Start()
 {
   m_xregs.fill({});
-  for (size_t i = 0; i < m_regs.size(); i++)
-  {
-    m_regs[i] = PPCCachedReg{GetDefaultLocation(i)};
-  }
-}
-
-void RegCache::SetEmitter(XEmitter* emitter)
-{
-  m_emitter = emitter;
+  m_regs.fill({});
+  m_constraints.fill({});
 }
 
 bool RegCache::SanityCheck() const
@@ -357,14 +350,16 @@ void RegCache::Reset(BitSet32 pregs)
   }
 }
 
-void RegCache::Revert()
+BitSet32 RegCache::RegistersRevertable() const
 {
   ASSERT(IsAllUnlocked());
-  for (auto& reg : m_regs)
+  BitSet32 result;
+  for (size_t i = 0; i < m_regs.size(); i++)
   {
-    if (reg.IsRevertable())
-      reg.SetRevert();
+    if (m_regs[i].IsRevertable())
+      result[i] = true;
   }
+  return result;
 }
 
 void RegCache::Commit()
@@ -394,9 +389,9 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
   }
 }
 
-BitSet32 RegCache::RegistersInUse() const
+BitSet16 RegCache::RegistersInUse() const
 {
-  BitSet32 result;
+  BitSet16 result;
   for (size_t i = 0; i < m_xregs.size(); i++)
   {
     if (!m_xregs[i].IsFree())
@@ -471,8 +466,8 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode,
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction on {} is in progress!", i);
 
-  if (!m_regs[i].IsInDefaultLocation())
-    StoreRegister(i, GetDefaultLocation(i), ignore_discarded_registers);
+  if (!m_regs[i].IsInPPCState())
+    StoreRegister(i, GetPPCStateLocation(i), ignore_discarded_registers);
 
   if (mode == FlushMode::Full && m_regs[i].IsInHostRegister())
     m_xregs[m_regs[i].GetHostRegister()].Unbind();
@@ -542,7 +537,7 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   // bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
   // right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
   // to the number of extra stores it causes.
-  if (!m_regs[preg].IsInDefaultLocation())
+  if (!m_regs[preg].IsInPPCState())
     score += 2;
 
   // If the register isn't actually needed in a physical register for a later instruction,

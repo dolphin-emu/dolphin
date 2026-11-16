@@ -4,11 +4,9 @@
 #pragma once
 
 #include <cstddef>
-#include <optional>
 
 #include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
+#include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 using preg_t = size_t;
@@ -18,17 +16,13 @@ class PPCCachedReg
 public:
   PPCCachedReg() = default;
 
-  explicit PPCCachedReg(Gen::OpArg default_location) : m_default_location(default_location) {}
-
-  Gen::OpArg GetDefaultLocation() const { return m_default_location; }
-
   Gen::X64Reg GetHostRegister() const
   {
     ASSERT(m_in_host_register);
     return m_host_register;
   }
 
-  bool IsInDefaultLocation() const { return m_in_default_location; }
+  bool IsInPPCState() const { return m_in_ppc_state; }
   bool IsInHostRegister() const { return m_in_host_register; }
 
   void SetFlushed(bool maintain_host_register)
@@ -36,23 +30,23 @@ public:
     ASSERT(!m_revertable);
     if (!maintain_host_register)
       m_in_host_register = false;
-    m_in_default_location = true;
+    m_in_ppc_state = true;
   }
 
   void SetInHostRegister(Gen::X64Reg xreg, bool dirty)
   {
     if (dirty)
-      m_in_default_location = false;
+      m_in_ppc_state = false;
     m_in_host_register = true;
     m_host_register = xreg;
   }
 
-  void SetDirty() { m_in_default_location = false; }
+  void SetDirty() { m_in_ppc_state = false; }
 
   void SetDiscarded()
   {
     ASSERT(!m_revertable);
-    m_in_default_location = false;
+    m_in_ppc_state = false;
     m_in_host_register = false;
   }
 
@@ -61,12 +55,6 @@ public:
   {
     ASSERT(m_in_host_register);
     m_revertable = true;
-  }
-  void SetRevert()
-  {
-    ASSERT(m_revertable);
-    m_revertable = false;
-    SetFlushed(false);
   }
   void SetCommit()
   {
@@ -83,9 +71,8 @@ public:
   }
 
 private:
-  Gen::OpArg m_default_location{};
   Gen::X64Reg m_host_register{};
-  bool m_in_default_location = true;
+  bool m_in_ppc_state = true;
   bool m_in_host_register = false;
   bool m_revertable = false;
   size_t m_locked = 0;
@@ -94,6 +81,8 @@ private:
 class X64CachedReg
 {
 public:
+  X64CachedReg() = default;
+
   preg_t Contents() const { return ppcReg; }
 
   void SetBoundTo(preg_t ppcReg_)
