@@ -71,8 +71,8 @@ function java_setup() {
   if [ "$did_java_setup" = 1 ]; then
     return
   fi
-  if [ ! -x "${ANDROID_STUDIO_ROOT}/bin/format.sh" ]; then
-    echo >&2 "error: must set ANDROID_STUDIO_ROOT environment variable to the IDE installation directory (current: ${ANDROID_STUDIO_ROOT})"
+  if [ ! -x "${ANDROID_STUDIO_ROOT:-}/bin/format.sh" ]; then
+    echo >&2 "error: must set ANDROID_STUDIO_ROOT environment variable to the IDE installation directory (current: ${ANDROID_STUDIO_ROOT:-})"
     exit 1
   fi
   java_temp_dir="$(mktemp -d)"
