@@ -7,14 +7,14 @@
 #include <memory>
 #include <vector>
 
+#include "AudioCommon/Microphone.h"
 #include "Common/CommonTypes.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/Emulated/Microphone.h"
 
 namespace IOS::HLE::USB
 {
 
-class LogitechMicState final : public MicrophoneState
+class LogitechMicState final : public AudioCommon::MicrophoneState
 {
 public:
   // Use atomic for members concurrently used by the data callback
@@ -61,6 +61,6 @@ private:
   u8 m_index = 0;
   u8 m_active_interface = 0;
   bool m_device_attached = false;
-  std::unique_ptr<Microphone> m_microphone{};
+  std::unique_ptr<AudioCommon::Microphone> m_microphone{};
 };
 }  // namespace IOS::HLE::USB

@@ -25,5 +25,5 @@ private:
   void SaveSettings() override;
   void CreateMainLayout();
 
-  QHBoxLayout* m_main_layout;
+  QVBoxLayout* m_main_layout;
 };
