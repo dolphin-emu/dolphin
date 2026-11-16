@@ -112,7 +112,24 @@ void AudioPane::CreateWidgets()
     translated_backends.reserve(backends.size());
     for (const std::string& backend : backends)
     {
-      translated_backends.emplace_back(tr(backend.c_str()), QString::fromStdString(backend));
+      const auto translated_backend_name = tr(backend.c_str());
+      translated_backends.emplace_back(translated_backend_name, QString::fromStdString(backend));
+
+#ifdef HAVE_CUBEB
+      if (backend == BACKEND_CUBEB)
+      {
+        // Add additional lines for each Cubeb backend.
+        // e.g. "Cubeb (WASAPI)"
+        for (const auto cubeb_backend : CubebUtils::GetBackendNames())
+        {
+          translated_backends.emplace_back(
+              QString::fromLatin1("%1 (%2)").arg(
+                  translated_backend_name,
+                  QString::fromUtf8(CubebUtils::GetCubebBackendDisplayName(cubeb_backend))),
+              QString::fromStdString(fmt::format("{}/{}", backend, cubeb_backend)));
+        }
+      }
+#endif
     }
     m_backend_combo = new ConfigStringChoice(translated_backends, Config::MAIN_AUDIO_BACKEND);
   }
