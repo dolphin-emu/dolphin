@@ -101,7 +101,7 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
 
-  if (!g_ActiveConfig.bImmediateXFB)
+  if (!g_presenter->ShouldSkipViSwap())
   {
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
