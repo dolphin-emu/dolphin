@@ -7,6 +7,7 @@
 #include <cstring>
 #include <string_view>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
@@ -52,6 +53,30 @@ static void DestroyContext(cubeb* ctx)
   }
 }
 
+static std::string GetCubebBackendName()
+{
+  std::string audio_backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+
+  if (!AudioCommon::IsCubebBackend(audio_backend))
+  {
+    // A non-Cubeb audio backend is configured.
+    // A lowercase version of this string will work some of the time.
+    // e.g. for "Pulse" or "ALSA".
+    // Cubeb will internally use a fallback if it's not a valid string.
+    Common::ToLower(&audio_backend);
+    return audio_backend;
+  }
+
+  // Cubeb may have its own backend specified after a slash.
+  // e.g. "Cubeb/wasapi"
+  const auto cubeb_backend_delimiter_pos = audio_backend.find('/');
+
+  if (cubeb_backend_delimiter_pos == std::string::npos)
+    return {};
+
+  return std::move(audio_backend).substr(cubeb_backend_delimiter_pos + 1);
+}
+
 namespace CubebUtils
 {
 std::shared_ptr<cubeb> GetContext()
@@ -68,13 +93,9 @@ std::shared_ptr<cubeb> GetContext()
     ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
   }
 
-  // Cubeb may have its own backend specified after a slash.
-  // e.g. "Cubeb/wasapi"
-  const auto audio_backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
-  const auto cubeb_backend_delimiter_pos = audio_backend.find('/');
-  const char* const backend_name = (cubeb_backend_delimiter_pos == std::string::npos) ?
-                                       nullptr :
-                                       audio_backend.c_str() + cubeb_backend_delimiter_pos + 1;
+  const auto backend_name_str = GetCubebBackendName();
+  const char* const backend_name = backend_name_str.empty() ? nullptr : backend_name_str.c_str();
+
   cubeb* ctx;
   if (cubeb_init(&ctx, "Dolphin Emulator", backend_name) != CUBEB_OK)
   {
