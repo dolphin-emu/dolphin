@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 
 #include <cubeb/cubeb.h>
 
@@ -67,8 +68,15 @@ std::shared_ptr<cubeb> GetContext()
     ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
   }
 
+  // Cubeb may have its own backend specified after a slash.
+  // e.g. "Cubeb/wasapi"
+  const auto audio_backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+  const auto cubeb_backend_delimiter_pos = audio_backend.find('/');
+  const char* const backend_name = (cubeb_backend_delimiter_pos == std::string::npos) ?
+                                       nullptr :
+                                       audio_backend.c_str() + cubeb_backend_delimiter_pos + 1;
   cubeb* ctx;
-  if (cubeb_init(&ctx, "Dolphin Emulator", nullptr) != CUBEB_OK)
+  if (cubeb_init(&ctx, "Dolphin Emulator", backend_name) != CUBEB_OK)
   {
     ERROR_LOG_FMT(AUDIO, "Error initializing cubeb library");
     return nullptr;

@@ -401,7 +401,7 @@ void AudioPane::UpdateWiimoteRoutingEnabled()
     return;
 
   const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
-  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool is_cubeb = AudioCommon::IsCubebBackend(Config::Get(Config::MAIN_AUDIO_BACKEND));
   const bool speaker_enabled = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
   const bool bt_passthrough = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED);
 
@@ -432,7 +432,7 @@ void AudioPane::UpdateGBARoutingEnabled()
     return;
 
   const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
-  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool is_cubeb = AudioCommon::IsCubebBackend(Config::Get(Config::MAIN_AUDIO_BACKEND));
   const bool group_usable = !running && is_cubeb;
 
   m_gba_routing_enable->setEnabled(group_usable);
