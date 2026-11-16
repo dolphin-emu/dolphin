@@ -352,6 +352,8 @@ void AudioPane::OnDspChanged()
 
 void AudioPane::OnBackendChanged()
 {
+  Settings::Instance().AudioBackendChanged();
+
   OnDspChanged();
 
   const auto backend = Config::Get(Config::MAIN_AUDIO_BACKEND);

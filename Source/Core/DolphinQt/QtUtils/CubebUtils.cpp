@@ -14,6 +14,29 @@
 #ifdef HAVE_CUBEB
 #include "AudioCommon/CubebUtils.h"
 #endif
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+
+namespace
+{
+void UpdateMicrophoneComboBoxDeviceList(ConfigStringChoice* combobox)
+{
+  std::vector<std::pair<QString, QString>> input_devices;
+#ifndef HAVE_CUBEB
+  input_devices.emplace_back(QLatin1String("(%1)").arg(QWidget::tr("Audio backend unsupported")),
+                             QString{});
+#else
+  input_devices.emplace_back(
+      QLatin1String("(%1)").arg(QWidget::tr("Autodetect preferred microphone")), QString{});
+
+  for (const auto& [device_id, device_name] : CubebUtils::ListInputDevices())
+  {
+    const auto user_data = QString::fromStdString(device_id);
+    input_devices.emplace_back(QString::fromStdString(device_name), user_data);
+  }
+#endif
+  combobox->SetOptions(input_devices);
+}
+}  // namespace
 
 QGridLayout* QtUtils::CubebVolumeLayout(const Config::Info<s16>& cfg_volume, QWidget* parent)
 {
@@ -47,28 +70,16 @@ QGridLayout* QtUtils::CubebVolumeLayout(const Config::Info<s16>& cfg_volume, QWi
 QComboBox* QtUtils::CubebMicrophonesComboBox(const Config::Info<std::string>& cfg_microphone,
                                              QWidget* parent)
 {
-  auto* const combobox = new QComboBox();
-#ifndef HAVE_CUBEB
-  combobox->addItem(QLatin1String("(%1)").arg(parent->tr("Audio backend unsupported")), QString{});
-#else
-  combobox->addItem(QLatin1String("(%1)").arg(parent->tr("Autodetect preferred microphone")),
-                    QString{});
-  for (auto& [device_id, device_name] : CubebUtils::ListInputDevices())
-  {
-    const auto user_data = QString::fromStdString(device_id);
-    combobox->addItem(QString::fromStdString(device_name), user_data);
-  }
-#endif
-  parent->connect(combobox, &QComboBox::currentIndexChanged, combobox, [combobox, cfg_microphone] {
-    const auto user_data = combobox->currentData();
-    if (!user_data.isValid())
-      return;
+  const std::array<std::string, 0> empty_list;
+  auto* const combobox = new ConfigStringChoice{empty_list, cfg_microphone};
+  combobox->setParent(parent);
 
-    const std::string device_id = user_data.toString().toStdString();
-    Config::SetBaseOrCurrent(cfg_microphone, device_id);
-  });
+  combobox->connect(&Settings::Instance(), &Settings::AudioBackendChanged, combobox,
+                    [combobox] { UpdateMicrophoneComboBoxDeviceList(combobox); });
+  UpdateMicrophoneComboBoxDeviceList(combobox);
 
-  const auto current_device_id = QString::fromStdString(Config::Get(cfg_microphone));
-  combobox->setCurrentIndex(combobox->findData(current_device_id));
+  // TODO: It may make sense to update this list when physical devices are added/removed.
+  // Maybe just update the combobox when it's clicked on ?
+
   return combobox;
 }
