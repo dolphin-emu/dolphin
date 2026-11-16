@@ -38,25 +38,6 @@ if(ANDROID)
   endif()
 endif()
 
-if(ENABLE_PULSEAUDIO)
-  # PulseAudio ships with a PulseAudioConfig.cmake with no imported target
-  # So we use our own FindPulseAudio instead with "MODULE"
-  find_package(PulseAudio MODULE QUIET)
-  if(PulseAudio_FOUND)
-    message(STATUS "PulseAudio found, enabling PulseAudio sound backend")
-    target_sources(audiocommon PRIVATE
-      PulseAudioStream.cpp
-      PulseAudioStream.h
-    )
-    target_link_libraries(audiocommon PRIVATE PulseAudio::PulseAudio)
-    target_compile_definitions(audiocommon PRIVATE HAVE_PULSEAUDIO=1)
-  else()
-    message(STATUS "PulseAudio NOT found, disabling PulseAudio sound backend")
-  endif()
-else()
-  message(STATUS "PulseAudio explicitly disabled, disabling PulseAudio sound backend")
-endif()
-
 if(WIN32)
   target_sources(audiocommon PRIVATE
     # Dolphin loads openal32.dll at runtime

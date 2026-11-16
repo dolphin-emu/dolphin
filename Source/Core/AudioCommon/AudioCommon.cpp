@@ -11,7 +11,6 @@
 #include "AudioCommon/NullSoundStream.h"
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/OpenSLESStream.h"
-#include "AudioCommon/PulseAudioStream.h"
 #include "AudioCommon/WASAPIStream.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -33,8 +32,6 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
     return std::make_unique<OpenALStream>();
   else if (backend == BACKEND_NULLSOUND)
     return std::make_unique<NullSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::IsValid())
-    return std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
   else if (backend == BACKEND_WASAPI && WASAPIStream::IsValid())
@@ -112,8 +109,6 @@ std::vector<std::string> GetSoundBackends()
   backends.emplace_back(BACKEND_NULLSOUND);
   if (CubebStream::IsValid())
     backends.emplace_back(BACKEND_CUBEB);
-  if (PulseAudio::IsValid())
-    backends.emplace_back(BACKEND_PULSEAUDIO);
   if (OpenALStream::IsValid())
     backends.emplace_back(BACKEND_OPENAL);
   if (OpenSLESStream::IsValid())
@@ -138,8 +133,6 @@ bool SupportsDPL2Decoder(std::string_view backend)
     return true;
 #endif
   if (AudioCommon::IsCubebBackend(backend))
-    return true;
-  if (backend == BACKEND_PULSEAUDIO)
     return true;
   return false;
 }
