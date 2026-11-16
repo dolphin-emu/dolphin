@@ -38,23 +38,6 @@ if(ANDROID)
   endif()
 endif()
 
-if(ENABLE_ALSA)
-  find_package(ALSA)
-  if(ALSA_FOUND)
-    message(STATUS "ALSA found, enabling ALSA sound backend")
-    target_sources(audiocommon PRIVATE
-      AlsaSoundStream.cpp
-      AlsaSoundStream.h
-    )
-    target_link_libraries(audiocommon PRIVATE ALSA::ALSA)
-    target_compile_definitions(audiocommon PRIVATE HAVE_ALSA=1)
-  else()
-    message(STATUS "ALSA NOT found, disabling ALSA sound backend")
-  endif()
-else()
-  message(STATUS "ALSA explicitly disabled, disabling ALSA sound backend")
-endif()
-
 if(ENABLE_PULSEAUDIO)
   # PulseAudio ships with a PulseAudioConfig.cmake with no imported target
   # So we use our own FindPulseAudio instead with "MODULE"
