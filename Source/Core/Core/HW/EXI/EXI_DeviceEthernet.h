@@ -227,11 +227,10 @@ public:
 
   class NetworkInterface
   {
-  protected:
-    CEXIETHERNET* m_eth_ref = nullptr;
-    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
-
   public:
+    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
+    virtual ~NetworkInterface() = default;
+
     virtual bool Activate() { return false; }
     virtual void Deactivate() {}
     virtual bool IsActivated() { return false; }
@@ -240,7 +239,8 @@ public:
     virtual void RecvStart() {}
     virtual void RecvStop() {}
 
-    virtual ~NetworkInterface() = default;
+  protected:
+    CEXIETHERNET* const m_eth_ref = nullptr;
   };
 
 private:
