@@ -1,7 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/BBA/TAP.h"
 
 #include <cstring>
 
@@ -25,7 +25,7 @@ namespace ExpansionInterface
 #define NOTIMPLEMENTED(Name)                                                                       \
   NOTICE_LOG_FMT(SP1, "CEXIETHERNET::{} not implemented for your UNIX", Name);
 
-bool CEXIETHERNET::TAPNetworkInterface::Activate()
+bool TAPNetworkInterface::Activate()
 {
 #ifdef __linux__
   if (IsActivated())
@@ -75,7 +75,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
 #endif
 }
 
-void CEXIETHERNET::TAPNetworkInterface::Deactivate()
+void TAPNetworkInterface::Deactivate()
 {
 #ifdef __linux__
   close(fd);
@@ -90,7 +90,7 @@ void CEXIETHERNET::TAPNetworkInterface::Deactivate()
 #endif
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
+bool TAPNetworkInterface::IsActivated()
 {
 #ifdef __linux__
   return fd != -1 ? true : false;
@@ -99,7 +99,7 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 #endif
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
   DEBUG_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
@@ -123,7 +123,7 @@ bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 }
 
 #ifdef __linux__
-void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
+void TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
@@ -153,7 +153,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 }
 #endif
 
-bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
+bool TAPNetworkInterface::RecvInit()
 {
 #ifdef __linux__
   readThread = std::thread(ReadThreadHandler, this);
@@ -164,7 +164,7 @@ bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
 #endif
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStart()
+void TAPNetworkInterface::RecvStart()
 {
 #ifdef __linux__
   readEnabled.Set();
@@ -173,7 +173,7 @@ void CEXIETHERNET::TAPNetworkInterface::RecvStart()
 #endif
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStop()
+void TAPNetworkInterface::RecvStop()
 {
 #ifdef __linux__
   readEnabled.Clear();

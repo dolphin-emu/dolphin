@@ -189,6 +189,7 @@ add_library(core
   HW/DVD/FileMonitor.cpp
   HW/DVD/FileMonitor.h
   HW/EXI/BBA/IPC.cpp
+  HW/EXI/BBA/TAP.h
   HW/EXI/BBA/TAPServerConnection.cpp
   HW/EXI/BBA/TAPServerBBA.cpp
   HW/EXI/BBA/XLINK_KAI_BBA.cpp

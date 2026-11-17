@@ -4,13 +4,7 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -207,6 +201,7 @@ class CEXIETHERNET : public IEXIDevice
 {
   friend class BuiltInBBAInterface;
   friend class IPCBBAInterface;
+  friend class TAPNetworkInterface;
   friend class TAPServerNetworkInterface;
   friend class XLinkNetworkInterface;
 
@@ -325,39 +320,6 @@ private:
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
 
-  class TAPNetworkInterface : public NetworkInterface
-  {
-  public:
-    explicit TAPNetworkInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref) {}
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  protected:
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
-    std::thread readThread;
-    Common::Flag readEnabled;
-    Common::Flag readThreadShutdown;
-    static void ReadThreadHandler(TAPNetworkInterface* self);
-#endif
-#if defined(_WIN32)
-    HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-    OVERLAPPED mReadOverlapped = {};
-    OVERLAPPED mWriteOverlapped = {};
-    std::vector<u8> mWriteBuffer;
-    bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-    int fd = -1;
-#endif
-  };
-
   std::unique_ptr<NetworkInterface> m_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
@@ -368,6 +330,8 @@ std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip);
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateIPCBBAInterface(CEXIETHERNET* eth_ref);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateTAPNetworkInterface(CEXIETHERNET* eth_ref);
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateTAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);

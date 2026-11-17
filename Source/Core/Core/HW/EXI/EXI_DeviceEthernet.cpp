@@ -46,7 +46,7 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
   switch (type)
   {
   case BBADeviceType::TAP:
-    m_network_interface = std::make_unique<TAPNetworkInterface>(this);
+    m_network_interface = CreateTAPNetworkInterface(this);
     INFO_LOG_FMT(SP1, "Created TAP physical network interface.");
     break;
   case BBADeviceType::TAPSERVER:

@@ -6,10 +6,16 @@
 #include <cstring>
 
 #include "Common/Logging/Log.h"
+#include "Core/HW/EXI/BBA/TAP.h"
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 
 namespace ExpansionInterface
 {
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateTAPNetworkInterface(CEXIETHERNET* eth_ref)
+{
+  return std::make_unique<TAPNetworkInterface>(eth_ref);
+}
+
 class TAPServerNetworkInterface : public CEXIETHERNET::NetworkInterface
 {
 public:
