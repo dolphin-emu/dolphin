@@ -229,6 +229,24 @@ public:
   void DMARead(u32 addr, u32 size) override;
   void DoState(PointerWrap& p) override;
 
+  class NetworkInterface
+  {
+  protected:
+    CEXIETHERNET* m_eth_ref = nullptr;
+    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
+
+  public:
+    virtual bool Activate() { return false; }
+    virtual void Deactivate() {}
+    virtual bool IsActivated() { return false; }
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
+    virtual bool RecvInit() { return false; }
+    virtual void RecvStart() {}
+    virtual void RecvStop() {}
+
+    virtual ~NetworkInterface() = default;
+  };
+
 private:
   struct
   {
@@ -313,24 +331,6 @@ private:
 
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
-
-  class NetworkInterface
-  {
-  protected:
-    CEXIETHERNET* m_eth_ref = nullptr;
-    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
-
-  public:
-    virtual bool Activate() { return false; }
-    virtual void Deactivate() {}
-    virtual bool IsActivated() { return false; }
-    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
-    virtual bool RecvInit() { return false; }
-    virtual void RecvStart() {}
-    virtual void RecvStop() {}
-
-    virtual ~NetworkInterface() = default;
-  };
 
   class TAPNetworkInterface : public NetworkInterface
   {
