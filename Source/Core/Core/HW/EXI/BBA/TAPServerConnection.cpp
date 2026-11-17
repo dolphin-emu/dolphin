@@ -172,43 +172,6 @@ void TAPServerConnection::RecvStop()
   m_read_enabled.Clear();
 }
 
-bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
-{
-  while (!send_buf->empty())
-  {
-    const std::size_t start_offset = send_buf->find(0x7E);
-    if (start_offset == std::string::npos)
-    {
-      break;
-    }
-    const std::size_t end_sentinel_offset = send_buf->find(0x7E, start_offset + 1);
-    if (end_sentinel_offset == std::string::npos)
-    {
-      break;
-    }
-    const std::size_t end_offset = end_sentinel_offset + 1;
-    const std::size_t size = end_offset - start_offset;
-
-    const u8 size_bytes[2] = {static_cast<u8>(size), static_cast<u8>(size >> 8)};
-    if (send(m_fd, reinterpret_cast<const char*>(size_bytes), 2, SEND_FLAGS) != 2)
-    {
-      ERROR_LOG_FMT(SP1, "SendAndRemoveAllHDLCFrames(): could not write size field");
-      return false;
-    }
-    const int written_bytes =
-        send(m_fd, send_buf->data() + start_offset, static_cast<int>(size), SEND_FLAGS);
-    if (u32(written_bytes) != size)
-    {
-      ERROR_LOG_FMT(SP1,
-                    "SendAndRemoveAllHDLCFrames(): expected to write {} bytes, instead wrote {}",
-                    size, written_bytes);
-      return false;
-    }
-    *send_buf = send_buf->substr(end_offset);
-  }
-  return true;
-}
-
 bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));

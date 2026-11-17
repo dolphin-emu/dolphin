@@ -4,6 +4,7 @@
 #pragma once
 
 #include <mutex>
+#include <span>
 
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -83,6 +84,7 @@ private:
   void SetInterruptFlag(u8 what, bool enabled, bool from_cpu);
   void HandleReadModemTransfer(void* data, u32 size);
   void HandleWriteModemTransfer(const void* data, u32 size);
+  bool SendAndRemoveAllHDLCFrames();
   void OnReceiveBufferSizeChangedLocked(bool from_cpu);
   void SendComplete();
   void AddToReceiveBuffer(std::string&& data);
@@ -115,7 +117,7 @@ private:
 
     virtual bool Activate() { return false; }
     virtual void Deactivate() {}
-    virtual bool SendAndRemoveAllHDLCFrames(std::string*) { return false; }
+    virtual bool SendFrame(std::span<const u8>) { return false; }
     virtual void RecvStart() {}
     virtual void RecvStop() {}
 
@@ -132,7 +134,7 @@ private:
 
     bool Activate() override;
     void Deactivate() override;
-    bool SendAndRemoveAllHDLCFrames(std::string* send_buffer) override;
+    bool SendFrame(std::span<const u8>) override;
     void RecvStart() override;
     void RecvStop() override;
 

@@ -26,13 +26,9 @@ void CEXIModem::TAPServerNetworkInterface::Deactivate()
   m_tapserver_if.Deactivate();
 }
 
-bool CEXIModem::TAPServerNetworkInterface::SendAndRemoveAllHDLCFrames(std::string* send_buffer)
+bool CEXIModem::TAPServerNetworkInterface::SendFrame(std::span<const u8> frame)
 {
-  const std::size_t orig_size = send_buffer->size();
-  const bool send_succeeded = m_tapserver_if.SendAndRemoveAllHDLCFrames(send_buffer);
-  if (send_succeeded && (send_buffer->size() < orig_size))
-    m_modem_ref->SendComplete();
-  return send_succeeded;
+  return m_tapserver_if.SendFrame(frame.data(), u32(frame.size()));
 }
 
 void CEXIModem::TAPServerNetworkInterface::RecvStart()

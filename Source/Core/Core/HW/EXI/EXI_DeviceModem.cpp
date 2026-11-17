@@ -258,7 +258,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
     // from the emulated program's perspective, so we always tell it the send
     // FIFO is empty.
     SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
-    m_network_interface->SendAndRemoveAllHDLCFrames(&m_send_buffer);
+    SendAndRemoveAllHDLCFrames();
   }
   else
   {
@@ -269,6 +269,39 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
       (bytes_expected_after_write == 0) ?
           INVALID_TRANSFER_DESCRIPTOR :
           SetModemTransferSize(m_transfer_descriptor, bytes_expected_after_write);
+}
+
+bool CEXIModem::SendAndRemoveAllHDLCFrames()
+{
+  const std::size_t orig_size = m_send_buffer.size();
+  while (!m_send_buffer.empty())
+  {
+    const std::size_t start_offset = m_send_buffer.find(0x7E);
+    if (start_offset == std::string::npos)
+    {
+      break;
+    }
+    const std::size_t end_sentinel_offset = m_send_buffer.find(0x7E, start_offset + 1);
+    if (end_sentinel_offset == std::string::npos)
+    {
+      break;
+    }
+    const std::size_t end_offset = end_sentinel_offset + 1;
+    const std::size_t size = end_offset - start_offset;
+
+    if (!m_network_interface->SendFrame(
+            {reinterpret_cast<const u8*>(m_send_buffer.data()) + start_offset, size}))
+    {
+      return false;
+    }
+
+    m_send_buffer = m_send_buffer.substr(end_offset);
+  }
+
+  if (m_send_buffer.size() < orig_size)
+    SendComplete();
+
+  return true;
 }
 
 void CEXIModem::DoState(PointerWrap& p)
