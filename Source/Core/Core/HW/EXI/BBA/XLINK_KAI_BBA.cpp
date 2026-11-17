@@ -1,15 +1,18 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstring>
+#include <optional>
+#include <thread>
+
+#include "SFML/Network/IpAddress.hpp"
+#include "SFML/Network/UdpSocket.hpp"
+
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
-
-#include "SFML/Network/IpAddress.hpp"
 #include "VideoCommon/OnScreenDisplay.h"
-
-#include <cstring>
-#include <optional>
 
 // BBA implementation with UDP interface to XLink Kai PC/MAC/RaspberryPi client
 // For more information please see: https://www.teamxlink.co.uk/wiki/Emulator_Integration_Protocol
@@ -18,7 +21,53 @@
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::XLinkNetworkInterface::Activate()
+class XLinkNetworkInterface : public CEXIETHERNET::NetworkInterface
+{
+public:
+  XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                        std::string identifier, bool chat_osd_enabled)
+      : NetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
+        m_client_identifier(identifier), m_chat_osd_enabled(chat_osd_enabled)
+  {
+  }
+
+  bool Activate() override;
+  void Deactivate() override;
+  bool IsActivated() override;
+  bool SendFrame(const u8* frame, u32 size) override;
+  bool RecvInit() override;
+  void RecvStart() override;
+  void RecvStop() override;
+
+private:
+  std::string m_dest_ip;
+  int m_dest_port;
+  std::string m_client_identifier;
+  bool m_chat_osd_enabled;
+  bool m_bba_link_up = false;
+  bool m_bba_failure_notified = false;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
+  sf::UdpSocket m_sf_socket;
+  sf::IpAddress m_sf_recipient_ip = sf::IpAddress::Any;
+  char m_in_frame[9004]{};
+  char m_out_frame[9004]{};
+  std::thread m_read_thread;
+  Common::Flag m_read_enabled;
+  Common::Flag m_read_thread_shutdown;
+  static void ReadThreadHandler(XLinkNetworkInterface* self);
+#endif
+};
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateXLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                            std::string identifier, bool chat_osd_enabled)
+{
+  return std::make_unique<XLinkNetworkInterface>(eth_ref, std::move(dest_ip), dest_port,
+                                                 std::move(identifier), chat_osd_enabled);
+}
+
+bool XLinkNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -52,7 +101,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
+void XLinkNetworkInterface::Deactivate()
 {
   // Is the BBA Active? If not skip shutdown
   if (!IsActivated())
@@ -91,12 +140,12 @@ void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
   m_sf_socket.unbind();
 }
 
-bool CEXIETHERNET::XLinkNetworkInterface::IsActivated()
+bool XLinkNetworkInterface::IsActivated()
 {
   return m_sf_socket.getLocalPort() > 0;
 }
 
-bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   // Is the BBA actually connected?
   if (!m_bba_link_up)
@@ -134,8 +183,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
   }
 }
 
-void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
-    CEXIETHERNET::XLinkNetworkInterface* self)
+void XLinkNetworkInterface::ReadThreadHandler(XLinkNetworkInterface* self)
 {
   std::optional<sf::IpAddress> sender;
   u16 port;
@@ -289,18 +337,18 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
   }
 }
 
-bool CEXIETHERNET::XLinkNetworkInterface::RecvInit()
+bool XLinkNetworkInterface::RecvInit()
 {
-  m_read_thread = std::thread(ReadThreadHandler, this);
+  m_read_thread = std::thread(&XLinkNetworkInterface::ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::XLinkNetworkInterface::RecvStart()
+void XLinkNetworkInterface::RecvStart()
 {
   m_read_enabled.Set();
 }
 
-void CEXIETHERNET::XLinkNetworkInterface::RecvStop()
+void XLinkNetworkInterface::RecvStop()
 {
   m_read_enabled.Clear();
 }

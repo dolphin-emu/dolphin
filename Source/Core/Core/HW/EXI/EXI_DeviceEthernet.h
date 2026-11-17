@@ -8,7 +8,6 @@
 #include <mutex>
 #include <thread>
 #include <vector>
-#include "SFML/Network/IpAddress.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -217,6 +216,8 @@ enum class BBADeviceType
 
 class CEXIETHERNET : public IEXIDevice
 {
+  friend class XLinkNetworkInterface;
+
 public:
   CEXIETHERNET(Core::System& system, BBADeviceType type);
   ~CEXIETHERNET() override;
@@ -385,45 +386,6 @@ private:
     void HandleReceivedFrame(std::string&& data);
   };
 
-  class XLinkNetworkInterface : public NetworkInterface
-  {
-  public:
-    XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
-                          std::string identifier, bool chat_osd_enabled)
-        : NetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
-          m_client_identifier(identifier), m_chat_osd_enabled(chat_osd_enabled)
-    {
-    }
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    std::string m_dest_ip;
-    int m_dest_port;
-    std::string m_client_identifier;
-    bool m_chat_osd_enabled;
-    bool m_bba_link_up = false;
-    bool m_bba_failure_notified = false;
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    sf::UdpSocket m_sf_socket;
-    sf::IpAddress m_sf_recipient_ip = sf::IpAddress::Any;
-    char m_in_frame[9004]{};
-    char m_out_frame[9004]{};
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-    static void ReadThreadHandler(XLinkNetworkInterface* self);
-#endif
-  };
-
   class BuiltInBBAInterface : public NetworkInterface
   {
   public:
@@ -519,4 +481,9 @@ private:
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;
 };
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateXLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                            std::string identifier, bool chat_osd_enabled);
+
 }  // namespace ExpansionInterface
