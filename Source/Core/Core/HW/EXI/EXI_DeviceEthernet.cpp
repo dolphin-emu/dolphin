@@ -55,8 +55,8 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   case BBADeviceType::BuiltIn:
-    m_network_interface = std::make_unique<BuiltInBBAInterface>(
-        this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
+    m_network_interface = CreateBuiltInBBAInterface(this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS),
+                                                    Config::Get(Config::MAIN_BBA_BUILTIN_IP));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
   case BBADeviceType::IPC:

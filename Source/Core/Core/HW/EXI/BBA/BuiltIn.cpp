@@ -4,7 +4,12 @@
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 
 #include <bit>
+#include <map>
+#include <mutex>
 #include <optional>
+#include <thread>
+#include <vector>
+
 #include "SFML/Network/IpAddress.hpp"
 #include "SFML/Network/Socket.hpp"
 
@@ -16,6 +21,7 @@
 #endif
 
 #include "Common/BitUtils.h"
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Network.h"
@@ -70,7 +76,66 @@ void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::BuiltInBBAInterface::Activate()
+class BuiltInBBAInterface : public CEXIETHERNET::NetworkInterface
+{
+public:
+  BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
+      : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip)), m_local_ip(std::move(local_ip))
+  {
+  }
+  bool Activate() override;
+  void Deactivate() override;
+  bool IsActivated() override;
+  bool SendFrame(const u8* frame, u32 size) override;
+  bool RecvInit() override;
+  void RecvStart() override;
+  void RecvStop() override;
+
+private:
+  std::string m_mac_id;
+  std::string m_dns_ip;
+  bool m_active = false;
+  u16 m_ip_frame_id = 0;
+  u8 m_queue_read = 0;
+  u8 m_queue_write = 0;
+  std::array<std::vector<u8>, 16> m_queue_data;
+  std::mutex m_mtx;
+  std::string m_local_ip;
+  u32 m_current_ip = 0;
+  Common::MACAddress m_current_mac{};
+  u32 m_router_ip = 0;
+  Common::MACAddress m_router_mac{};
+  std::map<u32, Common::MACAddress> m_arp_table;
+  sf::TcpListener m_upnp_httpd;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
+  NetworkRef m_network_ref;
+  std::thread m_read_thread;
+  Common::Flag m_read_enabled;
+  Common::Flag m_read_thread_shutdown;
+  static void ReadThreadHandler(BuiltInBBAInterface* self);
+#endif
+  void WriteToQueue(std::vector<u8> data);
+  bool WillQueueOverrun() const;
+  void PollData(std::size_t* datasize);
+  std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
+
+  void HandleARP(const Common::ARPPacket& packet);
+  void HandleDHCP(const Common::UDPPacket& packet);
+  void HandleTCPFrame(const Common::TCPPacket& packet);
+  void InitUDPPort(u16 port);
+  void HandleUDPFrame(const Common::UDPPacket& packet);
+  void HandleUPnPClient();
+  const Common::MACAddress& ResolveAddress(u32 inet_ip);
+};
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
+{
+  return std::make_unique<BuiltInBBAInterface>(eth_ref, std::move(dns_ip), std::move(local_ip));
+}
+
+bool BuiltInBBAInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -100,7 +165,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
+void BuiltInBBAInterface::Deactivate()
 {
   // Is the BBA Active? If not skip shutdown
   if (!IsActivated())
@@ -119,12 +184,12 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
     m_read_thread.join();
 }
 
-bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
+bool BuiltInBBAInterface::IsActivated()
 {
   return m_active;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(std::vector<u8> data)
+void BuiltInBBAInterface::WriteToQueue(std::vector<u8> data)
 {
   m_queue_data[m_queue_write] = std::move(data);
   const u8 next_write_index = (m_queue_write + 1) & 15;
@@ -134,12 +199,12 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(std::vector<u8> data)
     WARN_LOG_FMT(SP1, "BBA queue overrun, data might be lost");
 }
 
-bool CEXIETHERNET::BuiltInBBAInterface::WillQueueOverrun() const
+bool BuiltInBBAInterface::WillQueueOverrun() const
 {
   return ((m_queue_write + 1) & 15) == m_queue_read;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
+void BuiltInBBAInterface::PollData(std::size_t* datasize)
 {
   for (auto& net_ref : m_network_ref)
   {
@@ -188,7 +253,7 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
   }
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
+void BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
   if (arpdata.sender_address == m_current_mac && arpdata.sender_ip == 0 &&
@@ -203,7 +268,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packe
   WriteToQueue(response.Build());
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& packet)
+void BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& packet)
 {
   const auto& [hwdata, ip, udp_header, ip_options, data] = packet;
   const Common::DHCPPacket dhcp(packet.data);
@@ -247,8 +312,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   WriteToQueue(response.Build());
 }
 
-std::optional<std::vector<u8>>
-CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
+std::optional<std::vector<u8>> BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
   std::size_t datasize = 0;  // Set by socket.receive using a non-const reference
   unsigned short remote_port;
@@ -341,7 +405,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
   return std::nullopt;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
+void BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
   StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
@@ -462,7 +526,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 
 // This is a little hack, some games open a UDP port
 // and listen to it. We open it on our side manually.
-void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
+void BuiltInBBAInterface::InitUDPPort(u16 port)
 {
   StackRef* ref = m_network_ref.GetAvailableSlot(htons(port));
   if (ref == nullptr || ref->ip != 0)
@@ -487,7 +551,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   }
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& packet)
+void BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& packet)
 {
   const auto& [hwdata, ip_header, udp_header, ip_options, data] = packet;
   sf::IpAddress target = sf::IpAddress::Any;
@@ -541,7 +605,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
   (void)ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
+void BuiltInBBAInterface::HandleUPnPClient()
 {
   StackRef* ref = m_network_ref.GetAvailableSlot(0);
   if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Status::Done)
@@ -590,7 +654,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
   WriteToQueue(result.Build());
 }
 
-const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
+const Common::MACAddress& BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
 {
   auto it = m_arp_table.lower_bound(inet_ip);
   if (it != m_arp_table.end() && it->first == inet_ip)
@@ -605,7 +669,7 @@ const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 
   }
 }
 
-bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
+bool BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 {
   std::lock_guard<std::mutex> lock(m_mtx);
   const Common::PacketView view(frame, size);
@@ -699,7 +763,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   return true;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInBBAInterface* self)
+void BuiltInBBAInterface::ReadThreadHandler(BuiltInBBAInterface* self)
 {
   std::size_t datasize = 0;
   while (!self->m_read_thread_shutdown.IsSet())
@@ -768,13 +832,13 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
   }
 }
 
-bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
+bool BuiltInBBAInterface::RecvInit()
 {
   m_read_thread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
+void BuiltInBBAInterface::RecvStart()
 {
   if (m_read_enabled.IsSet())
     return;
@@ -783,7 +847,7 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
   m_read_enabled.Set();
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
+void BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
   m_network_ref.Clear();

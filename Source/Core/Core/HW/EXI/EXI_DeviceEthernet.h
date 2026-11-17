@@ -4,23 +4,17 @@
 #pragma once
 
 #include <atomic>
-#include <map>
-#include <mutex>
 #include <thread>
-#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include <SFML/Network.hpp>
 #ifdef HAVE_CPPIPC
 #include <libipc/ipc.h>
 #endif
 
 #include "Common/Flag.h"
-#include "Common/Network.h"
-#include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -216,6 +210,7 @@ enum class BBADeviceType
 
 class CEXIETHERNET : public IEXIDevice
 {
+  friend class BuiltInBBAInterface;
   friend class XLinkNetworkInterface;
 
 public:
@@ -386,59 +381,6 @@ private:
     void HandleReceivedFrame(std::string&& data);
   };
 
-  class BuiltInBBAInterface : public NetworkInterface
-  {
-  public:
-    BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
-        : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip)), m_local_ip(std::move(local_ip))
-    {
-    }
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    std::string m_mac_id;
-    std::string m_dns_ip;
-    bool m_active = false;
-    u16 m_ip_frame_id = 0;
-    u8 m_queue_read = 0;
-    u8 m_queue_write = 0;
-    std::array<std::vector<u8>, 16> m_queue_data;
-    std::mutex m_mtx;
-    std::string m_local_ip;
-    u32 m_current_ip = 0;
-    Common::MACAddress m_current_mac{};
-    u32 m_router_ip = 0;
-    Common::MACAddress m_router_mac{};
-    std::map<u32, Common::MACAddress> m_arp_table;
-    sf::TcpListener m_upnp_httpd;
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    NetworkRef m_network_ref;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-    static void ReadThreadHandler(BuiltInBBAInterface* self);
-#endif
-    void WriteToQueue(std::vector<u8> data);
-    bool WillQueueOverrun() const;
-    void PollData(std::size_t* datasize);
-    std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
-
-    void HandleARP(const Common::ARPPacket& packet);
-    void HandleDHCP(const Common::UDPPacket& packet);
-    void HandleTCPFrame(const Common::TCPPacket& packet);
-    void InitUDPPort(u16 port);
-    void HandleUDPFrame(const Common::UDPPacket& packet);
-    void HandleUPnPClient();
-    const Common::MACAddress& ResolveAddress(u32 inet_ip);
-  };
-
   class IPCBBAInterface : public NetworkInterface
   {
   public:
@@ -481,6 +423,9 @@ private:
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;
 };
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip);
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateXLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
