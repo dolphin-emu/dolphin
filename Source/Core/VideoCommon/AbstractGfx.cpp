@@ -115,14 +115,11 @@ void AbstractGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
   BeginUtilityDrawing();
 
   // The shader needs to know the source rectangle.
-  const auto converted_src_rect =
-      ConvertFramebufferRectangle(src_rect, src_texture->GetWidth(), src_texture->GetHeight());
   const float rcp_src_width = 1.0f / src_texture->GetWidth();
   const float rcp_src_height = 1.0f / src_texture->GetHeight();
-  const std::array<float, 4> uniforms = {{converted_src_rect.left * rcp_src_width,
-                                          converted_src_rect.top * rcp_src_height,
-                                          converted_src_rect.GetWidth() * rcp_src_width,
-                                          converted_src_rect.GetHeight() * rcp_src_height}};
+  const std::array<float, 4> uniforms = {
+      {src_rect.left * rcp_src_width, src_rect.top * rcp_src_height,
+       src_rect.GetWidth() * rcp_src_width, src_rect.GetHeight() * rcp_src_height}};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
   // Discard if we're overwriting the whole thing.
@@ -136,7 +133,7 @@ void AbstractGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
     SetFramebuffer(dst_framebuffer);
   }
 
-  SetViewportAndScissor(ConvertFramebufferRectangle(dst_rect, dst_framebuffer));
+  SetViewportAndScissor(dst_rect);
   SetPipeline(dst_framebuffer->GetLayers() > 1 ? g_shader_cache->GetRGBA8StereoCopyPipeline() :
                                                  g_shader_cache->GetRGBA8CopyPipeline());
   SetTexture(0, src_texture);
