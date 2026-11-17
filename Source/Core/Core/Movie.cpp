@@ -7,8 +7,8 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-#include <mbedtls/md.h>
 #include <mutex>
+#include <stop_token>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -21,6 +21,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IOFile.h"
@@ -201,8 +202,8 @@ void MovieManager::Init(const BootParameters& boot)
   if (IsPlayingInput())
   {
     ReadHeader();
-    std::thread md5thread(&MovieManager::CheckMD5, this);
-    md5thread.detach();
+    CheckMD5();
+
     if (strncmp(m_temp_header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertFmtT("The recorded game ({0}) is not the same as the selected game ({1})",
@@ -214,8 +215,7 @@ void MovieManager::Init(const BootParameters& boot)
   if (IsRecordingInput())
   {
     GetSettings();
-    std::thread md5thread(&MovieManager::GetMD5, this);
-    md5thread.detach();
+    GetMD5();
     m_tick_count_at_last_input = 0;
   }
 
@@ -493,8 +493,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     State::SaveAs(m_system, save_path);
     m_recording_from_save_state = true;
 
-    std::thread md5thread(&MovieManager::GetMD5, this);
-    md5thread.detach();
+    GetMD5();
     GetSettings();
   }
 
@@ -851,7 +850,6 @@ void MovieManager::ReadHeader()
 
   m_disc_change_filename = {m_temp_header.discChange.begin(), m_temp_header.discChange.end()};
   m_author = {m_temp_header.author.begin(), m_temp_header.author.end()};
-  m_md5 = m_temp_header.md5;
   m_dsp_irom_hash = m_temp_header.DSPiromHash;
   m_dsp_coef_hash = m_temp_header.DSPcoefHash;
 }
@@ -1325,11 +1323,24 @@ void MovieManager::SaveRecording(const std::string& filename)
   header.bNetPlay = m_net_play;
   strncpy(header.discChange.data(), m_disc_change_filename.c_str(), header.discChange.size());
   strncpy(header.author.data(), m_author.c_str(), header.author.size());
-  header.md5 = m_md5;
   header.revision = m_revision;
   header.DSPiromHash = m_dsp_irom_hash;
   header.DSPcoefHash = m_dsp_coef_hash;
   header.tickCount = m_total_tick_count;
+
+  if (m_calculated_md5.valid())
+  {
+    if (m_calculated_md5.wait_for(DT{}) == std::future_status::timeout)
+    {
+      const bool wait_for_result =
+          PanicYesNoFmtT("Checksum of current game is not yet ready. Wait for result?");
+
+      if (wait_for_result)
+        m_md5_thread.join();
+    }
+    m_md5_thread = {};
+    header.md5 = m_calculated_md5.get();
+  }
 
   // TODO
   header.uniqueID = 0;
@@ -1428,9 +1439,53 @@ void MovieManager::GetSettings()
   }
 }
 
-// NOTE: Entrypoint for own thread
+// Returns a default-constructed array on failure or stop_requested.
+static std::array<u8, 16> CalculateMD5(std::string filename, std::stop_token stoken)
+{
+  constexpr u64 BUFFER_SIZE = 0x20000;
+  Common::UniqueBuffer<u8> buffer{BUFFER_SIZE};
+
+  std::array<u8, 16> result{};
+
+  File::DirectIOFile file{filename, File::AccessMode::Read};
+  if (!file.IsOpen())
+  {
+    WARN_LOG_FMT(CORE, "CalculateMD5: Failed to open file: \"{}\".", filename);
+    return result;
+  }
+
+  Common::MD5Context md5_context;
+
+  const u64 total_size = file.GetSize();
+  for (u64 read_pos = 0; read_pos != total_size;)
+  {
+    if (stoken.stop_requested())
+    {
+      WARN_LOG_FMT(CORE, "CalculateMD5: Aborted.");
+      return result;
+    }
+
+    const u64 read_size = std::min(total_size - read_pos, BUFFER_SIZE);
+    const auto buffer_span = std::span{buffer}.first(read_size);
+
+    if (!file.Read(buffer_span))
+    {
+      ERROR_LOG_FMT(CORE, "CalculateMD5: Read error at position: {}.", read_pos);
+      return result;
+    }
+
+    md5_context.Update(buffer_span);
+    read_pos += read_size;
+  }
+
+  md5_context.Finish(result.data());
+  return result;
+}
+
 void MovieManager::CheckMD5()
 {
+  m_md5_thread = {};
+
   if (m_current_file_name.empty())
     return;
 
@@ -1441,25 +1496,35 @@ void MovieManager::CheckMD5()
 
   Core::DisplayMessage("Verifying checksum...", 2000);
 
-  std::array<u8, 16> game_md5;
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  game_md5.data());
+  m_md5_thread = std::jthread{[this](std::stop_token stoken) mutable {
+    const auto result = CalculateMD5(m_current_file_name, std::move(stoken));
 
-  if (game_md5 == m_md5)
-    Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
-  else
-    Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
+    if (stoken.stop_requested())
+      return;
+
+    if (result == m_temp_header.md5)
+      Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
+    else
+      Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
+  }};
 }
 
-// NOTE: Entrypoint for own thread
 void MovieManager::GetMD5()
 {
+  m_md5_thread = {};
+
   if (m_current_file_name.empty())
     return;
 
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  m_md5.data());
+
+  std::promise<std::array<u8, 16>> md5_promise;
+  m_calculated_md5 = md5_promise.get_future();
+  m_md5_thread =
+      std::jthread{[this, md5_promise = std::move(md5_promise)](std::stop_token stoken) mutable {
+        md5_promise.set_value(CalculateMD5(m_current_file_name, std::move(stoken)));
+      }};
+
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
@@ -1468,5 +1533,6 @@ void MovieManager::Shutdown()
 {
   m_current_input_count = m_total_input_count = m_total_frames = m_tick_count_at_last_input = 0;
   m_temp_input.clear();
+  m_md5_thread = {};
 }
 }  // namespace Movie
