@@ -15,7 +15,6 @@
 #endif
 
 #include "Common/Flag.h"
-#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -211,6 +210,7 @@ enum class BBADeviceType
 class CEXIETHERNET : public IEXIDevice
 {
   friend class BuiltInBBAInterface;
+  friend class TAPServerNetworkInterface;
   friend class XLinkNetworkInterface;
 
 public:
@@ -361,26 +361,6 @@ private:
 #endif
   };
 
-  class TAPServerNetworkInterface : public NetworkInterface
-  {
-  public:
-    TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    TAPServerConnection m_tapserver_if;
-
-    void HandleReceivedFrame(std::string&& data);
-  };
-
   class IPCBBAInterface : public NetworkInterface
   {
   public:
@@ -426,6 +406,9 @@ private:
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateTAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateXLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,

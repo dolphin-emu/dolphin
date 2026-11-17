@@ -50,8 +50,8 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     INFO_LOG_FMT(SP1, "Created TAP physical network interface.");
     break;
   case BBADeviceType::TAPSERVER:
-    m_network_interface = std::make_unique<TAPServerNetworkInterface>(
-        this, Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
+    m_network_interface =
+        CreateTAPServerNetworkInterface(this, Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
     INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
   case BBADeviceType::BuiltIn:
