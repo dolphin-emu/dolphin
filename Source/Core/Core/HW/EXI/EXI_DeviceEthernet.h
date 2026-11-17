@@ -10,10 +10,6 @@
 #include <windows.h>
 #endif
 
-#ifdef HAVE_CPPIPC
-#include <libipc/ipc.h>
-#endif
-
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -210,6 +206,7 @@ enum class BBADeviceType
 class CEXIETHERNET : public IEXIDevice
 {
   friend class BuiltInBBAInterface;
+  friend class IPCBBAInterface;
   friend class TAPServerNetworkInterface;
   friend class XLinkNetworkInterface;
 
@@ -361,43 +358,6 @@ private:
 #endif
   };
 
-  class IPCBBAInterface : public NetworkInterface
-  {
-  public:
-    explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
-
-#ifdef HAVE_CPPIPC
-
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    void ReadThreadHandler();
-
-    bool m_active{};
-    ipc::channel m_channel;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-
-#else
-
-    bool Activate() override { return false; }
-    void Deactivate() override {}
-    bool IsActivated() override { return false; }
-    bool SendFrame(const u8* const frame, const u32 size) override { return false; }
-    bool RecvInit() override { return false; }
-    void RecvStart() override {}
-    void RecvStop() override {}
-
-#endif
-  };
-
   std::unique_ptr<NetworkInterface> m_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
@@ -406,6 +366,8 @@ private:
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateIPCBBAInterface(CEXIETHERNET* eth_ref);
 
 std::unique_ptr<CEXIETHERNET::NetworkInterface>
 CreateTAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);

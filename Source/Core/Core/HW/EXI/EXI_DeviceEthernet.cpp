@@ -61,7 +61,7 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     break;
   case BBADeviceType::IPC:
     mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);  // Always randomize
-    m_network_interface = std::make_unique<IPCBBAInterface>(this);
+    m_network_interface = CreateIPCBBAInterface(this);
     INFO_LOG_FMT(SP1, "Created IPC-based network interface.");
     break;
   case BBADeviceType::XLINK:

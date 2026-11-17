@@ -188,6 +188,7 @@ add_library(core
   HW/DVD/DVDThread.h
   HW/DVD/FileMonitor.cpp
   HW/DVD/FileMonitor.h
+  HW/EXI/BBA/IPC.cpp
   HW/EXI/BBA/TAPServerConnection.cpp
   HW/EXI/BBA/TAPServerBBA.cpp
   HW/EXI/BBA/XLINK_KAI_BBA.cpp
@@ -838,7 +839,6 @@ if(UNIX)
 endif()
 
 if(TARGET cpp-ipc::ipc)
-  target_sources(core PRIVATE HW/EXI/BBA/IPC.cpp)
   target_link_libraries(core PRIVATE cpp-ipc::ipc)
 endif()
 

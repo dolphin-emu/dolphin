@@ -1,17 +1,50 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAVE_CPPIPC
 #include <cstring>
+#include <thread>
 
 #include <libipc/ipc.h>
 
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#endif
+
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 namespace ExpansionInterface
 {
+#ifdef HAVE_CPPIPC
+class IPCBBAInterface : public CEXIETHERNET::NetworkInterface
+{
+public:
+  explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
 
-bool CEXIETHERNET::IPCBBAInterface::Activate()
+  bool Activate() override;
+  void Deactivate() override;
+  bool IsActivated() override;
+  bool SendFrame(const u8* frame, u32 size) override;
+  bool RecvInit() override;
+  void RecvStart() override;
+  void RecvStop() override;
+
+private:
+  void ReadThreadHandler();
+
+  bool m_active{};
+  ipc::channel m_channel;
+  std::thread m_read_thread;
+  Common::Flag m_read_enabled;
+  Common::Flag m_read_thread_shutdown;
+};
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateIPCBBAInterface(CEXIETHERNET* eth_ref)
+{
+  return std::make_unique<IPCBBAInterface>(eth_ref);
+}
+
+bool IPCBBAInterface::Activate()
 {
   if (m_active)
     return false;
@@ -28,7 +61,7 @@ bool CEXIETHERNET::IPCBBAInterface::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::IPCBBAInterface::Deactivate()
+void IPCBBAInterface::Deactivate()
 {
   m_read_enabled.Clear();
   m_read_thread_shutdown.Set();
@@ -43,12 +76,12 @@ void CEXIETHERNET::IPCBBAInterface::Deactivate()
   m_active = false;
 }
 
-bool CEXIETHERNET::IPCBBAInterface::IsActivated()
+bool IPCBBAInterface::IsActivated()
 {
   return m_active;
 }
 
-bool CEXIETHERNET::IPCBBAInterface::SendFrame(const u8* const frame, const u32 size)
+bool IPCBBAInterface::SendFrame(const u8* const frame, const u32 size)
 {
   if (!m_active)
     return false;
@@ -65,23 +98,23 @@ bool CEXIETHERNET::IPCBBAInterface::SendFrame(const u8* const frame, const u32 s
   return true;
 }
 
-bool CEXIETHERNET::IPCBBAInterface::RecvInit()
+bool IPCBBAInterface::RecvInit()
 {
-  m_read_thread = std::thread(&CEXIETHERNET::IPCBBAInterface::ReadThreadHandler, this);
+  m_read_thread = std::thread(&IPCBBAInterface::ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::IPCBBAInterface::RecvStart()
+void IPCBBAInterface::RecvStart()
 {
   m_read_enabled.Set();
 }
 
-void CEXIETHERNET::IPCBBAInterface::RecvStop()
+void IPCBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
 }
 
-void CEXIETHERNET::IPCBBAInterface::ReadThreadHandler()
+void IPCBBAInterface::ReadThreadHandler()
 {
   while (!m_read_thread_shutdown.IsSet())
   {
@@ -97,5 +130,10 @@ void CEXIETHERNET::IPCBBAInterface::ReadThreadHandler()
     m_eth_ref->RecvHandlePacket();
   }
 }
-
+#else
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateIPCBBAInterface(CEXIETHERNET* eth_ref)
+{
+  return std::make_unique<CEXIETHERNET::NetworkInterface>(eth_ref);
+}
+#endif
 }  // namespace ExpansionInterface
