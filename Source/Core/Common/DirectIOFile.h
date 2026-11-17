@@ -147,4 +147,21 @@ bool Rename(DirectIOFile& file, const std::string& source_path,
 // Note: Ditto, only Windows actually uses the file handle. Provide both.
 bool Delete(DirectIOFile& file, const std::string& filename);
 
+// This class provides thread/process safe appending to a log file.
+class Appender
+{
+public:
+  Appender() = default;
+  Appender(const std::string& path) { Open(path); }
+
+  bool Open(const std::string& path);
+  bool Close() { return m_file.Close(); }
+  bool IsOpen() const { return m_file.IsOpen(); }
+
+  bool Write(std::string_view message);
+
+private:
+  DirectIOFile m_file;
+};
+
 }  // namespace File

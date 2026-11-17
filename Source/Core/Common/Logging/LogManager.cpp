@@ -7,15 +7,14 @@
 #include <atomic>
 #include <chrono>
 #include <cstring>
-#include <fstream>
 #include <memory>
-#include <mutex>
 #include <string>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include "Common/Config/Config.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
@@ -35,29 +34,18 @@ const Config::Info<LogLevel> LOGGER_VERBOSITY{{Config::System::Logger, "Options"
 class FileLogListener : public LogListener
 {
 public:
-  FileLogListener(const std::string& filename)
-  {
-    File::OpenFStream(m_logfile, filename, std::ios::app);
-    SetEnable(true);
-  }
+  FileLogListener(const std::string& filename) : m_log_file{filename} {}
 
   void Log(LogLevel, const char* msg) override
   {
-    if (!IsEnabled() || !IsValid())
+    if (!m_log_file.IsOpen())
       return;
 
-    std::lock_guard<std::mutex> lk(m_log_lock);
-    m_logfile << msg << std::flush;
+    m_log_file.Write(msg);
   }
 
-  bool IsValid() const { return m_logfile.good(); }
-  bool IsEnabled() const { return m_enable; }
-  void SetEnable(bool enable) { m_enable = enable; }
-
 private:
-  std::mutex m_log_lock;
-  std::ofstream m_logfile;
-  bool m_enable;
+  File::Appender m_log_file;
 };
 
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
