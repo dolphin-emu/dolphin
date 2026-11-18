@@ -84,7 +84,7 @@ private:
   void SetInterruptFlag(u8 what, bool enabled, bool from_cpu);
   void HandleReadModemTransfer(void* data, u32 size);
   void HandleWriteModemTransfer(const void* data, u32 size);
-  bool SendAndRemoveAllHDLCFrames();
+  void SendAndRemoveAllHDLCFrames();
   void OnReceiveBufferSizeChangedLocked(bool from_cpu);
   void SendComplete();
   void AddToReceiveBuffer(std::string&& data);

@@ -272,37 +272,40 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
           SetModemTransferSize(m_transfer_descriptor, bytes_expected_after_write);
 }
 
-bool CEXIModem::SendAndRemoveAllHDLCFrames()
+void CEXIModem::SendAndRemoveAllHDLCFrames()
 {
-  const std::size_t orig_size = m_send_buffer.size();
-  while (!m_send_buffer.empty())
+  std::string_view remaining{m_send_buffer};
+  bool fail = false;
+
+  while (true)
   {
-    const std::size_t start_offset = m_send_buffer.find(0x7E);
+    const std::size_t start_offset = remaining.find(0x7E);
     if (start_offset == std::string::npos)
-    {
       break;
-    }
-    const std::size_t end_sentinel_offset = m_send_buffer.find(0x7E, start_offset + 1);
+
+    const std::size_t end_sentinel_offset = remaining.find(0x7E, start_offset + 1);
     if (end_sentinel_offset == std::string::npos)
-    {
       break;
-    }
+
     const std::size_t end_offset = end_sentinel_offset + 1;
     const std::size_t size = end_offset - start_offset;
 
     if (!m_network_interface->SendFrame(
-            {reinterpret_cast<const u8*>(m_send_buffer.data()) + start_offset, size}))
+            {reinterpret_cast<const u8*>(remaining.data()) + start_offset, size}))
     {
-      return false;
+      fail = true;
+      break;
     }
 
-    m_send_buffer = m_send_buffer.substr(end_offset);
+    remaining.remove_prefix(end_offset);
   }
 
-  if (m_send_buffer.size() < orig_size)
-    SendComplete();
-
-  return true;
+  if (const std::size_t send_count = m_send_buffer.size() - remaining.size())
+  {
+    m_send_buffer.erase(0, send_count);
+    if (!fail)
+      SendComplete();
+  }
 }
 
 void CEXIModem::DoState(PointerWrap& p)
