@@ -89,6 +89,8 @@ public:
                      Config::Layer* layer = nullptr);
   ConfigStringChoice(std::span<const std::pair<QString, QString>> options,
                      const Config::Info<std::string>& setting, Config::Layer* layer = nullptr);
+
+  void SetOptions(std::span<const std::pair<QString, QString>> options);
   void Load();
 
 protected:

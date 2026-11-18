@@ -28,7 +28,7 @@ constexpr int AUDIO_VOLUME_MAX = 100;
 
 static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
 {
-  if (backend == BACKEND_CUBEB && CubebStream::IsValid())
+  if (IsCubebBackend(backend) && CubebStream::IsValid())
     return std::make_unique<CubebStream>();
   else if (backend == BACKEND_OPENAL && OpenALStream::IsValid())
     return std::make_unique<OpenALStream>();
@@ -135,13 +135,20 @@ std::vector<std::string> GetSoundBackends()
   return backends;
 }
 
+bool IsCubebBackend(std::string_view backend)
+{
+  // Cubeb may have its own backend specified after a slash.
+  // e.g. "Cubeb/wasapi"
+  return backend.substr(0, backend.find('/')) == BACKEND_CUBEB;
+}
+
 bool SupportsDPL2Decoder(std::string_view backend)
 {
 #ifndef __APPLE__
   if (backend == BACKEND_OPENAL)
     return true;
 #endif
-  if (backend == BACKEND_CUBEB)
+  if (AudioCommon::IsCubebBackend(backend))
     return true;
   if (backend == BACKEND_PULSEAUDIO)
     return true;
@@ -158,7 +165,8 @@ bool SupportsVolumeChanges(std::string_view backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
+  return AudioCommon::IsCubebBackend(backend) || backend == BACKEND_OPENAL ||
+         backend == BACKEND_WASAPI;
 }
 
 void UpdateSoundStream(Core::System& system)

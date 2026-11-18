@@ -24,6 +24,9 @@ const void* GetInputDeviceById(std::string_view id);
 std::vector<std::pair<std::string, std::string>> ListOutputDevices();
 const void* GetOutputDeviceById(std::string_view id);
 
+std::vector<std::string_view> GetBackendNames();
+std::string_view GetCubebBackendDisplayName(std::string_view backend_name);
+
 // Helper used to handle Windows COM library for cubeb WASAPI backend
 class CoInitSyncWorker
 {

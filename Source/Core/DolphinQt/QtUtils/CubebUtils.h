@@ -7,7 +7,7 @@ class QComboBox;
 class QGridLayout;
 class QWidget;
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 namespace QtUtils
 {

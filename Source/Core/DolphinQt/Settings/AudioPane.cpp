@@ -112,7 +112,24 @@ void AudioPane::CreateWidgets()
     translated_backends.reserve(backends.size());
     for (const std::string& backend : backends)
     {
-      translated_backends.emplace_back(tr(backend.c_str()), QString::fromStdString(backend));
+      const auto translated_backend_name = tr(backend.c_str());
+      translated_backends.emplace_back(translated_backend_name, QString::fromStdString(backend));
+
+#ifdef HAVE_CUBEB
+      if (backend == BACKEND_CUBEB)
+      {
+        // Add additional lines for each Cubeb backend.
+        // e.g. "Cubeb (WASAPI)"
+        for (const auto cubeb_backend : CubebUtils::GetBackendNames())
+        {
+          translated_backends.emplace_back(
+              QString::fromLatin1("%1 (%2)").arg(
+                  translated_backend_name,
+                  QString::fromUtf8(CubebUtils::GetCubebBackendDisplayName(cubeb_backend))),
+              QString::fromStdString(fmt::format("{}/{}", backend, cubeb_backend)));
+        }
+      }
+#endif
     }
     m_backend_combo = new ConfigStringChoice(translated_backends, Config::MAIN_AUDIO_BACKEND);
   }
@@ -209,8 +226,11 @@ void AudioPane::CreateWidgets()
   playback_layout->setRowStretch(4, 1);
   playback_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  // Wiimote Audio Routing
 #ifdef HAVE_CUBEB
+  // Widgets just get an empty list for now. OnBackendChanged loads the real list.
+  const std::array<std::string, 0> output_devices;
+
+  // Wiimote Audio Routing
   m_wiimote_routing_box = new QGroupBox(tr("Wii Remote Audio Routing"));
   auto* wiimote_routing_layout = new QVBoxLayout;
   m_wiimote_routing_box->setLayout(wiimote_routing_layout);
@@ -218,12 +238,6 @@ void AudioPane::CreateWidgets()
   m_wiimote_routing_enable = new ConfigBool(tr("Enable Wii Remote Audio Routing"),
                                             Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
   wiimote_routing_layout->addWidget(m_wiimote_routing_enable);
-
-  // Build device list once for all wiimote dropdowns
-  std::vector<std::pair<QString, QString>> output_devices;
-  output_devices.emplace_back(tr("Default Device"), QStringLiteral(""));
-  for (const auto& [id, name] : CubebUtils::ListOutputDevices())
-    output_devices.emplace_back(QString::fromStdString(name), QString::fromStdString(id));
 
   for (std::size_t i = 0; i < 4; ++i)
   {
@@ -241,10 +255,8 @@ void AudioPane::CreateWidgets()
 
     wiimote_routing_layout->addWidget(row_widget);
   }
-#endif
 
-// GBA Audio Routing
-#ifdef HAVE_CUBEB
+  // GBA Audio Routing
   m_gba_routing_box = new QGroupBox(tr("GBA Audio Routing"));
   auto* gba_routing_layout = new QVBoxLayout;
   m_gba_routing_box->setLayout(gba_routing_layout);
@@ -340,6 +352,8 @@ void AudioPane::OnDspChanged()
 
 void AudioPane::OnBackendChanged()
 {
+  Settings::Instance().AudioBackendChanged();
+
   OnDspChanged();
 
   const auto backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
@@ -362,6 +376,24 @@ void AudioPane::OnBackendChanged()
 #ifdef HAVE_CUBEB
   UpdateWiimoteRoutingEnabled();
   UpdateGBARoutingEnabled();
+
+  // Update GBA/Wiimote audio routing device lists.
+  std::vector<std::pair<QString, QString>> output_devices;
+  output_devices.emplace_back(QObject::tr("Default Device"), QStringLiteral(""));
+
+  // TODO: It may make sense to update this list when physical devices are added/removed.
+  // Maybe just update the combobox when it's clicked on ?
+
+  if (AudioCommon::IsCubebBackend(Config::Get(Config::MAIN_AUDIO_BACKEND)))
+  {
+    for (const auto& [id, name] : CubebUtils::ListOutputDevices())
+      output_devices.emplace_back(QString::fromStdString(name), QString::fromStdString(id));
+  }
+
+  for (auto* const wiimote : m_wiimote_output_device)
+    wiimote->SetOptions(output_devices);
+  for (auto* const gba : m_gba_output_device)
+    gba->SetOptions(output_devices);
 #endif
 }
 
@@ -401,7 +433,7 @@ void AudioPane::UpdateWiimoteRoutingEnabled()
     return;
 
   const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
-  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool is_cubeb = AudioCommon::IsCubebBackend(Config::Get(Config::MAIN_AUDIO_BACKEND));
   const bool speaker_enabled = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
   const bool bt_passthrough = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED);
 
@@ -432,7 +464,7 @@ void AudioPane::UpdateGBARoutingEnabled()
     return;
 
   const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
-  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool is_cubeb = AudioCommon::IsCubebBackend(Config::Get(Config::MAIN_AUDIO_BACKEND));
   const bool group_usable = !running && is_cubeb;
 
   m_gba_routing_enable->setEnabled(group_usable);

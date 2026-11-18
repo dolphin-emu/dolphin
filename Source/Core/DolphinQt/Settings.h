@@ -228,6 +228,7 @@ signals:
   void EnableGfxModsChanged(bool enabled);
   void GameCountVisibilityChanged(bool visible);
   void HardcoreModeChanged(bool enabled);
+  void AudioBackendChanged();
 
 private:
   Settings();

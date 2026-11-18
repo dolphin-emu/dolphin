@@ -25,6 +25,7 @@ void ShutdownSoundStream(Core::System& system);
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();
 DPL2Quality GetDefaultDPL2Quality();
+bool IsCubebBackend(std::string_view backend);
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);

@@ -60,13 +60,23 @@ ConfigStringChoice::ConfigStringChoice(std::span<const std::string> options,
 ConfigStringChoice::ConfigStringChoice(std::span<const std::pair<QString, QString>> options,
                                        const Config::Info<std::string>& setting,
                                        Config::Layer* layer)
-    : ConfigControl(setting.GetLocation(), layer), m_setting(setting), m_text_is_data(false)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting)
 {
+  SetOptions(options);
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
+}
+
+void ConfigStringChoice::SetOptions(std::span<const std::pair<QString, QString>> options)
+{
+  QSignalBlocker block{this};
+
+  m_text_is_data = false;
+
+  clear();
   for (const auto& [option_text, option_data] : options)
     addItem(option_text, option_data);
 
   Load();
-  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
 void ConfigStringChoice::Update(int index)

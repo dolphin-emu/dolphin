@@ -7,9 +7,12 @@
 #include <cstring>
 #include <string_view>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/Projection.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 
 #include <cubeb/cubeb.h>
 
@@ -51,6 +54,30 @@ static void DestroyContext(cubeb* ctx)
   }
 }
 
+static std::string GetCubebBackendName()
+{
+  std::string audio_backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+
+  if (!AudioCommon::IsCubebBackend(audio_backend))
+  {
+    // A non-Cubeb audio backend is configured.
+    // A lowercase version of this string will work some of the time.
+    // e.g. for "Pulse" or "ALSA".
+    // Cubeb will internally use a fallback if it's not a valid string.
+    Common::ToLower(&audio_backend);
+    return audio_backend;
+  }
+
+  // Cubeb may have its own backend specified after a slash.
+  // e.g. "Cubeb/wasapi"
+  const auto cubeb_backend_delimiter_pos = audio_backend.find('/');
+
+  if (cubeb_backend_delimiter_pos == std::string::npos)
+    return {};
+
+  return std::move(audio_backend).substr(cubeb_backend_delimiter_pos + 1);
+}
+
 namespace CubebUtils
 {
 std::shared_ptr<cubeb> GetContext()
@@ -67,8 +94,11 @@ std::shared_ptr<cubeb> GetContext()
     ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
   }
 
+  const auto backend_name_str = GetCubebBackendName();
+  const char* const backend_name = backend_name_str.empty() ? nullptr : backend_name_str.c_str();
+
   cubeb* ctx;
-  if (cubeb_init(&ctx, "Dolphin Emulator", nullptr) != CUBEB_OK)
+  if (cubeb_init(&ctx, "Dolphin Emulator", backend_name) != CUBEB_OK)
   {
     ERROR_LOG_FMT(AUDIO, "Error initializing cubeb library");
     return nullptr;
@@ -83,7 +113,7 @@ std::vector<std::pair<std::string, std::string>> ListInputDevices()
 {
   std::vector<std::pair<std::string, std::string>> devices;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_INPUT, &collection);
 
@@ -147,7 +177,7 @@ cubeb_devid GetInputDeviceById(std::string_view id)
   if (id.empty())
     return nullptr;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = CubebUtils::GetContext();
   const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_INPUT, &collection);
 
@@ -181,7 +211,7 @@ std::vector<std::pair<std::string, std::string>> ListOutputDevices()
 {
   std::vector<std::pair<std::string, std::string>> devices;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   if (!cubeb_ctx)
     return devices;
@@ -215,7 +245,7 @@ const void* GetOutputDeviceById(std::string_view id)
   if (id.empty())
     return nullptr;
 
-  cubeb_device_collection collection;
+  cubeb_device_collection collection{};
   auto cubeb_ctx = GetContext();
   if (!cubeb_ctx)
     return nullptr;
@@ -245,6 +275,45 @@ const void* GetOutputDeviceById(std::string_view id)
 
   cubeb_device_collection_destroy(cubeb_ctx.get(), &collection);
   return device_id;
+}
+
+std::vector<std::string_view> GetBackendNames()
+{
+  // Some tricks to only call `cubeb_get_backend_names` if it exists.
+  return [](auto... args) -> std::vector<std::string_view> {
+    if constexpr (requires { cubeb_get_backend_names(args...); })
+    {
+      const auto names = cubeb_get_backend_names(args...);
+      return {names.names, names.names + names.count};
+    }
+    else
+    {  // The included version of Cubeb lacks the `cubeb_get_backend_names` function.
+      return {};
+    }
+  }();
+}
+
+std::string_view GetCubebBackendDisplayName(std::string_view backend_name)
+{
+  static constexpr std::pair<const char*, const char*> name_map[] = {
+      {"pulse", "PulseAudio"},
+      {"pulse-rust", "PulseAudio Rust"},
+      {"jack", "JACK"},
+      {"alsa", "ALSA"},
+      {"audiounit", "AudioUnit"},
+      {"audiounit-rust", "AudioUnit Rust"},
+      {"wasapi", "WASAPI"},
+      {"winmm", "WinMM"},
+      {"sun", "Sun"},
+      {"opensl", "OpenSL"},
+      {"oss", "OSS"},
+      {"aaudio", "AAudio"},
+      {"audiotrack", "AudioTrack"},
+      {"kai", "KAI"},
+  };
+
+  const auto it = std::ranges::find(name_map, backend_name, Common::Projection::First{});
+  return (it != std::end(name_map)) ? it->second : backend_name;
 }
 
 CoInitSyncWorker::CoInitSyncWorker([[maybe_unused]] std::string worker_name)
