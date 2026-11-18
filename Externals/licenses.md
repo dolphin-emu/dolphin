@@ -74,6 +74,8 @@ Dolphin includes or links code of the following third-party software projects:
    header only
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
+- [wolfSSL](https://www.wolfssl.com/):
+   [GPLv3+](https://github.com/wolfSSL/wolfssl/blob/master/LICENSING)
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [BSD 2-Clause](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
 - [YACardEmu](https://github.com/GXTX/YACardEmu)
