@@ -98,8 +98,12 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
           &InterfacePane::OnHardcoreModeChanged);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-  OnHardcoreModeChanged(Config::Get(Config::RA_ENABLED) &&
-                        Config::Get(Config::RA_HARDCORE_ENABLED));
+
+  bool hardcore = false;
+#ifdef USE_RETRO_ACHIEVEMENTS
+  hardcore = Config::Get(Config::RA_ENABLED) && Config::Get(Config::RA_HARDCORE_ENABLED);
+#endif
+  OnHardcoreModeChanged(hardcore);
 }
 
 void InterfacePane::CreateLayout()
@@ -314,7 +318,7 @@ void InterfacePane::OnHardcoreModeChanged(bool enabled)
       "memory contents, set debugging breakpoints, examine network requests, and more."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_DISABLED_HARDCORE_MODE[] = QT_TR_NOOP(
-      "<br><br><dolphin_emphasis>Disabled in RetroAchivements Hardcore Mode.</dolphin_emphasis>");
+      "<br><br><dolphin_emphasis>Disabled in RetroAchievements Hardcore Mode.</dolphin_emphasis>");
 
   if (enabled)
   {
