@@ -649,7 +649,7 @@ void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
   {
     int samp = Common::swap32(*ptr++);
     m_samples_auxB_right[i] = samp;
-    m_samples_main_right[i] += samp;
+    m_samples_main_right[i] -= samp;
   }
 }
 

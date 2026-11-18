@@ -67,17 +67,22 @@ void AXWiiUCode::HandleCommandList()
         SetupProcessing(HILO_TO_32(addr));
         break;
 
-      case CMD_ADD_TO_LR_OLD:
-      case CMD_SUB_TO_LR_OLD:
+      case CMD_ADD_ADD_1_TO_LR_OLD:
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
-        AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR_OLD);
+        AddAdd1ToLR(HILO_TO_32(addr));
         break;
 
-      case CMD_ADD_SUB_TO_LR_OLD:
+      case CMD_SUB_ADD_1_TO_LR_OLD:
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
-        AddSubToLR(HILO_TO_32(addr));
+        SubAdd1ToLR(HILO_TO_32(addr));
+        break;
+
+      case CMD_ADD_SUB_2_TO_LR_OLD:
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        AddSub2ToLR(HILO_TO_32(addr));
         break;
 
       case CMD_PB_ADDR_OLD:
@@ -168,17 +173,22 @@ void AXWiiUCode::HandleCommandList()
         SetupProcessing(HILO_TO_32(addr));
         break;
 
-      case CMD_ADD_TO_LR:
-      case CMD_SUB_TO_LR:
+      case CMD_ADD_ADD_1_TO_LR:
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
-        AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR);
+        AddAdd1ToLR(HILO_TO_32(addr));
         break;
 
-      case CMD_ADD_SUB_TO_LR:
+      case CMD_SUB_ADD_1_TO_LR:
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
-        AddSubToLR(HILO_TO_32(addr));
+        SubAdd1ToLR(HILO_TO_32(addr));
+        break;
+
+      case CMD_ADD_SUB_2_TO_LR:
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        AddSub2ToLR(HILO_TO_32(addr));
         break;
 
       case CMD_PROCESS:
@@ -271,22 +281,33 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
   InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
 
-void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
+void AXWiiUCode::AddAdd1ToLR(u32 val_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 32 * 3 * sizeof(int)));
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
-    if (neg)
-      val = -val;
 
     m_samples_main_left[i] += val;
     m_samples_main_right[i] += val;
   }
 }
 
-void AXWiiUCode::AddSubToLR(u32 val_addr)
+void AXWiiUCode::SubAdd1ToLR(u32 val_addr)
+{
+  auto& memory = m_dsphle->GetSystem().GetMemory();
+  int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 32 * 3 * sizeof(int)));
+  for (int i = 0; i < 32 * 3; ++i)
+  {
+    int val = (int)Common::swap32(*ptr++);
+
+    m_samples_main_left[i] -= val;
+    m_samples_main_right[i] += val;
+  }
+}
+
+void AXWiiUCode::AddSub2ToLR(u32 val_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 2 * 32 * 3 * sizeof(int)));
