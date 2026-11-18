@@ -39,7 +39,8 @@ endif()
 FetchContent_MakeAvailable(wolfssl)
 
 target_compile_definitions(wolfssl INTERFACE WOLFSSL_USER_SETTINGS)
-target_include_directories(wolfssl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+# BEFORE: our wolfssl/options.h must shadow the one generated in wolfSSL's build directory.
+target_include_directories(wolfssl BEFORE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(WOLFSSL_AESNI_ASM)
   if(MSVC)

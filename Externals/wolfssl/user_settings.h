@@ -14,6 +14,21 @@
 /* Dolphin is only a TLS client (IOS SSL, curl). */
 #define NO_WOLFSSL_SERVER
 
+/* ---- Host probes ----
+ * wolfSSL's CMake passes these to the library only (compile definitions, config.h), but public
+ * headers depend on them: type sizes (limits.h) and SP_WORD_SIZE (__uint128_t), hence sizeof(mp_int).
+ * Define them here so that every user of the headers sees the same configuration. */
+#ifndef HAVE_LIMITS_H
+#define HAVE_LIMITS_H 1
+#endif
+/* settings.h drops it for MSVC. */
+#ifndef HAVE_SYS_TIME_H
+#define HAVE_SYS_TIME_H 1
+#endif
+#if defined(__SIZEOF_INT128__) && !defined(HAVE___UINT128_T)
+#define HAVE___UINT128_T 1
+#endif
+
 /* ---- Hardening ---- */
 #define TFM_TIMING_RESISTANT
 #define ECC_TIMING_RESISTANT
@@ -42,7 +57,8 @@
 #define NO_RC4
 
 /* ---- Public key ---- */
-/* RSA: PKCS#1 v1.5 verify (IOSC, TLS), raw RSA without padding (IOSC), PSS (TLS 1.2 servers). */
+/* RSA: PKCS#1 v1.5 verify (IOSC, TLS), raw RSA without padding (IOSC), PSS (TLS 1.2 servers,
+ * required by TLS 1.3). */
 #define WC_RSA_NO_PADDING
 #define WC_RSA_PSS
 /* ECDHE/ECDSA for TLS 1.2 servers (P-256/P-384 by default). */
@@ -50,6 +66,8 @@
 #define HAVE_SUPPORTED_CURVES
 /* Ed25519 signature of the update manifests (UpdaterCommon). */
 #define HAVE_ED25519
+/* X25519 key exchange, preferred by TLS 1.3 servers (curl). */
+#define HAVE_CURVE25519
 #define NO_DSA
 
 /* ---- TLS ---- */
@@ -66,6 +84,20 @@
  * and wolfSSL_Rehandshake() depend on it. */
 #define HAVE_SERVER_RENEGOTIATION_INFO
 #define NO_SESSION_CACHE_REF
+
+/* TLS 1.3 for curl (Dolphin's services). */
+#define WOLFSSL_TLS13
+/* Required by TLS 1.3 as long as DH is enabled (DHE suites). */
+#define HAVE_FFDHE_2048
+
+/* curl: its wolfSSL backend uses the OpenSSL compatibility layer (X509_STORE cache,
+ * set_min_proto_version, SSL_SESSION import/export, MD5 for digest auth). */
+#define OPENSSL_EXTRA
+#define HAVE_ALPN
+/* Accept chains with a cross-signed intermediate whose issuer is not trusted, as long as the
+ * server certificate chains to a trusted root (e.g. retroachievements.org). */
+#define WOLFSSL_ALT_CERT_CHAINS
+
 #define NO_PSK
 #define NO_PWDBASED
 

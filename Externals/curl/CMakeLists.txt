@@ -22,22 +22,25 @@ set(USE_LIBIDN2 OFF)
 set(USE_NGHTTP2 OFF)
 
 if(UNIX)
-  # We use mbedtls on Unix(-like) systems and Android.
+  # We use wolfSSL (Externals/wolfssl) on Unix(-like) systems and Android.
   set(CURL_USE_OPENSSL OFF)
 
-  # This is set if the dolphin_find_optional_system_library call from the main CMakeLists.txt
-  # is able to find mbedtls on the system.
-  if(MBEDTLS_FOUND)
-    # We can just enable CURL_USE_MBEDTLS.
-    set(CURL_USE_MBEDTLS ON)
-  else()
-    # HACK: Set some internal variables to pretend like mbedtls was found on the system.
-    # We can't use CURL_USE_MBEDTLS with our copy from Externals, as that flag expects
-    # mbedtls to be installed (the CMakeLists attempts to search for it with find_package).
-    set(_ssl_enabled ON)
-    set(USE_MBEDTLS ON)
-    set(_curl_ca_bundle_supported TRUE)
-  endif()
+  # HACK: Set some internal variables to pretend like wolfSSL was found on the system.
+  # We can't use CURL_USE_WOLFSSL with our copy from Externals, as that flag expects
+  # wolfSSL to be installed (the CMakeLists attempts to search for it with find_package).
+  set(_ssl_enabled ON)
+  set(USE_WOLFSSL ON)
+  set(_curl_ca_bundle_supported TRUE)
+
+  # Results of the checks CURL would run against an installed wolfSSL, which cannot link with a
+  # library that is not built yet. They must match Externals/wolfssl/user_settings.h.
+  set(HAVE_WOLFSSL_GET_PEER_CERTIFICATE ON)
+  set(HAVE_WOLFSSL_USEALPN ON)
+  set(HAVE_WOLFSSL_BIO_NEW ON)
+  # wolfSSL_BIO_set_shutdown() needs OPENSSL_ALL.
+  set(HAVE_WOLFSSL_BIO_SET_SHUTDOWN OFF)
+  # No DES (NO_DES3), hence no NTLM.
+  set(HAVE_WOLFSSL_DES_ECB_ENCRYPT OFF)
 endif()
 
 if(WIN32)
@@ -50,9 +53,7 @@ endif()
 
 add_subdirectory(curl)
 
-if(UNIX AND NOT MBEDTLS_FOUND)
-  # HACK: Manually link with the mbedtls libraries.
-  target_link_libraries(libcurl_static PRIVATE
-    MbedTLS::mbedtls
-    MbedTLS::mbedx509)
+if(UNIX)
+  # HACK: Manually link with the wolfSSL library.
+  target_link_libraries(libcurl_static PRIVATE wolfssl)
 endif()
