@@ -132,15 +132,15 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 {
   EnableSDLLogging();
 
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_WGI) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_WGI).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_WGI, "0");
 
   // Disable DualSense Player LEDs; We already colorize the Primary LED
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
   // Disabling DirectInput support apparently solves hangs on shutdown for users with
@@ -148,14 +148,14 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   //  and DS4 Controllers, so we leave it enabled for now.
   // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
   //  call within SDL.
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT, "1");
 
   // Pre-populate the default Joy-Con hints so they can be easily changed
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
 
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "0");
 
   // Disable SDL's GC Adapter handling when we want to handle it ourselves.
