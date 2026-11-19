@@ -337,12 +337,12 @@ void ControllerInterface::UpdateInput()
   std::vector<std::weak_ptr<ciface::Core::Device>> devices_to_remove;
 
   {
+    for (auto& backend : m_input_backends)
+      backend->UpdateInput();
+
     std::lock_guard lk_devices(m_devices_mutex);
 
     tls_is_updating_devices = true;
-
-    for (auto& backend : m_input_backends)
-      backend->UpdateInput(devices_to_remove);
 
     for (const auto& d : m_devices)
     {
