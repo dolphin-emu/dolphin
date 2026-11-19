@@ -97,6 +97,10 @@
 /* Accept chains with a cross-signed intermediate whose issuer is not trusted, as long as the
  * server certificate chains to a trusted root (e.g. retroachievements.org). */
 #define WOLFSSL_ALT_CERT_CHAINS
+/* Use the system CA store at run time. */
+#if !defined(_WIN32) && !defined(__APPLE__)
+#define WOLFSSL_SYS_CA_CERTS
+#endif
 
 #define NO_PSK
 #define NO_PWDBASED

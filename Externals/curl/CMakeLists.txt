@@ -1,3 +1,10 @@
+dolphin_fetchcontent_declare(
+  curl
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG 3163ec065643ba20709f190111f42c3e1fe95273 # curl-8_23_0
+  GIT_SHALLOW TRUE
+)
+
 set(BUILD_CURL_EXE OFF)
 set(BUILD_EXAMPLES OFF)
 set(BUILD_LIBCURL_DOCS OFF)
@@ -8,16 +15,27 @@ set(BUILD_TESTING OFF)
 set(CURL_ENABLE_EXPORT_TARGET OFF)
 set(ENABLE_CURL_MANUAL OFF)
 
-set(HTTP_ONLY ON)
+# Only HTTP(S) is used (HTTP_ONLY was removed in cURL 8.23).
+set(CURL_DISABLE_DICT ON)
+set(CURL_DISABLE_FILE ON)
+set(CURL_DISABLE_FTP ON)
+set(CURL_DISABLE_GOPHER ON)
+set(CURL_DISABLE_IMAP ON)
+set(CURL_DISABLE_IPFS ON)
+set(CURL_DISABLE_LDAP ON)
+set(CURL_DISABLE_LDAPS ON)
+set(CURL_DISABLE_MQTT ON)
+set(CURL_DISABLE_POP3 ON)
+set(CURL_DISABLE_RTSP ON)
+set(CURL_DISABLE_SMTP ON)
+set(CURL_DISABLE_TELNET ON)
+set(CURL_DISABLE_TFTP ON)
 
 set(CURL_USE_LIBPSL OFF)
 set(CURL_USE_LIBSSH2 OFF)
 set(CURL_ZLIB OFF CACHE BOOL "" FORCE)
 set(CURL_ZSTD OFF CACHE BOOL "" FORCE)
 set(CURL_BROTLI OFF CACHE BOOL "" FORCE)
-set(ZLIB_FOUND FALSE) # TODO: Remove once we update to cURL >=8.17.1 https://github.com/curl/curl/pull/20147
-set(ZSTD_FOUND FALSE) # TODO: Same as above
-set(BROTLI_FOUND FALSE) # TODO: Same as above
 set(USE_LIBIDN2 OFF)
 set(USE_NGHTTP2 OFF)
 
@@ -40,18 +58,21 @@ if(UNIX)
   # wolfSSL_BIO_set_shutdown() needs OPENSSL_ALL.
   set(HAVE_WOLFSSL_BIO_SET_SHUTDOWN OFF)
   # No DES (NO_DES3), hence no NTLM.
-  set(HAVE_WOLFSSL_DES_ECB_ENCRYPT OFF)
+  set(HAVE_WC_DES_ECBENCRYPT OFF)
+
+  # Use the system CA store at run time.
+  if(APPLE)
+    set(CURL_CA_BUNDLE "/etc/ssl/cert.pem" CACHE STRING "")
+  else()
+    set(CURL_CA_NATIVE ON)
+  endif()
 endif()
 
 if(WIN32)
   set(CURL_USE_SCHANNEL ON)
 endif()
 
-if(ANDROID)
-  set(CURL_CA_PATH "/system/etc/security/cacerts" CACHE STRING "")
-endif()
-
-add_subdirectory(curl)
+FetchContent_MakeAvailable(curl)
 
 if(UNIX)
   # HACK: Manually link with the wolfSSL library.
