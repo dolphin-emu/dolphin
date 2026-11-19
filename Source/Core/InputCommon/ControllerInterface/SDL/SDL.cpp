@@ -34,7 +34,6 @@ public:
   InputBackend(ControllerInterface* controller_interface);
   ~InputBackend() override;
   void PopulateDevices() override;
-  void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
 
 private:
   void OpenAndAddDevice(SDL_JoystickID instance_id);
@@ -255,11 +254,6 @@ void InputBackend::PopulateDevices()
 
   SDL_Event populate_event{m_populate_event_type};
   SDL_PushEvent(&populate_event);
-}
-
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>&)
-{
-  SDL_UpdateGamepads();
 }
 
 void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
