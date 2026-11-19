@@ -195,6 +195,7 @@ PRIVATE
   FatFs
   spng::spng
   watcher
+  wolfssl
   ${VTUNE_LIBRARIES}
 )
 

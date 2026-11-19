@@ -7,8 +7,8 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-#include <mbedtls/md.h>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -1441,10 +1441,7 @@ void MovieManager::CheckMD5()
 
   Core::DisplayMessage("Verifying checksum...", 2000);
 
-  std::array<u8, 16> game_md5;
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  game_md5.data());
-
+  const std::optional<std::array<u8, 16>> game_md5 = Common::ComputeFileMD5(m_current_file_name);
   if (game_md5 == m_md5)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
   else
@@ -1458,8 +1455,8 @@ void MovieManager::GetMD5()
     return;
 
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  m_md5.data());
+  if (const std::optional<std::array<u8, 16>> md5 = Common::ComputeFileMD5(m_current_file_name))
+    m_md5 = *md5;
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
