@@ -1,27 +1,31 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "mbedtls/md.h"
-
 #include "Common/Crypto/HMAC.h"
+
+#include <limits>
+
+#include <wolfssl/wolfcrypt/hmac.h>
+
 #include "Common/ScopeGuard.h"
 
 namespace Common::HMAC
 {
 bool HMACWithSHA1(std::span<const u8> key, std::span<const u8> msg, u8* out)
 {
-  mbedtls_md_context_t ctx;
-  Common::ScopeGuard guard{[&ctx] { mbedtls_md_free(&ctx); }};
-  mbedtls_md_init(&ctx);
-  if (mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 1))
-    return false;
-
-  if (mbedtls_md_hmac_starts(&ctx, key.data(), key.size()) ||
-      mbedtls_md_hmac_update(&ctx, msg.data(), msg.size()) || mbedtls_md_hmac_finish(&ctx, out))
+  if (key.size() > std::numeric_limits<word32>::max() ||
+      msg.size() > std::numeric_limits<word32>::max())
   {
     return false;
   }
 
-  return true;
+  Hmac hmac;
+  if (wc_HmacInit(&hmac, nullptr, INVALID_DEVID))
+    return false;
+  Common::ScopeGuard guard{[&hmac] { wc_HmacFree(&hmac); }};
+
+  return !wc_HmacSetKey(&hmac, WC_SHA, key.data(), static_cast<word32>(key.size())) &&
+         !wc_HmacUpdate(&hmac, msg.data(), static_cast<word32>(msg.size())) &&
+         !wc_HmacFinal(&hmac, out);
 }
 }  // namespace Common::HMAC

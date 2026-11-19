@@ -5,9 +5,10 @@
 
 #include <array>
 #include <cstring>
+#include <limits>
 #include <memory>
 
-#include <mbedtls/aes.h>
+#include <wolfssl/wolfcrypt/aes.h>
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
@@ -33,37 +34,64 @@ namespace Common::AES
 {
 // For x64 and arm64, it's very unlikely a user's cpu does not support the accelerated version,
 // fallback is just in case.
+//
+// Crypt() is const and may be called from several threads at once on the same context (e.g.
+// VolumeWii::EncryptGroup), but wolfCrypt keeps the CBC chaining value in the Aes struct. Each call
+// therefore works on a stack copy of the prepared Aes (a plain struct in our configuration).
+#if defined(WOLF_CRYPTO_CB) || defined(WOLFSSL_ASYNC_CRYPT) ||                                     \
+    (defined(WOLFSSL_AESGCM_STREAM) && defined(WOLFSSL_SMALL_STACK) && !defined(WOLFSSL_AESNI))
+#error "Struct Aes holds device or heap state in this wolfSSL configuration, it cannot be copied"
+#endif
 template <Mode AesMode>
 class ContextGeneric final : public Context
 {
 public:
   ContextGeneric(const u8* key)
   {
-    mbedtls_aes_init(&ctx);
-    if constexpr (AesMode == Mode::Encrypt)
-      ASSERT(!mbedtls_aes_setkey_enc(&ctx, key, 128));
-    else
-      ASSERT(!mbedtls_aes_setkey_dec(&ctx, key, 128));
+    constexpr int dir = (AesMode == Mode::Encrypt) ? AES_ENCRYPTION : AES_DECRYPTION;
+    ASSERT(!wc_AesInit(&m_aes, nullptr, INVALID_DEVID));
+    ASSERT(!wc_AesSetKey(&m_aes, key, KEY_SIZE, nullptr, dir));
   }
+  ~ContextGeneric() override { wc_AesFree(&m_aes); }
 
   bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t len) const override
   {
-    std::array<u8, BLOCK_SIZE> iv_tmp{};
-    if (iv)
-      std::memcpy(&iv_tmp[0], iv, BLOCK_SIZE);
+    if (len % BLOCK_SIZE != 0 || len > std::numeric_limits<word32>::max())
+      return false;
 
-    constexpr int mode = (AesMode == Mode::Encrypt) ? MBEDTLS_AES_ENCRYPT : MBEDTLS_AES_DECRYPT;
-    if (mbedtls_aes_crypt_cbc(const_cast<mbedtls_aes_context*>(&ctx), mode, len, &iv_tmp[0], buf_in,
-                              buf_out))
+    static constexpr std::array<u8, BLOCK_SIZE> zero_iv{};
+    if (!iv)
+      iv = zero_iv.data();
+
+    // wolfCrypt rejects null buffers even when there is nothing to do.
+    if (len == 0)
+    {
+      if (iv_out)
+        std::memmove(iv_out, iv, BLOCK_SIZE);
+      return true;
+    }
+
+    Aes aes;
+    std::memcpy(static_cast<void*>(&aes), &m_aes, sizeof(aes));
+    if (wc_AesSetIV(&aes, iv))
+      return false;
+
+    const word32 size = static_cast<word32>(len);
+    int ret;
+    if constexpr (AesMode == Mode::Encrypt)
+      ret = wc_AesCbcEncrypt(&aes, buf_out, buf_in, size);
+    else
+      ret = wc_AesCbcDecrypt(&aes, buf_out, buf_in, size);
+    if (ret)
       return false;
 
     if (iv_out)
-      std::memcpy(iv_out, &iv_tmp[0], BLOCK_SIZE);
+      std::memcpy(iv_out, aes.reg, BLOCK_SIZE);
     return true;
   }
 
 private:
-  mbedtls_aes_context ctx{};
+  Aes m_aes;
 };
 
 #if defined(_M_X86_64)
@@ -423,18 +451,27 @@ std::unique_ptr<Context> CreateContextDecrypt(const u8* key)
 // OFB encryption and decryption are the exact same. We don't encrypt though.
 void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t size)
 {
-  mbedtls_aes_context aes_ctx;
-  size_t iv_offset = 0;
+  static constexpr std::array<u8, 16> zero_iv{};
+  ASSERT(size <= std::numeric_limits<word32>::max());
+  if (!iv)
+    iv = zero_iv.data();
 
-  std::array<u8, 16> iv_tmp{};
-  if (iv)
-    std::memcpy(&iv_tmp[0], iv, 16);
+  // wolfCrypt rejects null buffers even when there is nothing to do.
+  if (size == 0)
+  {
+    if (iv_out)
+      std::memmove(iv_out, iv, 16);
+    return;
+  }
 
-  ASSERT(!mbedtls_aes_setkey_enc(&aes_ctx, key, 128));
-  mbedtls_aes_crypt_ofb(&aes_ctx, size, &iv_offset, &iv_tmp[0], buf_in, buf_out);
+  Aes aes;
+  ASSERT(!wc_AesInit(&aes, nullptr, INVALID_DEVID));
+  ASSERT(!wc_AesSetKey(&aes, key, 16, iv, AES_ENCRYPTION));
+  ASSERT(!wc_AesOfbEncrypt(&aes, buf_out, buf_in, static_cast<word32>(size)));
 
   if (iv_out)
-    std::memcpy(iv_out, &iv_tmp[0], 16);
+    std::memcpy(iv_out, aes.reg, 16);
+  wc_AesFree(&aes);
 }
 
 }  // namespace Common::AES
