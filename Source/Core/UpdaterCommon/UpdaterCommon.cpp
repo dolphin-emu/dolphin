@@ -5,15 +5,17 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <memory>
 #include <optional>
 
 #include <OptionParser.h>
-#include <ed25519.h>
 #include <fmt/format.h>
-#include <mbedtls/base64.h>
-#include <mbedtls/sha256.h>
 #include <zlib.h>
+
+#include <wolfssl/wolfcrypt/coding.h>
+#include <wolfssl/wolfcrypt/ed25519.h>
+#include <wolfssl/wolfcrypt/sha256.h>
 
 #ifdef _WIN32
 #include "Common/CommonFuncs.h"
@@ -149,9 +151,19 @@ static std::optional<std::string> GzipInflate(const std::string& data)
 
 Manifest::Hash ComputeHash(const std::string& contents)
 {
-  std::array<u8, 32> full;
-  mbedtls_sha256_ret(reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(),
-                     false);
+  std::array<u8, WC_SHA256_DIGEST_SIZE> full;
+  wc_Sha256 sha256;
+  wc_InitSha256(&sha256);
+  // wolfCrypt takes 32-bit lengths.
+  constexpr size_t max_chunk_size = 0x80000000;
+  for (size_t offset = 0; offset < contents.size(); offset += max_chunk_size)
+  {
+    const size_t chunk_size = std::min(contents.size() - offset, max_chunk_size);
+    wc_Sha256Update(&sha256, reinterpret_cast<const u8*>(contents.data() + offset),
+                    static_cast<word32>(chunk_size));
+  }
+  wc_Sha256Final(&sha256, full.data());
+  wc_Sha256Free(&sha256);
 
   Manifest::Hash out;
   std::copy_n(full.begin(), 16, out.begin());
@@ -160,21 +172,35 @@ Manifest::Hash ComputeHash(const std::string& contents)
 
 static bool VerifySignature(const std::string& data, const std::string& b64_signature)
 {
-  u8 signature[64];  // ed25519 sig size.
-  size_t sig_size;
+  // wolfCrypt takes 32-bit lengths.
+  constexpr size_t max_size = std::numeric_limits<word32>::max();
+  if (data.size() > max_size || b64_signature.size() > max_size)
+    return false;
 
-  if (mbedtls_base64_decode(signature, sizeof(signature), &sig_size,
-                            reinterpret_cast<const u8*>(b64_signature.data()),
-                            b64_signature.size()) ||
+  u8 signature[ED25519_SIG_SIZE];
+  word32 sig_size = sizeof(signature);
+  if (Base64_Decode(reinterpret_cast<const u8*>(b64_signature.data()),
+                    static_cast<word32>(b64_signature.size()), signature, &sig_size) != 0 ||
       sig_size != sizeof(signature))
   {
     LogToFile("Invalid base64: %s\n", b64_signature.c_str());
     return false;
   }
 
+  ed25519_key key;
+  if (wc_ed25519_init(&key) != 0)
+    return false;
+  Common::ScopeGuard key_guard{[&key] { wc_ed25519_free(&key); }};
+
   const auto& pub_key = UI::IsTestMode() ? UPDATE_PUB_KEY_TEST : UPDATE_PUB_KEY;
-  return ed25519_verify(signature, reinterpret_cast<const u8*>(data.data()), data.size(),
-                        pub_key.data());
+  if (wc_ed25519_import_public(pub_key.data(), static_cast<word32>(pub_key.size()), &key) != 0)
+    return false;
+
+  int verified = 0;
+  const int ret =
+      wc_ed25519_verify_msg(signature, sizeof(signature), reinterpret_cast<const u8*>(data.data()),
+                            static_cast<word32>(data.size()), &verified, &key);
+  return ret == 0 && verified == 1;
 }
 
 static void FlushLog()
