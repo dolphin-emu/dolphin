@@ -204,7 +204,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       }
 
       const Uint32 custom_events_start = SDL_RegisterEvents(2);
-      if (custom_events_start == static_cast<Uint32>(-1))
+      if (custom_events_start == 0)
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
         return;
