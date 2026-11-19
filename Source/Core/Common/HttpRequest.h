@@ -43,6 +43,10 @@ public:
     std::string data;
   };
 
+  // Requests require TLS 1.2 or newer by default. This allows TLS 1.0 and 1.1 again, for emulated
+  // Wii services that may talk to old servers.
+  void AllowLegacyTLS();
+
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max = 1);

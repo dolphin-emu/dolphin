@@ -30,6 +30,7 @@ public:
   std::string GetHeaderValue(std::string_view name) const;
   void SetCookies(const std::string& cookies);
   void UseIPv4();
+  void AllowLegacyTLS();
   void FollowRedirects(long max);
   s32 GetLastResponseCode();
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
@@ -68,6 +69,11 @@ void HttpRequest::SetCookies(const std::string& cookies)
 void HttpRequest::UseIPv4()
 {
   m_impl->UseIPv4();
+}
+
+void HttpRequest::AllowLegacyTLS()
+{
+  m_impl->AllowLegacyTLS();
 }
 
 void HttpRequest::FollowRedirects(long max)
@@ -147,6 +153,8 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
       m_curl.get(), CURLOPT_LOW_SPEED_TIME,
       static_cast<long>(std::chrono::duration_cast<std::chrono::seconds>(timeout_ms).count()));
   curl_easy_setopt(m_curl.get(), CURLOPT_LOW_SPEED_LIMIT, 1);
+
+  curl_easy_setopt(m_curl.get(), CURLOPT_SSLVERSION, static_cast<long>(CURL_SSLVERSION_TLSv1_2));
 }
 
 bool HttpRequest::Impl::IsValid() const
@@ -169,6 +177,11 @@ void HttpRequest::Impl::SetCookies(const std::string& cookies)
 void HttpRequest::Impl::UseIPv4()
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+}
+
+void HttpRequest::Impl::AllowLegacyTLS()
+{
+  curl_easy_setopt(m_curl.get(), CURLOPT_SSLVERSION, static_cast<long>(CURL_SSLVERSION_TLSv1_0));
 }
 
 HttpRequest::Response HttpRequest::PostMultiform(const std::string& url,

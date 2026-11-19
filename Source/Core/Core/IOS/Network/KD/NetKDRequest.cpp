@@ -159,6 +159,9 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   // Enable all NWC24 permissions
   m_scheduler_buffer[1] = Common::swap32(-1);
 
+  // A real Wii accepts servers that only support TLS 1.0.
+  m_http.AllowLegacyTLS();
+
   m_work_queue.Reset("WiiConnect24 Worker", [this](const AsyncTask& task) {
     const IPCReply reply = task.handler();
     {
