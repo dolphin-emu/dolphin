@@ -253,6 +253,12 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   video_events.after_present_event.Trigger(present_info);
 }
 
+bool Presenter::ShouldSkipViSwap() const
+{
+  return g_ActiveConfig.bImmediateXFB &&
+         m_immediate_swap_happened_this_field.load(std::memory_order_relaxed);
+}
+
 void Presenter::SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time)
 {
   m_next_swap_estimated_ticks = ticks;

@@ -39,6 +39,8 @@ public:
               TimePoint presentation_time);
   void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height);
 
+  bool ShouldSkipViSwap() const;
+
   void SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time);
 
   void Present(PresentInfo* present_info = nullptr);
