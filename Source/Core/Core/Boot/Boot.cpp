@@ -25,6 +25,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/SCSIDevice.h"
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
@@ -56,6 +57,7 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
+#include "DiscIO/OpticalDiscBlob.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
@@ -201,6 +203,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   for (std::string& path : paths)
     UnifyPathSeparators(path);
 
+  // Optical drives have no file to check and no extension to match
+  if (Common::SCSIDevice::IsOpticalDrive(paths.front()))
+    return GenerateFromOpticalDrive(paths.front(), std::move(boot_session_data_));
+
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
   if (!File::Exists(paths.front()))
@@ -307,6 +313,30 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
   PanicAlertFmtT("Could not recognize file {0}", path);
   return {};
+}
+
+// Opens the disc in an optical drive and alert on any failure.
+// is_cancelled is polled while the drive spins up.
+std::unique_ptr<BootParameters>
+BootParameters::GenerateFromOpticalDrive(std::string drive, BootSessionData boot_session_data_,
+                                         const std::function<bool()>& is_cancelled)
+{
+  DiscIO::OpticalDiscError error = DiscIO::OpticalDiscError::None;
+  std::unique_ptr<DiscIO::VolumeDisc> disc =
+      DiscIO::CreateOpticalDiscForCore(drive, &error, is_cancelled);
+  if (!disc)
+  {
+    const std::string message = DiscIO::GetOpticalDiscErrorMessage(error, drive);
+    if (!message.empty())
+    {
+      ERROR_LOG_FMT(BOOT, "{}", message);
+      PanicAlertFmt("{}", message);
+    }
+    return {};
+  }
+
+  return std::make_unique<BootParameters>(Disc{std::move(drive), std::move(disc), {}},
+                                          std::move(boot_session_data_));
 }
 
 BootParameters::IPL::IPL(DiscIO::Region region_) : region(region_)
@@ -529,6 +559,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       NOTICE_LOG_FMT(BOOT, "Booting from disc: {}", disc.path);
       const DiscIO::VolumeDisc* volume =
           SetDisc(system.GetDVDInterface(), std::move(disc.volume), disc.auto_disc_change_paths);
+      system.GetDVDInterface().SetInsertedDiscPath(disc.path);
       AchievementManager::GetInstance().LoadGame(volume);
 
       if (!volume)

@@ -21,6 +21,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/SCSIDevice.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/CommonTitles.h"
@@ -53,6 +54,7 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/NANDRepairDialog.h"
+#include "DolphinQt/OpticalDriveWatcher.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
@@ -116,6 +118,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // File
   m_eject_disc->setEnabled(running);
   m_change_disc->setEnabled(running);
+  if (m_optical_disc_menu)
+    m_optical_disc_menu->menuAction()->setEnabled(!running);
 
   // Emulation
   m_play_action->setEnabled(!playing);
@@ -250,6 +254,8 @@ void MenuBar::AddFileMenu()
   m_change_disc = file_menu->addAction(tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
   m_eject_disc = file_menu->addAction(tr("&Eject Disc"), this, &MenuBar::EjectDisc);
 
+  AddOpticalDiscMenu(file_menu);
+
   file_menu->addSeparator();
 
   m_open_user_folder =
@@ -271,6 +277,58 @@ void MenuBar::AddFileMenu()
 
   m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
   m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT | Qt::Key_F4)});
+}
+
+static QString GetOpticalDriveMenuLabel(const OpticalDriveWatcher::Drive& drive)
+{
+  QString label = OpticalDriveWatcher::GetLabel(drive);
+  label.replace(QLatin1Char('&'), QStringLiteral("&&"));
+  return label;
+}
+
+void MenuBar::AddOpticalDiscMenu(QMenu* file_menu)
+{
+  // Operating systems without a SCSI implementation get no entry at all.
+  if (!Common::SCSIDevice::IsSupported())
+    return;
+
+  m_optical_disc_menu = file_menu->addMenu(tr("&Boot from Optical Disc"));
+  m_optical_drive_watcher = new OpticalDriveWatcher(this);
+
+  // Rebuild the list every time the submenu opens, so drives connected later show up, and stop
+  // watching the drives once it closes.
+  connect(m_optical_disc_menu, &QMenu::aboutToShow, this, &MenuBar::PopulateOpticalDiscMenu);
+  connect(m_optical_disc_menu, &QMenu::aboutToHide, m_optical_drive_watcher,
+          &OpticalDriveWatcher::Stop);
+  connect(m_optical_drive_watcher, &OpticalDriveWatcher::DriveUpdated, this,
+          &MenuBar::UpdateOpticalDriveEntry);
+}
+
+void MenuBar::PopulateOpticalDiscMenu()
+{
+  m_optical_disc_menu->clear();
+
+  m_optical_drive_watcher->Refresh();
+  const std::vector<OpticalDriveWatcher::Drive>& drives = m_optical_drive_watcher->GetDrives();
+  if (drives.empty())
+  {
+    m_optical_disc_menu->addAction(tr("No optical drives found"))->setEnabled(false);
+    return;
+  }
+
+  for (const OpticalDriveWatcher::Drive& drive : drives)
+  {
+    const QString path = QString::fromStdString(drive.path);
+    m_optical_disc_menu->addAction(GetOpticalDriveMenuLabel(drive), this,
+                                   [this, path] { emit BootOpticalDisc(path); });
+  }
+}
+
+void MenuBar::UpdateOpticalDriveEntry(int index)
+{
+  const QList<QAction*> actions = m_optical_disc_menu->actions();
+  if (index < actions.size())
+    actions[index]->setText(GetOpticalDriveMenuLabel(m_optical_drive_watcher->GetDrives()[index]));
 }
 
 void MenuBar::AddToolsMenu()

@@ -16,6 +16,7 @@
 #include "Common/HookableEvent.h"
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
+class OpticalDriveWatcher;
 class QMenu;
 class ParallelProgressDialog;
 
@@ -60,6 +61,7 @@ signals:
   void Open();
   void Exit();
   void ChangeDisc();
+  void BootOpticalDisc(const QString& drive);
   void EjectDisc();
   void OpenUserFolder();
   void OpenConfigFolder();
@@ -142,6 +144,9 @@ private:
   void OnConfigChanged();
 
   void AddFileMenu();
+  void AddOpticalDiscMenu(QMenu* file_menu);
+  void PopulateOpticalDiscMenu();
+  void UpdateOpticalDriveEntry(int index);
 
   void AddEmulationMenu();
   void AddStateLoadMenu(QMenu* emu_menu);
@@ -211,7 +216,8 @@ private:
   QAction* m_exit_action;
   QAction* m_change_disc;
   QAction* m_eject_disc;
-  QMenu* m_backup_menu;
+  QMenu* m_optical_disc_menu = nullptr;
+  OpticalDriveWatcher* m_optical_drive_watcher = nullptr;
   QAction* m_open_user_folder;
   QAction* m_open_config_folder;
   QAction* m_open_cache_folder;

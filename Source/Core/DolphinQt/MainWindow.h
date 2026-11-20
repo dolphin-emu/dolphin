@@ -217,6 +217,7 @@ private:
 
   void ChangeDisc();
   void EjectDisc();
+  void BootOpticalDisc(const QString& drive);
 
   void OpenUserFolder();
   void OpenConfigFolder();
@@ -251,6 +252,7 @@ private:
   bool m_fullscreen_requested = false;
   bool m_is_screensaver_inhibited = false;
   std::unique_ptr<BootParameters> m_pending_boot;
+  std::optional<std::string> m_optical_drive;
 
   SettingsWindow* m_settings_window = nullptr;
   // m_fifo_window doesn't set MainWindow as its parent so that the fifo can be focused without

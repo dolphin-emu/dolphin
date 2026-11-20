@@ -136,6 +136,8 @@ add_library(common
   RangeSet.h
   RangeSizeSet.h
   ScopeGuard.h
+  SCSIDevice.cpp
+  SCSIDevice.h
   SDCardUtil.cpp
   SDCardUtil.h
   SettingsHandler.cpp

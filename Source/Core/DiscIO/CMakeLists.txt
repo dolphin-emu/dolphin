@@ -15,6 +15,8 @@ add_library(discio
   DiscScrubber.h
   DiscUtils.cpp
   DiscUtils.h
+  DVDScrambler.cpp
+  DVDScrambler.h
   Enums.cpp
   Enums.h
   FileBlob.cpp
@@ -32,6 +34,10 @@ add_library(discio
   NANDImporter.h
   NFSBlob.cpp
   NFSBlob.h
+  OmniDrive.cpp
+  OmniDrive.h
+  OpticalDiscBlob.cpp
+  OpticalDiscBlob.h
   RiivolutionParser.cpp
   RiivolutionParser.h
   RiivolutionPatcher.cpp
