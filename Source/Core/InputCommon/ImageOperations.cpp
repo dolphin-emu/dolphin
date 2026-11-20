@@ -21,25 +21,43 @@ Pixel SampleNearest(const ImagePixelData& src, double u, double v)
   const u32 y = std::clamp(static_cast<u32>(v * src.height), 0u, src.height - 1);
   return src.pixels[x + y * src.width];
 }
+
+bool IsRegionValid(const ImagePixelData& image, const Rect& region)
+{
+  if (region.left > region.right || region.top > region.bottom || region.right > image.width ||
+      region.bottom > image.height)
+  {
+    return false;
+  }
+
+  return image.height == 0 ||
+         static_cast<size_t>(image.width) <= image.pixels.size() / image.height;
+}
 }  // namespace
 
-void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
+bool CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
                      const Rect& dst_region)
 {
-  if (src_region.GetWidth() != dst_region.GetWidth() ||
+  if (!IsRegionValid(src, src_region) || !IsRegionValid(dst, dst_region) ||
+      src_region.GetWidth() != dst_region.GetWidth() ||
       src_region.GetHeight() != dst_region.GetHeight())
   {
-    return;
+    return false;
   }
 
   for (u32 x = 0; x < dst_region.GetWidth(); x++)
   {
     for (u32 y = 0; y < dst_region.GetHeight(); y++)
     {
-      dst.pixels[(y + dst_region.top) * dst.width + x + dst_region.left] =
-          src.pixels[(y + src_region.top) * src.width + x + src_region.left];
+      const size_t dst_index =
+          static_cast<size_t>(y + dst_region.top) * dst.width + x + dst_region.left;
+      const size_t src_index =
+          static_cast<size_t>(y + src_region.top) * src.width + x + src_region.left;
+      dst.pixels[dst_index] = src.pixels[src_index];
     }
   }
+
+  return true;
 }
 
 std::optional<ImagePixelData> LoadImage(const std::string& path)
@@ -156,8 +174,8 @@ ImagePixelData ResizeKeepAspectRatio(ResizeMode mode, const ImagePixelData& src,
     }
     resized = Resize(mode, src, corrected_width, new_height);
   }
-  CopyImageRegion(resized, result, Rect{0, 0, resized.width, resized.height},
-                  Rect{left, top, left + resized.width, top + resized.height});
+  (void)CopyImageRegion(resized, result, Rect{0, 0, resized.width, resized.height},
+                        Rect{left, top, left + resized.width, top + resized.height});
 
   return result;
 }

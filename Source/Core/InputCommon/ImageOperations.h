@@ -44,7 +44,7 @@ struct ImagePixelData
   u32 height = 0;
 };
 
-void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
+bool CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
                      const Rect& dst_region);
 
 std::optional<ImagePixelData> LoadImage(const std::string& path);
