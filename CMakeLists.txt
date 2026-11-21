@@ -32,6 +32,7 @@ include(CheckSymbolExists)
 include(DolphinCompileDefinitions)
 include(DolphinDisableWarnings)
 include(DolphinLibraryTools)
+include(DolphinWinUtils)
 include(GNUInstallDirs)
 include(RemoveCompileFlag)
 
