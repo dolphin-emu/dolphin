@@ -10,9 +10,11 @@
 #include <string>
 #include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Hash.h"
+#include "Common/WorkQueueThread.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Volume.h"
@@ -154,7 +156,7 @@ private:
   void CheckMisc();
   void CheckSuperPaperMario();
   void SetUpHashing();
-  void WaitForAsyncOperations() const;
+  void WaitForAsyncOperations();
   bool ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read);
 
   void AddProblem(Severity severity, std::string text);
@@ -178,12 +180,12 @@ private:
   std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 
   u64 m_excess_bytes = 0;
-  std::vector<u8> m_data;
-  std::future<void> m_crc32_future;
-  std::future<void> m_md5_future;
-  std::future<void> m_sha1_future;
-  std::future<void> m_content_future;
-  std::future<void> m_group_future;
+  Common::UniqueBuffer<u8> m_data;
+  Common::WorkQueueThreadSP<u64> m_crc32_worker;
+  Common::WorkQueueThreadSP<u64> m_md5_worker;
+  Common::WorkQueueThreadSP<u64> m_sha1_worker;
+  Common::AsyncWorkThreadSP m_content_worker;
+  Common::AsyncWorkThreadSP m_group_worker;
 
   DiscScrubber m_scrubber;
   IOS::ES::TicketReader m_ticket;

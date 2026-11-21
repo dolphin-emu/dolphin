@@ -16,6 +16,7 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/System.h"
 #include "DiscIO/Volume.h"
@@ -167,6 +168,8 @@ void VerifyWidget::Verify()
   progress.GetRaw()->setMinimumDuration(500);
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
+  const auto verification_start_time = Clock::now();
+
   auto future =
       std::async(std::launch::async,
                  [&verifier, &progress]() -> std::optional<DiscIO::VolumeVerifier::Result> {
@@ -190,6 +193,11 @@ void VerifyWidget::Verify()
   std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
   if (!result)
     return;
+
+  const auto verification_duration = Clock::now() - verification_start_time;
+
+  INFO_LOG_FMT(COMMON, "Verification duration: {:.2f} seconds.",
+               DT_s{verification_duration}.count());
 
   m_summary_text->setText(QString::fromStdString(result->summary_text));
 
