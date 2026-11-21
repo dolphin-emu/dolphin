@@ -9,6 +9,7 @@
 #include <type_traits>
 
 // TODO C++23: Replace with std::move_only_function.
+// FYI: Still no support from Clang libc++ or Apple Clang.
 
 namespace Common
 {

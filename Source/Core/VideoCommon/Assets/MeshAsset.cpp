@@ -211,8 +211,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
       ERROR_LOG_FMT(VIDEO, "Mesh '{}' has invalid stride", mesh_file);
       return false;
     }
-    // TODO C++23: use make_unique_overwrite
-    chunk.indices = std::unique_ptr<u16[]>(new u16[index_accessor.count]);
+    chunk.indices = std::make_unique_for_overwrite<u16[]>(index_accessor.count);
     auto index_src = &index_buffer.data[index_accessor.byteOffset + index_buffer_view.byteOffset];
     for (std::size_t i = 0; i < index_accessor.count; i++)
     {
@@ -287,8 +286,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     std::size_t outbound_offset = 0;
     const tinygltf::Accessor& pos_accessor = model.accessors[position_it->second];
     chunk.num_vertices = static_cast<u32>(pos_accessor.count);
-    // TODO C++23: use make_unique_overwrite
-    chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
+    chunk.vertex_data =
+        std::make_unique_for_overwrite<u8[]>(chunk.num_vertices * chunk.vertex_stride);
     if (!CopyBufferDataFromPrimitive(model, position_it->second, &outbound_offset, &chunk))
       return false;
     chunk.components_available = 0;
@@ -529,8 +528,8 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
     std::memcpy(&chunk.vertex_stride, raw_data.data() + offset, sizeof(u32));
     offset += sizeof(u32);
 
-    // TODO C++23: use make_unique_overwrite
-    chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
+    chunk.vertex_data =
+        std::make_unique_for_overwrite<u8[]>(chunk.num_vertices * chunk.vertex_stride);
     std::memcpy(chunk.vertex_data.get(), raw_data.data() + offset,
                 chunk.num_vertices * chunk.vertex_stride);
     offset += chunk.num_vertices * chunk.vertex_stride;
@@ -538,8 +537,7 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
     std::memcpy(&chunk.num_indices, raw_data.data() + offset, sizeof(u32));
     offset += sizeof(u32);
 
-    // TODO C++23: use make_unique_overwrite
-    chunk.indices = std::unique_ptr<u16[]>(new u16[chunk.num_indices]);
+    chunk.indices = std::make_unique_for_overwrite<u16[]>(chunk.num_indices);
     std::memcpy(chunk.indices.get(), raw_data.data() + offset, chunk.num_indices * sizeof(u16));
     offset += chunk.num_indices * sizeof(u16);
 

@@ -348,7 +348,7 @@ void SetUserDirectory(std::string custom_path)
 
     size = 0;
     RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
-    configPath = std::make_unique<TCHAR[]>(size / sizeof(TCHAR));
+    configPath = std::make_unique_for_overwrite<TCHAR[]>(size / sizeof(TCHAR));
     if (RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(configPath.get()), &size) != ERROR_SUCCESS)
     {

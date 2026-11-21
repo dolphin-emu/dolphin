@@ -44,7 +44,7 @@ MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot,
     // Measure size of the existing memcard file.
     m_memory_card_size = (u32)file.GetSize();
     m_nintendo_card_id = m_memory_card_size / SIZE_TO_Mb;
-    m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
+    m_memcard_data = std::make_unique_for_overwrite<u8[]>(m_memory_card_size);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
 
     INFO_LOG_FMT(EXPANSIONINTERFACE, "Reading memory card {}", m_filename);
@@ -56,7 +56,7 @@ MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot,
     m_nintendo_card_id = size_mbits;
     m_memory_card_size = size_mbits * SIZE_TO_Mb;
 
-    m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
+    m_memcard_data = std::make_unique_for_overwrite<u8[]>(m_memory_card_size);
 
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
     const auto& sram = Core::System::GetInstance().GetSRAM();
@@ -77,7 +77,7 @@ MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot,
 
   // Class members (including inherited ones) have now been initialized, so
   // it's safe to startup the flush thread (which reads them).
-  m_flush_buffer = std::make_unique<u8[]>(m_memory_card_size);
+  m_flush_buffer = std::make_unique_for_overwrite<u8[]>(m_memory_card_size);
   m_flush_thread = std::thread(&MemoryCard::FlushThread, this);
 }
 

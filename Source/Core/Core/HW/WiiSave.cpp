@@ -449,7 +449,7 @@ private:
     Common::SHA1::Digest data_sha1;
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
-      auto data = std::make_unique<u8[]>(data_size);
+      auto data = std::make_unique_for_overwrite<u8[]>(data_size);
       m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
