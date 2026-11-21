@@ -54,6 +54,9 @@ public:
   }
   VkResult AcquireNextImage();
 
+  // Sets the size in pixels to use where the surface can't be queried for it (Wayland). Takes
+  // effect when the swap chain is next created.
+  void SetSurfaceSize(int width, int height);
   bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
   bool RecreateSwapChain();

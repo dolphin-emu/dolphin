@@ -44,6 +44,8 @@ enum class DeviceRemoval
   Keep,
 };
 
+class DeviceQualifier;
+
 class Device
 {
 public:
@@ -151,6 +153,10 @@ public:
   // Every platform should have at least one device with priority >= 0.
   static constexpr int DEFAULT_DEVICE_SORT_PRIORITY = std::numeric_limits<int>::max();
   virtual int GetSortPriority() const { return 0; }
+
+  // Lets a device be found by a qualifier of a device it replaces when that one isn't present,
+  // so that configurations made with another backend for the same hardware keep working.
+  virtual bool CanStandInFor(const DeviceQualifier&) const { return false; }
 
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }

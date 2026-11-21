@@ -95,6 +95,7 @@ public:
   SurfaceInfo GetSurfaceInfo() const override;
 
 private:
+  void ApplySurfaceSize();
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
 

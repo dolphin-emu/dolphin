@@ -267,7 +267,7 @@ void PlatformX11::ProcessEvents()
     case ConfigureNotify:
     {
       if (g_presenter)
-        g_presenter->ResizeSurface();
+        g_presenter->ResizeSurface(event.xconfigure.width, event.xconfigure.height);
     }
     break;
     }

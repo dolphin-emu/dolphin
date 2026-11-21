@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <tuple>
+#include <utility>
 
 class AbstractTexture;
 struct SurfaceInfo;
@@ -48,9 +49,6 @@ public:
 
   void ConfigChanged(u32 changed_bits);
 
-  // Window resolution (display resolution if fullscreen)
-  int GetBackbufferWidth() const { return m_backbuffer_width; }
-  int GetBackbufferHeight() const { return m_backbuffer_height; }
   float GetBackbufferScale() const { return m_backbuffer_scale; }
   u32 AutoIntegralScale() const;
   AbstractTextureFormat GetBackbufferFormat() const { return m_backbuffer_format; }
@@ -92,10 +90,15 @@ public:
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface();
+  // The size is in pixels. Window systems that can't be queried for it (Wayland) rely on it.
+  void ResizeSurface(int width, int height);
   bool SurfaceResizedTestAndClear() { return m_surface_resized.TestAndClear(); }
   bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
   void* GetNewSurfaceHandle();
+  // The size the window last reported with ResizeSurface, or zero if it hasn't yet. Like the new
+  // surface handle, this is a request for the backend, which then reports the size of the surface
+  // it actually created with SetBackbuffer.
+  std::pair<int, int> GetNewSurfaceSize();
 
   void SetKeyMap(const DolphinKeyMap& key_map);
 
@@ -141,6 +144,8 @@ private:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
   void* m_new_surface_handle = nullptr;
+  int m_new_surface_width = 0;
+  int m_new_surface_height = 0;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
 

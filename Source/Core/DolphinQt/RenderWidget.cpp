@@ -17,6 +17,10 @@
 #include <QTimer>
 #include <QWindow>
 
+#ifdef HAVE_WAYLAND_PROTOCOLS
+#include "Common/Wayland/ContentType.h"
+#endif
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
@@ -24,6 +28,7 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -35,6 +40,29 @@
 #include <windows.h>
 #include <dwmapi.h>
 #endif
+
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__HAIKU__)
+#include <qpa/qplatformnativeinterface.h>
+#endif
+
+namespace
+{
+// The handle the video backends and controller interface use to identify the render surface.
+// On most platforms this is the window id, but a Wayland window is identified by its wl_surface,
+// which is not what Qt calls the window id.
+void* GetRenderSurfaceHandle(QWidget* widget)
+{
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__HAIKU__)
+  if (QtUtils::IsWayland())
+  {
+    QWindow* const window = widget->windowHandle();
+    QPlatformNativeInterface* const pni = QGuiApplication::platformNativeInterface();
+    return (window && pni) ? pni->nativeResourceForWindow("surface", window) : nullptr;
+  }
+#endif
+  return reinterpret_cast<void*>(widget->winId());
+}
+}  // namespace
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -92,6 +120,15 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
   setAttribute(Qt::WA_PaintOnScreen);
+
+  if (QtUtils::IsWayland())
+  {
+    // By default Qt makes the ancestors of a native widget native too, and never reverts that. The
+    // game list container would then stay a subsurface after the first game, and a subsurface is
+    // drawn above everything on the main window's surface, including the grab area of the dock
+    // separators. Parent the render surface directly to the main window's surface instead.
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
+  }
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
@@ -212,7 +249,7 @@ void RenderWidget::showFullScreen()
 
   const auto dpr = screen->devicePixelRatio();
 
-  emit SizeChanged(width() * dpr, height() * dpr);
+  emit SizeChanged(width() * dpr, height() * dpr, dpr);
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
@@ -356,6 +393,23 @@ void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)
   }
 }
 
+void RenderWidget::UpdateRenderSurfaceParent()
+{
+  QWindow* const window_handle = windowHandle();
+  if (isWindow() || !window_handle)
+  {
+    g_controller_interface.SetRenderSurfaceParent(nullptr, 0, 0);
+    return;
+  }
+
+  // The position of the subsurface in the main window's surface, which includes the client-side
+  // decorations if there are any.
+  const QMargins margins = window()->windowHandle()->frameMargins();
+  const QPoint position = window_handle->position() + QPoint(margins.left(), margins.top());
+  g_controller_interface.SetRenderSurfaceParent(GetRenderSurfaceHandle(window()), position.x(),
+                                                position.y());
+}
+
 bool RenderWidget::event(QEvent* event)
 {
   PassEventToPresenter(event);
@@ -402,9 +456,55 @@ bool RenderWidget::event(QEvent* event)
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
     break;
-  case QEvent::WinIdChange:
-    emit HandleChanged(reinterpret_cast<void*>(winId()));
+  case QEvent::Enter:
+  case QEvent::CursorChange:
+    // Qt only applies our cursor while the render surface has the pointer, which it doesn't get
+    // while rendering to the main window on Wayland (see WinIdChange). Apply it there instead.
+    // underMouse() can be stale after the widget is shown, so check where the pointer really is.
+    if (QtUtils::IsWayland() && !isWindow() && rect().contains(mapFromGlobal(QCursor::pos())))
+      window()->windowHandle()->setCursor(cursor());
     break;
+  case QEvent::Leave:
+    // Qt doesn't reset the main window's cursor when the pointer leaves a native widget, so the
+    // hidden cursor would stay hidden over the dock separators.
+    if (QtUtils::IsWayland() && !isWindow())
+      window()->windowHandle()->setCursor(window()->cursor());
+    break;
+  case QEvent::WinIdChange:
+  {
+    void* const handle = GetRenderSurfaceHandle(this);
+    // A wl_surface can't report its size, so a new one has to be told.
+    if (QtUtils::IsWayland())
+    {
+      const float dpr = devicePixelRatio();
+      emit SizeChanged(width() * dpr, height() * dpr, dpr);
+
+      // While rendering to the main window, the render surface is a subsurface of the main
+      // window's surface. Compositors may move the pointer focus to a subsurface in the middle of a
+      // drag that started on the main window (like resizing a dock), which ends the drag. So let
+      // the main window's surface take the pointer instead, Qt then passes the events on to us.
+      QWindow* const window_handle = windowHandle();
+      window_handle->setFlag(Qt::WindowTransparentForInput, !isWindow());
+      connect(window_handle, &QWindow::xChanged, this, &RenderWidget::UpdateRenderSurfaceParent,
+              Qt::UniqueConnection);
+      connect(window_handle, &QWindow::yChanged, this, &RenderWidget::UpdateRenderSurfaceParent,
+              Qt::UniqueConnection);
+      UpdateRenderSurfaceParent();
+    }
+#ifdef HAVE_WAYLAND_PROTOCOLS
+    // Compositors use this to enable adaptive sync (VRR) for games, and to prefer low latency.
+    if (handle && QtUtils::IsWayland())
+    {
+      QWindow* const window_handle = windowHandle();
+      void* const display = QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", window_handle);
+      Common::Wayland::SetSurfaceContentTypeGame(static_cast<wl_display*>(display),
+                                                 static_cast<wl_surface*>(handle));
+    }
+#endif
+    emit HandleChanged(handle);
+    break;
+  }
   case QEvent::Show:
     // Don't do if "stay on top" changed (or was true)
     if (Settings::Instance().GetLockCursor() &&
@@ -497,7 +597,7 @@ bool RenderWidget::event(QEvent* event)
       m_last_window_width = width;
       m_last_window_height = height;
       m_last_window_scale = dpr;
-      emit SizeChanged(width, height);
+      emit SizeChanged(width * dpr, height * dpr, dpr);
     }
     break;
   }

@@ -72,6 +72,8 @@ Dolphin includes or links code of the following third-party software projects:
    [zlib license](http://www.sfml-dev.org/license.php)
 - [TAP-Windows](https://openvpn.net/):
    header only
+- [wayland-protocols](https://gitlab.freedesktop.org/wayland/wayland-protocols):
+   [MIT](https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/COPYING)
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):

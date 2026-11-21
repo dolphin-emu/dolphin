@@ -29,7 +29,7 @@ signals:
   void Closed();
   void HandleChanged(void* handle);
   void StateChanged(bool fullscreen);
-  void SizeChanged(int new_width, int new_height);
+  void SizeChanged(int new_width, int new_height, float scale);
   void FocusChanged(bool focus);
 
 private:
@@ -40,6 +40,7 @@ private:
   void OnLockCursorChanged();
   void OnKeepOnTopChanged(bool top);
   void UpdateCursor();
+  void UpdateRenderSurfaceParent();
   void PassEventToPresenter(const QEvent* event);
   void SetPresenterKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;

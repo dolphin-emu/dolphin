@@ -115,7 +115,12 @@
 - (void)windowDidResize:(NSNotification*)notification
 {
   if (g_presenter)
-    g_presenter->ResizeSurface();
+  {
+    NSWindow* window = [notification object];
+    NSView* view = [window contentView];
+    const NSSize size = [view convertSizeToBacking:[view bounds].size];
+    g_presenter->ResizeSurface(static_cast<int>(size.width), static_cast<int>(size.height));
+  }
 }
 @end
 
