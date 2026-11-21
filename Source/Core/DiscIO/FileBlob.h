@@ -32,10 +32,10 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  PlainFileReader(File::DirectIOFile file);
+  explicit PlainFileReader(File::DirectIOFile file);
 
   File::DirectIOFile m_file;
-  u64 m_size;
+  const u64 m_size;
 };
 
 }  // namespace DiscIO
