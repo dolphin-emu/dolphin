@@ -41,6 +41,10 @@ void ConsoleListener::Log(Common::Log::LogLevel level, const char* text)
       // light yellow
       color_attr = "\x1b[93m";
       break;
+    case Common::Log::LogLevel::LINFO:
+      // light cyan
+      color_attr = "\x1b[96m";
+      break;
     default:
       break;
     }
