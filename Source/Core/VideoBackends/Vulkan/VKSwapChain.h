@@ -72,6 +72,8 @@ public:
   // Updates the fullscreen state. Must call on-thread.
   bool SetFullscreenState(bool state);
 
+  bool m_is_recreating_surface = false;
+
 private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
