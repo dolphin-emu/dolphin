@@ -136,6 +136,8 @@ add_executable(dolphin-emu
   Config/LogConfigWidget.h
   Config/LogWidget.cpp
   Config/LogWidget.h
+  Config/Mapping/BalanceBoardGeneral.cpp
+  Config/Mapping/BalanceBoardGeneral.h
   Config/Mapping/FreeLookGeneral.cpp
   Config/Mapping/FreeLookGeneral.h
   Config/Mapping/FreeLookRotation.cpp
@@ -407,6 +409,8 @@ add_executable(dolphin-emu
   SkylanderPortal/SkylanderModifyDialog.h
   SkylanderPortal/SkylanderPortalWindow.cpp
   SkylanderPortal/SkylanderPortalWindow.h
+  TAS/BalanceBoardWidget.cpp
+  TAS/BalanceBoardWidget.h
   TAS/GCTASInputWindow.cpp
   TAS/GCTASInputWindow.h
   TAS/GBATASInputWindow.cpp

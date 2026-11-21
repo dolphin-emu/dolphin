@@ -10,8 +10,6 @@
 
 #include <QDialog>
 
-#include "Common/CommonTypes.h"
-
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
@@ -22,6 +20,8 @@ class QGridLayout;
 class QGroupBox;
 class QLayout;
 class QSpinBox;
+class QDoubleSpinBox;
+class QBoxLayout;
 class QString;
 class QWidget;
 class TASCheckBox;
@@ -70,6 +70,14 @@ protected:
   TASSpinBox* CreateSliderValuePair(QGridLayout* layout, int default_, int max,
                                     const QKeySequence& shortcut_key_sequence,
                                     Qt::Orientation orientation, QWidget* shortcut_widget);
+  QDoubleSpinBox* CreateWeightSliderValuePair(std::string_view group_name,
+                                              std::string_view control_name,
+                                              InputOverrider* overrider, QBoxLayout* layout,
+                                              int min, int max, QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
+  QDoubleSpinBox* CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                              QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
 
   void SetupScrollArea(QLayout* layout);
 
@@ -87,4 +95,7 @@ private:
                                          ControlState controller_state);
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, ControlState controller_state,
                                          ControlState scale);
+  std::optional<ControlState> GetSpinBox(QDoubleSpinBox* spin, ControlState controller_state);
+
+  std::map<QDoubleSpinBox*, u16> m_spinbox_most_recent_values_double;
 };
