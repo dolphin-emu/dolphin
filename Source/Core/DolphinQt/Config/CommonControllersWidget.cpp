@@ -32,11 +32,17 @@ void CommonControllersWidget::CreateLayout()
   m_common_box = new QGroupBox(tr("Common"));
   m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
+  m_common_auto_controller_assignment = new QCheckBox(tr("Auto Controller Assignment"));
+  m_common_auto_controller_assignment->setToolTip(
+      tr("Automatically assign connected SDL controllers to player slots in connection order.\n"
+         "When a controller is disconnected, its slot becomes inactive.\n"
+         "When a controller is connected, it will be assigned to the next available slot."));
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
   m_common_configure_sdl_hints = new NonDefaultQPushButton(tr("SDL Controller Settings"));
 
   m_common_layout->addWidget(m_common_bg_input);
+  m_common_layout->addWidget(m_common_auto_controller_assignment);
   m_common_layout->addWidget(m_common_configure_controller_interface);
   m_common_layout->addWidget(m_common_configure_sdl_hints);
 
@@ -52,6 +58,8 @@ void CommonControllersWidget::CreateLayout()
 void CommonControllersWidget::ConnectWidgets()
 {
   connect(m_common_bg_input, &QCheckBox::toggled, this, &CommonControllersWidget::SaveSettings);
+  connect(m_common_auto_controller_assignment, &QCheckBox::toggled, this,
+          &CommonControllersWidget::SaveSettings);
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
           &CommonControllersWidget::OnControllerInterfaceConfigure);
   connect(m_common_configure_sdl_hints, &QPushButton::clicked, this,
@@ -77,10 +85,14 @@ void CommonControllersWidget::OnSDLHintConfigure()
 void CommonControllersWidget::LoadSettings()
 {
   SignalBlocking(m_common_bg_input)->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
+  SignalBlocking(m_common_auto_controller_assignment)
+      ->setChecked(Config::Get(Config::MAIN_AUTO_CONTROLLER_ASSIGNMENT));
 }
 
 void CommonControllersWidget::SaveSettings()
 {
   Config::SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_AUTO_CONTROLLER_ASSIGNMENT,
+                           m_common_auto_controller_assignment->isChecked());
   Config::Save();
 }

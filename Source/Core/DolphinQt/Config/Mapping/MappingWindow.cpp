@@ -21,11 +21,13 @@
 #include "Core/HotkeyManager.h"
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
@@ -76,6 +78,17 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   CreateMainLayout();
   ConnectWidgets();
   SetMappingType(type);
+
+  // When Auto Controller Assignment is enabled, the input device for each slot is
+  // managed automatically. The user may still remap inputs, but must not be able to
+  // change the device, so disable the device selection combo.
+  if (Config::Get(Config::MAIN_AUTO_CONTROLLER_ASSIGNMENT))
+  {
+    m_devices_combo->setEnabled(false);
+    m_devices_combo->setToolTip(
+        tr("The input device is managed automatically because Auto Controller Assignment is "
+           "enabled."));
+  }
 
   const auto timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, [this, timer] {

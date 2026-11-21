@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/NetPlayProto.h"
@@ -170,6 +171,12 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
 void GamecubeControllersWidget::LoadSettings(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
+
+  // When Auto Controller Assignment is enabled, GameCube controller ports are managed
+  // automatically based on connected SDL controllers, so the type selection must be
+  // greyed out. The Configure button remains usable.
+  const bool auto_assignment = Config::Get(Config::MAIN_AUTO_CONTROLLER_ASSIGNMENT);
+
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const SerialInterface::SIDevices si_device =
@@ -178,7 +185,8 @@ void GamecubeControllersWidget::LoadSettings(Core::State state)
     if (gc_index)
     {
       SignalBlocking(m_gc_controller_boxes[i])->setCurrentIndex(*gc_index);
-      m_gc_controller_boxes[i]->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
+      const bool enable_box = NetPlay::IsNetPlayRunning() ? !running : true;
+      m_gc_controller_boxes[i]->setEnabled(enable_box && !auto_assignment);
       OnGCTypeChanged(i);
     }
   }
