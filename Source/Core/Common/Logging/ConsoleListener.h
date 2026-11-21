@@ -15,6 +15,6 @@ public:
 
 private:
 #if !defined _WIN32 && !defined ANDROID
-  bool m_use_color = false;
+  const bool m_use_color = false;
 #endif
 };
