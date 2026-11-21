@@ -18,6 +18,7 @@ class QListWidget;
 class QPushButton;
 class QString;
 class QVBoxLayout;
+class ToolTipCheckBox;
 
 class WiiPane : public QWidget
 {
@@ -50,7 +51,7 @@ private:
   // Misc Settings
   ConfigBool* m_screensaver_checkbox;
   ConfigBool* m_pal60_mode_checkbox;
-  ConfigBool* m_connect_keyboard_checkbox;
+  ToolTipCheckBox* m_connect_keyboard_checkbox;
   ConfigBool* m_wiilink_checkbox;
   ConfigChoiceU32* m_system_language_choice;
   QLabel* m_system_language_choice_label;
