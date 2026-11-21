@@ -187,7 +187,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
       oss << ' ';
   }
 
-  return oss.str();
+  return std::move(oss).str();
 }
 
 template <typename T>
