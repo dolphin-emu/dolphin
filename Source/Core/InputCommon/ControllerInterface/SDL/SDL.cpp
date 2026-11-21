@@ -4,6 +4,7 @@
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
 #include <span>
+#include <stop_token>
 #include <thread>
 #include <vector>
 
@@ -13,8 +14,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/OneShotEvent.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 
@@ -32,19 +33,15 @@ class InputBackend final : public ciface::InputBackend
 {
 public:
   InputBackend(ControllerInterface* controller_interface);
-  ~InputBackend() override;
   void PopulateDevices() override;
-  void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
 
 private:
   void OpenAndAddDevice(SDL_JoystickID instance_id);
 
-  bool HandleEventAndContinue(const SDL_Event& e);
+  void HandleEventAndContinue(const SDL_Event& e);
 
-  Common::Event m_init_event;
-  Uint32 m_stop_event_type;
-  Uint32 m_populate_event_type;
-  std::thread m_hotplug_thread;
+  Uint32 m_populate_event_type{};
+  std::jthread m_hotplug_thread;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -135,15 +132,15 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 {
   EnableSDLLogging();
 
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_WGI) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_WGI).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_WGI, "0");
 
   // Disable DualSense Player LEDs; We already colorize the Primary LED
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
   // Disabling DirectInput support apparently solves hangs on shutdown for users with
@@ -151,14 +148,14 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   //  and DS4 Controllers, so we leave it enabled for now.
   // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
   //  call within SDL.
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT, "1");
 
   // Pre-populate the default Joy-Con hints so they can be easily changed
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
 
-  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS) == "")
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS).empty())
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "0");
 
   // Disable SDL's GC Adapter handling when we want to handle it ourselves.
@@ -188,29 +185,31 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       SDL_SetHint(location.key.c_str(), value->c_str());
   }
 
-  m_hotplug_thread = std::thread([this] {
-    Common::SetCurrentThreadName("SDL Hotplug Thread");
+  Common::OneShotEvent init_event;
 
-    Common::ScopeGuard quit_guard([] {
-      // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-      SDL_Quit();
-    });
+  m_hotplug_thread = std::jthread([this, &init_event](std::stop_token stoken) {
+    Common::SetCurrentThreadName("SDL Hotplug");
+
+    Uint32 kick_event_type{};
+
+    Common::ScopeGuard quit_guard([] { SDL_Quit(); });
     {
-      Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
+      Common::ScopedSetter init_setter(&init_event);
 
       if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
       {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize: {}", SDL_GetError());
         return;
       }
 
       const Uint32 custom_events_start = SDL_RegisterEvents(2);
-      if (custom_events_start == static_cast<Uint32>(-1))
+      if (custom_events_start == 0)
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
         return;
       }
-      m_stop_event_type = custom_events_start;
+
+      kick_event_type = custom_events_start;
       m_populate_event_type = custom_events_start + 1;
 
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
@@ -220,46 +219,26 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       // hasn't finished initializing yet.
       SDL_Event e;
       while (SDL_PollEvent(&e))
-      {
-        if (!HandleEventAndContinue(e))
-          return;
-      }
+        HandleEventAndContinue(e);
     }
+
+    std::stop_callback stop{stoken, [&] {
+                              SDL_Event kick_event{kick_event_type};
+                              SDL_PushEvent(&kick_event);
+                            }};
 
     SDL_Event e;
-    while (SDL_WaitEvent(&e))
-    {
-      if (!HandleEventAndContinue(e))
-        return;
-    }
+    while (!stoken.stop_requested() && SDL_WaitEvent(&e))
+      HandleEventAndContinue(e);
   });
 
-  m_init_event.Wait();
-}
-
-InputBackend::~InputBackend()
-{
-  if (!m_hotplug_thread.joinable())
-    return;
-
-  SDL_Event stop_event{m_stop_event_type};
-  SDL_PushEvent(&stop_event);
-
-  m_hotplug_thread.join();
+  init_event.Wait();
 }
 
 void InputBackend::PopulateDevices()
 {
-  if (!m_hotplug_thread.joinable())
-    return;
-
   SDL_Event populate_event{m_populate_event_type};
   SDL_PushEvent(&populate_event);
-}
-
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>&)
-{
-  SDL_UpdateGamepads();
 }
 
 void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
@@ -283,7 +262,7 @@ void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
   }
 }
 
-bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
+void InputBackend::HandleEventAndContinue(const SDL_Event& e)
 {
   if (e.type == SDL_EVENT_JOYSTICK_ADDED)
   {
@@ -307,12 +286,6 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
       SDL_free(joystick_ids);
     });
   }
-  else if (e.type == m_stop_event_type)
-  {
-    return false;
-  }
-
-  return true;
 }
 
 }  // namespace ciface::SDL
