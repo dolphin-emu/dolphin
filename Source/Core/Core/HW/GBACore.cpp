@@ -37,7 +37,28 @@
 #include "Core/System.h"
 
 #ifdef ANDROID
+#include <fmt/format.h>
+#include <string>
+
+#include "Common/FileUtil.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+
+namespace HW::GBA::Android
+{
+std::string GetAndroidSavePath(std::string_view rom_path, int device_number)
+{
+  if (!IsPathAndroidContent(rom_path))
+    return "";
+
+  std::string display_name = GetAndroidContentDisplayName(rom_path);
+  std::string_view path_to_use = display_name.empty() ? rom_path : display_name;
+
+  std::string_view stem = path_to_use.substr(0, path_to_use.find_last_of('.'));
+  std::string save_filename = fmt::format("{}-{}.sav", stem, device_number + 1);
+
+  return File::GetUserPath(D_GBASAVES_IDX) + save_filename;
+}
+}  // namespace HW::GBA::Android
 #endif
 
 namespace HW::GBA
@@ -758,6 +779,12 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
 
 std::string Core::GetSavePath(std::string_view rom_path, int device_number)
 {
+#ifdef ANDROID
+  std::string android_path = Android::GetAndroidSavePath(rom_path, device_number);
+  if (!android_path.empty())
+    return android_path;
+#endif
+
   std::string save_path =
       fmt::format("{}-{}.sav", rom_path.substr(0, rom_path.find_last_of('.')), device_number + 1);
 
