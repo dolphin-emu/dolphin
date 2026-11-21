@@ -179,7 +179,7 @@ std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices
     return std::make_unique<CSIDevice_TaruKonga>(system, device, port_number);
 
   case SIDEVICE_GC_GBA:
-    return std::make_unique<CSIDevice_GBA>(system, device, port_number);
+    return CreateSIDevice_GBA(system, device, port_number);
 
   case SIDEVICE_GC_GBA_EMULATED:
 #ifdef HAS_LIBMGBA
