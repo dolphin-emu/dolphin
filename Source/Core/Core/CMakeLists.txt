@@ -502,6 +502,8 @@ add_library(core
   NetPlayClient.h
   NetPlayCommon.cpp
   NetPlayCommon.h
+  NetPlayDiscovery.cpp
+  NetPlayDiscovery.h
   NetPlayServer.cpp
   NetPlayServer.h
   NetworkCaptureLogger.cpp
