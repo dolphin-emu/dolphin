@@ -107,7 +107,7 @@ enum Bug
   // Bug: glBufferSubData/glMapBufferRange stalls + OOM
   // Affected devices: Adreno a3xx/Mali-t6xx
   // Started Version: -1
-  // Ended Version: -1
+  // Ended Version: Adreno 494 or earlier
   // Both Adreno and Mali have issues when you call glBufferSubData or glMapBufferRange
   // The driver stalls in each instance no matter what you do
   // Apparently Mali and Adreno share code in this regard since they were written by the same
@@ -155,7 +155,7 @@ enum Bug
   // Bug: Qualcomm has broken boolean negation
   // Affected devices: Adreno
   // Started Version: -1
-  // Ended Version: -1
+  // Ended Version: 494 or earlier
   // Qualcomm has the boolean negation broken in their shader compiler
   // Instead of inverting the boolean value it does a binary negation on the full 32bit register
   // This causes a compare against zero to fail in their shader since it is no longer a 0 or 1 value
@@ -275,7 +275,7 @@ enum Bug
   // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
   // We still resolve this to a R32F texture, as there is no 24-bit format.
   // Started version: -1
-  // Ended version: -1
+  // Ended version: 494 or earlier
   BUG_BROKEN_D32F_CLEAR,
 
   // BUG: Reversed viewport depth range does not work as intended on some Vulkan drivers.
