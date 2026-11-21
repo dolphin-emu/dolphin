@@ -4,9 +4,9 @@
 #pragma once
 
 #include <chrono>
+#include <stop_token>
 #include <string>
 
-#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
 class TimePlayed
@@ -27,6 +27,10 @@ public:
   std::chrono::milliseconds GetTimePlayed(const std::string& game_id) const;
 
   void Reload();
+
+  // Tracks when Core is running to periodically update the time played data file.
+  // Meant to be run on a jthread.
+  static void TimeTrackerThreadFunc(std::stop_token stoken);
 
 private:
   std::string m_ini_path;
