@@ -194,6 +194,7 @@ PRIVATE
   CURL::libcurl
   FatFs
   spng::spng
+  ZLIB::ZLIB
   watcher
   ${VTUNE_LIBRARIES}
 )
