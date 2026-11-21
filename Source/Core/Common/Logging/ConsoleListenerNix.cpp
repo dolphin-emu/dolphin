@@ -12,9 +12,8 @@
 
 #include "Common/Logging/Log.h"
 
-ConsoleListener::ConsoleListener()
+ConsoleListener::ConsoleListener() : m_use_color{isatty(STDERR_FILENO) == 1}
 {
-  m_use_color = !!isatty(fileno(stdout));
 }
 
 ConsoleListener::~ConsoleListener()
