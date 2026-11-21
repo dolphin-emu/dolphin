@@ -299,6 +299,17 @@ void DSPEmitter::rti(const UDSPInstruction opc)
   ReJitConditional(opc, &DSPEmitter::r_rti);
 }
 
+// SWI
+// 0000 0000 0010 0000
+// Software interrupt.
+void DSPEmitter::swi(const UDSPInstruction)
+{
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
+  const u8 irq_bit = 1u << static_cast<u8>(ExceptionType::SoftwareInterrupt);
+  OR(8, M_SDSP_exceptions(), Imm8(irq_bit));
+  WriteBranchExit();
+}
+
 // HALT
 // 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
