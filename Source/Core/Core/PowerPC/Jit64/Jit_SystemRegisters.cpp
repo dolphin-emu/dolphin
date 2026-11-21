@@ -460,15 +460,16 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ, Jump::Near);
 
-  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
+  MOV(32, PPCSTATE(pc), Imm32(js.op->address + 4));
   WriteExternalExceptionExit();
 
   SetJumpTarget(cpInt);
   SetJumpTarget(noExceptionsPending);
   SetJumpTarget(eeDisabled);
 
-  MOV(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+  MOV(32, R(RSCRATCH), Imm32(js.op->address + 4));
   WriteExitDestInRSCRATCH();
+  js.wroteUnconditionalExit = true;
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)

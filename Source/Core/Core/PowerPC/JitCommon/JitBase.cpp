@@ -300,12 +300,12 @@ void JitBase::CleanUpAfterStackFault()
   }
 }
 
-bool JitBase::CanMergeNextInstructions(int count) const
+bool JitBase::CanMergeNextInstructions(u32 count) const
 {
   if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
-  for (int i = 1; i <= count; i++)
+  for (u32 i = 1; i <= count; i++)
   {
     if (IsDebuggingEnabled() &&
         m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))
