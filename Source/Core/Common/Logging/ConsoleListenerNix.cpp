@@ -4,11 +4,10 @@
 #include "Common/Logging/ConsoleListener.h"
 
 #include <cstdio>
-#include <cstring>
+#include <string_view>
 
-#ifndef _WIN32
+#include <stdio.h>  // for f[un]lockfile
 #include <unistd.h>
-#endif
 
 #include "Common/Logging/Log.h"
 
@@ -18,34 +17,43 @@ ConsoleListener::ConsoleListener() : m_use_color{isatty(STDERR_FILENO) == 1}
 
 ConsoleListener::~ConsoleListener()
 {
-  fflush(nullptr);
+  std::fflush(nullptr);
 }
 
 void ConsoleListener::Log(Common::Log::LogLevel level, const char* text)
 {
-  char color_attr[16] = "";
-  char reset_attr[16] = "";
+  std::string_view color_attr;
 
   if (m_use_color)
   {
-    strcpy(reset_attr, "\x1b[0m");
     switch (level)
     {
     case Common::Log::LogLevel::LNOTICE:
       // light green
-      strcpy(color_attr, "\x1b[92m");
+      color_attr = "\x1b[92m";
       break;
     case Common::Log::LogLevel::LERROR:
       // light red
-      strcpy(color_attr, "\x1b[91m");
+      color_attr = "\x1b[91m";
       break;
     case Common::Log::LogLevel::LWARNING:
       // light yellow
-      strcpy(color_attr, "\x1b[93m");
+      color_attr = "\x1b[93m";
       break;
     default:
       break;
     }
+
+    if (!color_attr.empty())
+    {
+      flockfile(stderr);
+      std::fwrite(color_attr.data(), 1, color_attr.size(), stderr);
+      std::fputs(text, stderr);
+      std::fputs("\x1b[0m", stderr);
+      funlockfile(stderr);
+      return;
+    }
   }
-  fprintf(stderr, "%s%s%s", color_attr, text, reset_attr);
+
+  std::fputs(text, stderr);
 }
