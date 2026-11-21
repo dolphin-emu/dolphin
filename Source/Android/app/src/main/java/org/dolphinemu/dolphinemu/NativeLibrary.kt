@@ -197,6 +197,12 @@ object NativeLibrary {
         const val WIIMOTE_GYRO_ROLL_RIGHT = 634
         const val WIIMOTE_GYRO_YAW_LEFT = 635
         const val WIIMOTE_GYRO_YAW_RIGHT = 636
+        const val GBA_BUTTON_A = 700
+        const val GBA_BUTTON_B = 701
+        const val GBA_BUTTON_START = 702
+        const val GBA_BUTTON_SELECT = 703
+        const val GBA_BUTTON_L = 704
+        const val GBA_BUTTON_R = 705
     }
 
     object ButtonState {
