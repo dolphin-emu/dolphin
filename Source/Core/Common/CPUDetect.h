@@ -47,7 +47,8 @@ struct CPUInfo
   bool bSHA2 = false;
 
   // ARMv8 specific
-  bool bAFP = false;  // Alternate floating-point behavior
+  bool bAFP = false;   // Alternate floating-point behavior
+  bool bCSSC = false;  // Common Short Sequence Compression
 
   // Call Detect()
   explicit CPUInfo();
