@@ -4,10 +4,12 @@
 #pragma once
 
 #include <array>
+#include <future>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -228,7 +230,10 @@ private:
   void GetSettings();
   void CheckInputEnd();
 
+  // Spawns m_md5_thread to verify MD5 in header against the current game.
   void CheckMD5();
+
+  // Spawns m_md5_thread to set m_calculated_md5 based on the current game.
   void GetMD5();
 
   bool m_read_only = true;
@@ -257,7 +262,6 @@ private:
   bool m_reset = false;
   std::string m_author;
   std::string m_disc_change_filename;
-  std::array<u8, 16> m_md5{};
   u8 m_bongos = 0;
   u8 m_memcards = 0;
   std::array<u8, 20> m_revision{};
@@ -274,6 +278,9 @@ private:
   std::array<std::string, 8> m_input_display;
 
   Core::System& m_system;
+
+  std::future<std::array<u8, 16>> m_calculated_md5{};
+  std::jthread m_md5_thread;
 };
 
 }  // namespace Movie
