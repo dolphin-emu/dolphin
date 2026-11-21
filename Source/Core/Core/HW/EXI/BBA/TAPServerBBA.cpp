@@ -6,12 +6,43 @@
 #include <cstring>
 
 #include "Common/Logging/Log.h"
+#include "Core/HW/EXI/BBA/TAP.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 
 namespace ExpansionInterface
 {
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateTAPNetworkInterface(CEXIETHERNET* eth_ref)
+{
+  return std::make_unique<TAPNetworkInterface>(eth_ref);
+}
 
-CEXIETHERNET::TAPServerNetworkInterface::TAPServerNetworkInterface(CEXIETHERNET* eth_ref,
-                                                                   const std::string& destination)
+class TAPServerNetworkInterface : public CEXIETHERNET::NetworkInterface
+{
+public:
+  TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
+
+  bool Activate() override;
+  void Deactivate() override;
+  bool IsActivated() override;
+  bool SendFrame(const u8* frame, u32 size) override;
+  bool RecvInit() override;
+  void RecvStart() override;
+  void RecvStop() override;
+
+private:
+  TAPServerConnection m_tapserver_if;
+
+  void HandleReceivedFrame(std::string&& data);
+};
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateTAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination)
+{
+  return std::make_unique<TAPServerNetworkInterface>(eth_ref, destination);
+}
+
+TAPServerNetworkInterface::TAPServerNetworkInterface(CEXIETHERNET* eth_ref,
+                                                     const std::string& destination)
     : NetworkInterface(eth_ref),
       m_tapserver_if(
           destination,
@@ -20,37 +51,37 @@ CEXIETHERNET::TAPServerNetworkInterface::TAPServerNetworkInterface(CEXIETHERNET*
 {
 }
 
-bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
+bool TAPServerNetworkInterface::Activate()
 {
   return m_tapserver_if.Activate();
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::Deactivate()
+void TAPServerNetworkInterface::Deactivate()
 {
   m_tapserver_if.Deactivate();
 }
 
-bool CEXIETHERNET::TAPServerNetworkInterface::IsActivated()
+bool TAPServerNetworkInterface::IsActivated()
 {
   return m_tapserver_if.IsActivated();
 }
 
-bool CEXIETHERNET::TAPServerNetworkInterface::RecvInit()
+bool TAPServerNetworkInterface::RecvInit()
 {
   return m_tapserver_if.RecvInit();
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::RecvStart()
+void TAPServerNetworkInterface::RecvStart()
 {
   m_tapserver_if.RecvStart();
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::RecvStop()
+void TAPServerNetworkInterface::RecvStop()
 {
   m_tapserver_if.RecvStop();
 }
 
-bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool TAPServerNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   const bool ret = m_tapserver_if.SendFrame(frame, size);
   if (ret)
@@ -58,7 +89,7 @@ bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 siz
   return ret;
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data)
+void TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data)
 {
   if (data.size() > BBA_RECV_SIZE)
   {

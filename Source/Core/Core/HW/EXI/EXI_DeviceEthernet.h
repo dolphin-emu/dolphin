@@ -4,25 +4,7 @@
 #pragma once
 
 #include <atomic>
-#include <map>
-#include <mutex>
-#include <thread>
-#include <vector>
-#include "SFML/Network/IpAddress.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#include <SFML/Network.hpp>
-#ifdef HAVE_CPPIPC
-#include <libipc/ipc.h>
-#endif
-
-#include "Common/Flag.h"
-#include "Common/Network.h"
-#include "Core/HW/EXI/BBA/BuiltIn.h"
-#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -217,6 +199,12 @@ enum class BBADeviceType
 
 class CEXIETHERNET : public IEXIDevice
 {
+  friend class BuiltInBBAInterface;
+  friend class IPCBBAInterface;
+  friend class TAPNetworkInterface;
+  friend class TAPServerNetworkInterface;
+  friend class XLinkNetworkInterface;
+
 public:
   CEXIETHERNET(Core::System& system, BBADeviceType type);
   ~CEXIETHERNET() override;
@@ -228,6 +216,24 @@ public:
   void DMAWrite(u32 addr, u32 size) override;
   void DMARead(u32 addr, u32 size) override;
   void DoState(PointerWrap& p) override;
+
+  class NetworkInterface
+  {
+  public:
+    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
+    virtual ~NetworkInterface() = default;
+
+    virtual bool Activate() { return false; }
+    virtual void Deactivate() {}
+    virtual bool IsActivated() { return false; }
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
+    virtual bool RecvInit() { return false; }
+    virtual void RecvStart() {}
+    virtual void RecvStop() {}
+
+  protected:
+    CEXIETHERNET* const m_eth_ref = nullptr;
+  };
 
 private:
   struct
@@ -314,209 +320,24 @@ private:
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
 
-  class NetworkInterface
-  {
-  protected:
-    CEXIETHERNET* m_eth_ref = nullptr;
-    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
-
-  public:
-    virtual bool Activate() { return false; }
-    virtual void Deactivate() {}
-    virtual bool IsActivated() { return false; }
-    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
-    virtual bool RecvInit() { return false; }
-    virtual void RecvStart() {}
-    virtual void RecvStop() {}
-
-    virtual ~NetworkInterface() = default;
-  };
-
-  class TAPNetworkInterface : public NetworkInterface
-  {
-  public:
-    explicit TAPNetworkInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref) {}
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  protected:
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
-    std::thread readThread;
-    Common::Flag readEnabled;
-    Common::Flag readThreadShutdown;
-    static void ReadThreadHandler(TAPNetworkInterface* self);
-#endif
-#if defined(_WIN32)
-    HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-    OVERLAPPED mReadOverlapped = {};
-    OVERLAPPED mWriteOverlapped = {};
-    std::vector<u8> mWriteBuffer;
-    bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-    int fd = -1;
-#endif
-  };
-
-  class TAPServerNetworkInterface : public NetworkInterface
-  {
-  public:
-    TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    TAPServerConnection m_tapserver_if;
-
-    void HandleReceivedFrame(std::string&& data);
-  };
-
-  class XLinkNetworkInterface : public NetworkInterface
-  {
-  public:
-    XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
-                          std::string identifier, bool chat_osd_enabled)
-        : NetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
-          m_client_identifier(identifier), m_chat_osd_enabled(chat_osd_enabled)
-    {
-    }
-
-  public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    std::string m_dest_ip;
-    int m_dest_port;
-    std::string m_client_identifier;
-    bool m_chat_osd_enabled;
-    bool m_bba_link_up = false;
-    bool m_bba_failure_notified = false;
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    sf::UdpSocket m_sf_socket;
-    sf::IpAddress m_sf_recipient_ip = sf::IpAddress::Any;
-    char m_in_frame[9004]{};
-    char m_out_frame[9004]{};
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-    static void ReadThreadHandler(XLinkNetworkInterface* self);
-#endif
-  };
-
-  class BuiltInBBAInterface : public NetworkInterface
-  {
-  public:
-    BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
-        : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip)), m_local_ip(std::move(local_ip))
-    {
-    }
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    std::string m_mac_id;
-    std::string m_dns_ip;
-    bool m_active = false;
-    u16 m_ip_frame_id = 0;
-    u8 m_queue_read = 0;
-    u8 m_queue_write = 0;
-    std::array<std::vector<u8>, 16> m_queue_data;
-    std::mutex m_mtx;
-    std::string m_local_ip;
-    u32 m_current_ip = 0;
-    Common::MACAddress m_current_mac{};
-    u32 m_router_ip = 0;
-    Common::MACAddress m_router_mac{};
-    std::map<u32, Common::MACAddress> m_arp_table;
-    sf::TcpListener m_upnp_httpd;
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    NetworkRef m_network_ref;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-    static void ReadThreadHandler(BuiltInBBAInterface* self);
-#endif
-    void WriteToQueue(std::vector<u8> data);
-    bool WillQueueOverrun() const;
-    void PollData(std::size_t* datasize);
-    std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
-
-    void HandleARP(const Common::ARPPacket& packet);
-    void HandleDHCP(const Common::UDPPacket& packet);
-    void HandleTCPFrame(const Common::TCPPacket& packet);
-    void InitUDPPort(u16 port);
-    void HandleUDPFrame(const Common::UDPPacket& packet);
-    void HandleUPnPClient();
-    const Common::MACAddress& ResolveAddress(u32 inet_ip);
-  };
-
-  class IPCBBAInterface : public NetworkInterface
-  {
-  public:
-    explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
-
-#ifdef HAVE_CPPIPC
-
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
-
-  private:
-    void ReadThreadHandler();
-
-    bool m_active{};
-    ipc::channel m_channel;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_thread_shutdown;
-
-#else
-
-    bool Activate() override { return false; }
-    void Deactivate() override {}
-    bool IsActivated() override { return false; }
-    bool SendFrame(const u8* const frame, const u32 size) override { return false; }
-    bool RecvInit() override { return false; }
-    void RecvStart() override {}
-    void RecvStop() override {}
-
-#endif
-  };
-
   std::unique_ptr<NetworkInterface> m_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;
 };
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateBuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateIPCBBAInterface(CEXIETHERNET* eth_ref);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface> CreateTAPNetworkInterface(CEXIETHERNET* eth_ref);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateTAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
+
+std::unique_ptr<CEXIETHERNET::NetworkInterface>
+CreateXLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                            std::string identifier, bool chat_osd_enabled);
+
 }  // namespace ExpansionInterface
