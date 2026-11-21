@@ -68,8 +68,7 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
   if (!instance->IsEnabled(type, level) || !instance->IsAnyListenerEnabled())
     return;
 
-  const auto message = fmt::vformat(format, args);
-  instance->Log(level, type, file, line, message);
+  instance->Log(level, type, file, line, fmt::vformat(format, args));
 }
 
 static consteval size_t GetPathCutOffPoint()
@@ -191,31 +190,70 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(LogLevel level, LogType type, const char* file, int line,
-                     std::string_view message)
+void LogManager::Log(LogLevel level, LogType type, const char* file, int line, std::string message)
 {
-  LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
+  LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, std::move(message));
 }
 
 void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                                 std::string_view message)
+                                 std::string message)
 {
-  // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log line,
-  // so ensure they stay in sync
-
-  // We want milliseconds *and not hours*, so can't directly use STL formatters
   const auto now = std::chrono::system_clock::now();
-  const auto now_s = std::chrono::floor<std::chrono::seconds>(now);
-  const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(now);
 
-  const std::string msg =
-      fmt::format("{:%M:%S}:{:03} {}:{} {}[{}]: {}\n", now_s, (now_ms - now_s).count(), file, line,
-                  LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
-
-  for (const auto listener_id : m_listener_ids)
+  while (m_log_queue.Size() >= 2000)
   {
-    if (m_listeners[listener_id])
-      m_listeners[listener_id]->Log(level, msg.c_str());
+    // Backpressure. This generally only triggers at DEBUG verbosity with many log types enabled.
+    std::this_thread::sleep_for(std::chrono::milliseconds{1});
+  }
+
+  {
+    std::lock_guard lk{m_log_queue_mutex};
+    m_log_queue.Emplace(now, level, type, file, line, std::move(message));
+  }
+
+  m_thread_event.Set();
+}
+
+void LogManager::ThreadFunc(std::stop_token stoken)
+{
+  std::stop_callback kick{stoken, [this] { m_thread_event.Set(); }};
+
+  while (true)
+  {
+    LogEntry entry;
+    if (!m_log_queue.Pop(entry))
+    {
+      if (stoken.stop_requested())
+      {
+        // Make sure we flush the queue before stopping.
+        if (m_log_queue.Empty())
+          break;
+      }
+      else
+      {
+        m_thread_event.Wait();
+      }
+
+      continue;
+    }
+
+    // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log
+    // line, so ensure they stay in sync
+
+    // We want milliseconds *and not hours*, so can't directly use STL formatters
+    const auto now_s = std::chrono::floor<std::chrono::seconds>(entry.now);
+    const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(entry.now);
+
+    const std::string msg =
+        fmt::format("{:%M:%S}:{:03} {}:{} {}[{}]: {}\n", now_s, (now_ms - now_s).count(),
+                    entry.file, entry.line, LOG_LEVEL_TO_CHAR[static_cast<int>(entry.level)],
+                    GetShortName(entry.type), entry.message);
+
+    for (const auto listener_id : m_listener_ids)
+    {
+      if (m_listeners[listener_id])
+        m_listeners[listener_id]->Log(entry.level, msg.c_str());
+    }
   }
 }
 

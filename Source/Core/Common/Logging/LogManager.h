@@ -5,15 +5,17 @@
 
 #include <array>
 #include <atomic>
-#include <cstdarg>
 #include <memory>
-#include <string>
+#include <stop_token>
+#include <thread>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
+#include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/SPSCQueue.h"
 
 namespace Common::Log
 {
@@ -56,9 +58,9 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LogLevel level, LogType type, const char* file, int line, std::string_view message);
+  void Log(LogLevel level, LogType type, const char* file, int line, std::string message);
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       std::string_view message);
+                       std::string message);
 
   // Use this function instead of LOGGER_VERBOSITY to determine which logs should be printed.
   LogLevel GetEffectiveLogLevel() const;
@@ -94,5 +96,23 @@ private:
   EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<std::unique_ptr<LogListener>, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
+
+  struct LogEntry
+  {
+    std::chrono::system_clock::time_point now;
+    LogLevel level;
+    LogType type;
+    const char* file;
+    int line;
+    std::string message;
+  };
+
+  std::mutex m_log_queue_mutex;
+  Common::SPSCQueue<LogEntry> m_log_queue;
+
+  void ThreadFunc(std::stop_token stoken);
+
+  Common::Event m_thread_event;
+  std::jthread m_thread{std::bind_front(&LogManager::ThreadFunc, this)};
 };
 }  // namespace Common::Log
