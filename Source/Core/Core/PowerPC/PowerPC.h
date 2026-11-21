@@ -119,8 +119,10 @@ static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be sta
 // Unfortunately not all of those fit in 520 bytes, but we can fit most of ps and all of the rest.
 struct PowerPCState
 {
-  u32 pc = 0;  // program counter
-  u32 npc = 0;
+  // The JIT writes to them only before calling a function that uses them, and reads them to get
+  // their result.
+  u32 pc = 0;   // program counter, also used by the dispatcher
+  u32 npc = 0;  // next program counter, it's not always pc + 4
 
   // Storage for the stack pointer of the BLR optimization.
   u8* stored_stack_pointer = nullptr;

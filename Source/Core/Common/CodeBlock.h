@@ -60,11 +60,12 @@ public:
     T::SetCodePtr(region, region + size);
   }
 
-  // Always clear code space with breakpoints, so that if someone accidentally executes
-  // uninitialized, it just breaks into the debugger.
-  void ClearCodeSpace()
+  // If `poison_memory`, clear code space with breakpoints, so that it breaks into the debugger if
+  // executed accidentally.
+  void ClearCodeSpace(bool poison_memory = true)
   {
-    PoisonMemory();
+    if (poison_memory)
+      PoisonMemory();
     ResetCodePtr();
   }
 
