@@ -27,7 +27,6 @@ public:
   bool RecvInit();
   void RecvStart();
   void RecvStop();
-  bool SendAndRemoveAllHDLCFrames(std::string* send_buf);
   bool SendFrame(const u8* frame, u32 size);
 
 private:
