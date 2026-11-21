@@ -19,6 +19,7 @@
 #include "Common/Event.h"
 #include "Common/SPSCQueue.h"
 #include "Common/TraversalClient.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/NetPlayProto.h"
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
@@ -33,11 +34,6 @@ class FileSystem;
 namespace UICommon
 {
 class GameFile;
-}
-
-namespace WiimoteEmu
-{
-struct SerializedWiimoteState;
 }
 
 namespace NetPlay

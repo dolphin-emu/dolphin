@@ -89,3 +89,23 @@ TEST(SPSCQueue, MultiThreaded)
   queue_ptr.reset();
   EXPECT_EQ(sptr.use_count(), 1);
 }
+
+TEST(SPSCQueue, Movable)
+{
+  // Move-only elements work.
+  Common::SPSCQueue<std::unique_ptr<int>> q;
+  q.Push(std::make_unique<int>(42));
+
+  EXPECT_EQ(*std::as_const(q).Front(), 42);
+
+  auto x2 = std::move(q.Front());
+  EXPECT_EQ(*x2, 42);
+  q.Pop();
+}
+
+TEST(SPSCQueue, LargeItem)
+{
+  Common::SPSCQueue<std::array<u32, 4096>> q;
+  q.Emplace();
+  q.Pop();
+}
