@@ -57,7 +57,7 @@ set(MSVC_toolset_min_version 143)
 set(GCC_min_version 12)
 set(Clang_min_version 18)
 set(AppleClang_min_version 21.0.0)
-set(MSVC_min_version 19.32)
+set(MSVC_min_version 19.51)
 # Standard libraries
 set(libstdc++_min_version 12) # This should match GCC_min_version's major version.
 set(libc++_min_version 180000) # This should match Clang_min_version in the format "xxyyzz" instead of "xx.yy.zz"
