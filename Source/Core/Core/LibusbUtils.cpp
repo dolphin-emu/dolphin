@@ -4,13 +4,13 @@
 #include "Core/LibusbUtils.h"
 
 #include <mutex>
+#include <stop_token>
 #include <thread>
 
 #if defined(__LIBUSB__)
 #include <libusb.h>
 #endif
 
-#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -35,19 +35,7 @@ public:
     if (usbdk_ret != LIBUSB_SUCCESS && usbdk_ret != LIBUSB_ERROR_NOT_FOUND)
       WARN_LOG_FMT(IOS_USB, "Failed to set LIBUSB_OPTION_USE_USBDK: {}", ErrorWrap(usbdk_ret));
 #endif
-    m_event_thread_running.Set();
-    m_event_thread = std::thread(&Impl::EventThread, this);
-  }
-
-  ~Impl()
-  {
-    if (!m_context || !m_event_thread_running.TestAndClear())
-      return;
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000105
-    libusb_interrupt_event_handler(m_context);
-#endif
-    m_event_thread.join();
-    libusb_exit(m_context);
+    m_event_thread = std::jthread(&Impl::EventThread, m_context);
   }
 
   libusb_context* GetContext() const { return m_context; }
@@ -71,22 +59,35 @@ public:
   }
 
 private:
-  void EventThread()
+  static void EventThread(std::stop_token stoken, libusb_context* context)
   {
     Common::SetCurrentThreadName("libusb thread");
-    timeval tv{5, 0};
-    while (m_event_thread_running.IsSet())
+
+    int completed = 0;
+
+#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000105
+    const std::stop_callback stop_libusb{stoken, [&] {
+                                           completed = 1;
+                                           libusb_interrupt_event_handler(context);
+                                         }};
+    timeval tv{.tv_sec = 5};
+#else
+    timeval tv{.tv_sec = 1};
+#endif
+
+    while (!stoken.stop_requested())
     {
-      const int ret = libusb_handle_events_timeout_completed(m_context, &tv, nullptr);
+      const int ret = libusb_handle_events_timeout_completed(context, &tv, &completed);
       if (ret != LIBUSB_SUCCESS)
         WARN_LOG_FMT(IOS_USB, "libusb_handle_events_timeout_completed failed: {}", ErrorWrap(ret));
     }
+
+    libusb_exit(context);
   }
 
   libusb_context* m_context = nullptr;
   mutable std::mutex m_device_list_mutex;
-  Common::Flag m_event_thread_running;
-  std::thread m_event_thread;
+  std::jthread m_event_thread;
 };
 #else
 class Context::Impl
