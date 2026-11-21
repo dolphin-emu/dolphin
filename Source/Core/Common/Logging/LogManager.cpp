@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstring>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -19,7 +18,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 namespace Common::Log
 {
@@ -67,29 +65,24 @@ void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
   if (instance == nullptr)
     return;
 
-  if (!instance->IsEnabled(type, level))
+  if (!instance->IsEnabled(type, level) || !instance->IsAnyListenerEnabled())
     return;
 
   const auto message = fmt::vformat(format, args);
-  instance->Log(level, type, file, line, message.c_str());
+  instance->Log(level, type, file, line, message);
 }
 
-static size_t DeterminePathCutOffPoint()
+static consteval size_t GetPathCutOffPoint()
 {
-  constexpr const char* pattern = "/source/core/";
-#ifdef _WIN32
-  constexpr const char* pattern2 = "\\source\\core\\";
+  constexpr std::string_view pattern =
+#if defined(_WIN32)
+      "Common\\Logging\\LogManager.cpp";
+#else
+      "Common/Logging/LogManager.cpp";
 #endif
-  std::string path = __FILE__;
-  Common::ToLower(&path);
-  size_t pos = path.find(pattern);
-#ifdef _WIN32
-  if (pos == std::string::npos)
-    pos = path.find(pattern2);
-#endif
-  if (pos != std::string::npos)
-    return pos + strlen(pattern);
-  return 0;
+  constexpr std::string_view filename = __FILE__;
+  static_assert(filename.ends_with(pattern));
+  return filename.length() - pattern.length();
 }
 
 LogManager::LogManager()
@@ -170,8 +163,6 @@ LogManager::LogManager()
         Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
 
-  m_path_cutoff_point = DeterminePathCutOffPoint();
-
   m_config_changed_callback_id =
       Config::AddConfigChangedCallback([this]() { SetEffectiveLogLevel(); });
 }
@@ -200,15 +191,14 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(LogLevel level, LogType type, const char* file, int line, const char* message)
+void LogManager::Log(LogLevel level, LogType type, const char* file, int line,
+                     std::string_view message)
 {
-  if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
-    return;
-
-  LogWithFullPath(level, type, file + m_path_cutoff_point, line, message);
+  LogWithFullPath(level, type, file + GetPathCutOffPoint(), line, message);
 }
 
-std::string LogManager::GetTimestamp()
+void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+                                 std::string_view message)
 {
   // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log line,
   // so ensure they stay in sync
@@ -217,14 +207,9 @@ std::string LogManager::GetTimestamp()
   const auto now = std::chrono::system_clock::now();
   const auto now_s = std::chrono::floor<std::chrono::seconds>(now);
   const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(now);
-  return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
-}
 
-void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                                 const char* message)
-{
   const std::string msg =
-      fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,
+      fmt::format("{:%M:%S}:{:03} {}:{} {}[{}]: {}\n", now_s, (now_ms - now_s).count(), file, line,
                   LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
 
   for (const auto listener_id : m_listener_ids)
