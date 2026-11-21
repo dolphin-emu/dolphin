@@ -687,7 +687,7 @@ PUBLIC
   enet::enet
   expr
   inputcommon
-  MbedTLS::mbedtls
+  mbedtls2::mbedtls
   pugixml
   sfml-network
   videonull
