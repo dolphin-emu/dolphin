@@ -440,12 +440,28 @@ void main()
 
 	if (OptionEnabled(correct_color_space))
 	{
+		float color_luminance = Luminance(color.rgb, false);
+
 		if (game_color_space == 0)
 			color.rgb = color.rgb * from_NTSCM;
 		else if (game_color_space == 1)
 			color.rgb = color.rgb * from_NTSCJ;
 		else if (game_color_space == 2)
 			color.rgb = color.rgb * from_PAL;
+
+		// Do gamut mapping to make sure all colors are within the BT.709 gamut.
+		// HDR doesn't need gamut mapping as all the color spaces above are within BT.2020.
+		if (!OptionEnabled(hdr_output))
+		{
+			float min_channel = min(color.r, min(color.g, color.b));
+			// Desaturate (move towards luminance/grayscale) until we are not out of gamut anymore (until no channel is below 0)
+			if (min_channel < 0.0 && color_luminance >= 0.0)
+			{
+				// Both division elements are meant to be negative so the ratio resolves to a positive value
+				float desaturate_alpha = (min_channel - color_luminance) != 0.0 ? (min_channel / (min_channel - color_luminance)) : 0.0;
+				color.rgb = lerp(color.rgb, color_luminance.xxx, desaturate_alpha.xxx);
+			}
+		}
 	}
 
 	if (OptionEnabled(hdr_output))
