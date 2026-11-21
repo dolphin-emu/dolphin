@@ -39,10 +39,10 @@ static void LogCallback(const char* format, ...)
     filename = filename + last_slash + 1;
   const int lineno = va_arg(args, int);
   const std::string adapted_format(StripWhitespace(format + strlen("%s:%d:")));
-  const std::string message = StringFromFormatV(adapted_format.c_str(), args);
+  std::string message = StringFromFormatV(adapted_format.c_str(), args);
   va_end(args);
 
-  instance->LogWithFullPath(log_level, log_type, filename, lineno, message);
+  instance->LogWithFullPath(log_level, log_type, filename, lineno, std::move(message));
 }
 
 static void DestroyContext(cubeb* ctx)
