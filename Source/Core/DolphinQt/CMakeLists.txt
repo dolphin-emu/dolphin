@@ -562,13 +562,14 @@ if (WIN32)
   endif()
 
 
-  target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
+  target_sources(dolphin-emu PRIVATE DolphinQt.manifest)
 
   set_target_properties(dolphin-emu PROPERTIES
     DEBUG_POSTFIX    D
     OUTPUT_NAME      Dolphin
     WIN32_EXECUTABLE TRUE
   )
+  dolphin_add_win_resources(dolphin-emu "Dolphin Emulator")
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)

@@ -24,12 +24,13 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 if (WIN32)
-  target_sources(dolphin-nogui PRIVATE DolphinNoGUI.exe.manifest DolphinNoGUI.rc)
+  target_sources(dolphin-nogui PRIVATE DolphinNoGUI.exe.manifest)
 
   set_target_properties(dolphin-nogui PROPERTIES
     DEBUG_POSTFIX    D
     OUTPUT_NAME      DolphinNoGUI
   )
+  dolphin_add_win_resources(dolphin-nogui "Dolphin Emulator (No GUI)")
 else()
   set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 endif()

@@ -1,0 +1,41 @@
+// Copyright 2026 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma code_page(65001)
+
+#include <winver.h>
+
+#include "Common/scmrev.h"
+
+"dolphin"   ICON    "@DOLPHIN_RC_ICON@"
+
+LANGUAGE 0x00, 0x00
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     SCM_VERSION_MAJOR, SCM_VERSION_MINOR, SCM_VERSION_PATCH, 0
+PRODUCTVERSION  SCM_VERSION_MAJOR, SCM_VERSION_MINOR, SCM_VERSION_PATCH, 0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       @DOLPHIN_RC_FILEFLAGS@
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004b0"
+        BEGIN
+            VALUE "CompanyName",      "Stichting Dolphin Emulator"
+            VALUE "FileDescription",  "@DOLPHIN_RC_DESCRIPTION@"
+            VALUE "FileVersion",      SCM_DESC_STR
+            VALUE "InternalName",     "@DOLPHIN_RC_FILENAME@"
+            VALUE "LegalCopyright",   "© 2003-2024+ Dolphin Team."
+            VALUE "LegalTrademarks",  "“GameCube” and “Wii” are trademarks of Nintendo."
+            VALUE "OriginalFilename", "@DOLPHIN_RC_FILENAME@"
+            VALUE "ProductName",      "Dolphin Emulator"
+            VALUE "ProductVersion",   SCM_DESC_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0000, 1200
+    END
+END
