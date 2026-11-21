@@ -160,7 +160,7 @@ private:
 
   // Is SDHC supported by the IOS?
   // Other IOS requires manual SDHC initialization
-  const bool m_sdhc_supported;
+  bool m_sdhc_supported;
 
   u32 m_block_length = 0;
   u32 m_bus_width = 0;
