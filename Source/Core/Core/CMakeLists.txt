@@ -698,6 +698,7 @@ PRIVATE
   fmt::fmt
   LZO::LZO
   LZ4::LZ4
+  wolfssl
   ZLIB::ZLIB
 )
 

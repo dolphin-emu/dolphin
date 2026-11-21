@@ -7,7 +7,7 @@
 #include <cmath>
 #include <iterator>
 
-#include <mbedtls/bignum.h>
+#include <wolfssl/wolfcrypt/wolfmath.h>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
@@ -21,26 +21,29 @@
 namespace
 {
 // Minimal wrapper mainly to handle init/free
-struct MPI : mbedtls_mpi
+struct MPI : mp_int
 {
-  explicit MPI(const char* base_10_str) : MPI() { mbedtls_mpi_read_string(this, 10, base_10_str); }
+  explicit MPI(const char* base_10_str) : MPI() { mp_read_radix(this, base_10_str, MP_RADIX_DEC); }
 
-  MPI() { mbedtls_mpi_init(this); }
-  ~MPI() { mbedtls_mpi_free(this); }
+  MPI() { mp_init(this); }
+  ~MPI() { mp_clear(this); }
 
-  mbedtls_mpi* Data() { return this; }
+  mp_int* Data() { return this; }
 
   template <std::size_t N>
   bool ReadBinary(const u8 (&in_data)[N])
   {
-    return 0 == mbedtls_mpi_read_binary(this, std::begin(in_data), std::size(in_data));
+    return MP_OKAY == mp_read_unsigned_bin(this, std::begin(in_data), std::size(in_data));
   }
 
   template <std::size_t N>
   bool WriteLittleEndianBinary(std::array<u8, N>* out_data)
   {
-    if (mbedtls_mpi_write_binary(this, out_data->data(), out_data->size()))
+    if (mp_to_unsigned_bin_len(this, out_data->data(), static_cast<int>(out_data->size())) !=
+        MP_OKAY)
+    {
       return false;
+    }
 
     std::ranges::reverse(*out_data);
     return true;
@@ -485,8 +488,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
     MPI param_x;
     param_x.ReadBinary(magic);
 
-    mbedtls_mpi_mul_mpi(&param_x, &param_x, &param_x);
-    mbedtls_mpi_mod_mpi(&param_x, &param_x, MPI(cert_n).Data());
+    mp_mulmod(&param_x, &param_x, MPI(cert_n).Data(), &param_x);
 
     // Big-int little endian parameter x.
     param_x.WriteLittleEndianBinary(&m_reg_data.challenge_data);
@@ -510,8 +512,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       MPI param_y1;
       param_y1.ReadBinary(magic);
 
-      mbedtls_mpi_mul_mpi(&param_y1, &param_y1, MPI(sqrt_v).Data());
-      mbedtls_mpi_mod_mpi(&param_y1, &param_y1, MPI(cert_n).Data());
+      mp_mulmod(&param_y1, MPI(sqrt_v).Data(), MPI(cert_n).Data(), &param_y1);
 
       // Big-int little endian parameter y1.
       param_y1.WriteLittleEndianBinary(&m_reg_data.challenge_data);

@@ -12,8 +12,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/md.h>
-#include <mbedtls/rsa.h>
+
+#include <wolfssl/wolfcrypt/asn_public.h>
+#include <wolfssl/wolfcrypt/hash.h>
+#include <wolfssl/wolfcrypt/rsa.h>
+#include <wolfssl/wolfcrypt/signature.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -394,22 +397,38 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     ASSERT(entry->data.size() == expected_key_size);
     ASSERT(signature.size() == expected_key_size);
 
-    mbedtls_rsa_context rsa;
-    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
-    Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
+    RsaKey rsa;
+    int ret = wc_InitRsaKey(&rsa, nullptr);
+    if (ret != 0)
+    {
+      WARN_LOG_FMT(IOS, "VerifyPublicKeySign: wc_InitRsaKey failed (error {})", ret);
+      return IOSC_FAIL_CHECKVALUE;
+    }
+    Common::ScopeGuard context_guard{[&rsa] { wc_FreeRsaKey(&rsa); }};
 
-    mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
-    mbedtls_mpi_read_binary(&rsa.E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
-    rsa.len = entry->data.size();
+    ret = wc_RsaPublicKeyDecodeRaw(entry->data.data(), static_cast<word32>(entry->data.size()),
+                                   reinterpret_cast<const u8*>(&entry->misc_data), 4, &rsa);
 
-    int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1,
-                                       0, sha1.data(), signature.data());
+    std::vector<u8> result(signature.size());
+    if (ret == 0)
+    {
+      std::array<u8, MAX_DER_DIGEST_SZ> digest_info;
+      const word32 digest_info_size =
+          wc_EncodeSignature(digest_info.data(), sha1.data(), static_cast<word32>(sha1.size()),
+                             wc_HashGetOID(WC_HASH_TYPE_SHA));
+      ret = wc_SignatureVerifyHash(WC_HASH_TYPE_SHA, WC_SIGNATURE_TYPE_RSA_W_ENC,
+                                   digest_info.data(), digest_info_size, signature.data(),
+                                   static_cast<word32>(signature.size()), &rsa, sizeof(rsa));
+    }
     if (ret != 0 && m_console_type == ConsoleType::RVT)
     {
       // Some dev signatures do not have proper PKCS#1 padding. Just powmod and check it ends with
       // digest.
-      std::vector<u8> result(signature.size());
-      if (mbedtls_rsa_public(&rsa, signature.data(), result.data()) == 0 &&
+      word32 result_size = static_cast<word32>(result.size());
+      const int result_ret =
+          wc_RsaDirect(signature.data(), static_cast<word32>(signature.size()), result.data(),
+                       &result_size, &rsa, RSA_PUBLIC_DECRYPT, nullptr);
+      if (result_ret == static_cast<int>(result.size()) &&
           memcmp(&result[result.size() - sha1.size()], sha1.data(), sha1.size()) == 0)
       {
         ret = 0;

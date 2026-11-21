@@ -9,9 +9,10 @@
 #include <optional>
 #include <vector>
 
-#include <mbedtls/sha1.h>
+#include <wolfssl/wolfcrypt/sha.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
@@ -28,42 +29,53 @@ std::optional<IPCReply> ShaDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-static void ConvertContext(const ShaDevice::ShaContext& src, mbedtls_sha1_context* dest)
+static void ConvertContext(const ShaDevice::ShaContext& src, wc_Sha* dest)
 {
-  std::ranges::copy(src.length, std::begin(dest->total));
-  std::ranges::copy(src.states, std::begin(dest->state));
+  std::ranges::copy(src.states, std::begin(dest->digest));
+  dest->loLen = src.length[0];
+  dest->hiLen = src.length[1];
+  dest->buffLen = 0;
 }
 
-static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContext* dest)
+static void ConvertContext(const wc_Sha& src, ShaDevice::ShaContext* dest)
 {
-  std::ranges::copy(src.total, std::begin(dest->length));
-  std::ranges::copy(src.state, std::begin(dest->states));
+  std::ranges::copy(src.digest, std::begin(dest->states));
+  dest->length = {src.loLen, src.hiLen};
 }
 
 HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  auto ret = 0;
   std::array<u8, 20> output_hash{};
-  mbedtls_sha1_context context;
+  wc_Sha context;
+  int ret = wc_InitSha(&context);
+  if (ret != 0)
+    return HLE::ReturnCode::IPC_EACCES;
+
   ShaDevice::ShaContext engine_context;
   memory.CopyFromEmu(&engine_context, request.io_vectors[0].address, sizeof(ShaDevice::ShaContext));
-  ConvertContext(engine_context, &context);
 
-  // reset the context
-  if (command == ShaIoctlv::InitState)
+  if (command != ShaIoctlv::InitState)
   {
-    ret = mbedtls_sha1_starts_ret(&context);
-  }
-  else
-  {
+    ConvertContext(engine_context, &context);
+
     std::vector<u8> input_data(request.in_vectors[0].size);
     memory.CopyFromEmu(input_data.data(), request.in_vectors[0].address, input_data.size());
-    ret = mbedtls_sha1_update_ret(&context, input_data.data(), input_data.size());
+    ret = wc_ShaUpdate(&context, input_data.data(), static_cast<word32>(input_data.size()));
     if (!ret && command == ShaIoctlv::FinalizeState)
     {
-      ret = mbedtls_sha1_finish_ret(&context, output_hash.data());
+      // wc_ShaFinal resets the context: write back the final state and the length of the data.
+      const word32 lo_len = context.loLen;
+      const word32 hi_len = context.hiLen;
+      ret = wc_ShaFinal(&context, output_hash.data());
+      if (!ret)
+      {
+        for (size_t i = 0; i < std::size(context.digest); ++i)
+          context.digest[i] = Common::swap32(&output_hash[i * 4]);
+        context.loLen = lo_len;
+        context.hiLen = hi_len;
+      }
     }
   }
 
@@ -72,7 +84,7 @@ HLE::ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequ
   if (!ret && command == ShaIoctlv::FinalizeState)
     memory.CopyToEmu(request.io_vectors[1].address, output_hash.data(), output_hash.size());
 
-  mbedtls_sha1_free(&context);
+  wc_ShaFree(&context);
   return ret ? HLE::ReturnCode::IPC_EACCES : HLE::ReturnCode::IPC_SUCCESS;
 }
 
