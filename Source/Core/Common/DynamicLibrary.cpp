@@ -9,6 +9,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+
+#include "Common/StringUtil.h"
 #else
 #include <dlfcn.h>
 #endif
@@ -80,7 +82,14 @@ std::string DynamicLibrary::GetVersionedFilename(const char* libname, int major,
 bool DynamicLibrary::Open(const char* filename)
 {
 #ifdef _WIN32
-  m_handle = reinterpret_cast<void*>(LoadLibraryA(filename));
+  const auto adjusted_path = UTF8ToTStr(ReplaceAll(filename, "/", "\\"));
+  m_handle = reinterpret_cast<void*>(LoadLibrary(adjusted_path.c_str()));
+  if (!m_handle)
+  {
+    constexpr DWORD flags = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS |
+                            LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR;
+    m_handle = reinterpret_cast<void*>(LoadLibraryEx(adjusted_path.c_str(), NULL, flags));
+  }
 #else
   m_handle = dlopen(filename, RTLD_NOW);
 #endif
