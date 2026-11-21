@@ -133,6 +133,10 @@ protected:
     Common::LazyMemoryRegionBitSet fifoWriteAddresses{INSTRUCTION_BIT_SET_SIZE};
     Common::LazyMemoryRegionBitSet pairedQuantizeAddresses{INSTRUCTION_BIT_SET_SIZE};
     Common::LazyMemoryRegionBitSet noSpeculativeConstantsAddresses{INSTRUCTION_BIT_SET_SIZE};
+
+    // Copy as a batch when finalizing the block. Compared to pushing directly to JitBlock's vector,
+    // this minimizes allocations caused by exceeded vector capacity.
+    std::vector<JitBlock::LinkData> link_data_temp;
   };
 
   PPCAnalyst::CodeBlock code_block;

@@ -14,17 +14,28 @@ template <typename T>
 class RangeSet
 {
 private:
+  // TODO C++23: RangeSet is used only on very small maps and is iterated frequently, so
+  // std::flat_map would make more sense.
+  // On the other hand, std::flat_map allocates two separate std::vectors for the keys and the
+  // values. An alternative that allocates only one vector would be preferable.
+  // Finally, flat_maps prefer batch operations when possible, not one-by-one insertions and
+  // erasures. (Currently this doesn't really matter due to how it's used.)
   using MapT = std::map<T, T>;
 
 public:
   struct const_iterator
   {
   public:
+    using value_type = MapT::value_type;
+    using difference_type = MapT::difference_type;
+    using reference = MapT::reference;
+    using const_reference = MapT::const_reference;
+
     const T& from() const { return It->first; }
 
     const T& to() const { return It->second; }
 
-    std::pair<T, T> operator*() { return {from(), to()}; }
+    std::pair<T, T> operator*() const { return {from(), to()}; }
 
     const_iterator& operator++()
     {
@@ -55,6 +66,8 @@ public:
     bool operator==(const const_iterator& rhs) const { return this->It == rhs.It; }
 
     bool operator!=(const const_iterator& rhs) const { return !operator==(rhs); }
+
+    const_iterator() : It() {}
 
   private:
     typename MapT::const_iterator It;
