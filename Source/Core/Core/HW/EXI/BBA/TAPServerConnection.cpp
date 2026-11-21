@@ -252,7 +252,7 @@ void TAPServerConnection::ReadThreadHandler()
   {
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(m_fd, &rfds);
+    Common::Safe_FD_SET(m_fd, &rfds);
 
     timeval timeout;
     timeout.tv_sec = 0;
