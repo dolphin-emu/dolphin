@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <SFML/Network/Packet.hpp>
 #include <array>
 #include <chrono>
 #include <map>
@@ -111,7 +110,7 @@ class NetPlayClient : public Common::TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsync(sf::Packet&& packet, u8 channel_id = DEFAULT_CHANNEL);
+  void SendAsync(NetPacket&& packet, u8 channel_id = DEFAULT_CHANNEL);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, std::string name,
                 const NetTraversalConfig& traversal_config);
@@ -181,7 +180,7 @@ public:
 protected:
   struct AsyncQueueEntry
   {
-    sf::Packet packet;
+    NetPacket packet;
     u8 channel_id = 0;
   };
 
@@ -251,16 +250,16 @@ private:
   void SyncSaveDataResponse(bool success);
   void SyncCodeResponse(bool success);
 
-  bool PollLocalPad(int local_pad, sf::Packet& packet);
+  bool PollLocalPad(int local_pad, NetPacket& packet);
   void SendPadHostPoll(PadIndex pad_num);
 
   bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
-                               sf::Packet& packet);
+                               NetPacket& packet);
 
-  void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
+  void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, NetPacket& packet);
   void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
-                               sf::Packet& packet);
-  void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
+                               NetPacket& packet);
+  void Send(const NetPacket& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
   void SendGameStatus();
@@ -268,48 +267,48 @@ private:
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 
-  void OnData(sf::Packet& packet);
-  void OnPlayerJoin(sf::Packet& packet);
-  void OnPlayerLeave(sf::Packet& packet);
-  void OnChatMessage(sf::Packet& packet);
-  void OnChunkedDataStart(sf::Packet& packet);
-  void OnChunkedDataEnd(sf::Packet& packet);
-  void OnChunkedDataPayload(sf::Packet& packet);
-  void OnChunkedDataAbort(sf::Packet& packet);
-  void OnPadMapping(sf::Packet& packet);
-  void OnWiimoteMapping(sf::Packet& packet);
-  void OnGBAConfig(sf::Packet& packet);
-  void OnPadData(sf::Packet& packet);
-  void OnPadHostData(sf::Packet& packet);
-  void OnWiimoteData(sf::Packet& packet);
-  void OnPadBuffer(sf::Packet& packet);
-  void OnHostInputAuthority(sf::Packet& packet);
-  void OnGolfSwitch(sf::Packet& packet);
-  void OnGolfPrepare(sf::Packet& packet);
-  void OnChangeGame(sf::Packet& packet);
-  void OnGameStatus(sf::Packet& packet);
-  void OnStartGame(sf::Packet& packet);
-  void OnStopGame(sf::Packet& packet);
+  void OnData(NetPacket& packet);
+  void OnPlayerJoin(NetPacket& packet);
+  void OnPlayerLeave(NetPacket& packet);
+  void OnChatMessage(NetPacket& packet);
+  void OnChunkedDataStart(NetPacket& packet);
+  void OnChunkedDataEnd(NetPacket& packet);
+  void OnChunkedDataPayload(NetPacket& packet);
+  void OnChunkedDataAbort(NetPacket& packet);
+  void OnPadMapping(NetPacket& packet);
+  void OnWiimoteMapping(NetPacket& packet);
+  void OnGBAConfig(NetPacket& packet);
+  void OnPadData(NetPacket& packet);
+  void OnPadHostData(NetPacket& packet);
+  void OnWiimoteData(NetPacket& packet);
+  void OnPadBuffer(NetPacket& packet);
+  void OnHostInputAuthority(NetPacket& packet);
+  void OnGolfSwitch(NetPacket& packet);
+  void OnGolfPrepare(NetPacket& packet);
+  void OnChangeGame(NetPacket& packet);
+  void OnGameStatus(NetPacket& packet);
+  void OnStartGame(NetPacket& packet);
+  void OnStopGame(NetPacket& packet);
   void OnPowerButton();
-  void OnPing(sf::Packet& packet);
-  void OnPlayerPingData(sf::Packet& packet);
-  void OnDesyncDetected(sf::Packet& packet);
-  void OnSyncSaveData(sf::Packet& packet);
-  void OnSyncSaveDataNotify(sf::Packet& packet);
-  void OnSyncSaveDataRaw(sf::Packet& packet);
-  void OnSyncSaveDataGCI(sf::Packet& packet);
-  void OnSyncSaveDataWii(sf::Packet& packet);
-  void OnSyncSaveDataGBA(sf::Packet& packet);
-  void OnSyncCodes(sf::Packet& packet);
+  void OnPing(NetPacket& packet);
+  void OnPlayerPingData(NetPacket& packet);
+  void OnDesyncDetected(NetPacket& packet);
+  void OnSyncSaveData(NetPacket& packet);
+  void OnSyncSaveDataNotify(NetPacket& packet);
+  void OnSyncSaveDataRaw(NetPacket& packet);
+  void OnSyncSaveDataGCI(NetPacket& packet);
+  void OnSyncSaveDataWii(NetPacket& packet);
+  void OnSyncSaveDataGBA(NetPacket& packet);
+  void OnSyncCodes(NetPacket& packet);
   void OnSyncCodesNotify();
-  void OnSyncCodesNotifyGecko(sf::Packet& packet);
-  void OnSyncCodesDataGecko(sf::Packet& packet);
-  void OnSyncCodesNotifyAR(sf::Packet& packet);
-  void OnSyncCodesDataAR(sf::Packet& packet);
-  void OnComputeGameDigest(sf::Packet& packet);
-  void OnGameDigestProgress(sf::Packet& packet);
-  void OnGameDigestResult(sf::Packet& packet);
-  void OnGameDigestError(sf::Packet& packet);
+  void OnSyncCodesNotifyGecko(NetPacket& packet);
+  void OnSyncCodesDataGecko(NetPacket& packet);
+  void OnSyncCodesNotifyAR(NetPacket& packet);
+  void OnSyncCodesDataAR(NetPacket& packet);
+  void OnComputeGameDigest(NetPacket& packet);
+  void OnGameDigestProgress(NetPacket& packet);
+  void OnGameDigestResult(NetPacket& packet);
+  void OnGameDigestError(NetPacket& packet);
   void OnGameDigestAbort();
 
   bool m_is_connected = false;
@@ -336,7 +335,7 @@ private:
   u16 m_sync_ar_codes_count = 0;
   u16 m_sync_ar_codes_success_count = 0;
   bool m_sync_ar_codes_complete = false;
-  std::unordered_map<u32, sf::Packet> m_chunked_data_receive_queue;
+  std::unordered_map<u32, NetPacket> m_chunked_data_receive_queue;
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
