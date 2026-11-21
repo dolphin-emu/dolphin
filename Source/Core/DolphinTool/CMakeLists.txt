@@ -12,12 +12,13 @@ add_executable(dolphin-tool
 )
 
 if (WIN32)
-  target_sources(dolphin-tool PRIVATE DolphinTool.exe.manifest DolphinTool.rc)
+  target_sources(dolphin-tool PRIVATE DolphinTool.exe.manifest)
 
   set_target_properties(dolphin-tool PROPERTIES
     DEBUG_POSTFIX    D
     OUTPUT_NAME      DolphinTool
   )
+  dolphin_add_win_resources(dolphin-tool "Dolphin Command-Line Utility")
 endif()
 
 target_link_libraries(dolphin-tool
