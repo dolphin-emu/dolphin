@@ -3,6 +3,7 @@
 
 #include "Core/Boot/DolReader.h"
 
+#include <algorithm>
 #include <cstring>
 #include <string>
 #include <utility>
@@ -11,8 +12,10 @@
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
 #include "Common/IOFile.h"
+#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/Boot/AncastTypes.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -48,7 +51,6 @@ bool DolReader::Initialize(std::span<const u8> buffer)
   const u32 HID4_pattern = Common::swap32(0x7c13fba6);
   const u32 HID4_mask = Common::swap32(0xfc1fffff);
 
-  m_is_wii = false;
   for (int i = 0; i < DOL_NUM_TEXT; ++i)
   {
     if (m_dolheader.m_text_size[i] == 0)
@@ -68,7 +70,14 @@ bool DolReader::Initialize(std::span<const u8> buffer)
     }
 
     if (buffer.size() < m_dolheader.m_text_offset[i] + section_size)
+    {
+      ERROR_LOG_FMT(BOOT,
+                    "DolReader: Text section {} starts at {:x} and ends at {:x}, but the DOL file "
+                    "is only {:x} bytes",
+                    i, m_dolheader.m_text_offset[i], m_dolheader.m_text_offset[i] + section_size,
+                    buffer.size());
       return false;
+    }
 
     auto& section = m_sections.emplace_back();
     section.m_address = m_dolheader.m_text_address[i];
@@ -102,13 +111,36 @@ bool DolReader::Initialize(std::span<const u8> buffer)
                    i);
     }
 
-    if (buffer.size() < section_offset + section_size)
+    if (buffer.size() < section_offset)
+    {
+      ERROR_LOG_FMT(
+          BOOT, "DolReader: Data section {} starts at {:x}, but the DOL file is only {:x} bytes", i,
+          section_offset, buffer.size());
       return false;
+    }
+
+    if (buffer.size() < section_offset + section_size)
+    {
+      // We mustn't block loading a data section that starts inside the DOL file and ends outside
+      // the DOL file, because Game Boy Interface intentionally has such a section so users can add
+      // configuration by appending a configuration file to the DOL file. See
+      // https://www.gc-forever.com/wiki/index.php?title=Game_Boy_Interface#Other
+
+      WARN_LOG_FMT(BOOT,
+                   "DolReader: Data section {} starts at {:x} and ends at {:x}, but the DOL file "
+                   "is only {:x} bytes",
+                   i, section_offset, section_offset + section_size, buffer.size());
+
+      // We want to show an OSD message, but we're too early in the boot process to do so right away
+      m_show_truncation_warning = true;
+    }
+
+    const u32 max_data_size = MathUtil::SaturatingCast<u32>(buffer.size() - section_offset);
 
     auto& section = m_sections.emplace_back();
     section.m_address = m_dolheader.m_data_address[i];
-    section.m_header_section_size = m_dolheader.m_data_size[i];
-    section.m_data = buffer.subspan(section_offset, section_size);
+    section.m_header_section_size = std::min(m_dolheader.m_data_size[i], max_data_size);
+    section.m_data = buffer.subspan(section_offset, std::min<u64>(section_size, max_data_size));
 
     // Check if this dol contains an ancast image
     // The ancast image will always be in the first data section
@@ -127,6 +159,13 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
 {
   if (!m_is_valid)
     return false;
+
+  if (m_show_truncation_warning)
+  {
+    Core::DisplayMessage("Unusual DOL structure: a section extends beyond the end of the file. "
+                         "The file might not run correctly.",
+                         8000);
+  }
 
   if (IsAncast())
     return LoadAncastIntoMemory(system);
