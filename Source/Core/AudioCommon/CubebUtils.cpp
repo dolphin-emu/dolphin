@@ -4,7 +4,6 @@
 #include "AudioCommon/CubebUtils.h"
 
 #include <cstdarg>
-#include <cstring>
 #include <string_view>
 
 #include "AudioCommon/AudioCommon.h"
@@ -33,16 +32,8 @@ static void LogCallback(const char* format, ...)
 
   va_list args;
   va_start(args, format);
-  const char* filename = va_arg(args, const char*);
-  const auto last_slash = std::string_view(filename).find_last_of("/\\");
-  if (last_slash != std::string_view::npos)
-    filename = filename + last_slash + 1;
-  const int lineno = va_arg(args, int);
-  const std::string adapted_format(StripWhitespace(format + strlen("%s:%d:")));
-  const std::string message = StringFromFormatV(adapted_format.c_str(), args);
+  GENERIC_LOG_FMT(log_type, log_level, "{}", StringFromFormatV(format, args));
   va_end(args);
-
-  instance->LogWithFullPath(log_level, log_type, filename, lineno, message);
 }
 
 static void DestroyContext(cubeb* ctx)
