@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 
+#include "AndroidCommon/IDCache.h"
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -118,6 +119,14 @@ void ShowInternalResolutionOSD(int new_efb_scale)
 void HandleGeneralHotkeys()
 {
   // TODO: add support for more general hotkeys
+  if (IsHotkey(HK_MENU))
+  {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    jobject emulation_activity = env->CallStaticObjectMethod(IDCache::GetNativeLibraryClass(),
+                                                             IDCache::GetGetEmulationActivity());
+    if (emulation_activity != nullptr)
+      env->CallVoidMethod(emulation_activity, IDCache::GetEmulationActivityOpenMenu());
+  }
   if (IsHotkey(HK_SCREENSHOT))
     Core::SaveScreenShot();
 }
@@ -308,7 +317,8 @@ const std::vector<int>& GetSupportedHotkeys()
 {
   static const std::vector<int> supported = [] {
     std::vector<int> hotkeys{
-        // General - only the one entry, see HandleGeneralHotkeys
+        // General
+        HK_MENU,
         HK_SCREENSHOT,
         // Emulation Speed
         HK_TOGGLE_THROTTLE,

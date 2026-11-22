@@ -19,6 +19,7 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
@@ -31,6 +32,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
@@ -411,9 +414,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         )
     }
 
-    private fun toggleMenu() {
-        if (!closeMenu()) {
-            // Removing the menu failed, so that means it wasn't visible. Add it.
+    @Keep
+    fun openMenu() {
+        // This can get called from the hotkey thread, so we use launch to move to the main thread
+        MainScope().launch {
+            if (isDestroyed || menuVisible)
+                return@launch
+
             val fragment: Fragment = MenuFragment.newInstance()
             supportFragmentManager.beginTransaction()
                 .setCustomAnimations(
@@ -426,6 +433,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 .addToBackStack(BACKSTACK_NAME_MENU)
                 .commit()
             menuVisible = true
+        }
+    }
+
+    private fun toggleMenu() {
+        if (!closeMenu()) {
+            // Removing the menu failed, so that means it wasn't visible. Add it.
+            openMenu()
         }
     }
 
