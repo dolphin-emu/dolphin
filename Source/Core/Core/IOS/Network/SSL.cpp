@@ -4,11 +4,10 @@
 #include "Core/IOS/Network/SSL.h"
 
 #include <array>
-#include <cstring>
 #include <vector>
 
-#include <mbedtls/md.h>
-#include <mbedtls/sha256.h>
+#include <wolfssl/ssl.h>
+#include <wolfssl/wolfcrypt/sha256.h>
 
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -25,71 +24,145 @@ namespace IOS::HLE
 {
 WII_SSL NetSSLDevice::_SSL[NET_SSL_MAXINSTANCES];
 
-static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
-    /* Hashes from SHA-1 and above */
-    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA1) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_RIPEMD160) |
-        MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA224) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA256) |
-        MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
-    0xFFFFFFF, /* Any PK alg          */
-    0xFFFFFFF, /* Any curve           */
-    0,         /* No RSA min key size */
-};
-
 namespace
 {
-// Dirty workaround to disable SNI which isn't supported by the Wii.
-//
-// This SSL extension can ONLY be disabled by undefining
-// MBEDTLS_SSL_SERVER_NAME_INDICATION and recompiling the library. When
-// enabled and if the hostname is set, it uses the SNI extension which is sent
-// with the Client Hello message.
-//
-// This workaround doesn't require recompiling the library. It does so by
-// deferring mbedtls_ssl_set_hostname after the Client Hello message. The send
-// callback is used as it's the (only?) hook called at the beginning of
-// each step of the handshake by the mbedtls_ssl_flush_output function.
-//
-// The hostname still needs to be set as it is checked against the Common Name
-// field during the certificate verification process.
-int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
+int SSLSend(WOLFSSL* ssl, char* buf, int len, void* ctx)
 {
-  auto* ssl = static_cast<WII_SSL*>(ctx);
-  auto* fd = &ssl->hostfd;
-
-  if (ssl->ctx.state == MBEDTLS_SSL_SERVER_HELLO)
-    mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
-  const int ret = mbedtls_net_send(fd, buf, len);
+  auto* wii_ssl = static_cast<WII_SSL*>(ctx);
+  const int ret = EmbedSend(ssl, buf, len, &wii_ssl->hostfd);
 
   // Log raw SSL packets if we don't dump unencrypted SSL writes
   if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(
-        buf, ret, *fd, nullptr);
+        reinterpret_cast<const u8*>(buf), ret, wii_ssl->hostfd, nullptr);
   }
 
   return ret;
 }
 
-int SSLRecv(void* ctx, unsigned char* buf, size_t len)
+int SSLRecv(WOLFSSL* ssl, char* buf, int len, void* ctx)
 {
-  auto* ssl = static_cast<WII_SSL*>(ctx);
-  auto* fd = &ssl->hostfd;
-  const int ret = mbedtls_net_recv(fd, buf, len);
+  auto* wii_ssl = static_cast<WII_SSL*>(ctx);
+  const int ret = EmbedReceive(ssl, buf, len, &wii_ssl->hostfd);
 
   // Log raw SSL packets if we don't dump unencrypted SSL reads
   if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
   {
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(
-        buf, ret, *fd, nullptr);
+        reinterpret_cast<const u8*>(buf), ret, wii_ssl->hostfd, nullptr);
   }
 
   return ret;
+}
+
+// Called for every certificate of the server chain, valid or not, even when verification is
+// disabled (WOLFSSL_ALWAYS_VERIFY_CB, set by OPENSSL_EXTRA). Depth 0 is the server certificate.
+int SSLVerify(int preverify, WOLFSSL_X509_STORE_CTX* store)
+{
+  auto* wii_ssl = static_cast<WII_SSL*>(store->userCtx);
+  const int depth = wolfSSL_X509_STORE_CTX_get_error_depth(store);
+
+  // wolfSSL does not check the name when the host name is empty, which would accept a valid
+  // certificate issued for any domain: report a name mismatch instead.
+  if (preverify && depth == 0 && wii_ssl != nullptr && wii_ssl->hostname.empty() &&
+      (wolfSSL_get_verify_mode(wii_ssl->ssl) & WOLFSSL_VERIFY_PEER) != 0)
+  {
+    wolfSSL_X509_STORE_CTX_set_error(store, DOMAIN_NAME_MISMATCH);
+    preverify = 0;
+  }
+
+  if (!preverify)
+  {
+    const int error = wolfSSL_X509_STORE_CTX_get_error(store);
+    ERROR_LOG_FMT(IOS_SSL, "Certificate verification failed (depth {}): {} ({})", depth,
+                  wolfSSL_ERR_reason_error_string(error), error);
+    if (wii_ssl != nullptr && wii_ssl->verify_error == 0)
+      wii_ssl->verify_error = (error != 0) ? error : VERIFY_CERT_ERROR;
+  }
+
+  if (depth == 0 && wii_ssl != nullptr && Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT))
+  {
+    int der_size = 0;
+    const u8* der = wolfSSL_X509_get_der(wolfSSL_X509_STORE_CTX_get_current_cert(store), &der_size);
+    if (der != nullptr && der_size > 0)
+    {
+      const std::string filename =
+          File::GetUserPath(D_DUMPSSL_IDX) + wii_ssl->hostname + "_peercert.der";
+      File::IOFile(filename, "wb").WriteBytes(der, der_size);
+    }
+  }
+
+  return preverify;
+}
+
+void FreeSSL(WII_SSL* ssl)
+{
+  if (ssl->ssl != nullptr)
+  {
+    if (wolfSSL_is_init_finished(ssl->ssl))
+      wolfSSL_shutdown(ssl->ssl);
+    wolfSSL_free(ssl->ssl);
+    ssl->ssl = nullptr;
+  }
+  if (ssl->ctx != nullptr)
+  {
+    wolfSSL_CTX_free(ssl->ctx);
+    ssl->ctx = nullptr;
+  }
+
+  ssl->sockfd = -1;
+  ssl->hostfd = -1;
+  ssl->hostname.clear();
+  ssl->verify_error = 0;
+  ssl->active = false;
+}
+
+bool CreateSSL(WII_SSL* ssl, bool verify)
+{
+  ssl->ctx = wolfSSL_CTX_new(wolfSSLv23_client_method());
+  if (ssl->ctx == nullptr)
+    return false;
+
+  // The real Wii negotiates TLS 1.0 at most; servers still in use accept TLS 1.2.
+  // TLS 1.3 is compiled in for curl and must not be offered here.
+  if (wolfSSL_CTX_set_min_proto_version(ssl->ctx, TLS1_VERSION) != WOLFSSL_SUCCESS ||
+      wolfSSL_CTX_set_max_proto_version(ssl->ctx, TLS1_2_VERSION) != WOLFSSL_SUCCESS ||
+      wolfSSL_CTX_UseSecureRenegotiation(ssl->ctx) != WOLFSSL_SUCCESS ||
+      wolfSSL_CTX_SetMinRsaKey_Sz(ssl->ctx, 0) != WOLFSSL_SUCCESS ||
+      wolfSSL_CTX_SetMinEccKey_Sz(ssl->ctx, 0) != WOLFSSL_SUCCESS)
+  {
+    return false;
+  }
+
+  ssl->ssl = wolfSSL_new(ssl->ctx);
+  if (ssl->ssl == nullptr)
+    return false;
+
+  wolfSSL_set_verify(ssl->ssl, verify ? WOLFSSL_VERIFY_PEER : WOLFSSL_VERIFY_NONE, SSLVerify);
+  wolfSSL_SetCertCbCtx(ssl->ssl, ssl);
+  // Checked against the subject alternative names and the common name. Unlike
+  // wolfSSL_check_domain_name(), any string is accepted (IP addresses, single labels...), as with
+  // mbedTLS. An empty name is not checked.
+  if (verify && wolfSSL_X509_VERIFY_PARAM_set1_host(wolfSSL_get0_param(ssl->ssl),
+                                                    ssl->hostname.c_str(), 0) != WOLFSSL_SUCCESS)
+  {
+    return false;
+  }
+
+  wolfSSL_SSLSetIORecv(ssl->ssl, SSLRecv);
+  wolfSSL_SSLSetIOSend(ssl->ssl, SSLSend);
+  wolfSSL_SetIOReadCtx(ssl->ssl, ssl);
+  wolfSSL_SetIOWriteCtx(ssl->ssl, ssl);
+  return true;
 }
 }  // namespace
 
 NetSSLDevice::NetSSLDevice(EmulationKernel& ios, const std::string& device_name)
     : EmulationDevice(ios, device_name)
 {
+  [[maybe_unused]] static const int init_ret = wolfSSL_Init();
+
   for (WII_SSL& ssl : _SSL)
   {
     ssl.active = false;
@@ -102,22 +175,7 @@ NetSSLDevice::~NetSSLDevice()
   for (WII_SSL& ssl : _SSL)
   {
     if (ssl.active)
-    {
-      mbedtls_ssl_close_notify(&ssl.ctx);
-
-      mbedtls_x509_crt_free(&ssl.cacert);
-      mbedtls_x509_crt_free(&ssl.clicert);
-
-      mbedtls_ssl_session_free(&ssl.session);
-      mbedtls_ssl_free(&ssl.ctx);
-      mbedtls_ssl_config_free(&ssl.config);
-      mbedtls_ctr_drbg_free(&ssl.ctr_drbg);
-      mbedtls_entropy_free(&ssl.entropy);
-
-      ssl.hostname.clear();
-
-      ssl.active = false;
-    }
+      FreeSSL(&ssl);
   }
 }
 
@@ -171,8 +229,8 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   }
 
   std::array<u8, 32> hash;
-  mbedtls_sha256_ret(bytes.data(), bytes.size(), hash.data(), 0);
-  if (hash != correct_hash)
+  if (wc_Sha256Hash(bytes.data(), static_cast<word32>(bytes.size()), hash.data()) != 0 ||
+      hash != correct_hash)
   {
     ERROR_LOG_FMT(IOS_SSL, "Wrong hash for {}", path);
     if (!silent)
@@ -247,38 +305,14 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       int sslID = freeSSL - 1;
       WII_SSL* ssl = &_SSL[sslID];
-      mbedtls_ssl_init(&ssl->ctx);
-      mbedtls_entropy_init(&ssl->entropy);
-      static constexpr const char* pers = "dolphin-emu";
-      mbedtls_ctr_drbg_init(&ssl->ctr_drbg);
-      int ret = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg, mbedtls_entropy_func, &ssl->entropy,
-                                      (const unsigned char*)pers, strlen(pers));
-      if (ret)
+      ssl->hostname = hostname;
+      const bool verify = Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption;
+      if (!CreateSSL(ssl, verify))
       {
-        mbedtls_ssl_free(&ssl->ctx);
-        mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
-        mbedtls_entropy_free(&ssl->entropy);
+        FreeSSL(ssl);
         goto _SSL_NEW_ERROR;
       }
 
-      mbedtls_ssl_config_init(&ssl->config);
-      mbedtls_ssl_config_defaults(&ssl->config, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
-                                  MBEDTLS_SSL_PRESET_DEFAULT);
-      mbedtls_ssl_conf_rng(&ssl->config, mbedtls_ctr_drbg_random, &ssl->ctr_drbg);
-
-      // For some reason we can't use TLSv1.2, v1.1 and below are fine!
-      mbedtls_ssl_conf_max_version(&ssl->config, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                   MBEDTLS_SSL_MINOR_VERSION_2);
-      mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
-      mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
-
-      if (Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
-        mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_REQUIRED);
-      else
-        mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
-      mbedtls_ssl_conf_renegotiation(&ssl->config, MBEDTLS_SSL_RENEGOTIATION_ENABLED);
-
-      ssl->hostname = hostname;
       ssl->active = true;
       WriteReturnValue(memory, freeSSL, BufferIn);
     }
@@ -303,22 +337,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WII_SSL* ssl = &_SSL[sslID];
-
-      mbedtls_ssl_close_notify(&ssl->ctx);
-
-      mbedtls_x509_crt_free(&ssl->cacert);
-      mbedtls_x509_crt_free(&ssl->clicert);
-
-      mbedtls_ssl_session_free(&ssl->session);
-      mbedtls_ssl_free(&ssl->ctx);
-      mbedtls_ssl_config_free(&ssl->config);
-      mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
-      mbedtls_entropy_free(&ssl->entropy);
-
-      ssl->hostname.clear();
-
-      ssl->active = false;
+      FreeSSL(&_SSL[sslID]);
 
       WriteReturnValue(memory, SSL_OK, BufferIn);
     }
@@ -349,8 +368,9 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      int ret = mbedtls_x509_crt_parse_der(
-          &ssl->cacert, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
+      int ret = wolfSSL_CTX_load_verify_buffer_ex(
+          ssl->ctx, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2,
+          WOLFSSL_FILETYPE_ASN1, 0, WOLFSSL_LOAD_FLAG_DATE_ERR_OKAY);
 
       if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
@@ -359,16 +379,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
             .WriteBytes(memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
       }
 
-      if (ret)
-      {
-        WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
-      }
-      else
-      {
-        mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        WriteReturnValue(memory, SSL_OK, BufferIn);
-      }
-
+      WriteReturnValue(memory, ret == WOLFSSL_SUCCESS ? SSL_OK : SSL_ERR_FAILED, BufferIn);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCA = {}", ret);
     }
     else
@@ -401,17 +412,18 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       if (client_cert.empty() || client_key.empty())
         m_cert_error_shown = true;
 
-      int ret = mbedtls_x509_crt_parse(&ssl->clicert, client_cert.data(), client_cert.size());
-      int pk_ret = mbedtls_pk_parse_key(&ssl->pk, client_key.data(), client_key.size(), nullptr, 0);
-      if (ret || pk_ret)
+      const int ret = wolfSSL_use_certificate_buffer(ssl->ssl, client_cert.data(),
+                                                     static_cast<long>(client_cert.size()),
+                                                     WOLFSSL_FILETYPE_ASN1);
+      const int pk_ret = wolfSSL_use_PrivateKey_buffer(
+          ssl->ssl, client_key.data(), static_cast<long>(client_key.size()), WOLFSSL_FILETYPE_ASN1);
+      if (ret != WOLFSSL_SUCCESS || pk_ret != WOLFSSL_SUCCESS)
       {
-        mbedtls_x509_crt_free(&ssl->clicert);
-        mbedtls_pk_free(&ssl->pk);
+        wolfSSL_UnloadCertsKeys(ssl->ssl);
         WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
       }
       else
       {
-        mbedtls_ssl_conf_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
         WriteReturnValue(memory, SSL_OK, BufferIn);
       }
 
@@ -438,10 +450,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      mbedtls_x509_crt_free(&ssl->clicert);
-      mbedtls_pk_free(&ssl->pk);
-
-      mbedtls_ssl_conf_own_cert(&ssl->config, nullptr, nullptr);
+      wolfSSL_UnloadCertsKeys(ssl->ssl);
       WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
@@ -463,17 +472,10 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       if (root_ca.empty())
         m_cert_error_shown = true;
 
-      int ret = mbedtls_x509_crt_parse(&ssl->cacert, root_ca.data(), root_ca.size());
-      if (ret)
-      {
-        mbedtls_x509_crt_free(&ssl->clicert);
-        WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
-      }
-      else
-      {
-        mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        WriteReturnValue(memory, SSL_OK, BufferIn);
-      }
+      const int ret = wolfSSL_CTX_load_verify_buffer_ex(
+          ssl->ctx, root_ca.data(), static_cast<long>(root_ca.size()), WOLFSSL_FILETYPE_ASN1, 0,
+          WOLFSSL_LOAD_FLAG_DATE_ERR_OKAY);
+      WriteReturnValue(memory, ret == WOLFSSL_SUCCESS ? SSL_OK : SSL_ERR_FAILED, BufferIn);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = {}", ret);
     }
     else
@@ -495,11 +497,9 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
       ssl->sockfd = memory.Read_U32(BufferOut2);
       ssl->hostfd = GetEmulationKernel().GetSocketManager()->GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
-      mbedtls_ssl_set_bio(&ssl->ctx, ssl, SSLSendWithoutSNI, SSLRecv, nullptr);
       WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else

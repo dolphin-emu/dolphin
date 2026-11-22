@@ -84,6 +84,9 @@
  * and wolfSSL_Rehandshake() depend on it. */
 #define HAVE_SERVER_RENEGOTIATION_INFO
 #define NO_SESSION_CACHE_REF
+/* IOS SSL: Nintendo CA (sent in the chain by *.shop.wii.com) has serial number 0, which is
+ * rejected otherwise (RFC 5280 requires a positive serial; mbedTLS accepted it). */
+#define WOLFSSL_ASN_ALLOW_0_SERIAL
 
 /* TLS 1.3 for curl (Dolphin's services). */
 #define WOLFSSL_TLS13
