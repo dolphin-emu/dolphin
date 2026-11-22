@@ -60,8 +60,6 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://www.opengl.org/registry/api/GL/glext.h)
 - [PearPC](http://pearpc.sourceforge.net/):
    [GPLv2](http://pearpc.cvs.sourceforge.net/viewvc/pearpc/pearpc/COPYING?view=markup) (with permission by the author to license under GPLv2+)
-- [mbed TLS](https://tls.mbed.org/):
-   [Apache 2.0](https://github.com/ARMmbed/mbedtls/blob/development/LICENSE)
 - [PulseAudio](http://www.freedesktop.org/wiki/Software/PulseAudio/):
    [LGPLv2.1+](http://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/LICENSE)
 - [Qt5](http://qt-project.org/):
