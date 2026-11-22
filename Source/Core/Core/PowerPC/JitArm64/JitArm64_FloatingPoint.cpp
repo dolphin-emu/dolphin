@@ -634,6 +634,8 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
   {
     const auto V0 = fpr.GetScopedReg();
 
+    m_float_emit.FCMP(EncodeRegToSingle(VB));
+
     if (is_fctiwzx)
     {
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
@@ -644,6 +646,10 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), RoundingMode::Z);
     }
 
+    // For NaN, select 0x80000000
+    m_float_emit.MOVI(32, EncodeRegToSingle(V0), 0x80, 24);
+    m_float_emit.FCSEL(EncodeRegToSingle(VD), EncodeRegToSingle(V0), EncodeRegToSingle(VD), CC_VS);
+
     // Generate 0xFFF8'0000'0000'0000ULL
     m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF'0000'0000'0000ULL);
     m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
@@ -653,6 +659,9 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
   else
   {
     const auto WA = gpr.GetScopedReg();
+    const auto WB = gpr.GetScopedReg();
+
+    m_float_emit.FCMP(EncodeRegToDouble(VB));
 
     if (is_fctiwzx)
     {
@@ -663,6 +672,10 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FRINTI(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
       m_float_emit.FCVTS(WA, EncodeRegToDouble(VD), RoundingMode::Z);
     }
+
+    // For NaN, select 0x80000000
+    MOVI2R(WB, 0x80000000);
+    CSEL(WA, WB, WA, CC_VS);
 
     ORR(EncodeRegTo64(WA), EncodeRegTo64(WA), LogicalImm(0xFFF8'0000'0000'0000ULL, GPRSize::B64));
     m_float_emit.FMOV(EncodeRegToDouble(VD), EncodeRegTo64(WA));
