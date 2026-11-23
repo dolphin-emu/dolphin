@@ -50,6 +50,7 @@ struct CodeOp  // 16B
   UGeckoInstruction inst;
   const GekkoOPInfo* opinfo = nullptr;
   u32 address = 0;
+  u32 physicalAddress = 0;
   u32 branchTo = 0;  // if UINT32_MAX, not a branch
   BitSet32 regsIn;
   BitSet32 regsOut;
@@ -212,7 +213,7 @@ private:
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
                                ReorderType type) const;
   void ReorderInstructions(u32 instructions, CodeOp* code) const;
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
+  void SetInstructionStats(CodeBlock* block, CodeOp* code) const;
   bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const;
 
   // Options

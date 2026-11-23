@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -38,10 +39,10 @@
 
 namespace PPCAnalyst
 {
-// 0 does not perform block merging
-constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
+// Chosen arbitrarily.
+constexpr u32 MAX_INLINE_LENGTH = 5;
 
-constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
+constexpr u32 INVALID_BRANCH_TARGET = UINT32_MAX;
 
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
@@ -624,9 +625,11 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
-                                      const GekkoOPInfo* opinfo) const
+void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code) const
 {
+  code->opinfo = PPCTables::GetOpInfo(code->inst, code->address);
+  const GekkoOPInfo* opinfo = code->opinfo;
+
   bool first_fpu_instruction = false;
   if (opinfo->flags & FL_USE_FPU)
   {
@@ -754,7 +757,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  code->branchTo = UINT32_MAX;
+  code->branchTo = INVALID_BRANCH_TARGET;
 
   // For branch with immediate addresses (bx/bcx), compute the destination.
   if (code->inst.OPCD == 18)  // bx
@@ -874,9 +877,7 @@ void PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   CodeOp* const code = buffer->data();
 
-  bool found_call = false;
-  size_t caller = 0;
-  u32 numFollows = 0;
+  std::optional<std::size_t> found_call = std::nullopt;
   u32 num_inst = 0;
 
   const bool enable_follow = m_enable_branch_following;
@@ -885,63 +886,59 @@ void PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
+    // Branch following has the most utility with calls to short functions, not just because it
+    // saves the cost of jumping to another block, but because it allows to detect more idle loops.
+    // (Example: `VIGetRetraceCount` is often used in idle loops, and it's just a memory load.)
+    // However, doing it irresponsibly will bloat the code size and inrease the JIT compilation time
+    // for little benefit, so if it's not worth it, roll back.
+#define INLINE_FAIL                                                                                \
+  if (found_call.has_value())                                                                      \
+  {                                                                                                \
+    num_inst = found_call.value() + 1;                                                             \
+    code[found_call.value()].branchAction = BranchAction::Normal;                                  \
+    break;                                                                                         \
+  }
+
     auto result = mmu.TryReadInstruction(address);
     if (!result.valid)
     {
       if (i == 0)
         block->m_memory_exception = true;
+      INLINE_FAIL;
       break;
     }
 
     num_inst++;
 
     const UGeckoInstruction inst = result.hex;
-    const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst, address);
     code[i] = {};
-    code[i].opinfo = opinfo;
     code[i].address = address;
+    code[i].physicalAddress = result.physical_address;
     code[i].inst = inst;
-    code[i].skip = false;
-    block->m_stats->numCycles += opinfo->num_cycles;
-    block->m_physical_addresses.insert(result.physical_address,
-                                       result.physical_address + sizeof(UGeckoInstruction));
 
-    SetInstructionStats(block, &code[i], opinfo);
+    SetInstructionStats(block, &code[i]);
 
     bool follow = false;
 
-    // TODO: Find the optimal value for BRANCH_FOLLOWING_THRESHOLD.
-    //       If it is small, the performance will be down.
-    //       If it is big, the size of generated code will be big and
-    //       cache clearning will happen many times.
     if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW))
     {
-      if (inst.OPCD == 18 && block_size > 1)
+      if ((inst.OPCD == 18 ||  // bc
+           (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
+            (inst.BO & BO_DONT_CHECK_CONDITION))) &&  // Unconditional bcx (very rare)
+          inst.LK &&
+          block_size > 1)
       {
-        // Always follow BX instructions.
+        // Follow unconditional function calls.
+        // We don't support nested inlining.
+        INLINE_FAIL;
         follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
+        found_call = i;
       }
-      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&  // bclrx
+               !inst.LK && found_call)
       {
-        // Always follow unconditional BCX instructions, but they are very rare.
-        follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
-      }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
-      {
-        code[i].branchTo = code[caller].address + 4;
-        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) &&
-            numFollows < BRANCH_FOLLOWING_THRESHOLD)
+        code[i].branchTo = code[found_call.value()].address + 4;
+        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
         {
           // bclrx with unconditional branch = return
           // Follow it if we can propagate the LR value of the last CALL instruction.
@@ -950,29 +947,27 @@ void PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           // the LR value on the stack as there are no spare registers. So we'd need
           // to check all store instructions to not alias with the stack.
           follow = true;
-          found_call = false;
           code[i].skip = true;
 
           // Skip the RET, so also don't generate the stack entry for the BLR optimization.
-          code[caller].skipLRStack = true;
+          code[found_call.value()].skipLRStack = true;
+          found_call = std::nullopt;
         }
       }
       else if (IsMtspr(inst) && GetSPRIndex(inst) == SPR_LR)
       {
-        // LR has been overwritten, so we give up on following the return address.
-        found_call = false;
+        // LR has been overwritten, so can't follow the return address.
+        INLINE_FAIL;
       }
     }
 
     if (code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i))
       code[i].branchAction = BranchAction::IdleLoop;
 
-    if (follow && code[i].branchAction != BranchAction::IdleLoop &&
-        numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (follow && code[i].branchAction != BranchAction::IdleLoop)
     {
       // Follow the unconditional branch.
       code[i].branchAction = BranchAction::Follow;
-      numFollows++;
       address = code[i].branchTo;
     }
     else
@@ -983,26 +978,49 @@ void PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           (!HasOption(OPTION_CONDITIONAL_CONTINUE) &&
            code[i].instructionContinues == InstructionContinue::Maybe))
       {
+        INLINE_FAIL;
         break;
       }
 
       if (code[i].instructionContinues == InstructionContinue::Maybe)
       {
         // If the execution jumps to a new block but in the old block the bl didn't push anything to
-        // the stack, then the blr optimization would fail on the new block, which is slow. So,
-        // force the push of the bl entry.
-        // Note that the blr optimization (currently) doesn't support continuing in the same block
-        // if the blr was followed, so the inlining stops at the blr.
+        // the stack, then the blr optimization would fail on the new block, which is slow.
+        // Because that the blr optimization (currently) doesn't support continuing in the same
+        // block if the blr was followed, we fail the inlining. If that changed, then this won't be
+        // needed anymore.
         // A further potential optimization could be pushing the bl stack only when the instruction
         // doesn't continue branch is taken, which would allow the function call to be fully inlined
         // without touching the stack if the conditional instruction continues (though is that worth
         // the extra code?).
-        found_call = false;
+        INLINE_FAIL;
       }
+    }
+    if ((found_call.has_value() && i - found_call.value() >= MAX_INLINE_LENGTH) ||
+        i == block_size - 1)
+    {
+      INLINE_FAIL;
     }
   }
 
   block->m_num_instructions = num_inst;
+
+  // Now that we established which instructions are part of the block, set its stats.
+  u32 physical_address_start = code[0].physicalAddress;
+  for (std::size_t i = 0; i < num_inst - 1; ++i)
+  {
+    block->m_stats->numCycles += code[i].opinfo->num_cycles;
+    // Repeatedly inserting is slow, so batch the insertions when possible.
+    if (code[i].physicalAddress + sizeof(UGeckoInstruction) != code[i + 1].physicalAddress)
+    {
+      block->m_physical_addresses.insert(physical_address_start,
+                                         code[i].physicalAddress + sizeof(UGeckoInstruction));
+      physical_address_start = code[i + 1].physicalAddress;
+    }
+  }
+  block->m_stats->numCycles += code[num_inst - 1].opinfo->num_cycles;
+  block->m_physical_addresses.insert(physical_address_start, code[num_inst - 1].physicalAddress +
+                                                                 sizeof(UGeckoInstruction));
 
   if (block->m_num_instructions > 1)
     ReorderInstructions(block->m_num_instructions, code);
