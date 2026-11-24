@@ -6,84 +6,84 @@
 #include <algorithm>
 
 #include <fmt/format.h>
-#include <lzo/lzo1x.h>
+#include <zstd.h>
 
+#include "Common/Buffer.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
-#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
+#include "Common/ScopeGuard.h"
 
 namespace NetPlay
 {
-constexpr u32 LZO_IN_LEN = 1024 * 64;
-constexpr u32 LZO_OUT_LEN = LZO_IN_LEN + (LZO_IN_LEN / 16) + 64 + 3;
-
 bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
 {
-  File::IOFile file(file_path, "rb");
-  if (!file)
+  File::DirectIOFile file(file_path, File::AccessMode::Read);
+  if (!file.IsOpen())
   {
     PanicAlertFmtT("Failed to open file \"{0}\".", file_path);
     return false;
   }
 
-  const u64 size = file.GetSize();
-  packet << size;
+  const u64 file_size = file.GetSize();
+  packet << file_size;
 
-  if (size == 0)
+  if (file_size == 0)
     return true;
 
-  std::vector<u8> in_buffer(LZO_IN_LEN);
-  std::vector<u8> out_buffer(LZO_OUT_LEN);
-  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+  auto* const zcs = ZSTD_createCStream();
+  Common::ScopeGuard free_zcs{[&] { ZSTD_freeCStream(zcs); }};
 
-  lzo_uint i = 0;
-  while (true)
+  ZSTD_CCtx_setPledgedSrcSize(zcs, file_size);
+
+  Common::UniqueBuffer<u8> in_buffer{ZSTD_CStreamInSize()};
+  Common::UniqueBuffer<u8> out_buffer{ZSTD_CStreamOutSize()};
+
+  for (u64 file_offset = 0; file_offset != file_size;)
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
+    ZSTD_inBuffer input{
+        .src = in_buffer.data(),
+        .size = std::min<size_t>(file_size - file_offset, in_buffer.size()),
+    };
 
-    if ((i + LZO_IN_LEN) >= size)
+    if (!file.OffsetRead(file_offset, std::span{in_buffer}.first(input.size)))
     {
-      cur_len = static_cast<lzo_uint32>(size - i);
-    }
-    else
-    {
-      cur_len = LZO_IN_LEN;
-    }
-
-    if (cur_len <= 0)
-      break;  // EOF
-
-    if (!file.ReadBytes(in_buffer.data(), cur_len))
-    {
-      PanicAlertFmtT("Error reading file: {0}", file_path.c_str());
+      PanicAlertFmtT("Error reading file: {0}", file_path);
       return false;
     }
 
-    if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
-        LZO_E_OK)
+    ZSTD_outBuffer output{.dst = out_buffer.data(), .size = out_buffer.size()};
+
+    const size_t hint = ZSTD_compressStream(zcs, &output, &input);
+    if (ZSTD_isError(hint))
     {
-      PanicAlertFmtT("Internal LZO Error - compression failed");
+      PanicAlertFmtT("Internal Error - compression failed");
       return false;
     }
 
-    // The size of the data to write is 'out_len'
-    packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
-    {
-      packet << out_buffer[j];
-    }
+    packet.append(out_buffer.data(), output.pos);
 
-    if (cur_len != LZO_IN_LEN)
-      break;
-
-    i += cur_len;
+    file_offset += input.pos;
   }
 
-  // Mark end of data
-  packet << static_cast<u32>(0);
+  while (true)
+  {
+    ZSTD_outBuffer output{.dst = out_buffer.data(), .size = out_buffer.size()};
+
+    const size_t hint = ZSTD_endStream(zcs, &output);
+    if (ZSTD_isError(hint))
+    {
+      PanicAlertFmtT("Internal Error - compression failed");
+      return false;
+    }
+
+    packet.append(out_buffer.data(), output.pos);
+
+    if (hint == 0)
+      break;
+  }
 
   return true;
 }
@@ -125,114 +125,76 @@ bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet)
   if (size == 0)
     return true;
 
-  std::vector<u8> out_buffer(LZO_OUT_LEN);
-  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+  Common::UniqueBuffer<u8> out_buffer{ZSTD_compressBound(in_buffer.size())};
 
-  lzo_uint i = 0;
-  while (true)
+  const size_t result = ZSTD_compress(out_buffer.data(), out_buffer.size(), in_buffer.data(),
+                                      in_buffer.size(), ZSTD_CLEVEL_DEFAULT);
+  if (ZSTD_isError(result))
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
-
-    if ((i + LZO_IN_LEN) >= size)
-    {
-      cur_len = static_cast<lzo_uint32>(size - i);
-    }
-    else
-    {
-      cur_len = LZO_IN_LEN;
-    }
-
-    if (cur_len <= 0)
-      break;  // end of buffer
-
-    if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
-        LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - compression failed");
-      return false;
-    }
-
-    // The size of the data to write is 'out_len'
-    packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
-    {
-      packet << out_buffer[j];
-    }
-
-    if (cur_len != LZO_IN_LEN)
-      break;
-
-    i += cur_len;
+    PanicAlertFmtT("Internal Error - compression failed");
+    return false;
   }
 
-  // Mark end of data
-  packet << static_cast<u32>(0);
-
+  packet.append(out_buffer.data(), result);
   return true;
 }
 
 bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
 {
   const u64 file_size = Common::PacketReadU64(packet);
-
   if (file_size == 0)
     return true;
 
-  File::IOFile file(file_path, "wb");
-  if (!file)
+  auto* const zds = ZSTD_createDStream();
+  Common::ScopeGuard free_zds{[&] { ZSTD_freeDStream(zds); }};
+
+  File::DirectIOFile file(file_path, File::AccessMode::Write);
+  if (!file.IsOpen())
   {
     PanicAlertFmtT("Failed to open file \"{0}\". Verify your write permissions.", file_path);
     return false;
   }
 
-  std::vector<u8> in_buffer(LZO_OUT_LEN);
-  std::vector<u8> out_buffer(LZO_IN_LEN);
-  u64 bytes_written = 0;
+  // Avoid fragmentation.
+  File::Resize(file, file_size);
+
+  Common::UniqueBuffer<u8> out_buffer{ZSTD_DStreamOutSize()};
+
+  ZSTD_inBuffer input{
+      .src = packet.getData(),
+      .size = +packet.getDataSize(),
+      .pos = packet.getReadPosition(),
+  };
 
   while (true)
   {
-    u32 cur_len = 0;                       // number of bytes to read
-    lzo_uint new_len = out_buffer.size();  // output buffer capacity
+    ZSTD_outBuffer output{.dst = out_buffer.data(), .size = out_buffer.size()};
 
-    packet >> cur_len;
-    if (!cur_len)
-      break;  // We reached the end of the data stream
+    const size_t hint = ZSTD_decompressStream(zds, &output, &input);
 
-    if (cur_len > in_buffer.size())
+    // Bad data or ZSTD wants to read more bytes than we have.
+    if (ZSTD_isError(hint) || (hint > (input.size - input.pos)))
     {
-      PanicAlertFmt("LZO error - input is too large");
-      return false;
+      PanicAlertFmtT("Internal Error - decompression failed");
+      return {};
     }
 
-    for (size_t j = 0; j < cur_len; j++)
-    {
-      packet >> in_buffer[j];
-    }
-
-    if (lzo1x_decompress_safe(in_buffer.data(), cur_len, out_buffer.data(), &new_len, nullptr) !=
-        LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - decompression failed");
-      return false;
-    }
-
-    if (new_len > file_size - bytes_written)
-    {
-      PanicAlertFmtT("LZO error - output is too large");
-      return false;
-    }
-
-    if (!file.WriteBytes(out_buffer.data(), new_len))
+    if (!file.Write(std::span{out_buffer}.first(output.pos)))
     {
       PanicAlertFmtT("Error writing file: {0}", file_path);
       return false;
     }
 
-    bytes_written += new_len;
+    if (hint == 0)
+      break;
   }
 
-  return bytes_written == file_size;
+  // Consume the bytes that we used from the packet.
+  // TODO: Do this better when we no longer use sf::Packet.
+  for (u8 dummy{}; packet.getReadPosition() != input.pos;)
+    packet >> dummy;
+
+  return file.Tell() == file_size;
 }
 
 static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::string& folder_path)
@@ -279,57 +241,44 @@ bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_pa
 std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)
 {
   const u64 size = Common::PacketReadU64(packet);
-
-  std::vector<u8> out_buffer;
-
   if (size == 0)
-    return out_buffer;
+    return {};
 
-  std::vector<u8> in_buffer(LZO_OUT_LEN);
-  std::vector<u8> decompressed_buffer(LZO_IN_LEN);
+  auto* const zds = ZSTD_createDStream();
+  Common::ScopeGuard free_zds{[&] { ZSTD_freeDStream(zds); }};
 
-  u64 decompressed_size = 0;
+  std::vector<u8> out_buffer(size);
+  ZSTD_outBuffer output{.dst = out_buffer.data(), .size = out_buffer.size()};
+
+  ZSTD_inBuffer input{
+      .src = packet.getData(),
+      .size = +packet.getDataSize(),
+      .pos = packet.getReadPosition(),
+  };
+
   while (true)
   {
-    u32 cur_len = 0;                                // number of bytes to read
-    lzo_uint new_len = decompressed_buffer.size();  // output buffer capacity
+    const size_t hint = ZSTD_decompressStream(zds, &output, &input);
 
-    packet >> cur_len;
-    if (!cur_len)
-      break;  // We reached the end of the data stream
+    if (hint == 0)
+      break;
 
-    if (cur_len > in_buffer.size())
+    // Bad data or ZSTD wants to read/write more bytes than we expected.
+    if (ZSTD_isError(hint) || (hint > (input.size - input.pos)) || (output.pos == output.size))
     {
-      PanicAlertFmt("LZO error - input is too large");
+      PanicAlertFmtT("Internal Error - decompression failed");
       return {};
     }
-
-    for (size_t j = 0; j < cur_len; j++)
-    {
-      packet >> in_buffer[j];
-    }
-
-    if (lzo1x_decompress_safe(in_buffer.data(), cur_len, decompressed_buffer.data(), &new_len,
-                              nullptr) != LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - decompression failed");
-      return {};
-    }
-
-    if (new_len > size - decompressed_size || new_len > out_buffer.max_size() - out_buffer.size())
-    {
-      PanicAlertFmtT("LZO error - output is too large");
-      return {};
-    }
-
-    out_buffer.insert(out_buffer.end(), decompressed_buffer.begin(),
-                      decompressed_buffer.begin() + new_len);
-    decompressed_size += new_len;
   }
 
-  if (decompressed_size != size)
+  // Consume the bytes that we used from the packet.
+  // TODO: Do this better when we no longer use sf::Packet.
+  for (u8 dummy{}; packet.getReadPosition() != input.pos;)
+    packet >> dummy;
+
+  if (output.pos != size)
   {
-    PanicAlertFmtT("LZO error - output size mismatch");
+    PanicAlertFmtT("Error - output size mismatch");
     return {};
   }
 
