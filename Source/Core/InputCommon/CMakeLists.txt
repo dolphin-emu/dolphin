@@ -3,6 +3,7 @@ add_library(inputcommon
   DynamicInputTextureManager.h
   GCAdapter.cpp
   GCAdapter.h
+  GCAdapterBackend.h
   ImageOperations.cpp
   ImageOperations.h
   InputConfig.cpp
@@ -138,6 +139,7 @@ elseif(ANDROID)
     ControllerInterface/Android/Android.h
     ControllerInterface/Touch/InputOverrider.cpp
     ControllerInterface/Touch/InputOverrider.h
+    GCAdapterAndroid.cpp
   )
   target_link_libraries(inputcommon PRIVATE
     androidcommon
@@ -145,6 +147,9 @@ elseif(ANDROID)
 endif()
 
 if(NOT ANDROID)
+  target_sources(inputcommon PRIVATE
+    GCAdapterLibUSB.cpp
+  )
   target_link_libraries(inputcommon PUBLIC LibUSB::LibUSB)
 endif()
 

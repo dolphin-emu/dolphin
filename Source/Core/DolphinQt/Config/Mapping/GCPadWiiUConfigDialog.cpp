@@ -57,7 +57,7 @@ void GCPadWiiUConfigDialog::ConnectWidgets()
 
 void GCPadWiiUConfigDialog::UpdateAdapterStatus()
 {
-  const char* error_message = nullptr;
+  std::string error_message;
   const bool detected = GCAdapter::IsDetected(&error_message);
   QString status_text;
 
@@ -65,7 +65,7 @@ void GCPadWiiUConfigDialog::UpdateAdapterStatus()
   {
     status_text = tr("Adapter Detected");
   }
-  else if (error_message)
+  else if (!error_message.empty())
   {
     status_text = tr("Error Opening Adapter: %1").arg(QString::fromUtf8(error_message));
   }
