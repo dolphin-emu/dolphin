@@ -2,8 +2,9 @@ find_package(Git REQUIRED)
 dolphin_fetchcontent_declare(
   cubeb
   GIT_REPOSITORY https://github.com/mozilla/cubeb.git
+  # We don't use GIT_SHALLOW here since GIT_TAG refers to a commit that's not a tag,
+  # which means a shallow clone would fail.
   GIT_TAG dcd7cddafa4b95776cf5d117549ad58e17f23764
-  GIT_SHALLOW TRUE
   # PATCH: This fixes an issue when using the Ninja generator.
   # See https://github.com/mozilla/cubeb/pull/807 for further details.
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_LIST_DIR}/cubeb.patch
