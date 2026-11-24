@@ -362,6 +362,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       // most games do it only once during initialization
       auto& jit_interface = interpreter.m_system.GetJitInterface();
       ppc_state.iCache.Reset(jit_interface);
+      interpreter.m_end_block = true;
     }
   }
   break;
@@ -387,6 +388,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, ppc_state.spr[index]);
       interpreter.m_mmu.IBATUpdated();
       interpreter.m_mmu.DBATUpdated();
+      interpreter.m_end_block = true;
     }
     break;
 
@@ -469,6 +471,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     {
       INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
       interpreter.m_mmu.DBATUpdated();
+      interpreter.m_end_block = true;
     }
     break;
 
@@ -492,6 +495,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     {
       INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
       interpreter.m_mmu.IBATUpdated();
+      interpreter.m_end_block = true;
     }
     break;
 

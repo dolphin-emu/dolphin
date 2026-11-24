@@ -95,9 +95,7 @@ protected:
   };
   struct JitState
   {
-    u32 compilerPC;
-    u32 blockStart;
-    int instructionsLeft;
+    u32 instructionsLeft;
     u32 downcountAmount;
     u32 numLoadStoreInst;
     u32 numFloatingPointInst;
@@ -112,8 +110,8 @@ protected:
     BitSet8 constantGqrValid;
     std::array<u32, 8> constantGqr;
     bool firstFPInstructionFound;
-    bool isLastInstruction;
-    int skipInstructions;
+    u32 skipInstructions;
+    bool wroteUnconditionalExit;
     CarryFlag carryFlag;
 
     bool generatingTrampoline = false;
@@ -133,6 +131,8 @@ protected:
     Common::LazyMemoryRegionBitSet fifoWriteAddresses{INSTRUCTION_BIT_SET_SIZE};
     Common::LazyMemoryRegionBitSet pairedQuantizeAddresses{INSTRUCTION_BIT_SET_SIZE};
     Common::LazyMemoryRegionBitSet noSpeculativeConstantsAddresses{INSTRUCTION_BIT_SET_SIZE};
+
+    bool isLastInstruction() const { return instructionsLeft == 0; }
   };
 
   PPCAnalyst::CodeBlock code_block;
@@ -184,7 +184,7 @@ protected:
   void UnprotectStack();
   void CleanUpAfterStackFault();
 
-  bool CanMergeNextInstructions(int count) const;
+  bool CanMergeNextInstructions(u32 count) const;
   bool HasConstantCarry() const
   {
 #ifdef _M_ARM_64

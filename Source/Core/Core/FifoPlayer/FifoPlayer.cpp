@@ -231,7 +231,7 @@ public:
   }
 
   void Shutdown() override { IsPlayingBackFifologWithBrokenEFBCopies = false; }
-  void ClearCache() override
+  void ClearCache(bool) override
   {
     // Nothing to clear.
   }
