@@ -89,3 +89,43 @@ TEST(SPSCQueue, MultiThreaded)
   queue_ptr.reset();
   EXPECT_EQ(sptr.use_count(), 1);
 }
+
+TEST(SPSCQueue, MoveOnlyElement)
+{
+  Common::SPSCQueue<std::unique_ptr<int>> q;
+  q.Push(std::make_unique<int>(42));
+
+  EXPECT_EQ(*std::as_const(q).Front(), 42);
+
+  auto x2 = std::move(q.Front());
+  EXPECT_EQ(*x2, 42);
+  q.Pop();
+}
+
+TEST(SPSCQueue, LargeElement)
+{
+  Common::SPSCQueue<std::array<u32, 4096>> q;
+  q.Emplace();
+  q.Pop();
+}
+
+TEST(SPSCQueue, SmallElement)
+{
+  Common::WaitableSPSCQueue<u8> q;
+
+  constexpr u32 reps = 100000;
+
+  std::jthread pusher{[&] {
+    for (u32 i = 0; i != reps; ++i)
+      q.Push(u8(i));
+  }};
+
+  std::jthread popper{[&] {
+    for (u32 i = 0; i != reps; ++i)
+    {
+      q.WaitForData();
+      EXPECT_EQ(u8(i), q.Front());
+      q.Pop();
+    }
+  }};
+}
