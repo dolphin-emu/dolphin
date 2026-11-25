@@ -16,14 +16,23 @@ class SystemUpdateViewModel : ViewModel() {
     val totalData = MutableLiveData<Int>()
     val titleIdData = MutableLiveData<Long>()
     val resultData = MutableLiveData<Int>()
-
     private var isRunning = false
     private var canceled = false
-    var region = -1
-    var discPath: String = ""
+    private var region = -1
+    private var discPath: String = ""
 
     init {
         clear()
+    }
+
+    fun prepareOnlineUpdate(region: Int) {
+        this.region = region
+        this.discPath = ""
+    }
+
+    fun prepareDiscUpdate(discPath: String) {
+        this.region = -1
+        this.discPath = discPath
     }
 
     fun setCanceled() {
