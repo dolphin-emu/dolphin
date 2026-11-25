@@ -22,6 +22,7 @@
 #include <cmath>
 #include <utility>
 
+#include <QApplication>
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -32,6 +33,7 @@
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListView>
 #include <QMap>
 #include <QMenu>
@@ -990,6 +992,33 @@ void GameList::ConsiderViewChange()
     setCurrentWidget(m_empty);
   }
 }
+
+void GameList::OnControllerKey(int key)
+{
+  // A game may have started since the hotkey thread sent the key.
+  QAbstractItemView* const view = GetActiveView();
+  if (!Core::IsUninitialized(Core::System::GetInstance()) || !view->isVisible())
+    return;
+  // Leave menus, dialogs, other windows and the search box alone.
+  if (QApplication::activeWindow() != window() || QApplication::activePopupWidget() != nullptr ||
+      qobject_cast<QLineEdit*>(QApplication::focusWidget()) != nullptr)
+  {
+    return;
+  }
+
+  if (key == Qt::Key_Return)
+  {
+    if (GetSelectedGame() != nullptr)
+      emit GameSelected();
+    return;
+  }
+
+  // Focus after the key, or focusing makes the first game current and the key skips it.
+  QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier);
+  QApplication::sendEvent(view, &press);
+  view->setFocus(Qt::OtherFocusReason);
+}
+
 void GameList::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Return && GetSelectedGame() != nullptr)

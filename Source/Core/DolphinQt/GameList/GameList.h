@@ -45,6 +45,9 @@ public:
 
   void UpdateGameCount() const;
 
+  // An arrow key or Qt::Key_Return from HotkeyScheduler::GameListKey.
+  void OnControllerKey(int key);
+
   void resizeEvent(QResizeEvent* event) override;
 
   void PurgeCache();
