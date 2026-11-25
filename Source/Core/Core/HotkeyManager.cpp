@@ -28,6 +28,9 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Toggle Pause"),
     _trans("Stop"),
     _trans("Reset"),
+#ifdef ANDROID
+    _trans("Emulation Menu"),
+#endif
     _trans("Toggle Fullscreen"),
     _trans("Take Screenshot"),
     _trans("Exit"),

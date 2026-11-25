@@ -12,6 +12,7 @@ static JavaVM* s_java_vm;
 static jclass s_string_class;
 
 static jclass s_native_library_class;
+static jmethodID s_get_emulation_activity;
 static jmethodID s_display_toast_msg;
 static jmethodID s_display_alert_msg;
 static jmethodID s_update_touch_pointer;
@@ -155,6 +156,9 @@ static jclass s_title_database_class;
 static jfieldID s_title_database_pointer;
 static jmethodID s_title_database_constructor;
 
+static jclass s_emulation_activity_class;
+static jmethodID s_emulation_activity_open_menu;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -188,6 +192,11 @@ jclass GetStringClass()
 jclass GetNativeLibraryClass()
 {
   return s_native_library_class;
+}
+
+jmethodID GetGetEmulationActivity()
+{
+  return s_get_emulation_activity;
 }
 
 jmethodID GetDisplayToastMsg()
@@ -740,6 +749,16 @@ jmethodID GetTitleDatabaseConstructor()
   return s_title_database_constructor;
 }
 
+jclass GetEmulationActivityClass()
+{
+  return s_emulation_activity_class;
+}
+
+jmethodID GetEmulationActivityOpenMenu()
+{
+  return s_emulation_activity_open_menu;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -757,6 +776,9 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
   const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
+  s_get_emulation_activity =
+      env->GetStaticMethodID(s_native_library_class, "getEmulationActivity",
+                             "()Lorg/dolphinemu/dolphinemu/activities/EmulationActivity;");
   s_display_toast_msg =
       env->GetStaticMethodID(s_native_library_class, "displayToastMsg", "(Ljava/lang/String;Z)V");
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
@@ -1041,6 +1063,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_title_database_constructor = env->GetMethodID(title_database_class, "<init>", "(J)V");
   env->DeleteLocalRef(title_database_class);
 
+  const jclass emulation_activity_class =
+      env->FindClass("org/dolphinemu/dolphinemu/activities/EmulationActivity");
+  s_emulation_activity_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(emulation_activity_class));
+  s_emulation_activity_open_menu = env->GetMethodID(emulation_activity_class, "openMenu", "()V");
+  env->DeleteLocalRef(emulation_activity_class);
+
   return JNI_VERSION;
 }
 
@@ -1080,5 +1109,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_input_detector_class);
   env->DeleteGlobalRef(s_permission_handler_class);
   env->DeleteGlobalRef(s_audio_utils_class);
+  env->DeleteGlobalRef(s_emulation_activity_class);
 }
 }

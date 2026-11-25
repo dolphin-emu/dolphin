@@ -24,6 +24,9 @@ enum Hotkey
   HK_PLAY_PAUSE,
   HK_STOP,
   HK_RESET,
+#ifdef ANDROID
+  HK_MENU,
+#endif
   HK_FULLSCREEN,
   HK_SCREENSHOT,
   HK_EXIT,

@@ -215,6 +215,7 @@ object NativeLibrary {
      * There should only ever be one EmulationActivity instantiated.
      */
     @JvmStatic
+    @Keep
     fun getEmulationActivity(): EmulationActivity? = emulationActivityRef.get()
 
     @JvmStatic
