@@ -124,6 +124,8 @@ add_library(common
   Network.cpp
   Network.h
   OneShotEvent.h
+  OpticalDrive.cpp
+  OpticalDrive.h
   PcapFile.cpp
   PcapFile.h
   Profiler.cpp
@@ -136,6 +138,8 @@ add_library(common
   RangeSet.h
   RangeSizeSet.h
   ScopeGuard.h
+  SCSIDevice.cpp
+  SCSIDevice.h
   SDCardUtil.cpp
   SDCardUtil.h
   SettingsHandler.cpp
@@ -340,6 +344,13 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
+endif()
+
+# Platform-specific SCSI device implementations
+if(WIN32)
+  target_sources(common PRIVATE SCSIDeviceWin.cpp)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_sources(common PRIVATE SCSIDeviceLinux.cpp)
 endif()
 
 if(WIN32)

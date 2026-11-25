@@ -4,14 +4,20 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <span>
+#include <stop_token>
 #include <string>
 #include <vector>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/OpticalDrive.h"
+#include "Common/SCSIDevice.h"
+#include "Common/WorkQueueThread.h"
 
 #include "Core/HW/StreamADPCM.h"
 
@@ -145,6 +151,41 @@ public:
   void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::vector<std::string>& paths);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::string& new_path);
+
+  // Records the path the inserted disc came from. When it is an optical drive, the drive's status
+  // is polled, and opening its tray ejects the emulated disc. Once the emulated drive is empty, the
+  // optical drive is watched, and its next readable GameCube or Wii disc is inserted automatically
+  void SetInsertedDiscPath(const std::string& path);
+
+  // The optical drive the inserted disc came from, or the one the last disc came from while the
+  // emulated drive is empty and that drive is watched for a disc to reinsert. std::nullopt when the
+  // disc came from anything else
+  std::optional<std::string> GetInsertedOpticalDrive(const Core::CPUThreadGuard& guard) const;
+
+  // The status last polled from the drive GetInsertedOpticalDrive reports, which is polled for as
+  // long as there is one
+  std::optional<Common::OpticalDriveStatus>
+  GetInsertedOpticalDriveStatus(const Core::CPUThreadGuard& guard) const;
+
+  // True if the inserted disc came from an optical drive that now reports no disc or an open
+  // tray, like after an eject from pressing the drive's own button. Queries the drive, so call it
+  // only when a read has failed. Must be called on the CPU thread
+  bool IsOpticalDiscRemoved() const;
+
+  // Thread-safe. True from a ChangeDisc to an optical drive until its disc is inserted, or the
+  // change fails or is cancelled
+  bool IsOpticalDiscChangePending() const;
+
+  // True while a disc from an optical drive is on its way into the emulated drive: during a change
+  // to an optical drive (refer to IsOpticalDiscChangePending), and while a disc the reinsert watch
+  // has found waits to be inserted
+  bool IsInsertingOpticalDisc();
+
+  // Abandons a pending change to an optical drive: a spin-up wait ends, a disc that opens anyway is
+  // not inserted, the emulated drive is left empty, and the optical drive is no longer watched for
+  // a disc to reinsert. A new change can start right away
+  void CancelOpticalDiscChange(const Core::CPUThreadGuard& guard);
+
   bool AutoChangeDisc(const Core::CPUThreadGuard& guard);
 
   // This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)
@@ -198,6 +239,11 @@ private:
   static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
   static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
   static void InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+  void OpenOpticalDiscAsync(const std::string& drive);
+  void WatchOpticalDriveForReinsert();
+  void WatchOpticalDriveForRemoval();
+  void StopWatchingOpticalDrive();
+  void SetInsertedOpticalDrive(std::string drive);
   static void FinishExecutingCommandCallback(Core::System& system, u64 userdata, s64 cycles_late);
 
   // DI Status Register
@@ -295,6 +341,34 @@ private:
   std::string m_disc_path_to_insert;
   std::vector<std::string> m_auto_disc_change_paths;
   size_t m_auto_disc_change_index = 0;
+
+  // Worker that opens discs in optical drives, which can wait for a spin-up. InsertDiscCallback
+  // inserts a disc only once it can be read. The reinsert and removal watches also run on it, so
+  // only one of the three runs at a time
+  std::unique_ptr<Common::AsyncWorkThreadSP> m_optical_disc_opener;
+
+  // Requesting a stop on it abandons the opening in flight. Each opening gets its own, so
+  // cancelling one never affects a later one
+  std::stop_source m_optical_disc_open_stop;
+
+  std::mutex m_opened_optical_disc_mutex;
+  std::unique_ptr<DiscIO::VolumeDisc> m_opened_optical_disc;
+  bool m_optical_disc_open_finished = false;
+  bool m_opening_optical_disc = false;
+  std::atomic<bool> m_optical_disc_change_pending = false;
+
+  // The optical drive the last inserted disc came from; empty if it came from anything else
+  std::string m_inserted_optical_drive;
+
+  std::shared_ptr<Common::OpticalDrive> m_inserted_optical_drive_device;
+  Common::OpticalDrive::StatusPolling m_inserted_optical_drive_polling;
+
+  // Requesting a stop on it ends the current watch for a disc to reinsert
+  std::stop_source m_optical_drive_watch_stop;
+
+  // A disc found by the watch, waiting for InsertDiscCallback. Guarded by
+  // m_opened_optical_disc_mutex
+  std::unique_ptr<DiscIO::VolumeDisc> m_reinserted_optical_disc;
 
   // Events
   CoreTiming::EventType* m_finish_executing_command = nullptr;

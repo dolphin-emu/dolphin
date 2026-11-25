@@ -26,6 +26,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/System.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
@@ -57,6 +58,7 @@ void DVDThread::Stop()
   m_result_map.clear();
 
   m_disc.reset();
+  m_from_optical_drive = false;
 }
 
 void DVDThread::DoState(PointerWrap& p)
@@ -84,9 +86,14 @@ void DVDThread::DoState(PointerWrap& p)
   if (had_disc != HasDisc())
   {
     if (had_disc)
+    {
       PanicAlertFmtT("An inserted disc was expected but not found.");
+    }
     else
+    {
       m_disc.reset();
+      m_from_optical_drive = false;
+    }
   }
 
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
@@ -104,6 +111,10 @@ void DVDThread::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   WaitUntilIdle();
   m_disc = std::move(disc);
+
+  // Ask the reader, because the blob type can mislead: a Riivolution-patched disc is a directory
+  // blob that wraps the drive's reader
+  m_from_optical_drive = m_disc && m_disc->GetBlobReader().ReadsFromOpticalDrive();
 }
 
 bool DVDThread::HasDisc() const
@@ -213,6 +224,7 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
 
   request.time_started_ticks = core_timing.GetTicks();
   request.realtime_started_us = Common::Timer::NowUs();
+  request.from_optical_drive = m_from_optical_drive;
 
   m_dvd_thread.Push(std::move(request));
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
@@ -270,10 +282,34 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
 
   auto& dvd_interface = m_system.GetDVDInterface();
   DVD::DIInterruptType interrupt;
-  if (buffer.size() != request.length)
+  // Use the read's own flag. m_from_optical_drive may no longer apply, since the emulated disc is
+  // ejected when its drive's tray opens, and that can happen while this read is in flight
+  if (buffer.size() != request.length && request.from_optical_drive &&
+      dvd_interface.IsOpticalDiscRemoved())
   {
-    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+    // The disc was taken out of the optical drive itself. Instead of failing the read, report a
+    // medium not present error and eject the emulated disc
+    dvd_interface.SetDriveError(DVD::DriveError::MediumNotPresent);
+    interrupt = DVD::DIInterruptType::DEINT;
+    if (dvd_interface.IsDiscInside())
+    {
+      NOTICE_LOG_FMT(DVDINTERFACE, "The optical disc was removed from its drive, ejecting it");
+      dvd_interface.EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::User);
+    }
+  }
+  else if (buffer.size() != request.length)
+  {
+    if (request.from_optical_drive)
+    {
+      // Skip panic alerts from unreadable areas when using a physical drive
+      ERROR_LOG_FMT(DVDINTERFACE, "The optical disc could not be read (at {:#x} - {:#x})",
+                    request.dvd_offset, request.dvd_offset + request.length);
+    }
+    else
+    {
+      PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
+                     request.dvd_offset + request.length);
+    }
 
     dvd_interface.SetDriveError(DVD::DriveError::ReadError);
     interrupt = DVD::DIInterruptType::DEINT;

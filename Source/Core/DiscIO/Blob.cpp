@@ -12,12 +12,14 @@
 #include "Common/CommonTypes.h"
 #include "Common/DirectIOFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/SCSIDevice.h"
 
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/NFSBlob.h"
+#include "DiscIO/OpticalDiscBlob.h"
 #include "DiscIO/SplitFileBlob.h"
 #include "DiscIO/TGCBlob.h"
 #include "DiscIO/WIABlob.h"
@@ -35,6 +37,8 @@ std::string GetName(BlobType blob_type, bool translate)
   {
   case BlobType::PLAIN:
     return "ISO";
+  case BlobType::DRIVE:
+    return translate_str("Optical Disc");
   case BlobType::DIRECTORY:
     return translate_str("Directory");
   case BlobType::GCZ:
@@ -212,6 +216,9 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
+  if (Common::SCSIDevice::IsOpticalDrive(filename))
+    return OpticalDiscReader::Create(filename);
+
   File::DirectIOFile file(filename, File::AccessMode::Read);
   u32 magic;
   if (!file.Read(Common::AsWritableU8Span(magic)))

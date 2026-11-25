@@ -100,6 +100,10 @@ public:
   // Returns true only for CachedBlobReader.
   virtual bool IsCached() const { return false; }
 
+  // Returns true when the data is read from a disc in an optical drive, or through a reader that
+  // wraps the drive's reader
+  virtual bool ReadsFromOpticalDrive() const { return false; }
+
 protected:
   BlobReader() {}
 };

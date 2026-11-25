@@ -262,6 +262,10 @@ public:
   BlobType GetBlobType() const override;
   std::unique_ptr<BlobReader> CopyReader() const override;
 
+  // Returns true if the wrapped volume containing the files this reader patches is read from a disc
+  // in an optical drive
+  bool ReadsFromOpticalDrive() const override;
+
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
   DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }

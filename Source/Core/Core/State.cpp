@@ -9,6 +9,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -40,6 +41,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/GeckoCode.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
@@ -99,7 +101,7 @@ struct CompressAndDumpStateArgs
 static Common::WorkQueueThreadSP<CompressAndDumpStateArgs> s_compress_and_dump_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 192;  // Last changed in PR 14646
+constexpr u32 STATE_VERSION = 193;  // Last changed in PR 14974
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -220,6 +222,23 @@ static bool CheckIfStateLoadIsAllowed(Core::System& system)
     return false;
   }
 
+  return true;
+}
+
+// Must be called on the CPU thread. A disc from an optical drive is opened by a worker thread,
+// which hands it over through an event it schedules itself. A state saved meanwhile would be about
+// to insert a disc that nothing is opening, and loading one would discard that event. So states are
+// neither saved nor loaded while a disc from an optical drive is on its way in: during a change to
+// a drive, until its disc is inserted or the change fails or is cancelled, and while a disc the
+// reinsert watch found waits to be inserted
+static bool IsBlockedByOpticalDisc(Core::System& system, std::string_view action)
+{
+  if (!system.GetDVDInterface().IsInsertingOpticalDisc())
+    return false;
+
+  Core::DisplayMessage(
+      fmt::format("Cannot {} a state while a disc from an optical drive is being inserted", action),
+      OSD::Duration::NORMAL);
   return true;
 }
 
@@ -475,6 +494,9 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
 
 static void SaveAsFromCore(Core::System& system, std::string filename)
 {
+  if (IsBlockedByOpticalDisc(system, "save"))
+    return;
+
   // Try with a buffer a bit larger than the previous state.
   // This will often avoid the "Measure" step.
   const auto buffer_size_estimate = static_cast<std::size_t>(s_last_state_size) * 110 / 100;
@@ -812,6 +834,9 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
 
 static void LoadAsFromCore(Core::System& system, std::string filename)
 {
+  if (IsBlockedByOpticalDisc(system, "load"))
+    return;
+
   // Ensure all data has reached the filesystem before trying to use it.
   s_compress_and_dump_thread.WaitForCompletion();
 
@@ -1001,6 +1026,9 @@ void UndoLoadState(Core::System& system)
     return;
 
   Core::RunOnCPUThread(system, [&system] {
+    if (IsBlockedByOpticalDisc(system, "load"))
+      return;
+
     if (s_undo_load_buffer.empty())
     {
       PanicAlertFmtT("There is nothing to undo!");

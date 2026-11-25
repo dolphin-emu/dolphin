@@ -116,6 +116,9 @@ private:
     u64 time_started_ticks = 0;
     u64 realtime_started_us = 0;
     u64 realtime_done_us = 0;
+
+    // Set for a read originating from an optical drive
+    bool from_optical_drive = false;
   };
 
   void ProcessReadRequest(ReadRequest&& read_request);
@@ -132,6 +135,9 @@ private:
   std::map<u64, ReadResult> m_result_map;
 
   std::unique_ptr<DiscIO::Volume> m_disc;
+
+  // True when m_disc is read from an optical drive
+  bool m_from_optical_drive = false;
 
   FileMonitor::FileLogger m_file_logger;
 

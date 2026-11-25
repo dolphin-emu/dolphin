@@ -559,6 +559,11 @@ BlobType DirectoryBlobReader::GetBlobType() const
   return BlobType::DIRECTORY;
 }
 
+bool DirectoryBlobReader::ReadsFromOpticalDrive() const
+{
+  return m_wrapped_volume && m_wrapped_volume->GetBlobReader().ReadsFromOpticalDrive();
+}
+
 std::unique_ptr<BlobReader> DirectoryBlobReader::CopyReader() const
 {
   return std::unique_ptr<DirectoryBlobReader>(new DirectoryBlobReader(*this));
