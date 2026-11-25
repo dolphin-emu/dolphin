@@ -65,6 +65,7 @@ private:
   ConfigFloatSlider* m_3d_convergence;
   QLabel* m_3d_convergence_value;
   ConfigBool* m_3d_swap_eyes;
+  ConfigBool* m_3d_dump;
   ConfigBool* m_3d_per_eye_resolution;
 
   Config::Layer* m_game_layer = nullptr;

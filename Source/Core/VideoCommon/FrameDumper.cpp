@@ -3,6 +3,8 @@
 
 #include "VideoCommon/FrameDumper.h"
 
+#include <algorithm>
+
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/Image.h"
@@ -16,15 +18,21 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/VideoConfig.h"
 
 // The video encoder needs the image to be a multiple of x samples.
 static constexpr int VIDEO_ENCODER_LCM = 4;
 
 static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 {
+  const int compression_level = Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL);
+  if (frame.layout == FrameLayout::SideBySide)
+  {
+    return Common::ConvertRGBAToRGBAndSaveStereoPNG(file_name, frame.data, frame.width / 2,
+                                                    frame.height, frame.stride, compression_level);
+  }
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
+                                            frame.stride, compression_level);
 }
 
 FrameDumper::FrameDumper()
@@ -40,42 +48,60 @@ FrameDumper::~FrameDumper()
 
 void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
                                    const MathUtil::Rectangle<int>& src_rect,
-                                   const MathUtil::Rectangle<int>& target_rect, u64 ticks,
-                                   int frame_number)
+                                   const MathUtil::Rectangle<int>& target_rect, FrameLayout layout,
+                                   u64 ticks, int frame_number)
 {
   int source_width = src_rect.GetWidth();
   int source_height = src_rect.GetHeight();
   int target_width = target_rect.GetWidth();
   int target_height = target_rect.GetHeight();
 
+  // The views of the eyes are the layers of a stereoscopic XFB texture. An XFB with a single layer
+  // (like one loaded from RAM) provides the view of both eyes, like when it's shown on screen.
+  const u32 view_count = layout == FrameLayout::SideBySide ? 2 : 1;
+
   // We only need to render a copy if we need to stretch/scale the XFB copy.
   MathUtil::Rectangle<int> copy_rect = src_rect;
   if (source_width != target_width || source_height != target_height)
   {
-    if (!CheckFrameDumpRenderTexture(target_width, target_height))
+    if (!CheckFrameDumpRenderTexture(target_width, target_height, view_count))
       return;
 
+    // Each layer of the render texture gets the same layer of the source, or its last one.
     g_gfx->ScaleTexture(m_frame_dump_render_framebuffer.get(),
                         m_frame_dump_render_framebuffer->GetRect(), src_texture, src_rect);
     src_texture = m_frame_dump_render_texture.get();
     copy_rect = src_texture->GetRect();
   }
 
-  if (!CheckFrameDumpReadbackTexture(target_width, target_height))
+  if (!CheckFrameDumpReadbackTexture(target_width * view_count, target_height))
     return;
 
-  m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect, 0, 0,
-                                                 m_frame_dump_readback_texture->GetRect());
+  const u32 last_layer = src_texture->GetLayers() - 1;
+  for (u32 view = 0; view < view_count; ++view)
+  {
+    // The first layer holds the right eye when the eyes are swapped. Undo that so that the left
+    // eye view always comes first, which is what the stereoscopic metadata of the dumps states.
+    const u32 layer =
+        (view_count > 1 && g_ActiveConfig.bStereoSwapEyes) ? view_count - 1 - view : view;
+    const MathUtil::Rectangle<int> dst_rect(view * target_width, 0, (view + 1) * target_width,
+                                            target_height);
+    m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect,
+                                                   std::min(layer, last_layer), 0, dst_rect);
+  }
   m_last_frame_state = m_ffmpeg_dump.FetchState(ticks, frame_number);
+  m_last_frame_layout = layout;
   m_frame_dump_needs_flush = true;
 }
 
-bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
+bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height,
+                                              u32 target_layers)
 {
   // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
   // Or, resize texture if it isn't large enough to accommodate the current frame.
   if (m_frame_dump_render_texture && m_frame_dump_render_texture->GetWidth() == target_width &&
-      m_frame_dump_render_texture->GetHeight() == target_height)
+      m_frame_dump_render_texture->GetHeight() == target_height &&
+      m_frame_dump_render_texture->GetLayers() == target_layers)
   {
     return true;
   }
@@ -84,7 +110,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   m_frame_dump_render_framebuffer.reset();
   m_frame_dump_render_texture.reset();
   m_frame_dump_render_texture = g_gfx->CreateTexture(
-      TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
+      TextureConfig(target_width, target_height, 1, target_layers, 1, AbstractTextureFormat::RGBA8,
                     AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
       "Frame dump render texture");
   if (!m_frame_dump_render_texture)
@@ -131,7 +157,8 @@ void FrameDumper::FlushFrameDump()
   if (output->Map())
   {
     DumpFrameData(reinterpret_cast<u8*>(output->GetMappedPointer()), output->GetConfig().width,
-                  output->GetConfig().height, static_cast<int>(output->GetMappedStride()));
+                  output->GetConfig().height, static_cast<int>(output->GetMappedStride()),
+                  m_last_frame_layout);
   }
   else
   {
@@ -168,9 +195,9 @@ void FrameDumper::ShutdownFrameDumping()
   m_frame_dump_output_texture.reset();
 }
 
-void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride)
+void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride, FrameLayout layout)
 {
-  m_frame_dump_data = FrameData{data, w, h, stride, m_last_frame_state};
+  m_frame_dump_data = FrameData{data, w, h, stride, layout, m_last_frame_state};
 
   if (!m_frame_dump_thread_running.IsSet())
   {
@@ -277,7 +304,7 @@ bool FrameDumper::StartFrameDumpToFFMPEG(const FrameData& frame)
   // TODO: Perhaps we should care about this when starting dumping in the middle of emulation too,
   // but it's less important there since the first frame to dump usually gets delivered quickly.
   const u64 start_ticks = frame.state.frame_number == 0 ? 0 : frame.state.ticks;
-  return m_ffmpeg_dump.Start(frame.width, frame.height, start_ticks);
+  return m_ffmpeg_dump.Start(frame.width, frame.height, frame.layout, start_ticks);
 }
 
 void FrameDumper::DumpFrameToFFMPEG(const FrameData& frame)

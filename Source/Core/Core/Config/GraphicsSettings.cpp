@@ -72,7 +72,7 @@ const Info<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"},
 const Info<bool> GFX_DUMP_XFB_TARGET{{System::GFX, "Settings", "DumpXFBTarget"}, false};
 const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES{{System::GFX, "Settings", "DumpFramesAsImages"}, false};
 const Info<bool> GFX_USE_LOSSLESS{{System::GFX, "Settings", "UseLossless"}, false};
-const Info<std::string> GFX_DUMP_FORMAT{{System::GFX, "Settings", "DumpFormat"}, "avi"};
+const Info<std::string> GFX_DUMP_FORMAT{{System::GFX, "Settings", "DumpFormat"}, "mkv"};
 const Info<std::string> GFX_DUMP_CODEC{{System::GFX, "Settings", "DumpCodec"}, ""};
 const Info<std::string> GFX_DUMP_PIXEL_FORMAT{{System::GFX, "Settings", "DumpPixelFormat"}, ""};
 const Info<std::string> GFX_DUMP_ENCODER{{System::GFX, "Settings", "DumpEncoder"}, ""};
@@ -186,6 +186,14 @@ const Info<bool> GFX_STEREO_EFB_MONO_DEPTH{{System::GFX, "Stereoscopy", "StereoE
                                            false};
 const Info<float> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "StereoDepthPercentage"},
                                               100};
+#if defined(ANDROID)
+// Opt-in on Android, since saving both eyes doubles the amount of image data that has to be read
+// back from the GPU and encoded for every screenshot or dumped frame.
+constexpr bool DEFAULT_STEREO_DUMP = false;
+#else
+constexpr bool DEFAULT_STEREO_DUMP = true;
+#endif
+const Info<bool> GFX_STEREO_DUMP{{System::GFX, "Stereoscopy", "StereoDump"}, DEFAULT_STEREO_DUMP};
 
 // Graphics.Hacks
 

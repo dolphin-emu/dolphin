@@ -824,6 +824,7 @@ enum class BooleanSetting(
         false
     ),
     GFX_STEREO_SWAP_EYES(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoSwapEyes", false),
+    GFX_STEREO_DUMP(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoDump", false),
     GFX_HACK_EFB_ACCESS_ENABLE(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_HACKS,

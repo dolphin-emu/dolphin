@@ -272,6 +272,8 @@
     <string name="stereoscopy_convergence_description">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
     <string name="stereoscopy_swap_eyes">Swap Eyes</string>
     <string name="stereoscopy_swap_eyes_description">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+    <string name="stereoscopy_dump">Stereoscopic Screenshots and Frame Dumps</string>
+    <string name="stereoscopy_dump_description">Save both eyes side by side in screenshots and frame dumps, marked as stereoscopic 3D for compatible viewers, video players and 3D displays. If disabled, only one eye is saved.</string>
 
     <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>

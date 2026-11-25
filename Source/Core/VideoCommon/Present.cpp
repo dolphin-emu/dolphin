@@ -263,6 +263,15 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
 {
   if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
+    // Dump the views of both eyes when stereoscopic 3D is enabled. This only depends on the
+    // settings, so that a video doesn't get split in several files whenever the XFB holds a single
+    // view (like when it's loaded from RAM), which then gets dumped for both eyes.
+    const FrameLayout layout =
+        (g_ActiveConfig.stereo_mode != StereoMode::Off && Config::Get(Config::GFX_STEREO_DUMP)) ?
+            FrameLayout::SideBySide :
+            FrameLayout::Mono;
+
+    // The target rectangle is the size of the view of a single eye, even with stereoscopic 3D.
     MathUtil::Rectangle<int> target_rect;
     switch (Config::Get(Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE))
     {
@@ -272,6 +281,16 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
       if (!g_gfx->IsHeadless())
       {
         target_rect = GetTargetRectangle();
+
+        // With full resolution per eye, the views of both eyes are drawn within the target
+        // rectangle, next to each other or one above the other.
+        if (g_ActiveConfig.stereo_per_eye_resolution_full)
+        {
+          if (g_ActiveConfig.stereo_mode == StereoMode::SideBySide)
+            target_rect.right = target_rect.left + target_rect.GetWidth() / 2;
+          else if (g_ActiveConfig.stereo_mode == StereoMode::TopAndBottom)
+            target_rect.bottom = target_rect.top + target_rect.GetHeight() / 2;
+        }
         break;
       }
       [[fallthrough]];
@@ -280,9 +299,10 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     {
       target_rect = m_xfb_rect;
       const bool allow_stretch = false;
-      auto [float_width, float_height] =
-          ScaleToDisplayAspectRatio(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight(), allow_stretch);
-      const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
+      const bool single_view = true;
+      auto [float_width, float_height] = ScaleToDisplayAspectRatio(
+          m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight(), allow_stretch, single_view);
+      const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch, single_view);
       auto [int_width, int_height] =
           FindClosestIntegerResolution(float_width, float_height, draw_aspect_ratio);
       target_rect = MathUtil::Rectangle<int>(0, 0, int_width, int_height);
@@ -319,8 +339,8 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
 
     // TODO: any scaling done by this won't be gamma corrected,
     // we should either apply post processing as well, or port its gamma correction code
-    g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
-                                     m_frame_count);
+    g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, layout,
+                                     ticks, m_frame_count);
   }
 }
 
@@ -479,7 +499,7 @@ float Presenter::AdjustAspectRatioForCustomCrop(float input_aspect_ratio) const
   return input_aspect_ratio * (relative_width_difference / relative_height_difference);
 }
 
-float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
+float Presenter::CalculateDrawAspectRatio(bool allow_stretch, bool single_view) const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
   float resulting_aspect_ratio;
@@ -528,7 +548,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
     }
   }
 
-  if (g_ActiveConfig.stereo_per_eye_resolution_full)
+  if (g_ActiveConfig.stereo_per_eye_resolution_full && !single_view)
   {
     if (g_ActiveConfig.stereo_mode == StereoMode::SideBySide)
     {
@@ -816,13 +836,14 @@ void Presenter::UpdateDrawRectangle()
 }
 
 std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, const int height,
-                                                              bool allow_stretch) const
+                                                              bool allow_stretch,
+                                                              bool single_view) const
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
   float scaled_width = static_cast<float>(width);
   float scaled_height = static_cast<float>(height);
-  const float draw_aspect = CalculateDrawAspectRatio(allow_stretch);
+  const float draw_aspect = CalculateDrawAspectRatio(allow_stretch, single_view);
   if (scaled_width / scaled_height >= draw_aspect)
     scaled_height = scaled_width / draw_aspect;
   else

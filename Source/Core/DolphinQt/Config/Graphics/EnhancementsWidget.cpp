@@ -223,6 +223,9 @@ void EnhancementsWidget::CreateWidgets()
 
   m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES, m_game_layer);
 
+  m_3d_dump = new ConfigBool(tr("Stereoscopic Screenshots and Frame Dumps"),
+                             Config::GFX_STEREO_DUMP, m_game_layer);
+
   m_3d_per_eye_resolution = new ConfigBool(
       tr("Use Full Resolution Per Eye"), Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL, m_game_layer);
 
@@ -235,6 +238,7 @@ void EnhancementsWidget::CreateWidgets()
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
   stereoscopy_layout->addWidget(m_3d_convergence_value, 2, 2);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
+  stereoscopy_layout->addWidget(m_3d_dump, 3, 1, 1, -1);
   stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
 
   m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue()));
@@ -356,6 +360,7 @@ void EnhancementsWidget::OnBackendChanged()
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
+  m_3d_dump->setEnabled(supports_stereoscopy);
 
   // PostProcessing
   const bool supports_postprocessing = g_backend_info.bSupportsPostProcessing;
@@ -537,6 +542,13 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
       "Swaps the left and right eye. Most useful in side-by-side stereoscopy "
       "mode.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_3D_DUMP_DESCRIPTION[] = QT_TR_NOOP(
+      "Saves both eyes in screenshots and frame dumps, side by side with the left eye on the "
+      "left, and marks them as stereoscopic 3D so that compatible viewers, video players and 3D "
+      "displays can show them in 3D.<br><br>Screenshots and frames dumped as images are PNG files "
+      "with an sTER chunk. Videos carry stereoscopic 3D metadata in MKV and MP4 files, and in "
+      "H.264 streams encoded with libx264.<br><br>If unchecked, only one eye is saved."
+      "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_3D_PER_EYE_RESOLUTION_DESCRIPTION[] =
       QT_TR_NOOP("Whether each eye gets full or half image resolution when using side-by-side "
                  "or above-and-below 3D."
@@ -614,6 +626,8 @@ void EnhancementsWidget::AddDescriptions()
   m_3d_per_eye_resolution->SetDescription(tr(TR_3D_PER_EYE_RESOLUTION_DESCRIPTION));
 
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
+
+  m_3d_dump->SetDescription(tr(TR_3D_DUMP_DESCRIPTION));
 }
 
 void EnhancementsWidget::ConfigureColorCorrection()

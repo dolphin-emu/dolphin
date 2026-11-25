@@ -2515,6 +2515,14 @@ class SettingsFragmentPresenter(
                 R.string.stereoscopy_swap_eyes_description
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.GFX_STEREO_DUMP,
+                R.string.stereoscopy_dump,
+                R.string.stereoscopy_dump_description
+            )
+        )
     }
 
     /**

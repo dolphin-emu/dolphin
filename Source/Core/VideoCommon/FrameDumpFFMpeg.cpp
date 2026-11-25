@@ -22,6 +22,7 @@ extern "C" {
 #include <libavutil/mathematics.h>
 #include <libavutil/opt.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/stereo3d.h>
 #include <libswscale/swscale.h>
 }
 
@@ -54,6 +55,7 @@ struct FrameDumpContext
 
   int width = 0;
   int height = 0;
+  FrameLayout layout = FrameLayout::Mono;
 
   u64 start_ticks = 0;
   u32 savestate_index = 0;
@@ -163,9 +165,50 @@ std::string AVErrorString(int error)
   return fmt::format("{:8x} {}", (u32)error, &msg[0]);
 }
 
+// Stereoscopic 3D metadata for frames holding the views of both eyes next to each other, the left
+// eye first. AVStereo3D doesn't tell full resolution views (which Dolphin dumps) from half
+// resolution ones.
+void SetSideBySideStereo3D(AVStereo3D* stereo3d)
+{
+  stereo3d->type = AV_STEREO3D_SIDEBYSIDE;
+  stereo3d->flags = 0;
+}
+
+// Adds the stereoscopic 3D metadata to the stream, for muxers that store it in the container, like
+// Matroska (StereoMode element) and MP4 ('st3d' box).
+bool AddSideBySideStereo3DToStream(AVStream* stream)
+{
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 26, 100)
+  size_t size = 0;
+  AVStereo3D* const stereo3d = av_stereo3d_alloc_size(&size);
+#else
+  const size_t size = sizeof(AVStereo3D);
+  AVStereo3D* const stereo3d = av_stereo3d_alloc();
+#endif
+  if (!stereo3d)
+    return false;
+
+  SetSideBySideStereo3D(stereo3d);
+
+  // Ownership of the side data is only transferred on success.
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 30, 100)
+  AVCodecParameters* const codecpar = stream->codecpar;
+  if (!av_packet_side_data_add(&codecpar->coded_side_data, &codecpar->nb_coded_side_data,
+                               AV_PKT_DATA_STEREO3D, stereo3d, size, 0))
+#else
+  if (av_stream_add_side_data(stream, AV_PKT_DATA_STEREO3D, reinterpret_cast<uint8_t*>(stereo3d),
+                              size) < 0)
+#endif
+  {
+    av_free(stereo3d);
+    return false;
+  }
+  return true;
+}
+
 }  // namespace
 
-bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
+bool FFMpegFrameDump::Start(int w, int h, FrameLayout layout, u64 start_ticks)
 {
   if (IsStarted())
     return true;
@@ -174,15 +217,17 @@ bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
   m_start_time = std::time(nullptr);
   m_file_index = 0;
 
-  return PrepareEncoding(w, h, start_ticks, m_savestate_index);
+  return PrepareEncoding(w, h, layout, start_ticks, m_savestate_index);
 }
 
-bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index)
+bool FFMpegFrameDump::PrepareEncoding(int w, int h, FrameLayout layout, u64 start_ticks,
+                                      u32 savestate_index)
 {
   m_context = std::make_unique<FrameDumpContext>();
 
   m_context->width = w;
   m_context->height = h;
+  m_context->layout = layout;
 
   m_context->start_ticks = start_ticks;
   m_context->savestate_index = savestate_index;
@@ -225,7 +270,12 @@ bool FFMpegFrameDump::CreateVideoFile()
   const std::string codec_name =
       Config::Get(Config::GFX_USE_LOSSLESS) ? "utvideo" : Config::Get(Config::GFX_DUMP_CODEC);
 
-  AVCodecID codec_id = output_format->video_codec;
+  // Without a configured codec, use MPEG-4 Part 2, which all of Dolphin's FFmpeg builds can encode,
+  // rather than the default codec of the container, which depends on the FFmpeg build (for MKV,
+  // H.264 when FFmpeg has libx264), unless the container can't store MPEG-4 Part 2.
+  AVCodecID codec_id = AV_CODEC_ID_MPEG4;
+  if (avformat_query_codec(output_format, codec_id, FF_COMPLIANCE_NORMAL) != 1)
+    codec_id = output_format->video_codec;
 
   if (!codec_name.empty())
   {
@@ -256,11 +306,17 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   m_max_denominator = std::numeric_limits<s64>::max();
 
-  // Force XVID FourCC for better compatibility when using H.263
   if (codec->id == AV_CODEC_ID_MPEG4)
   {
-    m_context->codec->codec_tag = MKTAG('X', 'V', 'I', 'D');
+    // Force XVID FourCC for better compatibility when using H.263, unless the container doesn't
+    // accept it, like MP4.
+    constexpr unsigned int xvid_tag = MKTAG('X', 'V', 'I', 'D');
+    if (av_codec_get_id(output_format->codec_tag, xvid_tag) == AV_CODEC_ID_MPEG4)
+      m_context->codec->codec_tag = xvid_tag;
     m_max_denominator = std::numeric_limits<unsigned short>::max();
+
+    // Only for MPEG-4 Part 2, as other encoders like libx264 refuse to open with this level.
+    m_context->codec->level = 1;
   }
 
   const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
@@ -274,7 +330,6 @@ bool FFMpegFrameDump::CreateVideoFile()
   m_context->codec->height = m_context->height;
   m_context->codec->time_base = time_base;
   m_context->codec->gop_size = 1;
-  m_context->codec->level = 1;
 
   AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
 
@@ -320,6 +375,22 @@ bool FFMpegFrameDump::CreateVideoFile()
   if (av_frame_get_buffer(m_context->scaled_frame, 1))
     return false;
 
+  const bool is_stereo = m_context->layout == FrameLayout::SideBySide;
+
+  // The frame is reused for every frame sent to the encoder, so the stereoscopic 3D metadata only
+  // needs to be attached once. Encoders that support it signal it in the video stream itself,
+  // like libx264 with a frame packing arrangement SEI message.
+  if (is_stereo)
+  {
+    AVStereo3D* const stereo3d = av_stereo3d_create_side_data(m_context->scaled_frame);
+    if (!stereo3d)
+    {
+      ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate stereoscopic 3D frame side data");
+      return false;
+    }
+    SetSideBySideStereo3D(stereo3d);
+  }
+
   m_context->stream = avformat_new_stream(m_context->format, codec);
   if (!m_context->stream ||
       avcodec_parameters_from_context(m_context->stream->codecpar, m_context->codec) < 0)
@@ -329,6 +400,18 @@ bool FFMpegFrameDump::CreateVideoFile()
   }
 
   m_context->stream->time_base = m_context->codec->time_base;
+
+  if (is_stereo)
+  {
+    if (!AddSideBySideStereo3DToStream(m_context->stream))
+    {
+      ERROR_LOG_FMT(FRAMEDUMP, "Could not add stereoscopic 3D stream side data");
+      return false;
+    }
+
+    // The MP4 muxer only writes its 'st3d' box when unofficial extensions are allowed.
+    m_context->format->strict_std_compliance = FF_COMPLIANCE_UNOFFICIAL;
+  }
 
   NOTICE_LOG_FMT(FRAMEDUMP, "Opening file {} for dumping", dump_path);
   if (avio_open(&m_context->format->pb, dump_path.c_str(), AVIO_FLAG_WRITE) < 0 ||
@@ -344,8 +427,8 @@ bool FFMpegFrameDump::CreateVideoFile()
                  m_context->stream->time_base.num);
   }
 
-  OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{})", dump_path, m_context->width,
-                              m_context->height));
+  OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{}{})", dump_path, m_context->width,
+                              m_context->height, is_stereo ? ", side-by-side 3D" : ""));
   return true;
 }
 
@@ -517,6 +600,11 @@ void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
     INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on resolution change.");
     restart_dump = true;
   }
+  else if (frame.layout != m_context->layout)
+  {
+    INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on stereoscopic 3D change.");
+    restart_dump = true;
+  }
   else if (!IsFirstFrameInCurrentFile() &&
            frame.state.savestate_index != m_context->savestate_index)
   {
@@ -536,7 +624,8 @@ void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
   {
     Stop();
     ++m_file_index;
-    PrepareEncoding(frame.width, frame.height, frame.state.ticks, frame.state.savestate_index);
+    PrepareEncoding(frame.width, frame.height, frame.layout, frame.state.ticks,
+                    frame.state.savestate_index);
   }
 }
 
