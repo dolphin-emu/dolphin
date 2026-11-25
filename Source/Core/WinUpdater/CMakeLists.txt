@@ -14,7 +14,4 @@ target_link_libraries(winupdater PRIVATE
 
 set_target_properties(winupdater PROPERTIES OUTPUT_NAME "Updater")
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(winupdater PRIVATE use_pch)
-endif()
+dolphin_shared_pch(winupdater)

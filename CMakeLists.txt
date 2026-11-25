@@ -119,6 +119,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 option(ENABLE_CCACHE "Enables CCache compiler cache" OFF)
+option(ENABLE_PCH "Enables precompiled headers" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:

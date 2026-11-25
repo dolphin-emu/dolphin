@@ -36,7 +36,4 @@ PUBLIC
   videod3dcommon
 )
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videod3d12 PRIVATE use_pch)
-endif()
+dolphin_shared_pch(videod3d12)

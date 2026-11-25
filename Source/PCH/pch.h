@@ -45,6 +45,8 @@
 #include <fcntl.h>
 #include <filesystem>
 #include <float.h>
+// See https://github.com/fmtlib/fmt/issues/4757
+#define FMT_USE_OPTIMIZE_PRAGMA 0
 #include <fmt/format.h>
 #include <fstream>
 #include <functional>

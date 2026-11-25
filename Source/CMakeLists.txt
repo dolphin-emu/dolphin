@@ -36,10 +36,7 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (MSVC)
-  # Compile PCH
-  add_subdirectory(PCH)
-else()
+if (NOT MSVC)
   check_and_add_flag(HAVE_WALL -Wall)
   # TODO: would like these but they produce overwhelming amounts of warnings
   #check_and_add_flag(EXTRA -Wextra)
@@ -97,6 +94,8 @@ check_symbol_exists(getexecpath unistd.h HAVE_GETEXECPATH)
 if(HAVE_GETEXECPATH)
   add_definitions(-DHAVE_GETEXECPATH)
 endif()
+
+add_subdirectory(PCH)
 
 add_subdirectory(Core)
 if (ANDROID)

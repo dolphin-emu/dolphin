@@ -842,10 +842,7 @@ if(TARGET cpp-ipc::ipc)
   target_link_libraries(core PRIVATE cpp-ipc::ipc)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(core PRIVATE use_pch)
-endif()
+dolphin_shared_pch(core)
 
 if(USE_RETRO_ACHIEVEMENTS)
   target_link_libraries(core PUBLIC rcheevos)

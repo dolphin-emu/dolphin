@@ -61,7 +61,4 @@ PRIVATE
   ${PROJECT_SOURCE_DIR}/Externals/libadrenotools/include
 )
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videovulkan PRIVATE use_pch)
-endif()
+dolphin_shared_pch(videovulkan)

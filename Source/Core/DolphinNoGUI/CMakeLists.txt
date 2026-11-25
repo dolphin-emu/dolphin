@@ -55,9 +55,11 @@ if(WIN32)
   target_link_libraries(dolphin-nogui PRIVATE dwmapi.lib)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(dolphin-nogui PRIVATE use_pch)
+if(UNIX AND NOT APPLE AND NOT ANDROID AND ENABLE_QT)
+  # UICommon links Qt which can't use the shared pch
+  dolphin_pch(dolphin-nogui)
+else()
+  dolphin_shared_pch(dolphin-nogui)
 endif()
 
 if(USE_DISCORD_PRESENCE)
