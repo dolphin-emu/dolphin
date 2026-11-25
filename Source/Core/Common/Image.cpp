@@ -3,7 +3,10 @@
 
 #include "Common/Image.h"
 
+#include <algorithm>
+#include <array>
 #include <memory>
+#include <span>
 #include <string>
 
 #include <spng.h>
@@ -55,8 +58,9 @@ bool LoadPNG(std::span<const u8> input, Common::UniqueBuffer<u8>* data_out, u32*
   return true;
 }
 
-bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
-             u32 height, u32 stride, int level)
+static bool SavePNGWithChunks(const std::string& path, const u8* input, ImageByteFormat format,
+                              u32 width, u32 height, u32 stride, int level,
+                              std::span<spng_unknown_chunk> ancillary_chunks)
 {
   Common::Timer timer;
   timer.Start();
@@ -94,6 +98,14 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   if (spng_set_ihdr(ctx.get(), &ihdr))
     return false;
 
+  // libspng only keeps a pointer to the chunks, which must stay alive until encoding is done.
+  if (!ancillary_chunks.empty() &&
+      spng_set_unknown_chunks(ctx.get(), ancillary_chunks.data(),
+                              static_cast<u32>(ancillary_chunks.size())))
+  {
+    return false;
+  }
+
   if (spng_encode_image(ctx.get(), nullptr, 0, SPNG_FMT_PNG,
                         SPNG_ENCODE_PROGRESSIVE | SPNG_ENCODE_FINALIZE))
   {
@@ -119,22 +131,32 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   return true;
 }
 
+bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
+             u32 height, u32 stride, int level)
+{
+  return SavePNGWithChunks(path, input, format, width, height, stride, level, {});
+}
+
+// Drops the alpha channel of width RGBA pixels.
+static u8* RGBAToRGB(const u8* input, u32 width, u8* output)
+{
+  for (u32 x = 0; x < width; ++x)
+  {
+    *output++ = input[x * 4];
+    *output++ = input[x * 4 + 1];
+    *output++ = input[x * 4 + 2];
+  }
+  return output;
+}
+
 static Common::UniqueBuffer<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row_stride)
 {
   Common::UniqueBuffer<u8> buffer;
   buffer.reset(width * height * 3);
 
-  std::size_t buffer_index = 0;
+  u8* output = buffer.data();
   for (u32 y = 0; y < height; ++y)
-  {
-    const u8* pos = input + y * row_stride;
-    for (u32 x = 0; x < width; ++x)
-    {
-      buffer[buffer_index++] = pos[x * 4];
-      buffer[buffer_index++] = pos[x * 4 + 1];
-      buffer[buffer_index++] = pos[x * 4 + 2];
-    }
-  }
+    output = RGBAToRGB(input + y * row_stride, width, output);
   return buffer;
 }
 
@@ -143,5 +165,42 @@ bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, u32 wi
 {
   const auto data = RGBAToRGB(input, width, height, stride);
   return SavePNG(path, data.data(), ImageByteFormat::RGB, width, height, width * 3, level);
+}
+
+bool ConvertRGBAToRGBAndSaveStereoPNG(const std::string& path, const u8* input, u32 view_width,
+                                      u32 height, u32 stride, int level)
+{
+  if (view_width == 0)
+    return false;
+
+  // sTER requires the left edge of the right view to be on a column that is a multiple of 8, so
+  // that both views line up with the Adam7 interlacing pattern. In the words of the
+  // specification, padding = 7 - ((view_width - 1) mod 8).
+  const u32 padding = (8 - view_width % 8) % 8;
+  const u32 width = view_width * 2 + padding;
+  const u32 row_size = width * 3;
+
+  Common::UniqueBuffer<u8> buffer;
+  buffer.reset(row_size * height);
+
+  for (u32 y = 0; y < height; ++y)
+  {
+    const u8* const row = input + y * stride;
+    u8* output = RGBAToRGB(row, view_width, &buffer[y * row_size]);
+    output = std::fill_n(output, padding * 3, u8{0});
+    RGBAToRGB(row + view_width * 4, view_width, output);
+  }
+
+  // Mode 1 is the "diverging-fuse layout": the left eye view is on the left, like with
+  // side-by-side 3D displays. Mode 0 would mean the views are swapped for cross-eyed viewing.
+  u8 ster_mode = 1;
+  std::array<spng_unknown_chunk, 1> chunks{{{
+      .type = {'s', 'T', 'E', 'R'},
+      .length = sizeof(ster_mode),
+      .data = &ster_mode,
+      .location = SPNG_AFTER_IHDR,
+  }}};
+  return SavePNGWithChunks(path, buffer.data(), ImageByteFormat::RGB, width, height, row_size,
+                           level, chunks);
 }
 }  // namespace Common
