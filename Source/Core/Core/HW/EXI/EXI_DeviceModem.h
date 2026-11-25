@@ -4,6 +4,7 @@
 #pragma once
 
 #include <mutex>
+#include <span>
 
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -83,6 +84,7 @@ private:
   void SetInterruptFlag(u8 what, bool enabled, bool from_cpu);
   void HandleReadModemTransfer(void* data, u32 size);
   void HandleWriteModemTransfer(const void* data, u32 size);
+  void SendAndRemoveAllHDLCFrames();
   void OnReceiveBufferSizeChangedLocked(bool from_cpu);
   void SendComplete();
   void AddToReceiveBuffer(std::string&& data);
@@ -110,20 +112,19 @@ private:
 
   class NetworkInterface
   {
-  protected:
-    CEXIModem* m_modem_ref = nullptr;
-    explicit NetworkInterface(CEXIModem* modem_ref) : m_modem_ref{modem_ref} {}
-
   public:
+    virtual ~NetworkInterface() = default;
+
     virtual bool Activate() { return false; }
     virtual void Deactivate() {}
-    virtual bool IsActivated() { return false; }
-    virtual bool SendAndRemoveAllHDLCFrames(std::string*) { return false; }
-    virtual bool RecvInit() { return false; }
+    virtual bool SendFrame(std::span<const u8>) { return false; }
     virtual void RecvStart() {}
     virtual void RecvStop() {}
 
-    virtual ~NetworkInterface() = default;
+  protected:
+    explicit NetworkInterface(CEXIModem* modem_ref) : m_modem_ref{modem_ref} {}
+
+    CEXIModem* const m_modem_ref;
   };
 
   class TAPServerNetworkInterface : public NetworkInterface
@@ -131,12 +132,9 @@ private:
   public:
     TAPServerNetworkInterface(CEXIModem* modem_ref, const std::string& destination);
 
-  public:
     bool Activate() override;
     void Deactivate() override;
-    bool IsActivated() override;
-    bool SendAndRemoveAllHDLCFrames(std::string* send_buffer) override;
-    bool RecvInit() override;
+    bool SendFrame(std::span<const u8>) override;
     void RecvStart() override;
     void RecvStop() override;
 

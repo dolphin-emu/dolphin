@@ -7,6 +7,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -209,7 +210,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
     // AT command buffer
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_at_reply_data.size());
     std::memcpy(data, m_at_reply_data.data(), bytes_to_copy);
-    m_at_reply_data = m_at_reply_data.substr(bytes_to_copy);
+    m_at_reply_data.erase(0, bytes_to_copy);
     m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
     SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
   }
@@ -219,7 +220,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
     std::lock_guard<std::mutex> g(m_receive_buffer_lock);
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_receive_buffer.size());
     std::memcpy(data, m_receive_buffer.data(), bytes_to_copy);
-    m_receive_buffer = m_receive_buffer.substr(bytes_to_copy);
+    m_receive_buffer.erase(0, bytes_to_copy);
     OnReceiveBufferSizeChangedLocked(true);
   }
   else
@@ -258,7 +259,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
     // from the emulated program's perspective, so we always tell it the send
     // FIFO is empty.
     SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
-    m_network_interface->SendAndRemoveAllHDLCFrames(&m_send_buffer);
+    SendAndRemoveAllHDLCFrames();
   }
   else
   {
@@ -269,6 +270,42 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
       (bytes_expected_after_write == 0) ?
           INVALID_TRANSFER_DESCRIPTOR :
           SetModemTransferSize(m_transfer_descriptor, bytes_expected_after_write);
+}
+
+void CEXIModem::SendAndRemoveAllHDLCFrames()
+{
+  std::string_view remaining{m_send_buffer};
+  bool fail = false;
+
+  while (true)
+  {
+    const std::size_t start_offset = remaining.find(0x7E);
+    if (start_offset == std::string::npos)
+      break;
+
+    const std::size_t end_sentinel_offset = remaining.find(0x7E, start_offset + 1);
+    if (end_sentinel_offset == std::string::npos)
+      break;
+
+    const std::size_t end_offset = end_sentinel_offset + 1;
+    const std::size_t size = end_offset - start_offset;
+
+    if (!m_network_interface->SendFrame(
+            {reinterpret_cast<const u8*>(remaining.data()) + start_offset, size}))
+    {
+      fail = true;
+      break;
+    }
+
+    remaining.remove_prefix(end_offset);
+  }
+
+  if (const std::size_t send_count = m_send_buffer.size() - remaining.size())
+  {
+    m_send_buffer.erase(0, send_count);
+    if (!fail)
+      SendComplete();
+  }
 }
 
 void CEXIModem::DoState(PointerWrap& p)
@@ -351,22 +388,26 @@ void CEXIModem::AddATReply(const std::string& data)
 
 void CEXIModem::RunAllPendingATCommands()
 {
-  for (std::size_t newline_pos = m_at_command_data.find_first_of("\r\n");
-       newline_pos != std::string::npos; newline_pos = m_at_command_data.find_first_of("\r\n"))
+  std::string_view remaining{m_at_command_data};
+
+  while (true)
   {
-    std::string command = m_at_command_data.substr(0, newline_pos);
-    m_at_command_data = m_at_command_data.substr(newline_pos + 1);
+    const std::size_t newline_pos = remaining.find_first_of("\r\n");
+    if (newline_pos == std::string_view::npos)
+      break;
+
+    const auto command = remaining.substr(0, newline_pos);
 
     INFO_LOG_FMT(SP1, "Received AT command: {}", command);
 
-    if (command.substr(0, 3) == "ATZ" || command == "ATH0")
+    if (command.starts_with("ATZ") || command == "ATH0")
     {
       // Reset (ATZ) or hang up (ATH0)
       m_network_interface->RecvStop();
       m_network_interface->Deactivate();
       AddATReply("OK\r");
     }
-    else if (command.substr(0, 3) == "ATD")
+    else if (command.starts_with("ATD"))
     {
       // Dial
       if (m_network_interface->Activate())
@@ -386,7 +427,11 @@ void CEXIModem::RunAllPendingATCommands()
       // them, so we just pretend we did.
       AddATReply("OK\r");
     }
+
+    remaining.remove_prefix(newline_pos + 1);
   }
+
+  m_at_command_data.erase(0, m_at_command_data.size() - remaining.size());
 }
 
 }  // namespace ExpansionInterface
