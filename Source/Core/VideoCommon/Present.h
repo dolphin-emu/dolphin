@@ -71,7 +71,10 @@ public:
   float AdjustAspectRatioForCustomCrop(float input_aspect_ratio) const;
 
   // Returns the target aspect ratio the XFB output should be drawn with.
-  float CalculateDrawAspectRatio(bool allow_stretch = true) const;
+  // With full resolution per eye, side-by-side and top-and-bottom stereoscopic 3D draw both eyes
+  // in the target rectangle, which widens or narrows its aspect ratio. Set single_view to get the
+  // aspect ratio of the view of a single eye instead.
+  float CalculateDrawAspectRatio(bool allow_stretch = true, bool single_view = false) const;
 
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
@@ -126,7 +129,8 @@ private:
                                                    bool allow_stretch = true) const;
   // Scales a raw XFB resolution to the target (display) aspect ratio
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
-                                                     bool allow_stretch = true) const;
+                                                     bool allow_stretch = true,
+                                                     bool single_view = false) const;
 
   // Use this to convert a single target rectangle to two stereo rectangles
   std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>

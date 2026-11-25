@@ -23,12 +23,23 @@ struct FrameState
   int refresh_rate_den = 0;
 };
 
+// How the views of the scene are arranged in a dumped frame.
+enum class FrameLayout
+{
+  // A single view.
+  Mono,
+  // A stereoscopic pair at full resolution: the left eye view in the left half of the frame and
+  // the right eye view in the right half.
+  SideBySide,
+};
+
 struct FrameData
 {
   const u8* data = nullptr;
   int width = 0;
   int height = 0;
   int stride = 0;
+  FrameLayout layout = FrameLayout::Mono;
   FrameState state;
 };
 
@@ -38,7 +49,7 @@ public:
   FFMpegFrameDump();
   ~FFMpegFrameDump();
 
-  bool Start(int w, int h, u64 start_ticks);
+  bool Start(int w, int h, FrameLayout layout, u64 start_ticks);
   void AddFrame(const FrameData&);
   void Stop();
   void DoState(PointerWrap&);
@@ -47,7 +58,7 @@ public:
 
 private:
   bool IsFirstFrameInCurrentFile() const;
-  bool PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index);
+  bool PrepareEncoding(int w, int h, FrameLayout layout, u64 start_ticks, u32 savestate_index);
   bool CreateVideoFile();
   void CloseVideoFile();
   void CheckForConfigChange(const FrameData&);

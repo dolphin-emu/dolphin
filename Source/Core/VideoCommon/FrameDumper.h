@@ -26,9 +26,12 @@ public:
   void FlushFrameDump();
 
   // Fills the frame dump staging texture with the current XFB texture.
+  // target_rect is the size of a single view. With FrameLayout::SideBySide, the left and right eye
+  // views are taken from the layers of the stereoscopic XFB texture and put next to each other.
   void DumpCurrentFrame(const AbstractTexture* src_texture,
                         const MathUtil::Rectangle<int>& src_rect,
-                        const MathUtil::Rectangle<int>& target_rect, u64 ticks, int frame_number);
+                        const MathUtil::Rectangle<int>& target_rect, FrameLayout layout, u64 ticks,
+                        int frame_number);
 
   void SaveScreenshot(std::string filename);
 
@@ -50,13 +53,13 @@ private:
   void ShutdownFrameDumping();
 
   // Checks that the frame dump render texture exists and is the correct size.
-  bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height);
+  bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height, u32 target_layers);
 
   // Checks that the frame dump readback texture exists and is the correct size.
   bool CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
-  void DumpFrameData(const u8* data, int w, int h, int stride);
+  void DumpFrameData(const u8* data, int w, int h, int stride, FrameLayout layout);
 
   // Ensures all encoded frames have been written to the output file.
   void FinishFrameData();
@@ -72,6 +75,9 @@ private:
 
   // Holds emulation state during the last swap when dumping.
   FrameState m_last_frame_state;
+
+  // Arrangement of the views in the readback texture.
+  FrameLayout m_last_frame_layout = FrameLayout::Mono;
 
   // Communication of frame between video and dump threads.
   FrameData m_frame_dump_data;

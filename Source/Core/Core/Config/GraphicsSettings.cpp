@@ -186,6 +186,14 @@ const Info<bool> GFX_STEREO_EFB_MONO_DEPTH{{System::GFX, "Stereoscopy", "StereoE
                                            false};
 const Info<float> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "StereoDepthPercentage"},
                                               100};
+#if defined(ANDROID)
+// Opt-in on Android, since saving both eyes doubles the amount of image data that has to be read
+// back from the GPU and encoded for every screenshot or dumped frame.
+constexpr bool DEFAULT_STEREO_DUMP = false;
+#else
+constexpr bool DEFAULT_STEREO_DUMP = true;
+#endif
+const Info<bool> GFX_STEREO_DUMP{{System::GFX, "Stereoscopy", "StereoDump"}, DEFAULT_STEREO_DUMP};
 
 // Graphics.Hacks
 
