@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
 import org.dolphinemu.dolphinemu.features.input.model.Hotkeys
+import org.dolphinemu.dolphinemu.features.retroachievements.RetroAchievementsProxyPrompt
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -1167,7 +1168,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                         }
                         .show()
                 } else {
-                    continueCallback.run()
+                    RetroAchievementsProxyPrompt.run(activity, continueCallback)
                 }
             }
         }

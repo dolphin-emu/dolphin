@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.collection.ArraySet
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting
+import org.dolphinemu.dolphinemu.features.retroachievements.RetroAchievementsProxy
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting
@@ -1136,6 +1138,48 @@ class SettingsFragmentPresenter(
                         logout()
                         loadSettingsList()
                     })
+            }
+            if (RetroAchievementsProxy.isEnabled(context) ||
+                RetroAchievementsProxy.installedProxyPackage(context) != null
+            ) {
+                val proxySetting: AbstractBooleanSetting = object : AbstractBooleanSetting {
+                    override val boolean: Boolean
+                        get() = RetroAchievementsProxy.isEnabled(context)
+
+                    override fun setBoolean(settings: Settings, newValue: Boolean) {
+                        if (!newValue) {
+                            RetroAchievementsProxy.disable(settings)
+                        } else if (!RetroAchievementsProxy.enable(context, settings)) {
+                            Toast.makeText(
+                                context,
+                                R.string.achievements_proxy_not_installed,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        loadSettingsList()
+                    }
+
+                    override val isOverridden: Boolean
+                        get() = false
+
+                    override val isRuntimeEditable: Boolean
+                        get() = false
+
+                    override fun delete(settings: Settings): Boolean {
+                        RetroAchievementsProxy.disable(settings)
+                        loadSettingsList()
+                        return true
+                    }
+                }
+
+                sl.add(
+                    SwitchSetting(
+                        context,
+                        proxySetting,
+                        R.string.achievements_proxy_enabled,
+                        R.string.achievements_proxy_enabled_description
+                    )
+                )
             }
             sl.add(
                 SwitchSetting(

@@ -1002,6 +1002,11 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_logout">Log Out</string>
     <string name="achievements_login_in_progress">Logging In</string>
     <string name="achievements_login_failed">Login Failed</string>
+    <string name="achievements_proxy_enabled">Use RAOfflineProxy</string>
+    <string name="achievements_proxy_enabled_description">While RAOfflineProxy is running, RetroAchievements traffic goes through it and Hardcore mode is off. Dolphin asks the app each time a game starts.</string>
+    <string name="achievements_proxy_prompt_title">RAOfflineProxy detected</string>
+    <string name="achievements_proxy_prompt_message">%1$s (%2$s) is running. Do you want Dolphin to send RetroAchievements traffic through it? Hardcore mode is off while it is used. You can change this later in Settings, Achievements.</string>
+    <string name="achievements_proxy_not_installed">RAOfflineProxy is not installed</string>
 
     <!-- Netplay -->
     <string name="netplay_setup_title">Netplay Setup</string>

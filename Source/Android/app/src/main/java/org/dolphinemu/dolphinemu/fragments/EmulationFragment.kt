@@ -20,6 +20,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
 import org.dolphinemu.dolphinemu.features.netplay.NetplayManager
+import org.dolphinemu.dolphinemu.features.retroachievements.RetroAchievementsProxy
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
@@ -215,7 +216,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         runWhenSurfaceIsValid = false
         if (NativeLibrary.IsUninitialized()) {
             NativeLibrary.SetIsBooting()
+            val appContext = requireContext().applicationContext
             val emulationThread = Thread({
+                RetroAchievementsProxy.applyForSession(appContext)
                 // Don't load temporary saves when launching Netplay, this path can trigger
                 // when a game starts due to orientation changes caused by a mismatch in menu
                 // vs emulation activity orientations.
