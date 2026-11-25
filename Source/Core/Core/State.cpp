@@ -17,6 +17,7 @@
 #include <fmt/std.h>
 
 #include <lz4.h>
+#include <lz4frame.h>
 #include <lzo/lzo1x.h>
 
 #include "Common/Buffer.h"
@@ -28,6 +29,7 @@
 #include "Common/LocaleUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
@@ -99,7 +101,7 @@ struct CompressAndDumpStateArgs
 static Common::WorkQueueThreadSP<CompressAndDumpStateArgs> s_compress_and_dump_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 192;  // Last changed in PR 14646
+constexpr u32 STATE_VERSION = 193;  // Last changed in PR 15067
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -327,35 +329,100 @@ static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
   return result;
 }
 
-static void CompressBufferToFile(std::span<const u8> raw_buffer, File::IOFile& f)
+static void LZ4CompressBufferToFile(std::span<const u8> src_buffer, File::IOFile& f)
 {
-  u64 total_bytes_compressed = 0;
+  LZ4F_preferences_t prefs = LZ4F_INIT_PREFERENCES;
+  // Theoretically, "independent" blocks would be faster.
+  // Larger 4MB blocks seems to compensate for the would-be lower compression ratio.
+  prefs.frameInfo.blockSizeID = LZ4F_max4MB;
+  prefs.frameInfo.blockMode = LZ4F_blockIndependent;
+  prefs.frameInfo.contentChecksumFlag = LZ4F_noContentChecksum;
+  prefs.frameInfo.contentSize = src_buffer.size();
+  prefs.frameInfo.blockChecksumFlag = LZ4F_noBlockChecksum;
+  // Negative values can be faster but lower compression ratio, with very diminishing returns.
+  // Feel free to find a more ideal value.
+  prefs.compressionLevel = 0;
 
+#if LZ4_VERSION_NUMBER >= 11100
+  if (LZ4_versionNumber() >= 11100)
+  {  // Seems to makes things notably faster. Maybe like ~5x faster?
+    prefs.nbWorkers = std::thread::hardware_concurrency() / 2;
+  }
+#endif
+
+  Common::UniqueBuffer<char> dst_buffer{LZ4F_compressFrameBound(src_buffer.size(), &prefs)};
+
+  const size_t result = LZ4F_compressFrame(dst_buffer.data(), dst_buffer.size(), src_buffer.data(),
+                                           src_buffer.size(), &prefs);
+  if (LZ4F_isError(result))
+  {
+    PanicAlertFmtT("Internal LZ4 Error - compression failed: {0}", LZ4F_getErrorName(result));
+    return;
+  }
+
+  const u64 compressed_size = result;
+  f.WriteArray(&compressed_size, 1);
+  f.WriteBytes(dst_buffer.data(), compressed_size);
+}
+
+static bool LZ4DecompressFileToBuffer(File::IOFile& f, std::span<u8> dst_buffer)
+{
+  LZ4F_dctx* ctx = nullptr;
+  const LZ4F_errorCode_t result = LZ4F_createDecompressionContext(&ctx, LZ4F_VERSION);
+  if (LZ4F_isError(result))
+  {
+    PanicAlertFmtT("Unable to create LZ4F context: {0}", LZ4F_getErrorName(result));
+    return false;
+  }
+  Common::ScopeGuard free_ctx{[&] { LZ4F_freeDecompressionContext(ctx); }};
+
+  const LZ4F_decompressOptions_t options{
+      .stableDst = 1,
+      .skipChecksums = 1,
+  };
+
+  u64 compressed_size = 0;
+  if (!f.ReadArray(&compressed_size, 1))
+  {
+    PanicAlertFmt("Could not read state data length");
+    return false;
+  }
+
+  Common::UniqueBuffer<u8> src_buffer{compressed_size};
+  if (!f.ReadBytes(src_buffer.data(), compressed_size))
+  {
+    PanicAlertFmt("Could not read state data");
+    return false;
+  }
+
+  size_t dst_offset = 0;
+  size_t src_offset = 0;
   while (true)
   {
-    const u64 bytes_left_to_compress = raw_buffer.size() - total_bytes_compressed;
-
-    const int bytes_to_compress =
-        static_cast<int>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), bytes_left_to_compress));
-    Common::UniqueBuffer<char> compressed_buffer(LZ4_compressBound(bytes_to_compress));
-    const int compressed_len = LZ4_compress_default(
-        reinterpret_cast<const char*>(raw_buffer.data()) + total_bytes_compressed,
-        compressed_buffer.get(), bytes_to_compress, static_cast<int>(compressed_buffer.size()));
-
-    if (compressed_len == 0)
+    size_t dst_size = dst_buffer.size() - dst_offset;
+    size_t src_size = src_buffer.size() - src_offset;
+    const size_t hint = LZ4F_decompress(ctx, dst_buffer.data() + dst_offset, &dst_size,
+                                        src_buffer.data() + src_offset, &src_size, &options);
+    if (LZ4F_isError(hint))
     {
-      PanicAlertFmtT("Internal LZ4 Error - compression failed");
-      break;
+      PanicAlertFmtT("Internal LZ4 Error - decompression failed: {0}", LZ4F_getErrorName(hint));
+      return false;
     }
 
-    // The size of the data to write is 'compressed_len'
-    f.WriteArray(&compressed_len, 1);
-    f.WriteBytes(compressed_buffer.get(), compressed_len);
+    dst_offset += dst_size;
 
-    total_bytes_compressed += bytes_to_compress;
-    if (total_bytes_compressed == raw_buffer.size())
+    if (hint == 0) [[likely]]
       break;
+
+    // LZ4F decompression stalled.
+    // It expects more data than what we have provided (malformed savesate).
+    if (src_size == 0) [[unlikely]]
+      break;
+
+    src_offset += src_size;
   }
+
+  return dst_offset == dst_buffer.size();
 }
 
 static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t uncompressed_size)
@@ -419,7 +486,7 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
   WriteHeadersToFile(buffer.size(), f);
 
   if (s_use_compression)
-    CompressBufferToFile(buffer, f);
+    LZ4CompressBufferToFile(buffer, f);
   else
     f.WriteBytes(buffer.data(), buffer.size());
 
@@ -639,63 +706,6 @@ u64 GetUnixTimeOfSlot(u32 slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::IOFile& f)
-{
-  raw_buffer.reset(size);
-
-  u64 total_bytes_read = 0;
-  while (true)
-  {
-    s32 compressed_data_len = 0;
-    if (!f.ReadArray(&compressed_data_len, 1))
-    {
-      PanicAlertFmt("Could not read state data length");
-      return false;
-    }
-
-    if (compressed_data_len <= 0)
-    {
-      PanicAlertFmtT("Internal LZ4 Error - Tried decompressing {0} bytes", compressed_data_len);
-      return false;
-    }
-
-    Common::UniqueBuffer<char> compressed_data(compressed_data_len);
-    if (!f.ReadBytes(compressed_data.get(), compressed_data_len))
-    {
-      PanicAlertFmt("Could not read state data");
-      return false;
-    }
-
-    const auto max_decompress_size =
-        static_cast<int>(std::min((u64)LZ4_MAX_INPUT_SIZE, size - total_bytes_read));
-
-    int bytes_read = LZ4_decompress_safe(
-        compressed_data.get(), reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read,
-        compressed_data_len, max_decompress_size);
-
-    if (bytes_read < 0)
-    {
-      PanicAlertFmtT("Internal LZ4 Error - decompression failed ({0}, {1}, {2})", bytes_read,
-                     compressed_data_len, max_decompress_size);
-      return false;
-    }
-
-    total_bytes_read += static_cast<u64>(bytes_read);
-
-    if (total_bytes_read == size)
-    {
-      return true;
-    }
-
-    if (total_bytes_read > size)
-    {
-      PanicAlertFmtT("Internal LZ4 Error - payload size mismatch ({0} / {1}))", total_bytes_read,
-                     size);
-      return false;
-    }
-  }
-}
-
 static bool ValidateHeaders(const StateHeader& header)
 {
   bool success = true;
@@ -773,7 +783,8 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
   case CompressionType::LZ4:
   {
     Core::DisplayMessage("Decompressing State...", OSD::Duration::SHORT);
-    if (!DecompressLZ4(buffer, extended_header.base_header.uncompressed_size, f))
+    buffer.reset(extended_header.base_header.uncompressed_size);
+    if (!LZ4DecompressFileToBuffer(f, buffer))
       return;
 
     break;
