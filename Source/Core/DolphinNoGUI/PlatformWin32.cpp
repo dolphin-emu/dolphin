@@ -13,7 +13,6 @@
 #include <dwmapi.h>
 
 #include "VideoCommon/Present.h"
-#include "resource.h"
 
 namespace
 {
@@ -30,6 +29,7 @@ public:
 
 private:
   static constexpr TCHAR WINDOW_CLASS_NAME[] = _T("DolphinNoGUI");
+  static constexpr TCHAR ICON_RESOURCE_NAME[] = _T("dolphin");
 
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -61,12 +61,12 @@ bool PlatformWin32::RegisterRenderWindowClass()
   wc.cbClsExtra = 0;
   wc.cbWndExtra = 0;
   wc.hInstance = GetModuleHandle(nullptr);
-  wc.hIcon = LoadIcon(nullptr, IDI_ICON1);
+  wc.hIcon = LoadIcon(nullptr, ICON_RESOURCE_NAME);
   wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
   wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
   wc.lpszMenuName = nullptr;
   wc.lpszClassName = WINDOW_CLASS_NAME;
-  wc.hIconSm = LoadIcon(nullptr, IDI_ICON1);
+  wc.hIconSm = LoadIcon(nullptr, ICON_RESOURCE_NAME);
 
   if (!RegisterClassEx(&wc))
   {

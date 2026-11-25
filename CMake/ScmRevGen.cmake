@@ -14,6 +14,17 @@ if(GIT_FOUND)
   # remove hash (and trailing "-0" if needed) from description
   string(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
 
+  # defines DOLPHIN_WC_TAG
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0
+    OUTPUT_VARIABLE DOLPHIN_WC_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+
+  # define DOLPHIN_WC_COMMITS_AHEAD_TAG
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-list ${DOLPHIN_WC_TAG}..HEAD --count
+      OUTPUT_VARIABLE DOLPHIN_WC_COMMITS_AHEAD_TAG
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
   # defines DOLPHIN_WC_BRANCH
   execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
       OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
@@ -22,12 +33,6 @@ if(GIT_FOUND)
   execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD ^master
       OUTPUT_VARIABLE DOLPHIN_WC_COMMITS_AHEAD_MASTER
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-  # defines DOLPHIN_WC_TAG
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --exact-match HEAD
-    OUTPUT_VARIABLE DOLPHIN_WC_TAG
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET)
 endif()
 
 string(TIMESTAMP DOLPHIN_WC_BUILD_DATE "%Y-%m-%d" UTC)
@@ -35,7 +40,7 @@ string(TIMESTAMP DOLPHIN_WC_BUILD_DATE "%Y-%m-%d" UTC)
 # version number
 set(DOLPHIN_VERSION_MAJOR "2609")
 set(DOLPHIN_VERSION_MINOR "0")
-set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
+set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_COMMITS_AHEAD_TAG})
 
 # If Dolphin is not built from a Git repository, default the version info to
 # reasonable values.
@@ -48,8 +53,7 @@ endif()
 
 # If this is a tag (i.e. a release), then set the current patch version and
 # the number of commits ahead to zero.
-if(DOLPHIN_WC_TAG)
-  set(DOLPHIN_VERSION_PATCH "0")
+if(DOLPHIN_WC_COMMITS_AHEAD_TAG EQUAL 0)
   set(DOLPHIN_WC_COMMITS_AHEAD_MASTER 0)
 endif()
 
