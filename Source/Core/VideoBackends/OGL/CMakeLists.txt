@@ -31,7 +31,4 @@ if(X11_FOUND)
   target_link_libraries(videoogl PRIVATE PkgConfig::X11)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videoogl PRIVATE use_pch)
-endif()
+dolphin_shared_pch(videoogl)

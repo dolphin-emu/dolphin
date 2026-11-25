@@ -183,10 +183,7 @@ if(ENABLE_SDL)
   target_link_libraries(inputcommon PRIVATE SDL3::SDL3)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(inputcommon PRIVATE use_pch)
-endif()
+dolphin_shared_pch(inputcommon)
 
 if(TARGET Hidapi::Hidapi)
   target_sources(inputcommon

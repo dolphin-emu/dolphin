@@ -14,7 +14,4 @@ PUBLIC
   spirv_cross
 )
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videod3dcommon PRIVATE use_pch)
-endif()
+dolphin_shared_pch(videod3dcommon)

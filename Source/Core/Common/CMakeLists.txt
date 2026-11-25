@@ -178,7 +178,10 @@ if(NOT MSVC AND _M_ARM_64)
   set_source_files_properties(
     Crypto/AES.cpp
     Crypto/SHA1.cpp
-    PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
+    PROPERTIES
+      COMPILE_FLAGS "-march=armv8-a+crypto"
+      SKIP_PRECOMPILE_HEADERS TRUE
+  )
 endif()
 
 target_link_libraries(common
@@ -396,7 +399,4 @@ elseif(WIN32)
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(common PRIVATE use_pch)
-endif()
+dolphin_shared_pch(common)

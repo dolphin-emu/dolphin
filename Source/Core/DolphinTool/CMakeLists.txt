@@ -28,9 +28,11 @@ PRIVATE
   fmt::fmt
 )
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(dolphin-tool PRIVATE use_pch)
+if(UNIX AND NOT APPLE AND NOT ANDROID AND ENABLE_QT)
+  # UICommon links Qt which can't use the shared pch
+  dolphin_pch(dolphin-tool)
+else()
+  dolphin_shared_pch(dolphin-tool)
 endif()
 
 if(APPLE)

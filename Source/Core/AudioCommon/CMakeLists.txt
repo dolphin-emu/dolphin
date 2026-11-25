@@ -96,7 +96,4 @@ if(ENABLE_CUBEB)
   target_link_libraries(audiocommon PRIVATE cubeb::cubeb)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(audiocommon PRIVATE use_pch)
-endif()
+dolphin_shared_pch(audiocommon)

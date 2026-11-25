@@ -770,3 +770,8 @@ if(USE_RETRO_ACHIEVEMENTS)
     target_compile_definitions(dolphin-emu PRIVATE -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
   endif()
 endif()
+
+if(ENABLE_PCH)
+  target_include_directories(dolphin-emu PRIVATE ${PROJECT_SOURCE_DIR}/Source/PCH)
+  target_precompile_headers(dolphin-emu PRIVATE pch_qt.h)
+endif()

@@ -18,7 +18,4 @@ PUBLIC
   videocommon
 )
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videonull PRIVATE use_pch)
-endif()
+dolphin_shared_pch(videonull)

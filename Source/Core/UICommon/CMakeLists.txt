@@ -44,6 +44,10 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND ENABLE_QT)
   target_sources(uicommon PRIVATE DBusUtils.cpp)
   target_compile_definitions(uicommon PRIVATE -DHAVE_QTDBUS=1)
   target_link_libraries(uicommon PUBLIC Qt6::DBus)
+  # Linking Qt changes compile flags so uicommon has to use its own PCH.
+  dolphin_pch(uicommon)
+else()
+  dolphin_shared_pch(uicommon)
 endif()
 
 if(X11_FOUND)
@@ -60,7 +64,3 @@ if(USE_DISCORD_PRESENCE)
   target_link_libraries(uicommon PRIVATE discord-rpc)
 endif()
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(uicommon PRIVATE use_pch)
-endif()
