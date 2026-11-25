@@ -172,6 +172,11 @@ public:
   // only when a read has failed. Must be called on the CPU thread
   bool IsOpticalDiscRemoved() const;
 
+  // A hybrid read from an optical drive that ScheduleReads expected to end at read_end_ticks ended
+  // delay_ticks later. If that read set the read-ahead buffer model, the model is moved by the same
+  // amount, since a drive that is still reading cannot prefetch
+  void DelayReadBuffer(u64 read_end_ticks, s64 delay_ticks);
+
   // Thread-safe. True from a ChangeDisc to an optical drive until its disc is inserted, or the
   // change fails or is cancelled
   bool IsOpticalDiscChangePending() const;

@@ -1721,11 +1721,36 @@ void DVDInterface::FinishExecutingCommand(ReplyType reply_type, DIInterruptType 
   }
 }
 
+void DVDInterface::DelayReadBuffer(u64 read_end_ticks, s64 delay_ticks)
+{
+  // ScheduleReads starts the buffer model at the time it expects the read to end, unless the read
+  // left the buffer as it was (the special case for its first two blocks). Only the first case
+  // depends on when this read ended
+  if (m_read_buffer_start_time == m_read_buffer_end_time ||
+      m_read_buffer_start_time != read_end_ticks)
+  {
+    return;
+  }
+
+  m_read_buffer_start_time += static_cast<u64>(delay_ticks);
+  m_read_buffer_end_time += static_cast<u64>(delay_ticks);
+}
+
 // Determines from a given read request how much of the request is buffered,
 // and how much is required to be read from disc.
 void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
                                  u32 output_address, ReplyType reply_type)
 {
+  // With "Emulate Disc Speed" disabled, the optical drive paces the read: the whole command is one
+  // request that completes when the physical read finishes, and the timing model below is skipped.
+  // With it enabled, the model applies, but no read completes before the drive returns its data
+  auto& dvd_thread = m_system.GetDVDThread();
+  if (dvd_thread.GetDiscTiming() == DVDThread::DiscTiming::HostPaced)
+  {
+    dvd_thread.StartReadToEmulatedRAM(output_address, offset, length, partition, reply_type, 0);
+    return;
+  }
+
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned
   // from the buffer. Data can be transferred from the buffer at up to 32 MiB/s.
@@ -1738,7 +1763,6 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
   auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
   const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-  auto& dvd_thread = m_system.GetDVDThread();
   const bool wii_disc = dvd_thread.GetDiscType() == DiscIO::Platform::WiiDisc;
 
   // Whether we have performed a seek.
