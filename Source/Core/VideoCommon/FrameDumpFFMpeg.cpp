@@ -10,7 +10,6 @@
 
 #include <array>
 #include <string>
-#include <string_view>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -159,19 +158,6 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   return path;
 }
 
-// const since libavformat 59.
-using OutputFormat = decltype(av_guess_format(nullptr, nullptr, nullptr));
-
-// Finds the container for a format the same way as for the file that GetDumpPath() names after it:
-// by format name, else by file name extension (like "mkv" for Matroska).
-OutputFormat GuessOutputFormat(const std::string& format)
-{
-  std::string file_name = Config::Get(Config::GFX_DUMP_PATH);
-  if (file_name.empty())
-    file_name = "dump." + format;
-  return av_guess_format(format.c_str(), file_name.c_str(), nullptr);
-}
-
 std::string AVErrorString(int error)
 {
   std::array<char, AV_ERROR_MAX_STRING_SIZE> msg;
@@ -258,37 +244,7 @@ bool FFMpegFrameDump::PrepareEncoding(int w, int h, FrameLayout layout, u64 star
 
 bool FFMpegFrameDump::CreateVideoFile()
 {
-  std::string format = Config::Get(Config::GFX_DUMP_FORMAT);
-
-  OutputFormat output_format = GuessOutputFormat(format);
-  if (!output_format)
-  {
-    ERROR_LOG_FMT(FRAMEDUMP, "Invalid format {}", format);
-    return false;
-  }
-
-  // Without a configured codec, use the default one of the configured format, even if the
-  // container changes below.
-  AVCodecID codec_id = output_format->video_codec;
-
-  // Video players and 3D displays only show videos in 3D when the file says that they are
-  // stereoscopic, which AVI files can't, so use MKV files for those instead.
-  const bool is_stereo = m_context->layout == FrameLayout::SideBySide;
-  bool avi_replaced = false;
-  if (is_stereo && std::string_view(output_format->name) == "avi")
-  {
-    if (const OutputFormat matroska = av_guess_format("matroska", nullptr, nullptr))
-    {
-      output_format = matroska;
-      format = "mkv";
-      avi_replaced = true;
-    }
-    else
-    {
-      WARN_LOG_FMT(FRAMEDUMP, "Can't write MKV files, so the stereoscopic 3D frame dump is an AVI "
-                              "file, which video players can't tell from a 2D video");
-    }
-  }
+  const std::string format = Config::Get(Config::GFX_DUMP_FORMAT);
 
   const std::string dump_path = GetDumpPath(format, m_start_time, m_file_index);
 
@@ -296,6 +252,13 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
 
   File::CreateFullPath(dump_path);
+
+  auto* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
+  if (!output_format)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Invalid format {}", format);
+    return false;
+  }
 
   if (avformat_alloc_output_context2(&m_context->format, output_format, nullptr,
                                      dump_path.c_str()) < 0)
@@ -306,6 +269,13 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   const std::string codec_name =
       Config::Get(Config::GFX_USE_LOSSLESS) ? "utvideo" : Config::Get(Config::GFX_DUMP_CODEC);
+
+  // Without a configured codec, use MPEG-4 Part 2, which all of Dolphin's FFmpeg builds can encode,
+  // rather than the default codec of the container, which depends on the FFmpeg build (for MKV,
+  // H.264 when FFmpeg has libx264), unless the container can't store MPEG-4 Part 2.
+  AVCodecID codec_id = AV_CODEC_ID_MPEG4;
+  if (avformat_query_codec(output_format, codec_id, FF_COMPLIANCE_NORMAL) != 1)
+    codec_id = output_format->video_codec;
 
   if (!codec_name.empty())
   {
@@ -405,6 +375,8 @@ bool FFMpegFrameDump::CreateVideoFile()
   if (av_frame_get_buffer(m_context->scaled_frame, 1))
     return false;
 
+  const bool is_stereo = m_context->layout == FrameLayout::SideBySide;
+
   // The frame is reused for every frame sent to the encoder, so the stereoscopic 3D metadata only
   // needs to be attached once. Encoders that support it signal it in the video stream itself,
   // like libx264 with a frame packing arrangement SEI message.
@@ -455,12 +427,6 @@ bool FFMpegFrameDump::CreateVideoFile()
                  m_context->stream->time_base.num);
   }
 
-  if (avi_replaced)
-  {
-    NOTICE_LOG_FMT(FRAMEDUMP, "Dumping frames to MKV instead of AVI, which can't be marked as "
-                              "stereoscopic 3D");
-    OSD::AddMessage("Dumping frames to MKV instead of AVI, which can't be marked as 3D");
-  }
   OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{}{})", dump_path, m_context->width,
                               m_context->height, is_stereo ? ", side-by-side 3D" : ""));
   return true;
