@@ -547,7 +547,8 @@ void EnhancementsWidget::AddDescriptions()
       "left, and marks them as stereoscopic 3D so that compatible viewers, video players and 3D "
       "displays can show them in 3D.<br><br>Screenshots and frames dumped as images are PNG files "
       "with an sTER chunk. Videos carry stereoscopic 3D metadata in MKV and MP4 files, and in "
-      "H.264 streams encoded with libx264.<br><br>If unchecked, only one eye is saved."
+      "H.264 streams encoded with libx264. As AVI files can't, videos are dumped to MKV files "
+      "instead of AVI when possible.<br><br>If unchecked, only one eye is saved."
       "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_3D_PER_EYE_RESOLUTION_DESCRIPTION[] =
       QT_TR_NOOP("Whether each eye gets full or half image resolution when using side-by-side "
