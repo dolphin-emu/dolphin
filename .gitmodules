@@ -58,10 +58,6 @@
 	path = Externals/fmt/fmt
 	url = https://github.com/fmtlib/fmt.git
 	shallow = true
-[submodule "Externals/lz4/lz4"]
-	path = Externals/lz4/lz4
-	url = https://github.com/lz4/lz4.git
-	shallow = true
 [submodule "Externals/xxhash/xxHash"]
 	path = Externals/xxhash/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
