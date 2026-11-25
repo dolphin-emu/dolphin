@@ -213,6 +213,7 @@ public:
   }
 
   bool IsCached() const override { return true; }
+  bool ReadsFromOpticalDrive() const override { return m_reader->ReadsFromOpticalDrive(); }
 
 private:
   // A shared object does the cache filling for sensible CopyReader behavior.

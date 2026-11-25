@@ -3,6 +3,7 @@
 
 #include "Core/HW/DVD/DVDThread.h"
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,6 +17,7 @@
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -26,6 +28,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/System.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
@@ -55,8 +58,11 @@ void DVDThread::Stop()
 
   m_result_queue.Clear();
   m_result_map.clear();
+  m_pending_reads.clear();
+  m_hybrid_lateness_ticks = 0;
 
   m_disc.reset();
+  m_from_optical_drive = false;
 }
 
 void DVDThread::DoState(PointerWrap& p)
@@ -73,6 +79,8 @@ void DVDThread::DoState(PointerWrap& p)
 
   p.Do(m_result_map);
   p.Do(m_next_id);
+  p.Do(m_pending_reads);
+  p.Do(m_hybrid_lateness_ticks);
 
   // m_disc isn't savestated (because it points to files on the
   // local system). Instead, we check that the status of the disc
@@ -84,9 +92,14 @@ void DVDThread::DoState(PointerWrap& p)
   if (had_disc != HasDisc())
   {
     if (had_disc)
+    {
       PanicAlertFmtT("An inserted disc was expected but not found.");
+    }
     else
+    {
       m_disc.reset();
+      m_from_optical_drive = false;
+    }
   }
 
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
@@ -104,11 +117,23 @@ void DVDThread::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   WaitUntilIdle();
   m_disc = std::move(disc);
+
+  // Ask the reader, because the blob type can mislead: a Riivolution-patched disc is a directory
+  // blob that wraps the drive's reader
+  m_from_optical_drive = m_disc && m_disc->GetBlobReader().ReadsFromOpticalDrive();
 }
 
 bool DVDThread::HasDisc() const
 {
   return m_disc != nullptr;
+}
+
+DVDThread::DiscTiming DVDThread::GetDiscTiming() const
+{
+  if (!m_from_optical_drive)
+    return DiscTiming::Deterministic;
+
+  return Config::Get(Config::MAIN_FAST_DISC_SPEED) ? DiscTiming::HostPaced : DiscTiming::Hybrid;
 }
 
 bool DVDThread::HasWiiHashes() const
@@ -213,8 +238,14 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
 
   request.time_started_ticks = core_timing.GetTicks();
   request.realtime_started_us = Common::Timer::NowUs();
+  request.from_optical_drive = m_from_optical_drive;
+  request.timing = GetDiscTiming();
+  request.ticks_until_completion = ticks_until_completion;
 
   m_dvd_thread.Push(std::move(request));
+
+  // Every read completes through an event scheduled on the CPU thread, which savestates keep. For a
+  // read from an optical drive, it first checks whether the data is there (see FinishRead)
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
@@ -223,8 +254,34 @@ void DVDThread::GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late)
   system.GetDVDThread().FinishRead(id, cycles_late);
 }
 
+bool DVDThread::IsResultReady(u64 id)
+{
+  ReadResult result;
+  while (m_result_queue.Pop(result))
+    m_result_map.emplace(result.first.id, std::move(result));
+  return m_result_map.contains(id);
+}
+
 void DVDThread::FinishRead(u64 id, s64 cycles_late)
 {
+  // Optical drive reads don't block the CPU thread. A read whose data hasn't arrived is checked
+  // again shortly, so it completes soon after the drive returns the data. Reads complete in the
+  // order they were issued, even when a later read comes due while an earlier one is still pending.
+  // A DI read is split into chunks and only the last one raises the interrupt, so its chunks must
+  // not complete out of order. Ejecting or changing the disc keeps the order intact: SetDisc waits
+  // for every read in flight, so the previous disc's pending reads already have their data
+  const bool held_back = !m_pending_reads.empty() && *m_pending_reads.begin() < id;
+  if (held_back || (m_from_optical_drive && !IsResultReady(id)))
+  {
+    m_pending_reads.insert(id);
+    const s64 ticks_per_us = m_system.GetSystemTimers().GetTicksPerSecond() / 1000000;
+    m_system.GetCoreTiming().ScheduleEvent(OPTICAL_READ_POLL_INTERVAL_US * ticks_per_us,
+                                           m_finish_read, id);
+    return;
+  }
+
+  m_pending_reads.erase(id);
+
   // We can't simply pop result_queue and always get the ReadResult
   // we want, because the DVD thread may add ReadResults to the queue
   // in a different order than we want to get them. What we do instead
@@ -256,8 +313,73 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   }
   // We have now obtained the right ReadResult.
 
+  // An optical drive read can't complete before its requested time. The disc speed emulation
+  // computes it for hybrid reads, and DTK reads request it for host-paced ones. A hybrid DI chunk
+  // is pushed back by however late the previous chunk of the same read finished. A host-paced read
+  // also lasts at least as long in emulated time as the drive took in real time, which keeps the
+  // drive's real latency visible to emulated software when emulation runs slower than real time
+  const bool hybrid_di_chunk =
+      result.first.timing == DiscTiming::Hybrid && result.first.reply_type != DVD::ReplyType::DTK;
+  if (result.first.timing != DiscTiming::Deterministic)
+  {
+    const ReadRequest& pending = result.first;
+    s64 completion_ticks = pending.ticks_until_completion;
+    if (pending.timing == DiscTiming::HostPaced)
+    {
+      const s64 ticks_per_us = m_system.GetSystemTimers().GetTicksPerSecond() / 1000000;
+      const s64 drive_ticks =
+          static_cast<s64>(pending.realtime_done_us - pending.realtime_started_us) * ticks_per_us;
+      completion_ticks = std::max(completion_ticks, drive_ticks);
+    }
+    else if (hybrid_di_chunk)
+    {
+      completion_ticks += m_hybrid_lateness_ticks;
+    }
+    const s64 elapsed_ticks =
+        static_cast<s64>(m_system.GetCoreTiming().GetTicks() - pending.time_started_ticks);
+    const s64 remaining_ticks = completion_ticks - elapsed_ticks;
+    if (remaining_ticks > 0)
+    {
+      // A hybrid chunk moved later keeps holding back the chunks after it
+      if (hybrid_di_chunk)
+        m_pending_reads.insert(id);
+      m_result_map.emplace(id, std::move(result));
+      m_system.GetCoreTiming().ScheduleEvent(remaining_ticks, m_finish_read, id);
+      return;
+    }
+  }
+
   const ReadRequest& request = result.first;
   const std::vector<u8>& buffer = result.second;
+
+  auto& dvd_interface = m_system.GetDVDInterface();
+
+  // Carry this chunk's lateness over to the rest of the DI read. The last chunk (the one with the
+  // reply) resets it and shifts the read-ahead buffer model by the whole read's lateness, because
+  // the model assumed the drive started prefetching when the read was due
+  if (request.timing != DiscTiming::Deterministic && request.reply_type != DVD::ReplyType::DTK)
+  {
+    const s64 lateness_ticks =
+        hybrid_di_chunk ? std::max<s64>(static_cast<s64>(m_system.GetCoreTiming().GetTicks() -
+                                                         request.time_started_ticks) -
+                                            request.ticks_until_completion,
+                                        0) :
+                          0;
+    if (request.reply_type == DVD::ReplyType::NoReply)
+    {
+      m_hybrid_lateness_ticks = lateness_ticks;
+    }
+    else
+    {
+      m_hybrid_lateness_ticks = 0;
+      if (lateness_ticks > 0)
+      {
+        dvd_interface.DelayReadBuffer(request.time_started_ticks +
+                                          static_cast<u64>(request.ticks_until_completion),
+                                      lateness_ticks);
+      }
+    }
+  }
 
   DEBUG_LOG_FMT(DVDINTERFACE,
                 "Disc has been read. Real time: {} us. "
@@ -268,12 +390,35 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
                 (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
                     (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
-  auto& dvd_interface = m_system.GetDVDInterface();
   DVD::DIInterruptType interrupt;
-  if (buffer.size() != request.length)
+  // Use the read's own flag. m_from_optical_drive may no longer apply, since the emulated disc is
+  // ejected when its drive's tray opens, and that can happen while this read is in flight
+  if (buffer.size() != request.length && request.from_optical_drive &&
+      dvd_interface.IsOpticalDiscRemoved())
   {
-    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+    // The disc was taken out of the optical drive itself. Instead of failing the read, report a
+    // medium not present error and eject the emulated disc
+    dvd_interface.SetDriveError(DVD::DriveError::MediumNotPresent);
+    interrupt = DVD::DIInterruptType::DEINT;
+    if (dvd_interface.IsDiscInside())
+    {
+      NOTICE_LOG_FMT(DVDINTERFACE, "The optical disc was removed from its drive, ejecting it");
+      dvd_interface.EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::User);
+    }
+  }
+  else if (buffer.size() != request.length)
+  {
+    if (request.from_optical_drive)
+    {
+      // Skip panic alerts from unreadable areas when using a physical drive
+      ERROR_LOG_FMT(DVDINTERFACE, "The optical disc could not be read (at {:#x} - {:#x})",
+                    request.dvd_offset, request.dvd_offset + request.length);
+    }
+    else
+    {
+      PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
+                     request.dvd_offset + request.length);
+    }
 
     dvd_interface.SetDriveError(DVD::DriveError::ReadError);
     interrupt = DVD::DIInterruptType::DEINT;

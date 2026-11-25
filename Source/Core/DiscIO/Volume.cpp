@@ -142,7 +142,11 @@ std::unique_ptr<VolumeDisc> CreateDiscForCore(const std::string& path)
 {
   auto reader = CreateBlobReader(path);
 
-  if (Config::Get(Config::MAIN_LOAD_GAME_INTO_MEMORY))
+  // A disc in an optical drive is never cached, whoever opens it: filling the cache while the game
+  // reads the disc makes the drive seek constantly, significantly reducing its read speed
+  const bool is_optical_drive = reader && reader->ReadsFromOpticalDrive();
+
+  if (Config::Get(Config::MAIN_LOAD_GAME_INTO_MEMORY) && !is_optical_drive)
     return TryCreateDisc(reader, CreateScrubbingCachedBlobReader);
 
   return TryCreateDisc(reader);

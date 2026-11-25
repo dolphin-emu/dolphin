@@ -33,6 +33,7 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/OpticalDiscProgressDialog.h"
 #include "DolphinQt/QtUtils/AnalyticsPrompt.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
@@ -214,15 +215,18 @@ int main(int argc, char* argv[])
     save_state_path = static_cast<const char*>(options.get("save_state"));
   }
 
+  Settings::Instance().InitDefaultPalette();
+  Settings::Instance().ApplyStyle();
+
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
   if (options.is_set("exec"))
   {
     const std::list<std::string> paths_list = options.all("exec");
-    const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
-                                         std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(
-        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
+    std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
+                                   std::make_move_iterator(std::end(paths_list))};
+    boot = OpticalDiscProgressDialog::GenerateBootParameters(
+        std::move(paths), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No), nullptr);
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -241,8 +245,8 @@ int main(int argc, char* argv[])
   }
   else if (!args.empty())
   {
-    boot = BootParameters::GenerateFromFile(
-        args.front(), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
+    boot = OpticalDiscProgressDialog::GenerateBootParameters(
+        {args.front()}, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No), nullptr);
     game_specified = true;
   }
 
@@ -271,9 +275,6 @@ int main(int argc, char* argv[])
   else
   {
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
-
-    Settings::Instance().InitDefaultPalette();
-    Settings::Instance().ApplyStyle();
 
     MainWindow win{Core::System::GetInstance(), std::move(boot),
                    static_cast<const char*>(options.get("movie"))};

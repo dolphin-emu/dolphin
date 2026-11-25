@@ -7,6 +7,7 @@
 #include <QStringList>
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,6 +15,7 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "Common/Config/Config.h"
 #endif  // USE_RETRO_ACHIEVEMENTS
+#include "Common/WorkQueueThread.h"
 
 #include "Core/Boot/Boot.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
@@ -164,6 +166,10 @@ private:
   void StartGame(const std::vector<std::string>& paths,
                  std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
+
+  // For boots that insert the default ISO, opens it first when it is an optical drive, behind the
+  // progress dialog. False if cancelled, in which case nothing boots
+  bool OpenDefaultOpticalDisc(BootParameters* parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
@@ -217,6 +223,13 @@ private:
 
   void ChangeDisc();
   void EjectDisc();
+  void BootOpticalDisc(const QString& drive);
+
+  // Send the command on a worker thread, as it may have to wait for the drive. A failed eject is
+  // logged, and also shown if show_failure is set
+  void RunOpticalDriveCommand(std::function<void()> command);
+  void EjectOpticalDisc(const std::string& drive, bool show_failure);
+  void CloseOpticalDiscTray(const std::string& drive);
 
   void OpenUserFolder();
   void OpenConfigFolder();
@@ -251,6 +264,9 @@ private:
   bool m_fullscreen_requested = false;
   bool m_is_screensaver_inhibited = false;
   std::unique_ptr<BootParameters> m_pending_boot;
+
+  // Sends the commands of RunOpticalDriveCommand. Created on first use
+  std::unique_ptr<Common::AsyncWorkThreadSP> m_optical_drive_worker;
 
   SettingsWindow* m_settings_window = nullptr;
   // m_fifo_window doesn't set MainWindow as its parent so that the fifo can be focused without
