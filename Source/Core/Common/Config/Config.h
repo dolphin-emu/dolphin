@@ -23,6 +23,7 @@ struct ConfigChangedCallbackID
 };
 
 using ConfigChangedCallback = std::function<void()>;
+using ScopedConfigChangedCallbackID = std::shared_ptr<void>;
 
 // Layer management
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
@@ -32,6 +33,8 @@ void RemoveLayer(LayerType layer);
 // Returns an ID that should be passed to RemoveConfigChangedCallback() when the callback is no
 // longer needed. The callback may be called from any thread.
 [[nodiscard]] ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
+[[nodiscard]] ScopedConfigChangedCallbackID
+AddScopedConfigChangedCallback(ConfigChangedCallback func);
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 void OnConfigChanged();
 
