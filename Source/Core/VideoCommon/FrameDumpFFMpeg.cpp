@@ -256,11 +256,17 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   m_max_denominator = std::numeric_limits<s64>::max();
 
-  // Force XVID FourCC for better compatibility when using H.263
   if (codec->id == AV_CODEC_ID_MPEG4)
   {
-    m_context->codec->codec_tag = MKTAG('X', 'V', 'I', 'D');
+    // Force XVID FourCC for better compatibility when using H.263, unless the container doesn't
+    // accept it, like MP4.
+    constexpr unsigned int xvid_tag = MKTAG('X', 'V', 'I', 'D');
+    if (av_codec_get_id(output_format->codec_tag, xvid_tag) == AV_CODEC_ID_MPEG4)
+      m_context->codec->codec_tag = xvid_tag;
     m_max_denominator = std::numeric_limits<unsigned short>::max();
+
+    // Only for MPEG-4 Part 2, as other encoders like libx264 refuse to open with this level.
+    m_context->codec->level = 1;
   }
 
   const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
@@ -274,7 +280,6 @@ bool FFMpegFrameDump::CreateVideoFile()
   m_context->codec->height = m_context->height;
   m_context->codec->time_base = time_base;
   m_context->codec->gop_size = 1;
-  m_context->codec->level = 1;
 
   AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
 
