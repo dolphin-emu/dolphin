@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <SFML/Network/Packet.hpp>
-
 #include <chrono>
 #include <optional>
 #include <span>
@@ -12,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/NetPlayProto.h"
 
 namespace NetPlay
 {
@@ -22,10 +21,10 @@ constexpr std::chrono::milliseconds PEER_TIMEOUT = 30s;
 
 std::string GetExternalIPAddress();
 
-bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
-bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet);
-bool CompressBufferIntoPacket(std::span<const u8> in_buffer, sf::Packet& packet);
-bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path);
-bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_path);
-std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
+bool CompressFileIntoPacket(const std::string& file_path, NetPacket& packet);
+bool CompressFolderIntoPacket(const std::string& folder_path, NetPacket& packet);
+bool CompressBufferIntoPacket(std::span<const u8> in_buffer, NetPacket& packet);
+bool DecompressPacketIntoFile(NetPacket& packet, const std::string& file_path);
+bool DecompressPacketIntoFolder(NetPacket& packet, const std::string& folder_path);
+std::optional<std::vector<u8>> DecompressPacketIntoBuffer(NetPacket& packet);
 }  // namespace NetPlay

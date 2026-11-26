@@ -26,7 +26,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
@@ -255,7 +254,7 @@ void NetPlayServer::ThreadFunc()
       // only used as an identifier, not time value, so truncation is fine
       m_ping_key = static_cast<u32>(Common::Timer::NowMs());
 
-      sf::Packet spac;
+      NetPacket spac;
       spac << MessageID::Ping;
       spac << m_ping_key;
 
@@ -310,8 +309,8 @@ void NetPlayServer::ThreadFunc()
       {
         INFO_LOG_FMT(NETPLAY, "enet_host_service: receive event");
 
-        sf::Packet rpac;
-        rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
+        NetPacket rpac;
+        rpac.append({netEvent.packet->data, netEvent.packet->dataLength});
 
         if (!netEvent.peer->data)
         {
@@ -329,7 +328,7 @@ void NetPlayServer::ThreadFunc()
             INFO_LOG_FMT(NETPLAY, "Error {} initializing peer {:x}:{}", static_cast<u8>(error),
                          netEvent.peer->address.host, netEvent.peer->address.port);
 
-            sf::Packet spac;
+            NetPacket spac;
             spac << error;
             // don't need to lock, this client isn't in the client map
             Send(netEvent.peer, spac);
@@ -417,7 +416,7 @@ void NetPlayServer::ThreadFunc()
   m_players.clear();
 }
 
-static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
+static void SendSyncIdentifier(NetPacket& spac, const SyncIdentifier& sync_identifier)
 {
   // We cast here due to a potential long vs long long mismatch
   spac << static_cast<u64>(sync_identifier.dol_elf_size);
@@ -432,7 +431,7 @@ static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_iden
 }
 
 // called from ---NETPLAY--- thread
-ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Packet& received_packet)
+ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, NetPacket& received_packet)
 {
   std::string netplay_version;
   received_packet >> netplay_version;
@@ -474,7 +473,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   // tell new client the selected game
   if (!m_selected_game_name.empty())
   {
-    sf::Packet send_packet;
+    NetPacket send_packet;
     send_packet << MessageID::ChangeGame;
     SendSyncIdentifier(send_packet, m_selected_game_identifier);
     send_packet << m_selected_game_name;
@@ -525,7 +524,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
         std::lock_guard lkg(m_crit.game);
         m_is_running = false;
 
-        sf::Packet spac;
+        NetPacket spac;
         spac << MessageID::DisableGame;
         // this thread doesn't need players lock
         SendToClients(spac);
@@ -540,7 +539,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
         std::lock_guard lkg(m_crit.game);
         m_is_running = false;
 
-        sf::Packet spac;
+        NetPacket spac;
         spac << MessageID::DisableGame;
         // this thread doesn't need players lock
         SendToClients(spac);
@@ -556,7 +555,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
     m_start_pending = false;
   }
 
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::PlayerLeave;
   spac << pid;
 
@@ -646,7 +645,7 @@ void NetPlayServer::SetWiimoteMapping(const PadMappingArray& mappings)
 // called from ---GUI--- thread and ---NETPLAY--- thread
 void NetPlayServer::UpdatePadMapping()
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::PadMapping;
   for (PlayerId mapping : m_pad_map)
   {
@@ -658,7 +657,7 @@ void NetPlayServer::UpdatePadMapping()
 // called from ---GUI--- thread and ---NETPLAY--- thread
 void NetPlayServer::UpdateGBAConfig()
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::GBAConfig;
   for (const auto& config : m_gba_config)
   {
@@ -672,7 +671,7 @@ void NetPlayServer::UpdateGBAConfig()
 // called from ---NETPLAY--- thread
 void NetPlayServer::UpdateWiimoteMapping()
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::WiimoteMapping;
   for (PlayerId mapping : m_wiimote_map)
   {
@@ -692,7 +691,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   if (!m_host_input_authority)
   {
     // tell clients to change buffer size
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::PadBuffer;
     spac << m_target_buffer_size;
 
@@ -707,7 +706,7 @@ void NetPlayServer::SetHostInputAuthority(const bool enable)
   m_host_input_authority = enable;
 
   // tell clients about the new value
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::HostInputAuthority;
   spac << m_host_input_authority;
 
@@ -718,7 +717,7 @@ void NetPlayServer::SetHostInputAuthority(const bool enable)
     AdjustPadBufferSize(m_target_buffer_size);
 }
 
-void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 channel_id)
+void NetPlayServer::SendAsync(NetPacket&& packet, const PlayerId pid, const u8 channel_id)
 {
   {
     std::lock_guard lkq(m_crit.async_queue_write);
@@ -727,7 +726,7 @@ void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 
   Common::ENet::WakeupThread(m_server);
 }
 
-void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_pid,
+void NetPlayServer::SendAsyncToClients(NetPacket&& packet, const PlayerId skip_pid,
                                        const u8 channel_id)
 {
   {
@@ -738,7 +737,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_
   Common::ENet::WakeupThread(m_server);
 }
 
-void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const std::string& title)
+void NetPlayServer::SendChunked(NetPacket&& packet, const PlayerId pid, const std::string& title)
 {
   {
     std::lock_guard lkq(m_crit.chunked_data_queue_write);
@@ -748,7 +747,7 @@ void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const s
   m_chunked_data_event.Set();
 }
 
-void NetPlayServer::SendChunkedToClients(sf::Packet&& packet, const PlayerId skip_pid,
+void NetPlayServer::SendChunkedToClients(NetPacket&& packet, const PlayerId skip_pid,
                                          const std::string& title)
 {
   {
@@ -760,7 +759,7 @@ void NetPlayServer::SendChunkedToClients(sf::Packet&& packet, const PlayerId ski
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
+unsigned int NetPlayServer::OnData(NetPacket& packet, Client& player)
 {
   MessageID mid;
   packet >> mid;
@@ -779,7 +778,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     packet >> msg;
 
     // send msg to other clients
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::ChatMessage;
     spac << player.pid;
     spac << msg;
@@ -790,9 +789,9 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::ChunkedDataProgress:
   {
-    u32 cid;
-    packet >> cid;
-    u64 progress = Common::PacketReadU64(packet);
+    u32 cid{};
+    u64 progress{};
+    packet >> cid >> progress;
 
     m_dialog->SetChunkedProgress(player.pid, progress);
   }
@@ -818,14 +817,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << (m_host_input_authority ? MessageID::PadHostData : MessageID::PadData);
 
-    while (!packet.endOfPacket())
+    for (PadIndex map{}; packet >> map;)
     {
-      PadIndex map;
-      packet >> map;
-
       // If the data is not from the correct player,
       // then disconnect them.
       if (!IsValidPadIndex(m_pad_map, map) || m_pad_map.at(map) != player.pid)
@@ -868,14 +864,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_current_golfer != 0 && player.pid != m_current_golfer)
       return 1;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::PadData;
 
-    while (!packet.endOfPacket())
+    for (PadIndex map{}; packet >> map;)
     {
-      PadIndex map;
-      packet >> map;
-
       if (!IsValidPadIndex(m_pad_map, map))
         return 1;
 
@@ -902,14 +895,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::WiimoteData;
 
-    while (!packet.endOfPacket())
+    for (PadIndex map{}; packet >> map;)
     {
-      PadIndex map;
-      packet >> map;
-
       // If the data is not from the correct player,
       // then disconnect them.
       if (!IsValidPadIndex(m_wiimote_map, map) || m_wiimote_map.at(map) != player.pid)
@@ -948,7 +938,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       m_pending_golfer = pid;
 
-      sf::Packet spac;
+      NetPacket spac;
       spac << MessageID::GolfPrepare;
       Send(m_players[pid].socket, spac);
     }
@@ -960,7 +950,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_pending_golfer == 0)
       break;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GolfSwitch;
     spac << m_pending_golfer;
     SendToClients(spac);
@@ -984,7 +974,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     m_current_golfer = 0;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GolfSwitch;
     spac << PlayerId{0};
     SendToClients(spac);
@@ -1003,7 +993,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       player.ping = ping;
     }
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::PlayerPingData;
     spac << player.pid;
     spac << player.ping;
@@ -1026,7 +1016,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     m_is_running = false;
 
     // tell clients to stop game
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::StopGame;
 
     std::lock_guard lkp(m_crit.players);
@@ -1042,7 +1032,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     m_players[player.pid].game_status = status;
 
     // send msg to other clients
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GameStatus;
     spac << player.pid;
     spac << status;
@@ -1060,7 +1050,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::PowerButton:
   {
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::PowerButton;
     SendToClients(spac, player.pid);
   }
@@ -1068,9 +1058,9 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::TimeBase:
   {
-    u64 timebase = Common::PacketReadU64(packet);
-    u32 frame;
-    packet >> frame;
+    u64 timebase{};
+    u32 frame{};
+    packet >> timebase >> frame;
 
     if (m_desync_detected)
       break;
@@ -1098,7 +1088,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           }
         }
 
-        sf::Packet spac;
+        NetPacket spac;
         spac << MessageID::DesyncDetected;
         spac << pid_to_blame;
         spac << frame;
@@ -1116,7 +1106,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     int progress;
     packet >> progress;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GameDigestProgress;
     spac << player.pid;
     spac << progress;
@@ -1130,7 +1120,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     std::string result;
     packet >> result;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GameDigestResult;
     spac << player.pid;
     spac << result;
@@ -1144,7 +1134,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     std::string error;
     packet >> error;
 
-    sf::Packet spac;
+    NetPacket spac;
     spac << MessageID::GameDigestError;
     spac << player.pid;
     spac << error;
@@ -1300,7 +1290,7 @@ void NetPlayServer::OnTtlDetermined(u8 ttl)
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::ChatMessage;
   spac << PlayerId{0};  // server ID always 0
   spac << msg;
@@ -1321,7 +1311,7 @@ bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
   m_selected_game_name = netplay_name;
 
   // send changed game to clients
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::ChangeGame;
   SendSyncIdentifier(spac, m_selected_game_identifier);
   spac << m_selected_game_name;
@@ -1334,7 +1324,7 @@ bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
 // called from ---GUI--- thread
 bool NetPlayServer::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::ComputeGameDigest;
   SendSyncIdentifier(spac, sync_identifier);
 
@@ -1346,7 +1336,7 @@ bool NetPlayServer::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 // called from ---GUI--- thread
 bool NetPlayServer::AbortGameDigest()
 {
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::GameDigestAbort;
 
   SendAsyncToClients(std::move(spac));
@@ -1604,7 +1594,7 @@ bool NetPlayServer::StartGame()
   InitSRAM(&m_settings.sram, SConfig::GetInstance().m_strSRAM);
 
   // tell clients to start game
-  sf::Packet spac;
+  NetPacket spac;
   spac << MessageID::StartGame;
   spac << m_current_game;
   spac << m_settings.cpu_thread;
@@ -1827,7 +1817,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
   m_save_data_synced_players = 0;
 
   {
-    sf::Packet pac;
+    NetPacket pac;
     pac << MessageID::SyncSaveData;
     pac << SyncSaveDataID::Notify;
     pac << sync_info.save_count;
@@ -1856,7 +1846,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
               Memcard::MBIT_SIZE_MEMORY_CARD_2043;
       const std::string path = Config::GetMemcardPath(slot, game_region, card_size_mbits);
 
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncSaveData;
       pac << SyncSaveDataID::RawData;
       pac << is_slot_a << region << size_override;
@@ -1884,7 +1874,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
     {
       const std::string path = Config::GetGCIFolderPath(slot, gamecube_region);
 
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncSaveData;
       pac << SyncSaveDataID::GCIData;
       pac << is_slot_a;
@@ -1923,7 +1913,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
   if (sync_info.has_wii_save)
   {
-    sf::Packet pac;
+    NetPacket pac;
     pac << MessageID::SyncSaveData;
     pac << SyncSaveDataID::WiiData;
 
@@ -2026,7 +2016,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
   {
     if (m_gba_config[i].enabled && m_gba_config[i].has_rom)
     {
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncSaveData;
       pac << SyncSaveDataID::GBAData;
       pac << static_cast<u8>(i);
@@ -2087,7 +2077,7 @@ bool NetPlayServer::SyncCodes()
 
   // Notify Clients of Incoming Code Sync
   {
-    sf::Packet pac;
+    NetPacket pac;
     pac << MessageID::SyncCodes;
     pac << SyncCodeID::Notify;
     SendAsyncToClients(std::move(pac));
@@ -2120,7 +2110,7 @@ bool NetPlayServer::SyncCodes()
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::NotifyGecko;
       pac << codelines;
@@ -2129,7 +2119,7 @@ bool NetPlayServer::SyncCodes()
 
     // Send entire codeset in the second packet
     {
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
       // Iterate through the active code vector and send each codeline
@@ -2173,7 +2163,7 @@ bool NetPlayServer::SyncCodes()
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::NotifyAR;
       pac << codelines;
@@ -2182,7 +2172,7 @@ bool NetPlayServer::SyncCodes()
 
     // Send entire codeset in the second packet
     {
-      sf::Packet pac;
+      NetPacket pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
@@ -2225,7 +2215,7 @@ u64 NetPlayServer::GetInitialNetPlayRTC() const
 }
 
 // called from multiple threads
-void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
+void NetPlayServer::SendToClients(const NetPacket& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
   for (auto& p : std::views::values(m_players))
@@ -2237,7 +2227,7 @@ void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_
   }
 }
 
-void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 channel_id)
+void NetPlayServer::Send(ENetPeer* socket, const NetPacket& packet, const u8 channel_id)
 {
   Common::ENet::SendPacket(socket, packet, channel_id);
 }
@@ -2303,7 +2293,7 @@ template <typename... Data>
 void NetPlayServer::SendResponseToPlayer(const Client& player, const MessageID message_id,
                                          Data&&... data_to_send)
 {
-  sf::Packet response;
+  NetPacket response;
   response << message_id;
   // this is a C++17 fold expression used to call the << operator for all of the data
   (response << ... << std::forward<Data>(data_to_send));
@@ -2314,7 +2304,7 @@ void NetPlayServer::SendResponseToPlayer(const Client& player, const MessageID m
 template <typename... Data>
 void NetPlayServer::SendResponseToAllPlayers(const MessageID message_id, Data&&... data_to_send)
 {
-  sf::Packet response;
+  NetPacket response;
   response << message_id;
   // this is a C++17 fold expression used to call the << operator for all of the data
   (response << ... << std::forward<Data>(data_to_send));
@@ -2465,14 +2455,14 @@ void NetPlayServer::ChunkedDataThreadFunc()
         INFO_LOG_FMT(NETPLAY, "Informing players {} of data chunk {} start.",
                      fmt::join(players, ", "), id);
 
-        sf::Packet pac;
+        NetPacket pac;
         pac << MessageID::ChunkedDataStart;
-        pac << id << e.title << u64{e.packet.getDataSize()};
+        pac << id << e.title << u64{e.packet.size()};
 
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
 
         if (e.target_mode == TargetMode::AllExcept && e.target_pid == 1)
-          m_dialog->ShowChunkedProgressDialog(e.title, e.packet.getDataSize(), players);
+          m_dialog->ShowChunkedProgressDialog(e.title, e.packet.size(), players);
       }
 
       const bool enable_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
@@ -2489,7 +2479,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         {
           INFO_LOG_FMT(NETPLAY, "Informing players of data chunk {} abort.", id);
 
-          sf::Packet pac;
+          NetPacket pac;
           pac << MessageID::ChunkedDataAbort;
           pac << id;
           ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
@@ -2506,14 +2496,14 @@ void NetPlayServer::ChunkedDataThreadFunc()
 
         auto start = std::chrono::steady_clock::now();
 
-        sf::Packet pac;
+        NetPacket pac;
         pac << MessageID::ChunkedDataPayload;
         pac << id;
-        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, e.packet.getDataSize() - index);
-        pac.append(static_cast<const u8*>(e.packet.getData()) + index, len);
+        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, e.packet.size() - index);
+        pac.append({e.packet.data() + index, len});
 
         INFO_LOG_FMT(NETPLAY, "Sending data chunk of {} ({} bytes at {}/{}).", id, len, index,
-                     e.packet.getDataSize());
+                     e.packet.size());
 
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
         index += CHUNKED_DATA_UNIT_SIZE;
@@ -2523,13 +2513,13 @@ void NetPlayServer::ChunkedDataThreadFunc()
           std::chrono::duration<double> delta = std::chrono::steady_clock::now() - start;
           std::this_thread::sleep_for(send_interval - delta);
         }
-      } while (index < e.packet.getDataSize());
+      } while (index < e.packet.size());
 
       if (!m_abort_chunked_data)
       {
         INFO_LOG_FMT(NETPLAY, "Informing players of data chunk {} end.", id);
 
-        sf::Packet pac;
+        NetPacket pac;
         pac << MessageID::ChunkedDataEnd;
         pac << id;
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
@@ -2549,7 +2539,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
 }
 
 // called from ---Chunked Data--- thread
-void NetPlayServer::ChunkedDataSend(sf::Packet&& packet, const PlayerId pid,
+void NetPlayServer::ChunkedDataSend(NetPacket&& packet, const PlayerId pid,
                                     const TargetMode target_mode)
 {
   if (target_mode == TargetMode::Only)
