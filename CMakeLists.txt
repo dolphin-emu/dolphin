@@ -685,6 +685,11 @@ dolphin_find_optional_system_library_pkgconfig(lz4 liblz4>=1.8 LZ4::LZ4 External
 
 dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/libspng)
 
+dolphin_find_optional_system_library_pkgconfig(ASIO asio>=1.32.0 asio Externals/asio)
+if(TARGET PkgConfig::ASIO)
+  target_compile_definitions(PkgConfig::ASIO INTERFACE ASIO_NO_EXCEPTIONS)
+endif()
+
 # There is no system FreeSurround library.
 dolphin_add_bundled_library(FreeSurround Externals/FreeSurround)
 

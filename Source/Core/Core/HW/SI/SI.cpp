@@ -291,7 +291,6 @@ void SerialInterfaceManager::Shutdown()
 {
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
     RemoveDevice(i);
-  GBAConnectionWaiter_Shutdown();
 }
 
 void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
