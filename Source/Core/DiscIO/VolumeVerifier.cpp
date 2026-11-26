@@ -1082,36 +1082,49 @@ void VolumeVerifier::SetUpHashing()
   std::ranges::sort(m_groups, {}, &GroupToVerify::offset);
 
   if (m_hashes_to_calculate.crc32)
+  {
     m_crc32_context = Common::StartCRC32();
+
+    m_crc32_worker.Reset("Verify CRC32", [this](u64 byte_increment) {
+      m_crc32_context =
+          Common::UpdateCRC32(m_crc32_context, m_data.data(), static_cast<size_t>(byte_increment));
+    });
+  }
 
   if (m_hashes_to_calculate.md5)
   {
     m_md5_context.emplace();
+
+    m_md5_worker.Reset("Verify MD5", [this](u64 byte_increment) {
+      m_md5_context->Update(std::span{m_data}.first(byte_increment));
+    });
   }
 
   if (m_hashes_to_calculate.sha1)
   {
     m_sha1_context = Common::SHA1::CreateContext();
+
+    m_sha1_worker.Reset("Verify SHA1", [this](u64 byte_increment) {
+      m_sha1_context->Update(m_data.data(), byte_increment);
+    });
   }
+
+  m_content_worker.Reset("Verify Content");
+  m_group_worker.Reset("Verify Group");
 }
 
-void VolumeVerifier::WaitForAsyncOperations() const
+void VolumeVerifier::WaitForAsyncOperations()
 {
-  if (m_crc32_future.valid())
-    m_crc32_future.wait();
-  if (m_md5_future.valid())
-    m_md5_future.wait();
-  if (m_sha1_future.valid())
-    m_sha1_future.wait();
-  if (m_content_future.valid())
-    m_content_future.wait();
-  if (m_group_future.valid())
-    m_group_future.wait();
+  m_crc32_worker.WaitForCompletion();
+  m_md5_worker.WaitForCompletion();
+  m_sha1_worker.WaitForCompletion();
+  m_content_worker.WaitForCompletion();
+  m_group_worker.WaitForCompletion();
 }
 
 bool VolumeVerifier::ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read)
 {
-  std::vector<u8> data(bytes_to_read);
+  Common::UniqueBuffer<u8> data(bytes_to_read);
 
   const u64 bytes_to_copy = std::min(m_excess_bytes, bytes_to_read);
   if (bytes_to_copy > 0)
@@ -1219,31 +1232,18 @@ void VolumeVerifier::Process()
   if (m_calculating_any_hash)
   {
     if (m_hashes_to_calculate.crc32)
-    {
-      m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(),
-                                              static_cast<size_t>(byte_increment));
-      });
-    }
+      m_crc32_worker.Push(byte_increment);
 
     if (m_hashes_to_calculate.md5)
-    {
-      m_md5_future = std::async(std::launch::async, [this, byte_increment] {
-        m_md5_context->Update(std::span{m_data}.first(byte_increment));
-      });
-    }
+      m_md5_worker.Push(byte_increment);
 
     if (m_hashes_to_calculate.sha1)
-    {
-      m_sha1_future = std::async(std::launch::async, [this, byte_increment] {
-        m_sha1_context->Update(m_data.data(), byte_increment);
-      });
-    }
+      m_sha1_worker.Push(byte_increment);
   }
 
   if (content_read)
   {
-    m_content_future = std::async(std::launch::async, [this, read_failed, content] {
+    m_content_worker.Push([this, read_failed, content] {
       if (read_failed || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
       {
         AddProblem(Severity::High, Common::FmtFormatT("Content {0:08x} is corrupt.", content.id));
@@ -1255,8 +1255,7 @@ void VolumeVerifier::Process()
 
   if (group_read)
   {
-    m_group_future = std::async(std::launch::async, [this, read_failed,
-                                                     group_index = m_group_index] {
+    m_group_worker.Push([this, read_failed, group_index = m_group_index] {
       const GroupToVerify& group = m_groups[group_index];
       u64 offset_in_group = 0;
       for (u64 block_index = group.block_index_start; block_index < group.block_index_end;
