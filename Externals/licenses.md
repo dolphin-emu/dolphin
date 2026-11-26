@@ -2,6 +2,8 @@ Dolphin includes or links code of the following third-party software projects:
 
 - [ALSA](http://www.alsa-project.org/):
    [LGPLv2.1+](http://git.alsa-project.org/?p=alsa-lib.git;a=blob;f=COPYING)
+- [Asio](https://think-async.com/Asio/):
+   [BSL-1.0](https://www.boost.org/LICENSE_1_0.txt)
 - [BlueZ](http://www.bluez.org/):
    [LGPLv2.1+](https://git.kernel.org/cgit/bluetooth/bluez.git/tree/COPYING.LIB)
 - [Bochs](http://bochs.sourceforge.net/):
