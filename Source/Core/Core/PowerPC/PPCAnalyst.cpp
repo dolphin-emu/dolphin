@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -38,10 +39,10 @@
 
 namespace PPCAnalyst
 {
-// 0 does not perform block merging
-constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
+// Chosen arbitrarily.
+constexpr u32 MAX_INLINE_LENGTH = 5;
 
-constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
+constexpr u32 INVALID_BRANCH_TARGET = UINT32_MAX;
 
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
@@ -238,11 +239,39 @@ static u32 GetSPRIndex(UGeckoInstruction inst)
   return (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 }
 
-static bool InstructionCanEndBlock(const CodeOp& op)
+static InstructionContinue DoesInstructionContinue(const CodeOp& op)
 {
-  return (op.opinfo->flags & FL_ENDBLOCK) &&
-         (!IsMtspr(op.inst) || GetSPRIndex(op.inst) == SPR_MMCR0 ||
-          GetSPRIndex(op.inst) == SPR_MMCR1);
+  if (!(op.opinfo->flags & FL_ENDBLOCK))
+  {
+    return InstructionContinue::Always;
+  }
+
+  const UGeckoInstruction& inst = op.inst;
+  if (IsMtspr(inst))
+  {
+    if (GetSPRIndex(inst) == SPR_MMCR0 || GetSPRIndex(inst) == SPR_MMCR1)
+    {
+      return InstructionContinue::Never;
+    }
+    return InstructionContinue::Always;
+  }
+  // Conditional branches
+  if (
+      // bcx with conditional branch
+      (inst.OPCD == 16 &&
+       ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0)) ||
+      // bclrx with conditional branch
+      (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+       ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0)) ||
+      // Rare bcctrx with conditional branch
+      // Seen in NES games
+      (inst.OPCD == 19 && inst.SUBOP10 == 528 && (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0) ||
+      // tw/twi tests and raises an exception
+      (inst.OPCD == 3 || (inst.OPCD == 31 && inst.SUBOP10 == 4)))
+  {
+    return InstructionContinue::Maybe;
+  }
+  return InstructionContinue::Never;
 }
 
 bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
@@ -265,7 +294,8 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
   if (a.canCauseException || b.canCauseException)
     return false;
-  if (a.canEndBlock || b.canEndBlock)
+  if (a.instructionContinues != InstructionContinue::Always ||
+      b.instructionContinues != InstructionContinue::Always)
     return false;
   if (a_flags & (FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
@@ -595,9 +625,11 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
-                                      const GekkoOPInfo* opinfo) const
+void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code) const
 {
+  code->opinfo = PPCTables::GetOpInfo(code->inst, code->address);
+  const GekkoOPInfo* opinfo = code->opinfo;
+
   bool first_fpu_instruction = false;
   if (opinfo->flags & FL_USE_FPU)
   {
@@ -642,7 +674,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
-  code->canEndBlock = InstructionCanEndBlock(*code);
+  code->instructionContinues = DoesInstructionContinue(*code);
 
   code->canCauseException = first_fpu_instruction ||
                             (opinfo->flags & (FL_LOADSTORE | FL_PROGRAMEXCEPTION)) != 0 ||
@@ -725,7 +757,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  code->branchTo = UINT32_MAX;
+  code->branchTo = INVALID_BRANCH_TARGET;
 
   // For branch with immediate addresses (bx/bcx), compute the destination.
   if (code->inst.OPCD == 18)  // bx
@@ -824,8 +856,8 @@ static bool CanCauseGatherPipeInterruptCheck(const CodeOp& op)
          op.opinfo->type == OpType::StorePS;
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
-                         std::size_t block_size) const
+void PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
+                          std::size_t block_size) const
 {
   // Clear block stats
   *block->m_stats = {};
@@ -838,7 +870,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   block->m_address = address;
 
   // Reset our block state
-  block->m_broken = false;
   block->m_memory_exception = false;
   block->m_num_instructions = 0;
   block->m_gqr_used = BitSet8(0);
@@ -846,10 +877,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   CodeOp* const code = buffer->data();
 
-  bool found_exit = false;
-  bool found_call = false;
-  size_t caller = 0;
-  u32 numFollows = 0;
+  std::optional<std::size_t> found_call = std::nullopt;
   u32 num_inst = 0;
 
   const bool enable_follow = m_enable_branch_following;
@@ -858,65 +886,59 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
+    // Branch following has the most utility with calls to short functions, not just because it
+    // saves the cost of jumping to another block, but because it allows to detect more idle loops.
+    // (Example: `VIGetRetraceCount` is often used in idle loops, and it's just a memory load.)
+    // However, doing it irresponsibly will bloat the code size and inrease the JIT compilation time
+    // for little benefit, so if it's not worth it, roll back.
+#define INLINE_FAIL                                                                                \
+  if (found_call.has_value())                                                                      \
+  {                                                                                                \
+    num_inst = found_call.value() + 1;                                                             \
+    code[found_call.value()].branchAction = BranchAction::Normal;                                  \
+    break;                                                                                         \
+  }
+
     auto result = mmu.TryReadInstruction(address);
     if (!result.valid)
     {
       if (i == 0)
         block->m_memory_exception = true;
+      INLINE_FAIL;
       break;
     }
 
     num_inst++;
 
     const UGeckoInstruction inst = result.hex;
-    const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst, address);
     code[i] = {};
-    code[i].opinfo = opinfo;
     code[i].address = address;
+    code[i].physicalAddress = result.physical_address;
     code[i].inst = inst;
-    code[i].skip = false;
-    block->m_stats->numCycles += opinfo->num_cycles;
-    block->m_physical_addresses.insert(result.physical_address,
-                                       result.physical_address + sizeof(UGeckoInstruction));
 
-    SetInstructionStats(block, &code[i], opinfo);
+    SetInstructionStats(block, &code[i]);
 
     bool follow = false;
 
-    bool conditional_continue = false;
-
-    // TODO: Find the optimal value for BRANCH_FOLLOWING_THRESHOLD.
-    //       If it is small, the performance will be down.
-    //       If it is big, the size of generated code will be big and
-    //       cache clearning will happen many times.
     if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW))
     {
-      if (inst.OPCD == 18 && block_size > 1)
+      if ((inst.OPCD == 18 ||  // bc
+           (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
+            (inst.BO & BO_DONT_CHECK_CONDITION))) &&  // Unconditional bcx (very rare)
+          inst.LK &&
+          block_size > 1)
       {
-        // Always follow BX instructions.
+        // Follow unconditional function calls.
+        // We don't support nested inlining.
+        INLINE_FAIL;
         follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
+        found_call = i;
       }
-      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&  // bclrx
+               !inst.LK && found_call)
       {
-        // Always follow unconditional BCX instructions, but they are very rare.
-        follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
-      }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
-      {
-        code[i].branchTo = code[caller].address + 4;
-        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) &&
-            numFollows < BRANCH_FOLLOWING_THRESHOLD)
+        code[i].branchTo = code[found_call.value()].address + 4;
+        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
         {
           // bclrx with unconditional branch = return
           // Follow it if we can propagate the LR value of the last CALL instruction.
@@ -925,87 +947,83 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           // the LR value on the stack as there are no spare registers. So we'd need
           // to check all store instructions to not alias with the stack.
           follow = true;
-          found_call = false;
           code[i].skip = true;
 
           // Skip the RET, so also don't generate the stack entry for the BLR optimization.
-          code[caller].skipLRStack = true;
+          code[found_call.value()].skipLRStack = true;
+          found_call = std::nullopt;
         }
       }
       else if (IsMtspr(inst) && GetSPRIndex(inst) == SPR_LR)
       {
-        // LR has been overwritten, so we give up on following the return address.
-        found_call = false;
-      }
-    }
-
-    if (HasOption(OPTION_CONDITIONAL_CONTINUE))
-    {
-      if (inst.OPCD == 16 &&
-          ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-      {
-        // bcx with conditional branch
-        conditional_continue = true;
-      }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-               ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
-                (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-      {
-        // bclrx with conditional branch
-        conditional_continue = true;
-      }
-      else if (inst.OPCD == 3 || (inst.OPCD == 31 && inst.SUBOP10 == 4))
-      {
-        // tw/twi tests and raises an exception
-        conditional_continue = true;
-      }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 528 && (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
-      {
-        // Rare bcctrx with conditional branch
-        // Seen in NES games
-        conditional_continue = true;
+        // LR has been overwritten, so can't follow the return address.
+        INLINE_FAIL;
       }
     }
 
     if (code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i))
       code[i].branchAction = BranchAction::IdleLoop;
 
-    if (follow && code[i].branchAction != BranchAction::IdleLoop &&
-        numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (follow && code[i].branchAction != BranchAction::IdleLoop)
     {
       // Follow the unconditional branch.
       code[i].branchAction = BranchAction::Follow;
-      numFollows++;
       address = code[i].branchTo;
     }
     else
     {
       // Just pick the next instruction
       address += 4;
-      if (!conditional_continue && InstructionCanEndBlock(code[i]))  // right now we stop early
+      if (code[i].instructionContinues == InstructionContinue::Never ||
+          (!HasOption(OPTION_CONDITIONAL_CONTINUE) &&
+           code[i].instructionContinues == InstructionContinue::Maybe))
       {
-        found_exit = true;
+        INLINE_FAIL;
         break;
       }
-      if (conditional_continue)
+
+      if (code[i].instructionContinues == InstructionContinue::Maybe)
       {
-        // If we skip any conditional branch, we can't guarantee to get the matching CALL/RET pair.
-        // So we stop inlining the RET here and let the BLR optimization handle this case.
-        found_call = false;
+        // If the execution jumps to a new block but in the old block the bl didn't push anything to
+        // the stack, then the blr optimization would fail on the new block, which is slow.
+        // Because that the blr optimization (currently) doesn't support continuing in the same
+        // block if the blr was followed, we fail the inlining. If that changed, then this won't be
+        // needed anymore.
+        // A further potential optimization could be pushing the bl stack only when the instruction
+        // doesn't continue branch is taken, which would allow the function call to be fully inlined
+        // without touching the stack if the conditional instruction continues (though is that worth
+        // the extra code?).
+        INLINE_FAIL;
       }
+    }
+    if ((found_call.has_value() && i - found_call.value() >= MAX_INLINE_LENGTH) ||
+        i == block_size - 1)
+    {
+      INLINE_FAIL;
     }
   }
 
   block->m_num_instructions = num_inst;
 
+  // Now that we established which instructions are part of the block, set its stats.
+  u32 physical_address_start = code[0].physicalAddress;
+  for (std::size_t i = 0; i < num_inst - 1; ++i)
+  {
+    block->m_stats->numCycles += code[i].opinfo->num_cycles;
+    // Repeatedly inserting is slow, so batch the insertions when possible.
+    if (code[i].physicalAddress + sizeof(UGeckoInstruction) != code[i + 1].physicalAddress)
+    {
+      block->m_physical_addresses.insert(physical_address_start,
+                                         code[i].physicalAddress + sizeof(UGeckoInstruction));
+      physical_address_start = code[i + 1].physicalAddress;
+    }
+  }
+  block->m_stats->numCycles += code[num_inst - 1].opinfo->num_cycles;
+  block->m_physical_addresses.insert(physical_address_start, code[num_inst - 1].physicalAddress +
+                                                                 sizeof(UGeckoInstruction));
+
   if (block->m_num_instructions > 1)
     ReorderInstructions(block->m_num_instructions, code);
-
-  if ((!found_exit && num_inst > 0) || block_size == 1)
-  {
-    // We couldn't find an exit
-    block->m_broken = true;
-  }
 
   auto& power_pc = system.GetPowerPC();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
@@ -1032,7 +1050,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     const auto ppc_mode = power_pc.GetMode();
     const bool hle = !!HLE::TryReplaceFunction(ppc_symbol_db, op.address, ppc_mode);
     const bool breakpoint = power_pc.GetBreakPoints().IsAddressBreakPoint(op.address);
-    const bool may_exit_block = hle || breakpoint || op.canEndBlock || op.canCauseException;
+    const bool may_exit_block = hle || breakpoint ||
+                                op.instructionContinues != InstructionContinue::Always ||
+                                op.canCauseException;
 
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
@@ -1078,7 +1098,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       fprDiscardable = BitSet32{};
       crDiscardable = BitSet8{};
     }
-    else if (op.canEndBlock || op.canCauseException)
+    else if (op.instructionContinues != InstructionContinue::Always || op.canCauseException)
     {
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
@@ -1189,7 +1209,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
   block->m_gpr_inputs = gprWillBeRead;
-  return address;
 }
 
 }  // namespace PPCAnalyst

@@ -38,11 +38,19 @@ enum class BranchAction : u8
   IdleLoop,
 };
 
+enum class InstructionContinue : u8
+{
+  Always,
+  Maybe,
+  Never,
+};
+
 struct CodeOp  // 16B
 {
   UGeckoInstruction inst;
   const GekkoOPInfo* opinfo = nullptr;
   u32 address = 0;
+  u32 physicalAddress = 0;
   u32 branchTo = 0;  // if UINT32_MAX, not a branch
   BitSet32 regsIn;
   BitSet32 regsOut;
@@ -58,8 +66,8 @@ struct CodeOp  // 16B
   BitSet8 outputCR;
   bool outputFPRF = false;
   bool outputCA = false;
-  bool canEndBlock = false;
   bool canCauseException = false;
+  InstructionContinue instructionContinues = {};
   bool skipLRStack = false;
   bool skip = false;  // followed BL-s for example
   BitSet8 crWillBeRead;
@@ -127,9 +135,6 @@ struct CodeBlock
   BlockRegStats* m_gpa = nullptr;
   BlockRegStats* m_fpa = nullptr;
 
-  // Are we a broken block?
-  bool m_broken = false;
-
   // Did we have a memory_exception?
   bool m_memory_exception = false;
 
@@ -152,9 +157,8 @@ public:
   enum AnalystOption
   {
     // Conditional branch continuing
-    // If the JIT core supports conditional branches within the blocks
-    // Block will end on unconditional branch or other ENDBLOCK flagged instruction.
-    // Requires JIT support to be enabled.
+    // Don't end the block when encountering an instruction that conditionally exits the block
+    // (e.g. conditional branches).
     OPTION_CONDITIONAL_CONTINUE = (1 << 0),
 
     // Try to inline unconditional branches/calls/returns.
@@ -195,7 +199,7 @@ public:
   void SetBranchFollowingEnabled(bool enabled) { m_enable_branch_following = enabled; }
   void SetFloatExceptionsEnabled(bool enabled) { m_enable_float_exceptions = enabled; }
   void SetDivByZeroExceptionsEnabled(bool enabled) { m_enable_div_by_zero_exceptions = enabled; }
-  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const;
+  void Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const;
 
 private:
   enum class ReorderType
@@ -209,7 +213,7 @@ private:
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
                                ReorderType type) const;
   void ReorderInstructions(u32 instructions, CodeOp* code) const;
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
+  void SetInstructionStats(CodeBlock* block, CodeOp* code) const;
   bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const;
 
   // Options
