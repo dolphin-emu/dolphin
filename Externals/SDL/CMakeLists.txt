@@ -25,4 +25,10 @@ if(LibUSB_TYPE STREQUAL Bundled)
   set(SDL_HIDAPI_LIBUSB_SHARED OFF)
 endif()
 
-add_subdirectory(SDL)
+dolphin_fetchcontent_declare(
+  SDL
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  GIT_TAG f00dc919ca35b9756316e86c4777392de442f9b2 # 3.4.20
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(SDL)
