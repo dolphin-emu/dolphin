@@ -7,6 +7,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/HW/EXI/BBA/TAP.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
@@ -174,7 +175,7 @@ static bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::TAPNetworkInterface::Activate()
+bool TAPNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -241,7 +242,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::TAPNetworkInterface::Deactivate()
+void TAPNetworkInterface::Deactivate()
 {
   if (!IsActivated())
     return;
@@ -266,12 +267,12 @@ void CEXIETHERNET::TAPNetworkInterface::Deactivate()
   memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
+bool TAPNetworkInterface::IsActivated()
 {
   return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
+void TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
@@ -317,7 +318,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
   }
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   DEBUG_LOG_FMT(SP1, "SendFrame {} bytes:\n{}", size, ArrayToString(frame, size, 0x10));
 
@@ -357,18 +358,18 @@ bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
   return true;
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
+bool TAPNetworkInterface::RecvInit()
 {
   readThread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStart()
+void TAPNetworkInterface::RecvStart()
 {
   readEnabled.Set();
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStop()
+void TAPNetworkInterface::RecvStop()
 {
   readEnabled.Clear();
 }

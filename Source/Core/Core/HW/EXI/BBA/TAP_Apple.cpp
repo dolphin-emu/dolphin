@@ -8,11 +8,12 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/HW/EXI/BBA/TAP.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::TAPNetworkInterface::Activate()
+bool TAPNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -30,7 +31,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::TAPNetworkInterface::Deactivate()
+void TAPNetworkInterface::Deactivate()
 {
   close(fd);
   fd = -1;
@@ -41,12 +42,12 @@ void CEXIETHERNET::TAPNetworkInterface::Deactivate()
     readThread.join();
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
+bool TAPNetworkInterface::IsActivated()
 {
   return fd != -1;
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
@@ -64,7 +65,7 @@ bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
   }
 }
 
-void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
+void TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
@@ -93,18 +94,18 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
   }
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
+bool TAPNetworkInterface::RecvInit()
 {
   readThread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStart()
+void TAPNetworkInterface::RecvStart()
 {
   readEnabled.Set();
 }
 
-void CEXIETHERNET::TAPNetworkInterface::RecvStop()
+void TAPNetworkInterface::RecvStop()
 {
   readEnabled.Clear();
 }
