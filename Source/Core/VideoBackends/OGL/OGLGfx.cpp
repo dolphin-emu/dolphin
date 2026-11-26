@@ -145,8 +145,6 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
     }
   }
 
-  InitDriverInfo();
-
   // Setup Debug logging
   if (g_ogl_config.bSupportsDebug)
   {
