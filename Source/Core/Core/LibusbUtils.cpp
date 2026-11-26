@@ -203,4 +203,47 @@ std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle,
 #endif
 }
 
+#if defined(__LIBUSB__)
+std::shared_ptr<void> CreateScopedHotplugCallback(
+    libusb_context* ctx, libusb_hotplug_event event, libusb_hotplug_flag flags, int vid, int pid,
+    int dev_class, std::function<void(libusb_device* dev, libusb_hotplug_event event)> callback)
+{
+  struct HotplugHandle
+  {
+    std::function<void(libusb_device* dev, libusb_hotplug_event event)> callback;
+
+    libusb_context* ctx{};
+    libusb_hotplug_callback_handle handle{};
+
+    ~HotplugHandle()
+    {
+      libusb_hotplug_deregister_callback(ctx, handle);
+      INFO_LOG_FMT(CORE, "Deregistered libUSB hotplug callback");
+    }
+
+    static int CallbackHelper(libusb_context*, libusb_device* dev, libusb_hotplug_event event,
+                              void* user_data)
+    {
+      std::invoke(static_cast<HotplugHandle*>(user_data)->callback, dev, event);
+      return 0;  // "Returning 0 will rearm the callback"
+    }
+  };
+
+  auto result = std::make_shared<HotplugHandle>(std::move(callback), ctx);
+
+  const int error = libusb_hotplug_register_callback(ctx, event, flags, vid, pid, dev_class,
+                                                     &HotplugHandle::CallbackHelper, result.get(),
+                                                     &result->handle);
+  if (error != LIBUSB_SUCCESS)
+  {
+    ERROR_LOG_FMT(CORE, "Failed to register libUSB hotplug callback: {}",
+                  LibusbUtils::ErrorWrap(error));
+    return nullptr;
+  }
+
+  INFO_LOG_FMT(CORE, "Registered libUSB hotplug callback");
+
+  return result;
+}
+#endif
 }  // namespace LibusbUtils
