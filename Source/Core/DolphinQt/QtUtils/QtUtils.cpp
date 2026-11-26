@@ -6,6 +6,7 @@
 #include <QDateTimeEdit>
 #include <QDesktopServices>
 #include <QDir>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QProcess>
@@ -149,6 +150,11 @@ void ShowFileInFolder(std::string_view file_path)
 
   // Fall back on failure or unsupported platforms.
   ShowFolderOfFile(file_path);
+}
+
+bool IsWayland()
+{
+  return QGuiApplication::platformName().startsWith(QStringLiteral("wayland"));
 }
 
 }  // namespace QtUtils

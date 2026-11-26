@@ -148,6 +148,14 @@ if(NOT ANDROID)
   target_link_libraries(inputcommon PUBLIC LibUSB::LibUSB)
 endif()
 
+if(ENABLE_WAYLAND AND Wayland_FOUND AND WaylandProtocols_FOUND AND XKBCOMMON_FOUND)
+  target_sources(inputcommon PRIVATE
+    ControllerInterface/Wayland/Wayland.cpp
+    ControllerInterface/Wayland/Wayland.h
+  )
+  target_link_libraries(inputcommon PRIVATE wayland_protocols PkgConfig::XKBCOMMON)
+endif()
+
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
   target_sources(inputcommon
   PRIVATE

@@ -76,6 +76,11 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
+void* Host::GetMainWindowHandle() const
+{
+  return m_main_window_handle;
+}
+
 static void RunWithGPUThreadInactive(const std::function<void()>& f)
 {
   // Potentially any thread which shows panic alerts can be blocked on this returning.
@@ -114,6 +119,23 @@ static void RunWithGPUThreadInactive(const std::function<void()>& f)
     const Core::CPUThreadGuard guard(Core::System::GetInstance());
     f();
   }
+}
+
+void Host::RunWithPresentationPaused(const std::function<void()>& f)
+{
+  if (!g_gfx)
+  {
+    f();
+    return;
+  }
+
+  RunWithGPUThreadInactive([&f] {
+    // Presents can still be queued on the Vulkan submission thread, so wait for them to complete.
+    // Other backends don't have the problem, and can't be flushed from this thread.
+    if (g_backend_info.api_type == APIType::Vulkan)
+      g_gfx->WaitForGPUIdle();
+    f();
+  });
 }
 
 bool Host::GetRenderFocus()
@@ -185,10 +207,11 @@ void Host::SetTASInputFocus(const bool focus)
   m_tas_input_focus = focus;
 }
 
-void Host::ResizeSurface(int new_width, int new_height)
+void Host::ResizeSurface(int new_width, int new_height, float scale)
 {
+  g_controller_interface.SetRenderSurfaceSize(new_width, new_height, scale);
   if (g_presenter)
-    g_presenter->ResizeSurface();
+    g_presenter->ResizeSurface(new_width, new_height);
 }
 
 std::vector<std::string> Host_GetPreferredLocales()

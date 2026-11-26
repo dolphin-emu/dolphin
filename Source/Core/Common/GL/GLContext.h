@@ -37,6 +37,9 @@ public:
   virtual bool ClearCurrent();
 
   virtual void Update();
+  // Tells the context how big the window is in pixels, for window systems that can't be queried
+  // for it (Wayland). Takes effect on the next Update or UpdateSurface.
+  virtual void SetSurfaceSize(int width, int height);
   virtual void UpdateSurface(void* window_handle);
 
   virtual void Swap();

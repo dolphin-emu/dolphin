@@ -39,6 +39,9 @@ public:
   QSize sizeHint() const override { return Widget::minimumSizeHint(); }
 };
 
+// Whether Qt is using one of its Wayland platform plugins.
+bool IsWayland();
+
 // Opens the folder of the given file (and also selects the file on supported platforms).
 void ShowFileInFolder(std::string_view file_path);
 
