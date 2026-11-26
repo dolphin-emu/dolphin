@@ -991,6 +991,13 @@ TimePoint Presenter::GetUpdatedPresentationTime(TimePoint intended_presentation_
   const auto now = Clock::now();
   const auto arrival_offset = std::min(now - intended_presentation_time, DT{});
 
+  if (Config::Get(Config::GFX_VSYNC))
+  {
+    // Present immediately to rely on the display's timing.
+    // Unnecessarily sleeping could miss frame deadlines, reducing performance.
+    return now;
+  }
+
   if (!Config::Get(Config::MAIN_SMOOTH_EARLY_PRESENTATION))
   {
     m_presentation_time_offset = arrival_offset;
