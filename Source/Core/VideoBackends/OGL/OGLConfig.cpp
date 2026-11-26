@@ -122,6 +122,10 @@ void InitDriverInfo()
       else if (srenderer.contains("Ivybridge"))
         family = DriverDetails::Family::INTEL_IVY;
     }
+    else if (svendor == "Intel")
+    {
+      driver = DriverDetails::DRIVER_IRIS;
+    }
     else if (srenderer.contains("AMD") || srenderer.contains("ATI"))
     {
       driver = DriverDetails::DRIVER_R600;
