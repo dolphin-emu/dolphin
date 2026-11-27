@@ -4,21 +4,18 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <chrono>
 #include <cstring>
 #include <functional>
-#include <map>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/LazyMemoryRegionBitSet.h"
+#include "Common/MemArena.h"
 #include "Common/RangeSet.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
@@ -138,8 +135,8 @@ public:
   void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
   std::size_t GetBlockCount() const { return block_map.size(); }
 
-  JitBlock* AllocateBlock(u32 em_address);
-  void FinalizeBlock(JitBlock& block, bool block_link, const PPCAnalyst::CodeBlock& code_block,
+  JitBlock InitBlock(u32 em_address);
+  void FinalizeBlock(JitBlock&& b, bool block_link, PPCAnalyst::CodeBlock& code_block,
                      const PPCAnalyst::CodeBuffer& code_buffer);
 
   // Look for the block in the slow but accurate way.
@@ -176,23 +173,50 @@ private:
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, CPUEmuFeatureFlags feature_flags);
 
+  // Get index for block_map lookup
+  static u32 MapLookupIndex(u32 physical_address, CPUEmuFeatureFlags feature_flags);
+
   // Fast but risky block lookup based on fast_block_map.
-  size_t FastLookupIndexForAddress(u32 address, u32 msr);
+  size_t FastLookupIndexForAddress(u32 effective_address, CPUEmuFeatureFlags feature_flags);
+
+  // In a typical game (Mario Kart Wii, branch following enabled) we have, after running the attract
+  // screen for a while:
+  // - Around 50,000 blocks
+  // - Around 30,000 are linked by another block, total entries around 80000.
+  // - Around 10,000 ranges are occupied in the block_range_map (BLOCK_RANGE_SIZE = 0x100), total
+  // entries around 100,000.
 
   // links_to hold all exit points of all valid blocks in a reverse way.
-  // It is used to query all blocks which links to an address.
-  std::unordered_map<u32, std::unordered_set<JitBlock*>> links_to;  // destination_PC -> number
+  // It is used to query all blocks which link to an address.
+  // TODO: In profiling, its percentage is low, but not zero. Replacing std::unordered_map with a
+  // faster hashmap wouldn't hurt.
+  std::unordered_map<u32, std::vector<JitBlock*>> links_to;  // destination_PC -> number
 
-  // Map indexed by the physical address of the entry point.
+  // Map indexed by the physical address of the entry point | the shifted MSR.
+  // There is no need to involve the effective address: if the BAT is changed, the block cache is
+  // completely cleared. If page tables are changed... for performance reasons, we currently assume
+  // that no game is so evil to actually use them for instructions. Still, including the effective
+  // address in the key wouldn't help, because everything else here relies on effective addresses
+  // being stable.
+  // TODO: If block linking and fast lookups are disabled, then the above shouldn't be a problem,
+  // but it's untested.
+  //
   // This is used to query the block based on the current PC in a slow way.
-  std::multimap<u32, JitBlock> block_map;  // start_addr -> block
+  //
+  // The entries are referenced by other members of this struct, so references must be stable upon
+  // insertion and erasure (which is the case with std::unordered_map).
+  // TODO: Maybe a more performant hashmap, with the value wrapped in unique_ptr for reference
+  // stability, may still be more performant? This one is more significant in profiling.
+  std::unordered_map<u32, JitBlock> block_map;  // start_addr -> block
 
   // Range of overlapping code indexed by a masked physical address.
   // This is used for invalidation of memory regions. The range is grouped
   // in macro blocks of each 0x100 bytes.
   static constexpr u32 BLOCK_RANGE_SIZE = 0x100;
-  static constexpr u32 BLOCK_RANGE_MAP_MASK = ~(BLOCK_RANGE_SIZE - 1);
-  std::map<u32, std::unordered_set<JitBlock*>> block_range_map;
+  // While an ordered map may grant more performance by iterating through contigous macroblocks,
+  // actually taking advantage of it would make the code much more messy.
+  // TODO: Like above, a more performant hashmap would be appreciated.
+  std::unordered_map<u32, std::vector<JitBlock*>> block_range_map;
 
   // This bitset shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.
@@ -200,8 +224,7 @@ private:
   Common::LazyMemoryRegionBitSet valid_block{(1ULL << 32) / VALID_BLOCK_CACHE_LINE_SIZE};
 
   // This contains the entry points for each block.
-  // It is used by the assembly dispatcher to quickly
-  // know where to jump based on pc and msr bits.
+  // It is used by the assembly dispatcher to quickly know where to jump based on pc and msr bits.
   Common::LazyMemoryRegion m_entry_points_arena;
   u8** m_entry_points_ptr = nullptr;
 
