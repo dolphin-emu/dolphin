@@ -68,8 +68,9 @@ private:
 
   std::vector<LoadableSection> m_sections;
 
-  bool m_is_valid;
-  bool m_is_wii;
+  bool m_is_valid = false;
+  bool m_is_wii = false;
+  bool m_show_truncation_warning = false;
   std::optional<std::size_t> m_ancast_index;
 
   // Copy sections to internal buffers
