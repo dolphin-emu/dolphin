@@ -651,12 +651,15 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     if (arg.IsSimpleReg() && cpu_info.bMOVBE)
       arg_reg = arg.GetSimpleReg();
 
-    if (!arg.IsSimpleReg(arg_reg))
+    if (!arg.IsSimpleReg(arg_reg) && !arg.IsImm())
       MOV(accessSize, R(arg_reg), arg);
 
     // And store it in the gather pipe
     MOV(64, R(RSCRATCH2), PPCSTATE(gather_pipe_ptr));
-    SwapAndStore(accessSize, MatR(RSCRATCH2), arg_reg);
+    if (arg.IsImm())
+      MOV(accessSize, MatR(RSCRATCH2), SwapImmediate(accessSize, arg));
+    else
+      SwapAndStore(accessSize, MatR(RSCRATCH2), arg_reg);
     ADD(64, R(RSCRATCH2), Imm8(accessSize >> 3));
     MOV(64, PPCSTATE(gather_pipe_ptr), R(RSCRATCH2));
 
