@@ -8,6 +8,11 @@
 
 #if defined(__LIBUSB__)
 #include <libusb.h>
+#if defined(_WIN32)
+// Avoids timeval not being provided by libusb v1.0.30.
+// It looks like they have a fix in place for the next release.
+#include <winsock2.h>
+#endif
 #endif
 
 #include "Common/Flag.h"
