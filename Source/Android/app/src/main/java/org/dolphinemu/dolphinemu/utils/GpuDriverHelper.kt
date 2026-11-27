@@ -36,17 +36,6 @@ interface GpuDriverHelper {
         external fun supportsCustomDriverLoading(): Boolean
 
         /**
-         * Queries the driver for manual max clock forcing support
-         */
-        external fun supportsForceMaxGpuClocks(): Boolean
-
-        /**
-         * Calls into the driver to force the GPU to run at the maximum possible clock speed
-         * @param force Whether to enable or disable the forced clocks
-         */
-        external fun forceMaxGpuClocks(enable: Boolean)
-
-        /**
          * Uninstalls the currently installed custom driver
          */
         fun uninstallDriver() {

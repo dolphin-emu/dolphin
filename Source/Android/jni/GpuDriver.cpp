@@ -24,8 +24,6 @@
 
 extern "C" {
 
-#if defined(_M_ARM_64)
-
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDriverInfo(JNIEnv* env,
                                                                                         jobject)
@@ -96,55 +94,6 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_supportsCustomDriverLoading(
     JNIEnv* env, jobject instance)
 {
-  // If the KGSL (Adreno) or kbase (Mali) device exists custom drivers can be loaded using
-  // adrenotools
   return Vulkan::SupportsCustomDriver();
 }
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_supportsForceMaxGpuClocks(
-    JNIEnv* env, jobject instance)
-{
-  // If the KGSL device exists adrenotools can be used to set GPU turbo mode
-  return Vulkan::SupportsCustomDriver();
-}
-
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_forceMaxGpuClocks(
-    JNIEnv* env, jobject instance, jboolean enable)
-{
-  adrenotools_set_turbo(enable);
-}
-
-#else
-
-JNIEXPORT jobjectArray JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDriverInfo(
-    JNIEnv* env, jobject instance)
-{
-  auto array = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
-  return array;
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_supportsCustomDriverLoading(
-    JNIEnv* env, jobject instance)
-{
-  return false;
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_supportsForceMaxGpuClocks(
-    JNIEnv* env, jobject instance)
-{
-  return false;
-}
-
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_forceMaxGpuClocks(
-    JNIEnv* env, jobject instance, jboolean enable)
-{
-}
-
-#endif
 }

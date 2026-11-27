@@ -247,23 +247,13 @@ void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, const i
 }
 
 #ifdef ANDROID
-static bool CheckKgslPresent()
-{
-  constexpr auto KgslPath{"/dev/kgsl-3d0"};
-
-  return access(KgslPath, F_OK) == 0;
-}
-
-static bool CheckKbasePresent()
-{
-  constexpr auto KbasePath{"/dev/mali0"};
-
-  return access(KbasePath, F_OK) == 0;
-}
-
 bool SupportsCustomDriver()
 {
-  return android_get_device_api_level() >= 28 && (CheckKgslPresent() || CheckKbasePresent());
+#if _M_ARM_64
+  return android_get_device_api_level() >= 28;
+#else
+  return false;
+#endif
 }
 #endif
 
