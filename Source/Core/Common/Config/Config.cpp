@@ -77,6 +77,13 @@ ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func)
   return callback_id;
 }
 
+[[nodiscard]] ScopedConfigChangedCallbackID
+AddScopedConfigChangedCallback(ConfigChangedCallback func)
+{
+  return {new ConfigChangedCallbackID{Config::AddConfigChangedCallback(std::move(func))},
+          [](ConfigChangedCallbackID* cb) { Config::RemoveConfigChangedCallback(*cb); }};
+}
+
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
 {
   std::lock_guard lock(s_callbacks_lock);

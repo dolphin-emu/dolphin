@@ -10,6 +10,10 @@
 #include <optional>
 #include <utility>
 
+#if defined(__LIBUSB__)
+#include <libusb.h>
+#endif
+
 #include "Common/CommonTypes.h"
 
 struct libusb_config_descriptor;
@@ -60,7 +64,12 @@ struct ErrorWrap
 // Returns the UTF-16 descriptor converted to UTF-8 or returns nullopt on error.
 std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle,
                                                uint8_t desc_index);
-
+#if defined(__LIBUSB__)
+// Returns nullptr on failure.
+std::shared_ptr<void> CreateScopedHotplugCallback(
+    libusb_context* ctx, libusb_hotplug_event event, libusb_hotplug_flag flags, int vid, int pid,
+    int dev_class, std::function<void(libusb_device* dev, libusb_hotplug_event event)> callback);
+#endif
 }  // namespace LibusbUtils
 
 template <>

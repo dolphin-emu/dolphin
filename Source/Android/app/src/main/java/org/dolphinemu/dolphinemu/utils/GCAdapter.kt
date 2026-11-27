@@ -65,23 +65,10 @@ object GCAdapter {
         }
     }
 
+    @Keep
     @JvmStatic
-    fun shutdown() {
+    fun closeAdapter() {
         usbConnection!!.close()
-    }
-
-    @Keep
-    @JvmStatic
-    fun getFd(): Int {
-        return usbConnection!!.fileDescriptor
-    }
-
-    @Keep
-    @JvmStatic
-    fun isUsbDeviceAvailable(): Boolean {
-        synchronized(hotplugCallbackLock) {
-            return adapterDevice != null
-        }
     }
 
     private fun queryAdapter(): UsbDevice? {
@@ -112,8 +99,8 @@ object GCAdapter {
 
     @Keep
     @JvmStatic
-    fun output(rumble: ByteArray): Int {
-        return usbConnection!!.bulkTransfer(usbOut, rumble, 5, 16)
+    fun output(outputPayload: ByteArray): Int {
+        return usbConnection!!.bulkTransfer(usbOut, outputPayload, outputPayload.size, 16)
     }
 
     @Keep
