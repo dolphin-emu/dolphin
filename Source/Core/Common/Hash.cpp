@@ -6,12 +6,14 @@
 #include <algorithm>
 #include <bit>
 #include <cstring>
+#include <vector>
 
 #include <zlib.h>
 
-#include <mbedtls/md5.h>
+#include <wolfssl/wolfcrypt/md5.h>
 
 #include "Common/CPUDetect.h"
+#include "Common/IOFile.h"
 #include "Common/Intrinsics.h"
 
 #ifdef _M_ARM_64
@@ -462,31 +464,63 @@ u32 ComputeCRC32(std::string_view data)
 
 struct MD5Context::Impl
 {
-  mbedtls_md5_context context;
+  wc_Md5 context;
 };
 
 MD5Context::MD5Context() : m_impl{std::make_unique<Impl>()}
 {
-  mbedtls_md5_init(&m_impl->context);
-  mbedtls_md5_starts_ret(&m_impl->context);
+  wc_InitMd5(&m_impl->context);
 }
 
-// FYI: mbedtls_md5_free is unnecessary. It just zeroes the struct.
-MD5Context::~MD5Context() = default;
+MD5Context::~MD5Context()
+{
+  wc_Md5Free(&m_impl->context);
+}
 
 void MD5Context::Update(std::span<const u8> data)
 {
-  mbedtls_md5_update_ret(&m_impl->context, data.data(), data.size());
+  // wolfCrypt takes 32-bit lengths.
+  constexpr size_t max_chunk_size = 0x80000000;
+  while (!data.empty())
+  {
+    const size_t chunk_size = std::min(data.size(), max_chunk_size);
+    wc_Md5Update(&m_impl->context, data.data(), static_cast<word32>(chunk_size));
+    data = data.subspan(chunk_size);
+  }
 }
 
 void MD5Context::Finish(u8* output)
 {
-  mbedtls_md5_finish_ret(&m_impl->context, output);
+  wc_Md5Final(&m_impl->context, output);
 }
 
 void ComputeMD5(std::span<const u8> input, u8* output)
 {
-  mbedtls_md5_ret(input.data(), input.size(), output);
+  MD5Context context;
+  context.Update(input);
+  context.Finish(output);
+}
+
+std::optional<std::array<u8, 16>> ComputeFileMD5(const std::string& path)
+{
+  File::IOFile file(path, "rb");
+  if (!file)
+    return std::nullopt;
+
+  MD5Context context;
+  std::vector<u8> buffer(1024 * 1024);
+  for (u64 remaining = file.GetSize(); remaining != 0;)
+  {
+    const size_t size = static_cast<size_t>(std::min<u64>(remaining, buffer.size()));
+    if (!file.ReadBytes(buffer.data(), size))
+      return std::nullopt;
+    context.Update(std::span(buffer.data(), size));
+    remaining -= size;
+  }
+
+  std::array<u8, 16> md5;
+  context.Finish(md5.data());
+  return md5;
 }
 
 }  // namespace Common

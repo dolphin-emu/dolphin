@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <span>
+#include <string>
 #include <string_view>
 
 #include "Common/CommonTypes.h"
@@ -42,5 +45,8 @@ private:
 
 // output should point to 16 bytes.
 void ComputeMD5(std::span<const u8> input, u8* output);
+
+// Returns std::nullopt if the file cannot be opened or read.
+std::optional<std::array<u8, 16>> ComputeFileMD5(const std::string& path);
 
 }  // namespace Common

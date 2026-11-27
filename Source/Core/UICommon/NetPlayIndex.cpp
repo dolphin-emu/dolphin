@@ -257,8 +257,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
   };
 }
 
-// This encryption system uses simple XOR operations and a checksum
-// It isn't very secure but is preferable to adding another dependency on mbedtls
+// This encryption system uses simple XOR operations and a checksum. It isn't very secure
 // The encrypted data is encoded as nibbles with the character 'A' as the base offset
 
 bool NetPlaySession::EncryptID(std::string_view password)

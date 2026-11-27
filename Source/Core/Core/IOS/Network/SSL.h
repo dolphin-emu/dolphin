@@ -3,23 +3,14 @@
 
 #pragma once
 
-// These imports need to be in this order for mbed to be included correctly.
-// clang-format off
-
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/net_sockets.h>
-#include <mbedtls/pk.h>
-#include <mbedtls/platform.h>
-#include <mbedtls/ssl.h>
-#include <mbedtls/x509_crt.h>
 #include <string>
-
-// clang-format on
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+
+struct WOLFSSL;
+struct WOLFSSL_CTX;
 
 namespace IOS::HLE
 {
@@ -65,17 +56,12 @@ enum SSL_IOCTL
 
 struct WII_SSL
 {
-  mbedtls_ssl_context ctx{};
-  mbedtls_ssl_config config{};
-  mbedtls_ssl_session session{};
-  mbedtls_entropy_context entropy{};
-  mbedtls_ctr_drbg_context ctr_drbg{};
-  mbedtls_x509_crt cacert{};
-  mbedtls_x509_crt clicert{};
-  mbedtls_pk_context pk{};
+  WOLFSSL_CTX* ctx = nullptr;
+  WOLFSSL* ssl = nullptr;
   int sockfd = -1;
   int hostfd = -1;
   std::string hostname;
+  int verify_error = 0;
   bool active = false;
 };
 

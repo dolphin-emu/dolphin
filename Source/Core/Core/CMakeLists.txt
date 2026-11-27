@@ -686,7 +686,6 @@ PUBLIC
   enet::enet
   expr
   inputcommon
-  MbedTLS::mbedtls
   pugixml
   sfml-network
   videonull
@@ -698,6 +697,7 @@ PRIVATE
   fmt::fmt
   LZO::LZO
   LZ4::LZ4
+  wolfssl
   ZLIB::ZLIB
 )
 

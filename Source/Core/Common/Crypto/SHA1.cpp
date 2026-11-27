@@ -8,7 +8,8 @@
 #include <memory>
 
 #include <fmt/ranges.h>
-#include <mbedtls/sha1.h>
+
+#include <wolfssl/wolfcrypt/sha.h>
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
@@ -34,29 +35,32 @@
 
 namespace Common::SHA1
 {
-class ContextMbed final : public Context
+class ContextWolfCrypt final : public Context
 {
 public:
-  ContextMbed()
-  {
-    mbedtls_sha1_init(&ctx);
-    ASSERT(!mbedtls_sha1_starts_ret(&ctx));
-  }
-  ~ContextMbed() override { mbedtls_sha1_free(&ctx); }
+  ContextWolfCrypt() { ASSERT(!wc_InitSha(&ctx)); }
+  ~ContextWolfCrypt() override { wc_ShaFree(&ctx); }
   void Update(const u8* msg, size_t len) override
   {
-    ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
+    // wolfCrypt takes 32-bit lengths.
+    while (len != 0)
+    {
+      const size_t chunk = std::min<size_t>(len, 0x40000000);
+      ASSERT(!wc_ShaUpdate(&ctx, msg, static_cast<word32>(chunk)));
+      msg += chunk;
+      len -= chunk;
+    }
   }
   Digest Finish() override
   {
     Digest digest;
-    ASSERT(!mbedtls_sha1_finish_ret(&ctx, digest.data()));
+    ASSERT(!wc_ShaFinal(&ctx, digest.data()));
     return digest;
   }
   bool HwAccelerated() const override { return false; }
 
 private:
-  mbedtls_sha1_context ctx{};
+  wc_Sha ctx{};
 };
 
 class BlockContext : public Context
@@ -379,7 +383,7 @@ std::unique_ptr<Context> CreateContext()
     return std::make_unique<ContextNeon>();
 #endif
   }
-  return std::make_unique<ContextMbed>();
+  return std::make_unique<ContextWolfCrypt>();
 }
 
 Digest CalculateDigest(const u8* msg, size_t len)

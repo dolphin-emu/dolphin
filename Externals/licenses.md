@@ -60,8 +60,6 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://www.opengl.org/registry/api/GL/glext.h)
 - [PearPC](http://pearpc.sourceforge.net/):
    [GPLv2](http://pearpc.cvs.sourceforge.net/viewvc/pearpc/pearpc/COPYING?view=markup) (with permission by the author to license under GPLv2+)
-- [mbed TLS](https://tls.mbed.org/):
-   [Apache 2.0](https://github.com/ARMmbed/mbedtls/blob/development/LICENSE)
 - [PulseAudio](http://www.freedesktop.org/wiki/Software/PulseAudio/):
    [LGPLv2.1+](http://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/LICENSE)
 - [Qt5](http://qt-project.org/):
@@ -74,6 +72,8 @@ Dolphin includes or links code of the following third-party software projects:
    header only
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
+- [wolfSSL](https://www.wolfssl.com/):
+   [GPLv3+](https://github.com/wolfSSL/wolfssl/blob/master/LICENSING)
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [BSD 2-Clause](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
 - [YACardEmu](https://github.com/GXTX/YACardEmu)

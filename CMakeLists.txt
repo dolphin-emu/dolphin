@@ -688,12 +688,6 @@ dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/li
 # There is no system FreeSurround library.
 dolphin_add_bundled_library(FreeSurround Externals/FreeSurround)
 
-if (APPLE OR WIN32)
-  message(STATUS "Using ed25519 from Externals")
-  dolphin_add_bundled_library(ed25519 Externals/ed25519)
-  include_directories(Externals/ed25519)
-endif()
-
 if(ENABLE_CUBEB)
   dolphin_find_optional_system_library(CUBEB Externals/cubeb)
   add_definitions(-DHAVE_CUBEB)
@@ -716,7 +710,7 @@ if(USE_UPNP)
   add_definitions(-DUSE_UPNP)
 endif()
 
-dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
+dolphin_add_bundled_library(wolfSSL Externals/wolfssl)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
 

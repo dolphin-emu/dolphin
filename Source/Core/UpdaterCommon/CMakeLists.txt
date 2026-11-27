@@ -6,9 +6,8 @@ add_library(updatercommon
 
 target_link_libraries(updatercommon PRIVATE
   uicommon
-  MbedTLS::mbedtls
+  wolfssl
   ZLIB::ZLIB
-  ed25519
   cpp-optparse
 )
 
