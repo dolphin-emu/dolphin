@@ -49,6 +49,8 @@ private:
 
   void ShutdownFrameDumping();
 
+  void QueuePendingFrame();
+
   // Checks that the frame dump render texture exists and is the correct size.
   bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height);
 

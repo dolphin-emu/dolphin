@@ -117,6 +117,15 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
 
 void FrameDumper::FlushFrameDump()
 {
+  QueuePendingFrame();
+
+  // Shutdown frame dumping if it is no longer active.
+  if (m_frame_dump_thread_running.IsSet() && !IsFrameDumping())
+    ShutdownFrameDumping();
+}
+
+void FrameDumper::QueuePendingFrame()
+{
   if (!m_frame_dump_needs_flush)
     return;
 
@@ -139,16 +148,12 @@ void FrameDumper::FlushFrameDump()
   }
 
   m_frame_dump_needs_flush = false;
-
-  // Shutdown frame dumping if it is no longer active.
-  if (!IsFrameDumping())
-    ShutdownFrameDumping();
 }
 
 void FrameDumper::ShutdownFrameDumping()
 {
   // Ensure the last queued readback has been sent to the encoder.
-  FlushFrameDump();
+  QueuePendingFrame();
 
   if (!m_frame_dump_thread_running.IsSet())
     return;
