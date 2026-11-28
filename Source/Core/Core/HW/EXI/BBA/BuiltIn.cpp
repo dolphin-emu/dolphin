@@ -843,8 +843,8 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
-    FD_SET(fd, &write_fds);
-    FD_SET(fd, &except_fds);
+    Common::Safe_FD_SET(fd, &write_fds);
+    Common::Safe_FD_SET(fd, &except_fds);
 
     if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
     {
