@@ -121,6 +121,15 @@ void Interpreter::rti(const UDSPInstruction opc)
   state.pc = state.PopStack(StackRegister::Call);
 }
 
+// SWI
+// 0000 0000 0010 0000
+// Software interrupt. Will call 0x0004.
+void Interpreter::swi(const UDSPInstruction)
+{
+  auto& state = m_dsp_core.DSPState();
+  state.SetException(ExceptionType::SoftwareInterrupt);
+}
+
 // HALT
 // 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.

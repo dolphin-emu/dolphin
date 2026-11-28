@@ -81,6 +81,7 @@ public:
   void ifcc(UDSPInstruction opc);
   void ret(UDSPInstruction opc);
   void rti(UDSPInstruction opc);
+  void swi(UDSPInstruction opc);
   void halt(UDSPInstruction opc);
   void loop(UDSPInstruction opc);
   void loopi(UDSPInstruction opc);
