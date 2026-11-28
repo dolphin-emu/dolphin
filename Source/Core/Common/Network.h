@@ -298,6 +298,8 @@ std::string IPAddressToString(IPAddress ip_address);
 // Syntax is: first_ip[-last_ip|/network_prefix_length][:first_port[-last_port]]
 std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject);
 
+std::optional<std::string> GetHostname();
+
 MACAddress GenerateMacAddress(MACConsumer type);
 
 std::string MacAddressToString(const MACAddress& mac);
