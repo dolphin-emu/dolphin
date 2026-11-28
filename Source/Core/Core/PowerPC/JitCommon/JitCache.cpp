@@ -172,7 +172,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   block.originalSize = code_block.m_num_instructions;
   if (m_jit.IsDebuggingEnabled())
   {
-    // TODO C++23: Can do this all in one statement with `std::vector::assign_range`.
+    // TODO C++23 (GCC 15): Can do this all in one statement with `std::vector::assign_range`.
     const std::ranges::transform_view original_buffer_transform_view{
         std::span{code_buffer.data(), block.originalSize},
         [](const PPCAnalyst::CodeOp& op) { return std::make_pair(op.address, op.inst); }};

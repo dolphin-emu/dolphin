@@ -124,7 +124,7 @@ static std::optional<std::string> GzipInflate(const std::string& data)
 
   std::string out;
   const size_t buf_len = 20 * 1024 * 1024;
-  auto buffer = std::make_unique<char[]>(buf_len);
+  auto buffer = std::make_unique_for_overwrite<char[]>(buf_len);
   int ret;
 
   do

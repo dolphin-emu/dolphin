@@ -196,7 +196,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry) const
   std::vector<u8> data{};
   data.reserve(remaining_bytes);
 
-  auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
+  auto block = std::make_unique_for_overwrite<u8[]>(NAND_FAT_BLOCK_SIZE);
   while (remaining_bytes > 0)
   {
     if (sub >= m_superblock->fat.size())

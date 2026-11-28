@@ -191,7 +191,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     if (!aes_context)
       return false;
 
-    read_buffer = std::make_unique<u8[]>(BLOCK_TOTAL_SIZE);
+    read_buffer = std::make_unique_for_overwrite<u8[]>(BLOCK_TOTAL_SIZE);
   }
 
   while (length > 0)

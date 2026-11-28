@@ -278,7 +278,7 @@ int LibusbDevice::SubmitPlayStationRockBand3InstrumentControlTransfer()
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x89, 0x00,
       0x00, 0x00, 0x00, 0x00, 0xe9, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   const size_t size = length + LIBUSB_CONTROL_SETUP_SIZE;
-  auto buffer = std::make_unique<u8[]>(size);
+  auto buffer = std::make_unique_for_overwrite<u8[]>(size);
   std::ranges::copy(enable_instrument_inputs, buffer.get() + LIBUSB_CONTROL_SETUP_SIZE);
 
   libusb_fill_control_setup(buffer.get(), 0x21, 0x09, 0x0300, 0x00, length);
@@ -343,7 +343,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   }
 
   const size_t size = cmd->length + LIBUSB_CONTROL_SETUP_SIZE;
-  auto buffer = std::make_unique<u8[]>(size);
+  auto buffer = std::make_unique_for_overwrite<u8[]>(size);
   libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                             cmd->length);
 
