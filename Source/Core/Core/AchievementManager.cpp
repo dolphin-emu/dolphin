@@ -1485,16 +1485,17 @@ void AchievementManager::Request(const rc_api_request_t* request,
           server_response.body = reinterpret_cast<const char*>(http_response->data());
           server_response.body_length = http_response->size();
           server_response.http_status_code = http_request.GetLastResponseCode();
+          callback(&server_response, callback_data);
         }
         else
         {
-          static constexpr char error_message[] = "Failed HTTP request.";
-          server_response.body = error_message;
-          server_response.body_length = sizeof(error_message);
+          const auto error_message =
+              fmt::format("Failed HTTP request: {}", http_request.GetLastResponseCode());
+          server_response.body = error_message.data();
+          server_response.body_length = error_message.size();
           server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
+          callback(&server_response, callback_data);
         }
-
-        callback(&server_response, callback_data);
       });
 }
 
