@@ -6,9 +6,9 @@
 	path = Externals/mGBA/mgba
 	url = https://github.com/mgba-emu/mgba.git
 	shallow = true
-[submodule "Externals/FFmpeg-bin"]
-	path = Externals/FFmpeg-bin
-	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
+[submodule "Externals/FFmpeg"]
+	path = Externals/FFmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
 	shallow = true
 [submodule "libusb"]
 	path = Externals/libusb/libusb
