@@ -4,6 +4,7 @@
 #include "DolphinQt/Config/GameConfigWidget.h"
 
 #include <QFont>
+#include <QFontMetrics>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -168,6 +169,13 @@ void GameConfigWidget::CreateWidgets()
 
   depth_slider_value->setText(QString::asprintf("%.0f%%", m_depth_slider->GetValue()));
   convergence_slider_value->setText(QString::asprintf("%.2f", m_convergence_slider->GetValue()));
+
+  // Reserve enough space for the widest possible values ("999%" / "1000.00") so that the changing
+  // label text doesn't resize the column and jiggle the sliders.
+  const QFontMetrics font_metrics{font()};
+  depth_slider_value->setFixedWidth(font_metrics.boundingRect(QStringLiteral("999%")).width());
+  convergence_slider_value->setFixedWidth(
+      font_metrics.boundingRect(QStringLiteral("1000.00")).width());
 
   auto* general_layout = new QVBoxLayout;
   general_layout->addWidget(core_box);
