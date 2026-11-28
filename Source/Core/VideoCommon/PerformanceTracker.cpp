@@ -16,12 +16,11 @@
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
-static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
-static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
+static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12u;
+static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8u;
 
-PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name,
-                                       const std::optional<DT> sample_window_duration)
-    : m_log_name{std::move(log_name)}, m_sample_window_duration{sample_window_duration}
+PerformanceTracker::PerformanceTracker(std::optional<std::string> log_name)
+    : m_log_name{std::move(log_name)}
 {
   Reset();
 }
@@ -97,10 +96,9 @@ void PerformanceTracker::UpdateStats()
                  std::memory_order_relaxed);
 }
 
-DT PerformanceTracker::GetSampleWindow() const
+DT PerformanceTracker::GetSampleWindow()
 {
-  return m_sample_window_duration.value_or(
-      duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)}));
+  return duration_cast<DT>(DT_us{std::max(1, g_ActiveConfig.iPerfSampleUSec)});
 }
 
 double PerformanceTracker::GetHzAvg() const
@@ -132,7 +130,8 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
 {
   // "quality" graph uses twice as many points.
   static_assert(MAX_QUALITY_GRAPH_SIZE * 2 <= MAX_DT_QUEUE_SIZE);
-  static std::array<float, MAX_DT_QUEUE_SIZE + 1> x, y;
+  static std::array<float, MAX_DT_QUEUE_SIZE> x;
+  static std::array<float, MAX_DT_QUEUE_SIZE> y;
 
   if (m_dt_queue.empty())
     return;
@@ -141,7 +140,8 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
   const bool quality = m_dt_queue.size() < MAX_QUALITY_GRAPH_SIZE;
 
   std::size_t point_index = 0;
-  const auto add_point = [&](DT dt, DT shift_x, float prev_ms) {
+  float prev_ms = 0;
+  const auto add_point = [&](DT dt) {
     const float ms = DT_ms{dt}.count();
 
     if (quality)
@@ -151,19 +151,15 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
       ++point_index;
     }
 
-    x[point_index] = prev_ms + DT_ms{shift_x}.count();
+    x[point_index] = prev_ms + ms;
+    prev_ms = x[point_index];
     y[point_index] = ms;
     ++point_index;
   };
 
-  // Rightmost point.
-  const auto update_time = Clock::now() - m_last_time;
-  const auto predicted_frame_time = std::max(update_time, m_dt_queue.front());
-  add_point(predicted_frame_time, DT{}, 0);
-
-  // Other points, right to left.
+  // Add points, right to left.
   for (auto dt : m_dt_queue)
-    add_point(dt, dt, x[point_index - 1]);
+    add_point(dt);
 
   ImPlot::PlotLine(label, x.data(), y.data(), static_cast<int>(point_index));
 }
