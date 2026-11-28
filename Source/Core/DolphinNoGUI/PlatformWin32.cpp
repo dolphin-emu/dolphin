@@ -29,7 +29,7 @@ public:
   WindowSystemInfo GetWindowSystemInfo() const override;
 
 private:
-  static constexpr TCHAR WINDOW_CLASS_NAME[] = _T("DolphinNoGUI");
+  static constexpr WCHAR WINDOW_CLASS_NAME[] = L"DolphinNoGUI";
 
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -70,7 +70,7 @@ bool PlatformWin32::RegisterRenderWindowClass()
 
   if (!RegisterClassEx(&wc))
   {
-    MessageBox(nullptr, _T("Window registration failed."), _T("Error"), MB_ICONERROR | MB_OK);
+    MessageBox(nullptr, L"Window registration failed.", L"Error", MB_ICONERROR | MB_OK);
     return false;
   }
 
@@ -79,13 +79,13 @@ bool PlatformWin32::RegisterRenderWindowClass()
 
 bool PlatformWin32::CreateRenderWindow()
 {
-  m_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WINDOW_CLASS_NAME, _T("Dolphin"), WS_OVERLAPPEDWINDOW,
+  m_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WINDOW_CLASS_NAME, L"Dolphin", WS_OVERLAPPEDWINDOW,
                           m_window_x < 0 ? CW_USEDEFAULT : m_window_x,
                           m_window_y < 0 ? CW_USEDEFAULT : m_window_y, m_window_width,
                           m_window_height, nullptr, nullptr, GetModuleHandle(nullptr), this);
   if (!m_hwnd)
   {
-    MessageBox(nullptr, _T("CreateWindowEx failed."), _T("Error"), MB_ICONERROR | MB_OK);
+    MessageBox(nullptr, L"CreateWindowEx failed.", L"Error", MB_ICONERROR | MB_OK);
     return false;
   }
 
