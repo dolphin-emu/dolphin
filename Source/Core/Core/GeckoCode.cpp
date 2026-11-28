@@ -26,6 +26,16 @@ namespace Gecko
 {
 static constexpr u32 CODE_SIZE = 8;
 
+// ArenaHi lives in the OS low-memory globals; it marks the top of the game's dynamic allocation arena.
+static constexpr u32 ARENA_HI_ADDRESS = 0x80000034;
+
+// Buffer between the carved codelist and the original ArenaHi. Removing causes the last code in the list to be dropped.
+static constexpr u32 EXPANDED_CODELIST_PADDING = 0x10;
+
+// Offsets of the lis/ori pair inside codehandler.bin that loads the codelist
+static constexpr u32 CODEHANDLER_CODELIST_PTR_HI = 0x80001904;
+static constexpr u32 CODEHANDLER_CODELIST_PTR_LO = 0x80001908;
+
 bool operator==(const GeckoCode& lhs, const GeckoCode& rhs)
 {
   return lhs.codes == rhs.codes;
@@ -156,6 +166,22 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
       INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
   const u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
+  const u32 arena_hi = PowerPC::MMU::HostRead<u32>(guard, ARENA_HI_ADDRESS);
+
+  u32 total_bytes = 0;
+  for (const GeckoCode& code : s_active_codes)
+    total_bytes += static_cast<u32>(code.codes.size()) * CODE_SIZE;
+
+  *codelist_base_address = arena_hi - total_bytes - EXPANDED_CODELIST_PADDING;
+  *codelist_end_address = arena_hi;
+
+  PowerPC::MMU::HostWrite<u32>(guard, *codelist_base_address, ARENA_HI_ADDRESS);
+
+  PowerPC::MMU::HostWrite<u32>(guard, ((*codelist_base_address & 0xFFFF0000) >> 16) + 0x3DE00000,
+                                CODEHANDLER_CODELIST_PTR_HI);
+  PowerPC::MMU::HostWrite<u32>(guard, (*codelist_base_address & 0x0000FFFF) + 0x61EF0000,
+                                CODEHANDLER_CODELIST_PTR_LO);
+
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
   PowerPC::MMU::HostWrite<u32>(guard, MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
@@ -211,6 +237,13 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
     ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
   }
   Host_JitCacheInvalidation();
+
+  // invalidate icache for region where codelist was placed
+  for (u32 j = 0; j < (codelist_end_address - codelist_base_address); j += 32)
+  {
+    ppc_state.iCache.Invalidate(memory, jit_interface, codelist_base_address + j);
+  }
+
   return Installation::Installed;
 }
 
