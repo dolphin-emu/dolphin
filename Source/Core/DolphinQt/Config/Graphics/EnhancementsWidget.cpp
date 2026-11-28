@@ -5,6 +5,7 @@
 
 #include <utility>
 
+#include <QFontMetrics>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -239,6 +240,13 @@ void EnhancementsWidget::CreateWidgets()
 
   m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue()));
   m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
+
+  // Reserve enough space for the widest possible values ("999" / "999.99") so that the changing
+  // label text doesn't resize the column and jiggle the sliders.
+  const QFontMetrics font_metrics{font()};
+  m_3d_depth_value->setFixedWidth(font_metrics.boundingRect(QStringLiteral("999")).width());
+  m_3d_convergence_value->setFixedWidth(
+      font_metrics.boundingRect(QStringLiteral("999.99")).width());
 
   auto current_stereo_mode = Get(m_game_layer, Config::GFX_STEREO_MODE);
   if (current_stereo_mode != StereoMode::SideBySide &&
