@@ -163,17 +163,6 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     {
     case INTERRUPT:
       exi_status.interrupt &= data ^ 0xff;
-      // raise back if there is still data
-      if (page_ptr(BBA_RRP) != page_ptr(BBA_RWP))
-      {
-        if (mBbaMem[BBA_IMR] & INT_R)
-        {
-          mBbaMem[BBA_IR] |= INT_R;
-
-          exi_status.interrupt |= exi_status.TRANSFER;
-        }
-      }
-
       break;
     case INTERRUPT_MASK:
       exi_status.interrupt_mask = data;
