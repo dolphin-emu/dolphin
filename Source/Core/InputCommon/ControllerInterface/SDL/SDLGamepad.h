@@ -350,6 +350,9 @@ public:
     return Core::DeviceRemoval::Keep;
   }
 
+protected:
+  SDL_Gamepad* const m_gamepad;
+
 private:
   void UpdateRumble()
   {
@@ -369,7 +372,6 @@ private:
   Uint16 m_trigger_l_rumble = 0;
   Uint16 m_trigger_r_rumble = 0;
 
-  SDL_Gamepad* const m_gamepad;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
