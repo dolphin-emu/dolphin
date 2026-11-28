@@ -146,8 +146,11 @@ struct Memory
   bool m_ocarina = false;
 
   // If true, the offset is not known, and instead we should search for the m_original bytes in
-  // memory and replace them where found. Only searches in MEM1, and only replaces the first match.
+  // memory and replace them where found. Only searches in MEM1.
   bool m_search = false;
+
+  // For m_search. Replaces up to m_search_count occurrences.
+  u32 m_search_count = 1;
 
   // For m_search. The byte stride between search points.
   u32 m_align = 1;
