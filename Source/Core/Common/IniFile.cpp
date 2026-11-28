@@ -299,7 +299,8 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
           // Kind of a hack, but the support for raw lines inside an
           // INI is a hack anyway.
           if ((key.empty() && value.empty()) ||
-              (!line.empty() && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+              (!line.empty() &&
+               (line[0] == '$' || line[0] == '+' || line[0] == '*' || line[0] == '{')))
           {
             current_section->m_lines.emplace_back(line);
           }
