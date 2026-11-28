@@ -91,7 +91,7 @@ std::string Profiler::ToString()
   {
     buffer << profiler->Read() << std::endl;
   }
-  s_lazy_result = buffer.str();
+  s_lazy_result = std::move(buffer).str();
   return s_lazy_result;
 }
 
@@ -160,6 +160,6 @@ std::string Profiler::Read()
   m_usecs_quad = 0;
   m_calls = 0;
 
-  return buffer.str();
+  return std::move(buffer).str();
 }
 }  // namespace Common

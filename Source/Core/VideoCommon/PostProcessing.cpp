@@ -3,7 +3,6 @@
 
 #include "VideoCommon/PostProcessing.h"
 
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -318,27 +317,14 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     break;
     case ConfigurationOption::OptionType::Integer:
     {
-      std::string value;
-      for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
-      {
-        value += fmt::format("{}{}", it.second.m_integer_values[i],
-                             i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
-      }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
+      std::string value = fmt::format("{}", fmt::join(it.second.m_integer_values, ", "));
+      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, std::move(value));
     }
     break;
     case ConfigurationOption::OptionType::Float:
     {
-      std::ostringstream value;
-      value.imbue(std::locale::classic());
-
-      for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
-      {
-        value << it.second.m_float_values[i];
-        if (i != (it.second.m_float_values.size() - 1))
-          value << ", ";
-      }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
+      std::string value = fmt::format("{}", fmt::join(it.second.m_float_values, ", "));
+      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, std::move(value));
     }
     break;
     }
@@ -762,7 +748,7 @@ void SetOutput(float4 color)
 #define OptionDisabled(x) ((x) == 0)
 
 )";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetFooter() const
@@ -804,7 +790,7 @@ static std::string GetVertexShaderBody()
   }
 
   ss << "}\n";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 bool PostProcessing::CompileVertexShader()
@@ -812,13 +798,14 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss_default;
   ss_default << GetUniformBufferHeader(false);
   ss_default << GetVertexShaderBody();
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, ss_default.str(), nullptr, "Default post-processing vertex shader");
+  m_default_vertex_shader =
+      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, std::move(ss_default).str(), nullptr,
+                                    "Default post-processing vertex shader");
 
   std::ostringstream ss;
   ss << GetUniformBufferHeader(true);
   ss << GetVertexShaderBody();
-  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), nullptr,
+  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, std::move(ss).str(), nullptr,
                                                   "Post-processing vertex shader");
 
   if (!m_default_vertex_shader || !m_vertex_shader)

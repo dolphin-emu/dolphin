@@ -1096,7 +1096,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
   ss << decoding_shader_header;
   ss << info->shader_body;
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
@@ -1214,7 +1214,7 @@ float4 DecodePixel(int val)
   ss << "  ocol0 = DecodePixel(src);\n";
   ss << "}\n";
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 }  // namespace TextureConversionShaderTiled
