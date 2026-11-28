@@ -20,6 +20,7 @@ constexpr u8 MAX_SKYLANDERS = 16;
 constexpr u8 NUM_SKYLANDER_GAMES = 5;
 constexpr u8 NUM_SKYLANDER_TYPES = 10;
 constexpr u8 NUM_SKYLANDER_ELEMENTS = 11;
+constexpr u8 NUM_SKYLANDER_SSA_HEROICS = 32;
 
 namespace IOS::HLE::USB
 {
